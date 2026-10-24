@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, email, displayName, photoURL, createdAt
+    //
+    // Collection: trips
+    // Fields: userId, name, origin, destination, waypoints, travelMode, distance, duration, createdAt
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "ammnogueira@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string && data.uid.size() < 128 &&
+             data.email is string && data.email.size() < 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 128)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 1024)) &&
+             (!('createdAt' in data) || data.createdAt is number);
+    }
+
+    function isValidTrip(data) {
+      return data.keys().hasAll(['userId', 'origin', 'destination', 'createdAt']) &&
+             data.userId is string && data.userId.size() < 128 &&
+             data.origin is string && data.origin.size() < 512 &&
+             data.destination is string && data.destination.size() < 512 &&
+             data.createdAt is number &&
+             (!('name' in data) || (data.name is string && data.name.size() < 256)) &&
+             (!('waypoints' in data) || (data.waypoints is list && data.waypoints.size() < 25)) &&
+             (!('travelMode' in data) || (data.travelMode is string && data.travelMode.size() < 32)) &&
+             (!('distance' in data) || (data.distance is string && data.distance.size() < 64)) &&
+             (!('duration' in data) || (data.duration is string && data.duration.size() < 64));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /trips/{tripId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidTrip(request.resource.data);
+      allow update: if isDocOwner() && request.resource.data.userId == request.auth.uid && isValidTrip(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+  }
+}
