@@ -142,7 +142,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanRoute, initialPrompt }) => {
           {isPlanning && (
             <div className="flex items-center gap-2 text-xs text-emerald-700">
               <Loader2 size={14} className="animate-spin" />
-              Planning your route and finding stops…
+              Planning your route and finding stops… this can take up to a minute.
             </div>
           )}
         </div>

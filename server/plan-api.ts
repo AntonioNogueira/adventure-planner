@@ -1,6 +1,6 @@
 import type { Plugin, Connect } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -41,7 +41,7 @@ CRITICAL GUIDELINES:
 1. REALISM: Use realistic daily distances. Bikepacking 60-100 km/day, hiking 15-30 km/day, adventure motorcycling 200-400 km/day.
 2. TERRAIN: Prioritize scenic secondary roads and off-road trails.
 3. STOPS: For a trip of N days provide exactly N-1 intermediate waypoints (the overnight stop at the end of each day except the last).
-4. RECOMMENDATIONS: For the START, the FINISH and EACH STOP provide exactly 4 categories (${CATEGORIES.map(c => `"${c}"`).join(', ')}) with 3-5 specific, real places per category, each with a short description.
+4. RECOMMENDATIONS: For the START, the FINISH and EACH STOP provide exactly 4 categories (${CATEGORIES.map(c => `"${c}"`).join(', ')}) with 3 specific, real places per category, each with a one-line description.
 5. CONTINUITY: If the user is refining a previous plan, keep the core route and apply the requested changes.
 6. GEOLOCATION: Every origin, destination and waypoint must be a specific geocodable name such as "Moab, Utah" or "Porto, Portugal". Never use placeholders like "Home" or "My location".
 7. TRAVEL MODE: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips. Avoid TRANSIT when there are intermediate waypoints.`;
@@ -192,7 +192,8 @@ async function planWithGemini(env: PlanEnv, prompt: string) {
   const response = await ai.models.generateContent({
     model: env.GEMINI_MODEL || 'gemini-flash-latest',
     contents: prompt,
-    config: { responseMimeType: 'application/json', responseSchema },
+    // Low thinking keeps responses fast enough for an interactive planner.
+    config: { responseMimeType: 'application/json', responseSchema, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
   });
   if (!response.text) throw new Error('Empty response from Gemini');
   return JSON.parse(response.text);
