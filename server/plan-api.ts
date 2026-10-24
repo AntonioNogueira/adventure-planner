@@ -5,9 +5,9 @@ import { ApiError, GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
-//   POST /api/plan                 plan a trip from a chat request
-//   POST /api/recommendations      places to stay/eat/etc. near one location (after a stop is moved)
+//   POST /api/plan                 understand a trip request (start, finish, mode, days, places to pass)
 //   POST /api/extract-reservation  read a booking PDF/email/image and return its details
+// Overnight stops and place suggestions come from Google Maps/Places in the browser, not from the AI.
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
 interface PlanEnv {
@@ -33,145 +33,101 @@ function buildPrompt(request: string, history: ChatMessage[]) {
     .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
     .join('\n');
 
-  return `You are an expert adventure travel planner specializing in bikepacking, adventure motorcycling, hiking and off-road expeditions.
+  return `You read trip requests for an adventure route planner (bikepacking, hiking, adventure motorcycling).
+The app calculates the route and picks overnight towns itself with Google Maps; your job is only to understand the request.
 
-PREVIOUS CONVERSATION CONTEXT:
+PREVIOUS CONVERSATION:
 ${historyContext || '(none)'}
 
 NEW REQUEST: "${request}"
 
-CRITICAL GUIDELINES:
-1. DAILY DISTANCE (most important): plan each day by the real road/trail distance, not the straight line, which is often 20-40% shorter.
-   - Bikepacking (loaded bike): 50-80 km/day, never more than 90 km. Hilly terrain: aim for the low end.
-   - Hiking: 15-25 km/day, never more than 30 km.
-   - Adventure motorcycling: 200-350 km/day, never more than 450 km.
-   - If the user states a daily distance, use it instead.
-   Before answering, estimate the route distance between each pair of consecutive stops and check every day against these limits.
-2. TERRAIN: Prioritize scenic secondary roads and off-road trails.
-3. STOPS: Each waypoint is the overnight stop at the end of a day (except the last day, which ends at the finish).
-   - If the user gives a number of days N, provide exactly N-1 waypoints.
-   - If not, choose the number of days from the total distance and the daily limits above.
-   - Overnight stops must be towns or villages with somewhere to sleep.
-   - Never more than 20 waypoints.
-4. RECOMMENDATIONS: For the START, the FINISH and EACH STOP provide exactly 4 categories (${CATEGORIES.map(c => `"${c}"`).join(', ')}) with 3 specific, real places per category, each with a one-line description.
-5. CONTINUITY: If the user is refining a previous plan, keep the core route and apply the requested changes.
-6. GEOLOCATION: Every origin, destination and waypoint must be a specific geocodable name such as "Moab, Utah" or "Porto, Portugal". Never use placeholders like "Home" or "My location".
-7. TRAVEL MODE: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips. Avoid TRANSIT when there are intermediate waypoints.`;
+Return:
+- origin, destination: specific geocodable places, e.g. "Cádiz, Spain". If the user is changing an earlier plan, keep its start and finish unless they change them.
+- travelMode: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips, TRANSIT only for public transport.
+- days: number of days if the user gives one, otherwise 0.
+- dailyKm: the daily distance if the user gives one (e.g. "about 60 km per day"), otherwise 0.
+- route: places in travel order between origin and destination that the route must pass through.
+  Include a place only if the user names it, or if the requested style needs it (e.g. "along the coast": 1-3 coastal towns that keep the route on the coast).
+  Every place must lie between the origin and destination in the direction of travel; never add detours.
+  Set overnight=true only if the user wants to sleep there. Leave the list empty if nothing is needed.
+- lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any".
+- summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.`;
 }
 
-const interestsSchema = {
-  type: Type.ARRAY,
-  items: {
-    type: Type.OBJECT,
-    properties: {
-      category: { type: Type.STRING },
-      items: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            description: { type: Type.STRING },
-          },
-          required: ['name'],
-        },
-      },
-    },
-    required: ['category', 'items'],
-  },
-};
-
+const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'summary'];
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
     origin: { type: Type.STRING },
-    originInterests: interestsSchema,
     destination: { type: Type.STRING },
-    destinationInterests: interestsSchema,
-    waypoints: {
+    travelMode: { type: Type.STRING, enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
+    days: { type: Type.INTEGER },
+    dailyKm: { type: Type.INTEGER },
+    route: {
       type: Type.ARRAY,
       items: {
         type: Type.OBJECT,
-        properties: {
-          location: { type: Type.STRING },
-          interests: interestsSchema,
-        },
-        required: ['location', 'interests'],
+        properties: { place: { type: Type.STRING }, overnight: { type: Type.BOOLEAN } },
+        required: ['place', 'overnight'],
       },
     },
-    travelMode: { type: Type.STRING, enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
-    adventureSummary: {
-      type: Type.STRING,
-      description: 'A brief summary of the adventure, including estimated days and terrain type.',
-    },
+    lodging: { type: Type.STRING, enum: ['any', 'camping', 'hostel', 'hotel'] },
+    summary: { type: Type.STRING },
   },
-  required: [
-    'origin', 'originInterests',
-    'destination', 'destinationInterests',
-    'waypoints', 'travelMode', 'adventureSummary',
-  ],
+  required: intentFields,
 };
 
 // Plain-text description of the same shape, for providers without schema support.
 const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
 {
   "origin": string,
-  "originInterests": [{ "category": string, "items": [{ "name": string, "description": string }] }],
   "destination": string,
-  "destinationInterests": [ ...same as originInterests ],
-  "waypoints": [{ "location": string, "interests": [ ...same as originInterests ] }],
   "travelMode": "DRIVING" | "WALKING" | "BICYCLING" | "TRANSIT",
-  "adventureSummary": string
+  "days": number,
+  "dailyKm": number,
+  "route": [{ "place": string, "overnight": boolean }],
+  "lodging": "any" | "camping" | "hostel" | "hotel",
+  "summary": string
 }`;
 
 // Plain JSON Schema for Claude structured outputs (every object closed with additionalProperties: false).
-const interestsJsonSchema = {
-  type: 'array',
-  items: {
-    type: 'object',
-    properties: {
-      category: { type: 'string' },
-      items: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: { name: { type: 'string' }, description: { type: 'string' } },
-          required: ['name', 'description'],
-          additionalProperties: false,
-        },
-      },
-    },
-    required: ['category', 'items'],
-    additionalProperties: false,
-  },
-};
-
 const planJsonSchema = {
   type: 'object',
   properties: {
     origin: { type: 'string' },
-    originInterests: interestsJsonSchema,
     destination: { type: 'string' },
-    destinationInterests: interestsJsonSchema,
-    waypoints: {
+    travelMode: { type: 'string', enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
+    days: { type: 'integer' },
+    dailyKm: { type: 'integer' },
+    route: {
       type: 'array',
       items: {
         type: 'object',
-        properties: { location: { type: 'string' }, interests: interestsJsonSchema },
-        required: ['location', 'interests'],
+        properties: { place: { type: 'string' }, overnight: { type: 'boolean' } },
+        required: ['place', 'overnight'],
         additionalProperties: false,
       },
     },
-    travelMode: { type: 'string', enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
-    adventureSummary: { type: 'string' },
+    lodging: { type: 'string', enum: ['any', 'camping', 'hostel', 'hotel'] },
+    summary: { type: 'string' },
   },
-  required: [
-    'origin', 'originInterests',
-    'destination', 'destinationInterests',
-    'waypoints', 'travelMode', 'adventureSummary',
-  ],
+  required: intentFields,
   additionalProperties: false,
 };
+
+// ---- Usage log: one line per AI call plus running totals, printed in the terminal ----
+const usage = { calls: 0, failed: 0, inputTokens: 0, outputTokens: 0 };
+
+function logUsage(task: string, model: string, started: number, result: { input?: number; output?: number; error?: string }) {
+  usage.calls++;
+  if (result.error) usage.failed++;
+  usage.inputTokens += result.input || 0;
+  usage.outputTokens += result.output || 0;
+  const seconds = ((Date.now() - started) / 1000).toFixed(1);
+  const outcome = result.error ? `FAILED ${result.error}` : `ok, tokens ${result.input ?? '?'} in / ${result.output ?? '?'} out`;
+  console.log(`[ai] ${task} · ${model} · ${seconds}s · ${outcome}`);
+  console.log(`[ai] session total: ${usage.calls} calls (${usage.failed} failed), ${usage.inputTokens} in / ${usage.outputTokens} out tokens`);
+}
 
 // A file sent by the browser (base64), already split into what each provider accepts.
 interface UploadedFile {
@@ -180,7 +136,7 @@ interface UploadedFile {
   text?: string;  // decoded text, for emails and text files
 }
 
-async function runClaude(env: PlanEnv, prompt: string, schema: Record<string, unknown>, file?: UploadedFile) {
+async function runClaude(env: PlanEnv, task: string, prompt: string, schema: Record<string, unknown>, file?: UploadedFile) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
   const content: Anthropic.Beta.Messages.BetaContentBlockParam[] = [];
   if (file?.text) {
@@ -192,8 +148,10 @@ async function runClaude(env: PlanEnv, prompt: string, schema: Record<string, un
   }
   content.push({ type: 'text', text: prompt });
 
+  const model = env.CLAUDE_MODEL || 'claude-opus-5-5';
+  const started = Date.now();
   const response = await client.beta.messages.create({
-    model: env.CLAUDE_MODEL || 'claude-opus-5-5',
+    model,
     max_tokens: 16000,
     // If a safety classifier declines, the API retries on Anthropic's recommended fallback model.
     betas: ['server-side-fallback-2026-07-01'],
@@ -203,7 +161,11 @@ async function runClaude(env: PlanEnv, prompt: string, schema: Record<string, un
       format: { type: 'json_schema', schema },
     },
     messages: [{ role: 'user', content }],
+  }).catch(err => {
+    logUsage(task, model, started, { error: err instanceof Error ? err.message.slice(0, 80) : String(err) });
+    throw err;
   });
+  logUsage(task, model, started, { input: response.usage.input_tokens, output: response.usage.output_tokens });
 
   if (response.stop_reason === 'refusal') {
     throw new Error(`Claude declined the request${response.stop_details?.category ? ` (${response.stop_details.category})` : ''}`);
@@ -222,7 +184,7 @@ async function runClaude(env: PlanEnv, prompt: string, schema: Record<string, un
 const GEMINI_RETRYABLE = new Set([429, 500, 503]);
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function runGemini(env: PlanEnv, prompt: string, responseSchema: object, file?: UploadedFile) {
+async function runGemini(env: PlanEnv, task: string, prompt: string, responseSchema: object, file?: UploadedFile) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
   const models = [...new Set([
     env.GEMINI_MODEL || 'gemini-flash-lite-latest',
@@ -233,6 +195,7 @@ async function runGemini(env: PlanEnv, prompt: string, responseSchema: object, f
   for (const model of models) {
     for (const delay of [0, 3000]) {
       if (delay) await sleep(delay);
+      const started = Date.now();
       try {
         const response = await ai.models.generateContent({
           model,
@@ -245,12 +208,16 @@ async function runGemini(env: PlanEnv, prompt: string, responseSchema: object, f
           // Low thinking keeps responses fast enough for an interactive planner.
           config: { responseMimeType: 'application/json', responseSchema, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
         });
+        logUsage(task, model, started, {
+          input: response.usageMetadata?.promptTokenCount,
+          output: (response.usageMetadata?.candidatesTokenCount || 0) + (response.usageMetadata?.thoughtsTokenCount || 0),
+        });
         if (!response.text) throw new Error('Empty response from Gemini');
         return JSON.parse(response.text);
       } catch (err) {
         lastError = err;
+        if (err instanceof ApiError) logUsage(task, model, started, { error: `${err.status}${GEMINI_RETRYABLE.has(err.status) ? ' (busy, will retry)' : ''}` });
         if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
-        console.warn(`[plan-api] ${model} returned ${err.status}, retrying`);
       }
     }
   }
@@ -259,6 +226,8 @@ async function runGemini(env: PlanEnv, prompt: string, responseSchema: object, f
 
 // OpenAI is only used for trip planning (text in, JSON out).
 async function planWithOpenAI(env: PlanEnv, prompt: string) {
+  const model = env.OPENAI_MODEL || 'gpt-4.1-mini';
+  const started = Date.now();
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -266,7 +235,7 @@ async function planWithOpenAI(env: PlanEnv, prompt: string) {
       Authorization: `Bearer ${env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: env.OPENAI_MODEL || 'gpt-4.1-mini',
+      model,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: jsonShapeHint },
@@ -276,12 +245,15 @@ async function planWithOpenAI(env: PlanEnv, prompt: string) {
   });
   if (!res.ok) throw new Error(`OpenAI ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const data = await res.json();
+  logUsage('plan', model, started, { input: data.usage?.prompt_tokens, output: data.usage?.completion_tokens });
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error('Empty response from OpenAI');
   return JSON.parse(text);
 }
 
 interface AiTask {
+  /** Short name for the usage log. */
+  name: string;
   prompt: string;
   geminiSchema: object;
   claudeSchema: Record<string, unknown>;
@@ -292,8 +264,8 @@ interface AiTask {
 
 function providers(env: PlanEnv, task: AiTask) {
   const list: { name: string; run: () => Promise<any> }[] = [];
-  if (env.ANTHROPIC_API_KEY) list.push({ name: 'claude', run: () => runClaude(env, task.prompt, task.claudeSchema, task.file) });
-  if (env.GEMINI_API_KEY) list.push({ name: 'gemini', run: () => runGemini(env, task.prompt, task.geminiSchema, task.file) });
+  if (env.ANTHROPIC_API_KEY) list.push({ name: 'claude', run: () => runClaude(env, task.name, task.prompt, task.claudeSchema, task.file) });
+  if (env.GEMINI_API_KEY) list.push({ name: 'gemini', run: () => runGemini(env, task.name, task.prompt, task.geminiSchema, task.file) });
   if (env.OPENAI_API_KEY && task.allowOpenAI) list.push({ name: 'openai', run: () => planWithOpenAI(env, task.prompt) });
   if (env.AI_PROVIDER) {
     const preferred = list.filter(p => p.name === env.AI_PROVIDER);
@@ -320,6 +292,13 @@ function sendJson(res: ServerResponse, status: number, payload: unknown) {
   res.end(JSON.stringify(payload));
 }
 
+// One line showing what the AI understood, so odd routes are easy to trace in the terminal.
+function describeIntent(intent: any) {
+  const via = (intent.route || []).map((r: any) => `${r.place}${r.overnight ? ' (night)' : ''}`).join(' → ');
+  return `${intent.origin} → ${via ? via + ' → ' : ''}${intent.destination} · ${intent.travelMode}`
+    + `${intent.days ? ` · ${intent.days} days` : ''}${intent.dailyKm ? ` · ${intent.dailyKm} km/day` : ''} · lodging ${intent.lodging}`;
+}
+
 async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: string) {
   const available = providers(env, task);
   if (available.length === 0) {
@@ -331,6 +310,7 @@ async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: str
   for (const provider of available) {
     try {
       const result = await provider.run();
+      if (key === 'plan') console.log(`[ai] understood: ${describeIntent(result)}`);
       return sendJson(res, 200, { provider: provider.name, [key]: result });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -339,23 +319,6 @@ async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: str
     }
   }
   sendJson(res, 502, { error: 'All AI providers failed', details: failures });
-}
-
-const recommendationsGeminiSchema = {
-  type: Type.OBJECT,
-  properties: { interests: interestsSchema },
-  required: ['interests'],
-};
-const recommendationsJsonSchema = {
-  type: 'object',
-  properties: { interests: interestsJsonSchema },
-  required: ['interests'],
-  additionalProperties: false,
-};
-
-function buildRecommendationsPrompt(location: string, travelMode: string) {
-  return `You are an expert adventure travel planner. A traveller (travel mode: ${travelMode}) is stopping overnight in "${location}".
-Provide exactly 4 categories (${CATEGORIES.map(c => `"${c}"`).join(', ')}) with 3 specific, real places per category in or very near ${location}, each with a one-line description.`;
 }
 
 const reservationFields = ['category', 'name', 'address', 'checkIn', 'checkOut', 'confirmation', 'notes', 'stopIndex'] as const;
@@ -419,7 +382,7 @@ const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    const routes = ['/api/plan', '/api/recommendations', '/api/extract-reservation'];
+    const routes = ['/api/plan', '/api/extract-reservation'];
     if (!req.url || !routes.includes(req.url)) return next();
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
 
@@ -435,21 +398,12 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-10) : [];
       if (!request) return sendJson(res, 400, { error: 'Prompt is required' });
       return runTask(env, {
+        name: 'plan',
         prompt: buildPrompt(request, history),
         geminiSchema: responseSchema,
         claudeSchema: planJsonSchema,
         allowOpenAI: true,
       }, res, 'plan');
-    }
-
-    if (req.url === '/api/recommendations') {
-      const location = String(body.location || '').trim().slice(0, 300);
-      if (!location) return sendJson(res, 400, { error: 'Location is required' });
-      return runTask(env, {
-        prompt: buildRecommendationsPrompt(location, String(body.travelMode || 'DRIVING')),
-        geminiSchema: recommendationsGeminiSchema,
-        claudeSchema: recommendationsJsonSchema,
-      }, res, 'recommendations');
     }
 
     // /api/extract-reservation
@@ -464,6 +418,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       return sendJson(res, 415, { error: 'Unsupported file. Use a PDF, an email saved as .eml, a text file or an image (PNG/JPG).' });
     }
     return runTask(env, {
+      name: `reservation (${fileName})`,
       prompt: buildReservationPrompt(fileName, stops),
       geminiSchema: reservationGeminiSchema,
       claudeSchema: reservationJsonSchema,

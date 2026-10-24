@@ -21,7 +21,8 @@ import {
   CalendarDays,
   Paperclip,
 } from 'lucide-react';
-import { RouteInfo, Waypoint, AIPlanParams, RouteLeg, StopRef } from '../types';
+import { RouteInfo, Waypoint, StopRef, TripIntent } from '../types';
+import type { PlanSummary } from './AIAgent';
 import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
 import AIAgent from './AIAgent';
@@ -40,7 +41,7 @@ interface SidebarProps {
   onSave: () => void;
   onShowSaved: () => void;
   onAISummary: (summary: string) => void;
-  onAIPlan: (params: AIPlanParams) => Promise<RouteLeg[] | null>;
+  onPlanTrip: (intent: TripIntent) => Promise<PlanSummary | null>;
   routeInfo: RouteInfo | null;
   aiSummary: string | null;
   error: string | null;
@@ -70,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSave,
   onShowSaved,
   onAISummary,
-  onAIPlan,
+  onPlanTrip,
   routeInfo,
   aiSummary,
   error,
@@ -105,7 +106,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const updateWaypoint = (index: number, value: string) => {
-    const newWaypoints = waypoints.map((wp, i) => i === index ? { ...wp, location: value } : wp);
+    // A typed name replaces any exact position from route splitting or dragging.
+    const newWaypoints = waypoints.map((wp, i) => i === index ? { ...wp, location: value, position: undefined } : wp);
     setWaypoints(newWaypoints);
   };
 
@@ -177,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="mb-6">
-        <AIAgent onPlanRoute={onAIPlan} initialPrompt={initialPrompt} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} />
       </div>
 
       {aiSummary && (

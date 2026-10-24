@@ -5,6 +5,7 @@ import { createRoot, Root } from 'react-dom/client';
 import { cn } from '../lib/utils';
 import StopDetails, { StopKind } from './StopDetails';
 import { geocodeAddress } from '../lib/geocode';
+import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 
 interface MapProps {
   onLoad: (
@@ -34,11 +35,7 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
 
 const PIN_COLORS: Record<StopKind, string> = { start: '#2563eb', stop: '#059669', end: '#dc2626' };
 
-const RESERVATION_GLYPHS: [RegExp, string][] = [
-  [/accommodation|hotel|stay|camp/i, '🛏'],
-  [/restaurant|cafe|food/i, '🍴'],
-  [/bike|moto|shop/i, '🔧'],
-];
+const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 
 const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
@@ -59,6 +56,8 @@ const Map: React.FC<MapProps> = ({
   // Only re-zoom when the set of places changes, and not right after the user dragged a pin.
   const lastBoundsKeyRef = useRef('');
   const skipFitRef = useRef(false);
+  // Suggestion pins per category can be hidden from the legend; bookings are always shown.
+  const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
   const [mapsError, setMapsError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -139,7 +138,8 @@ const Map: React.FC<MapProps> = ({
           ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: 'Finish', badge: 'F', interests: routeInfo?.destinationInterests || [] }] : [])
         ];
 
-        const locations = await Promise.all(allPoints.map(p => geocodeAddress(p.location)));
+        const locations = await Promise.all(allPoints.map(p =>
+          p.position ? Promise.resolve(new google.maps.LatLng(p.position)) : geocodeAddress(p.location)));
         if (cancelled) return;
 
         markersRef.current.forEach(marker => { marker.map = null; });
@@ -212,28 +212,62 @@ const Map: React.FC<MapProps> = ({
           // Keep an open popup open (with fresh content) after edits.
           if (openStopRef.current === refKey(point.ref)) openPopup(point, marker);
 
-          // Small violet pins for reservations that have an address.
-          point.interests.forEach(cat => cat.items.forEach(item => {
-            const r = item.reservation;
-            if (item.source !== 'reservation' || r?.lat == null || r?.lng == null) return;
-            const glyph = RESERVATION_GLYPHS.find(([re]) => re.test(cat.category))?.[1] || '★';
-            const resPin = new PinElement({
-              background: '#7c3aed',
+          // A small pin for every suggestion and booking with a known position, iconed by category.
+          // Bookings are violet; suggestions use their category colour.
+          point.interests.forEach((cat, catIdx) => cat.items.forEach((item, itemIdx) => {
+            const isBooking = item.source === 'reservation';
+            const lat = isBooking ? item.reservation?.lat : item.lat;
+            const lng = isBooking ? item.reservation?.lng : item.lng;
+            const id = categoryId(item.category || cat.category);
+            if (lat == null || lng == null || (!isBooking && hiddenCategories.includes(id))) return;
+            const placePin = new PinElement({
+              background: isBooking ? '#7c3aed' : CATEGORIES[id].color,
               borderColor: '#ffffff',
               glyphColor: '#ffffff',
-              ...({ glyphText: glyph } as google.maps.marker.PinElementOptions),
-              scale: 0.75,
+              ...({ glyphText: CATEGORIES[id].glyph } as google.maps.marker.PinElementOptions),
+              scale: isBooking ? 0.8 : 0.65,
             });
-            const resMarker = new AdvancedMarkerElement({
-              position: { lat: r.lat, lng: r.lng },
+            const placeMarker = new AdvancedMarkerElement({
+              position: { lat, lng },
               map: googleMapRef.current,
-              title: `${item.name}${r.checkIn ? ` · ${r.checkIn}` : ''} (${point.label})`,
-              content: resPin,
+              title: `${isBooking ? 'Booked: ' : ''}${item.name} (${point.label})`,
+              content: placePin,
               gmpClickable: true,
-              zIndex: 1,
+              zIndex: isBooking ? 2 : 1,
             });
-            resMarker.addEventListener('gmp-click', () => openPopup(point, resMarker));
-            markersRef.current.push(resMarker);
+            placeMarker.addEventListener('gmp-click', () => {
+              const content = document.createElement('div');
+              infoRootRef.current?.unmount();
+              infoRootRef.current = createRoot(content);
+              const link = isBooking && item.reservation?.address
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.reservation.address)}`
+                : item.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name} ${point.location}`)}`;
+              infoRootRef.current.render(
+                <div className="w-[240px] max-w-[70vw] space-y-1 p-1 font-sans text-xs">
+                  <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: isBooking ? '#6d28d9' : CATEGORIES[id].color }}>
+                    {CATEGORIES[id].glyph} {isBooking ? 'Booked · ' : ''}{CATEGORIES[id].name}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                  {isBooking && item.reservation?.checkIn && <p className="text-slate-700">{[item.reservation.checkIn, item.reservation.checkOut].filter(Boolean).join(' → ')}</p>}
+                  {isBooking && item.reservation?.confirmation && <p className="text-slate-700">Ref: <b>{item.reservation.confirmation}</b></p>}
+                  {item.description && <p className="text-slate-500">{item.description}</p>}
+                  <p className="text-slate-400">Near {point.label}: {point.location}</p>
+                  <div className="flex gap-3 pt-1">
+                    <a href={link} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">Open in Google Maps</a>
+                    <button
+                      className="font-semibold text-red-600 hover:underline"
+                      onClick={() => { infoWindowRef.current?.close(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              );
+              infoWindowRef.current?.setContent(content);
+              infoWindowRef.current?.open({ map: googleMapRef.current, anchor: placeMarker });
+              openStopRef.current = null;
+            });
+            markersRef.current.push(placeMarker);
           }));
         });
 
@@ -250,7 +284,7 @@ const Map: React.FC<MapProps> = ({
 
     updateMarkers();
     return () => { cancelled = true; };
-  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey]);
+  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories]);
 
   return (
     <div className="relative h-full w-full">
@@ -261,6 +295,33 @@ const Map: React.FC<MapProps> = ({
           <p className="max-w-sm text-sm text-muted-foreground">{mapsError}</p>
         </div>
       )}
+
+      {/* Category legend: show or hide suggestion pins */}
+      <div className="absolute bottom-6 left-3 z-10 flex flex-wrap gap-1 md:left-6">
+        {CATEGORY_IDS.map(id => {
+          const hidden = hiddenCategories.includes(id);
+          return (
+            <button
+              key={id}
+              onClick={() => setHiddenCategories(prev => hidden ? prev.filter(c => c !== id) : [...prev, id])}
+              aria-pressed={!hidden}
+              title={`${hidden ? 'Show' : 'Hide'} ${CATEGORIES[id].name} on the map`}
+              className={cn(
+                "flex items-center gap-1 rounded-full border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity",
+                hidden && "opacity-50 line-through"
+              )}
+              style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
+            >
+              <span>{CATEGORIES[id].glyph}</span>
+              <span className="hidden sm:inline">{CATEGORIES[id].name}</span>
+            </button>
+          );
+        })}
+        <span className="flex items-center gap-1 rounded-full border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
+          <span className="h-2 w-2 rounded-full bg-violet-600" />
+          <span className="hidden sm:inline">Booked</span>
+        </span>
+      </div>
 
       {/* Map Type Controls */}
       <div className="absolute left-3 top-3 z-10 md:left-6 md:top-6">

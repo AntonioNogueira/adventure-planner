@@ -23,18 +23,34 @@ export async function geocodeAddress(address: string): Promise<google.maps.LatLn
   }
 }
 
-/** Name of the town at a position, e.g. "Tavira, Portugal". Moved stops snap to the town so the route, marker and suggestions agree. */
+/** A readable name for a position: "Tavira, Portugal", or "Near <area>, <country>" in the countryside. */
 export async function townAt(position: google.maps.LatLngLiteral): Promise<string | null> {
   try {
     const { results } = await (await geocoder()).geocode({ location: position });
-    const town = results.find(r => r.types.includes('locality'))
-      || results.find(r => r.types.includes('postal_town') || r.types.includes('administrative_area_level_3'))
-      || results[0];
-    if (!town) return null;
-    const part = (type: string) => town.address_components.find(c => c.types.includes(type))?.long_name;
-    const name = part('locality') || part('postal_town') || part('administrative_area_level_3');
+    if (!results.length) return null;
+    const part = (type: string) => results
+      .flatMap(r => r.address_components)
+      .find(c => c.types.includes(type))?.long_name;
     const country = part('country');
-    return name && country ? `${name}, ${country}` : town.formatted_address;
+    const town = part('locality') || part('postal_town');
+    if (town) return country ? `${town}, ${country}` : town;
+    // Countryside: label it by the parish/municipality. The stop keeps its exact position for routing.
+    const area = part('administrative_area_level_3') || part('administrative_area_level_2') || part('route');
+    return area ? `Near ${area}${country ? `, ${country}` : ''}` : results[0].formatted_address;
+  } catch (error) {
+    console.error('Reverse geocoding failed:', error);
+    return null;
+  }
+}
+
+/** A name plus a nearby routable spot (the nearest address, so never in a river or the sea). */
+export async function placeAt(position: google.maps.LatLngLiteral): Promise<{ name: string; position: google.maps.LatLngLiteral } | null> {
+  try {
+    const { results } = await (await geocoder()).geocode({ location: position });
+    const onLand = results.find(r => r.types.includes('street_address') || r.types.includes('route') || r.types.includes('premise'));
+    const name = await townAt(position);
+    if (!name) return null;
+    return { name, position: (onLand || results[0])?.geometry.location.toJSON() || position };
   } catch (error) {
     console.error('Reverse geocoding failed:', error);
     return null;

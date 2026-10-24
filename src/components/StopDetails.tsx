@@ -129,7 +129,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                         <div className="flex items-start gap-1 pr-4">
                           {r && <Paperclip size={11} className="mt-0.5 shrink-0 text-violet-600" />}
                           <a
-                            href={mapsLink(r?.address || `${item.name} ${location}`)}
+                            href={r?.address ? mapsLink(r.address) : item.url || mapsLink(`${item.name} ${location}`)}
                             target="_blank"
                             rel="noopener noreferrer"
                             title={item.description || item.name}

@@ -13,7 +13,7 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
    npm install
    ```
 2. Copy `.env.example` to `.env.local` and fill in your keys:
-   - `VITE_GOOGLE_MAPS_API_KEY`: needs the **Maps JavaScript**, **Directions** and **Geocoding** APIs enabled.
+   - `VITE_GOOGLE_MAPS_API_KEY`: needs the **Maps JavaScript**, **Directions**, **Geocoding** and **Places API (New)** APIs enabled (and allowed in the key's API restrictions).
    - `GEMINI_API_KEY`: the free way to run the AI planner. Create a key at https://aistudio.google.com/apikey in a project **without billing** so it uses the free tier (default model `gemini-flash-lite-latest`, falling back to `gemini-flash-latest` when busy).
    - Optional: `ANTHROPIC_API_KEY` to use Claude instead (paid API, default model `claude-opus-5-5`; a Claude.ai subscription does not include API access) or `OPENAI_API_KEY`. Providers are tried in the order Claude, Gemini, OpenAI, skipping any without a key.
 3. Start the dev server:
@@ -30,9 +30,23 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
 |---|---|---|
 | UI | `src/` (React 19 + Tailwind 4) | Responsive: sidebar on desktop, map above the planner on phones |
 | Map, routes, geocoding | `src/components/Map.tsx`, `src/App.tsx` | Google Maps JS API, loaded in `index.html` |
-| AI planner | `server/plan-api.ts` → `POST /api/plan` | Gemini, Claude or OpenAI with structured JSON output; runs on the server so AI keys never reach the browser. A plan takes about 10–20 s |
+| AI planner | `server/plan-api.ts` → `POST /api/plan` | The AI (Gemini, Claude or OpenAI) only reads the request: start, finish, mode, days or daily distance, places to pass, lodging type. Runs on the server so AI keys never reach the browser |
+| Overnight stops | `src/lib/tripBuilder.ts` | Google Maps calculates the real route and splits it into days at the daily distance; each night is placed at the nearest accommodation (Places). Detours suggested by the AI are dropped |
+| Suggestions | `src/lib/places.ts` | Google Places: 3 places to stay, eat, fix the bike and visit near every stop, each with its own map pin (🛏 🍴 🔧 📷) that can be hidden from the legend |
 | Editing stops | `src/components/StopDetails.tsx`, `src/App.tsx` | Drag pins to move a stop (snaps to the nearest town, recalculates the route and refreshes suggestions); remove suggestions; attach booking PDFs, `.eml` emails or screenshots, which the AI reads and files under the matching stop (`POST /api/extract-reservation`) |
 | Sign-in and saved trips | `src/firebase.ts`, `firestore.rules` | Firebase Auth (Google) + Firestore `trips` collection |
+
+## Monitoring AI usage
+
+Every AI call prints a line in the terminal running `npm run dev`, plus a running total:
+
+```
+[ai] understood: Cádiz, Spain → Huelva, Spain → Silves, Portugal · BICYCLING · 60 km/day · lodging any
+[ai] plan · gemini-flash-lite-latest · 6.7s · ok, tokens 373 in / 176 out
+[ai] session total: 1 calls (0 failed), 373 in / 176 out tokens
+```
+
+`FAILED 503 (busy, will retry)` means Google's servers were busy (not your quota); `429` means the free-tier limit was hit. Daily usage and limits are in [AI Studio](https://aistudio.google.com) → Usage, and in Google Cloud Console → APIs & Services → Generative Language API → Metrics.
 
 ## API keys and security
 

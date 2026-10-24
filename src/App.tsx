@@ -2,7 +2,10 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map from './components/Map';
 import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
-import { RouteInfo, Waypoint, InterestCategory, InterestItem, AIPlanParams, RouteLeg, StopRef } from './types';
+import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
+import { planOvernightStops } from './lib/tripBuilder';
+import { placeSuggestions, LodgingPreference } from './lib/places';
+import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
 import { storeAttachment, readAsBase64, fileMimeType } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
@@ -154,6 +157,7 @@ const App: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [initialPrompt, setInitialPrompt] = useState('');
   const [mapReady, setMapReady] = useState(false);
+  const [lodging, setLodging] = useState<LodgingPreference>('any');
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -231,57 +235,51 @@ const App: React.FC = () => {
     setMapReady(true);
   }, []);
 
-  // Returns the calculated legs so the AI planner can check real daily distances.
-  const handleAIPlan = (params: AIPlanParams): Promise<RouteLeg[] | null> => {
-    setOrigin(params.origin);
-    setDestination(params.destination);
-    
-    const mappedWaypoints: Waypoint[] = params.waypoints.map(w => {
-      return { 
-        location: w.location, 
-        stopover: true,
-        interests: w.interests
-      };
-    });
-    
+  // The AI has understood the request; Google Maps does the rest: overnight stops along the real
+  // route, the route itself, then Places suggestions for every stop.
+  const handlePlanTrip = async (intent: TripIntent): Promise<PlanSummary | null> => {
+    if (!directionsServiceRef.current) return null;
+    const { waypoints: stops, targetKm } = await planOvernightStops(directionsServiceRef.current, intent);
+    const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
+
+    setOrigin(intent.origin);
+    setDestination(intent.destination);
     setWaypoints(mappedWaypoints);
-    setTravelMode(params.travelMode as any);
-    if (params.summary) {
-      setAiSummary(params.summary);
-    }
-    
-    const newName = expeditionName || `${params.origin} to ${params.destination} Expedition`;
-    if (!expeditionName || expeditionName.includes(' to ')) {
-      setExpeditionName(newName);
-    }
-    
-    // Create preliminary route info with AI recommendations
-    const initialRouteInfo: RouteInfo = {
+    setTravelMode(intent.travelMode as google.maps.TravelMode);
+    setLodging(intent.lodging);
+    setAiSummary(intent.summary || null);
+    const newName = expeditionName && !expeditionName.includes(' to ') ? expeditionName : `${intent.origin} to ${intent.destination} Expedition`;
+    setExpeditionName(newName);
+    setRouteInfo({
       name: newName,
-      origin: params.origin,
-      originInterests: params.originInterests,
-      destination: params.destination,
-      destinationInterests: params.destinationInterests,
+      origin: intent.origin,
+      originInterests: [],
+      destination: intent.destination,
+      destinationInterests: [],
       waypoints: mappedWaypoints,
-      travelMode: params.travelMode,
+      travelMode: intent.travelMode,
       distance: '...',
       duration: '...',
-      startAddress: params.origin,
-      endAddress: params.destination,
-      steps: []
-    };
-    
-    setRouteInfo(initialRouteInfo);
+      startAddress: intent.origin,
+      endAddress: intent.destination,
+      steps: [],
+    });
     setHasChanges(true);
 
-    // Trigger calculation immediately
-    return calculateRoute(
-      params.origin, 
-      params.destination, 
-      mappedWaypoints, 
-      params.travelMode,
-      { origin: params.originInterests, destination: params.destinationInterests }
+    const legs = await calculateRoute(intent.origin, intent.destination, mappedWaypoints, intent.travelMode, { origin: [], destination: [] });
+    if (!legs) return null;
+    loadSuggestions(
+      [{ kind: 'start' }, ...stops.map((_, index) => ({ kind: 'stop' as const, index })), { kind: 'end' }],
+      [intent.origin, ...stops.map(s => s.position || s.name), intent.destination],
+      intent.travelMode,
+      intent.lodging,
     );
+    return {
+      days: legs.length,
+      stops: stops.map(s => s.name),
+      targetKm,
+      longestKm: Math.round(Math.max(...legs.map(l => (l.distanceMeters || 0) / 1000))),
+    };
   };
 
   const calculateRoute = useCallback(async (
@@ -303,11 +301,11 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    const request = (mode: string) => directionsServiceRef.current!.route({
+    const request = (mode: string, exact = true) => directionsServiceRef.current!.route({
       origin: currentOrigin,
       destination: currentDestination,
       waypoints: currentWaypoints.filter(wp => wp.location.trim() !== '').map(wp => ({
-        location: wp.location,
+        location: (exact && wp.position) || wp.location,
         stopover: wp.stopover
       })),
       travelMode: mode as google.maps.TravelMode,
@@ -317,7 +315,12 @@ const App: React.FC = () => {
       let notice: string | undefined;
       let result: google.maps.DirectionsResult;
       try {
-        result = await request(currentTravelMode as string);
+        result = await request(currentTravelMode as string).catch(err => {
+          // An exact stop position can be unroutable for bikes/walkers (e.g. on a ferry line):
+          // try the town names before giving up on this travel mode.
+          if (!currentWaypoints.some(wp => wp.position)) throw err;
+          return request(currentTravelMode as string, false);
+        });
       } catch (err) {
         // Transit doesn't support stops and bike/walk routing isn't available everywhere:
         // fall back to driving so the trip still shows on the map.
@@ -404,9 +407,9 @@ const App: React.FC = () => {
 
   const stopLabel = (ref: StopRef) => ref.kind === 'start' ? 'Start' : ref.kind === 'end' ? 'Finish' : `Stop ${ref.index! + 1}`;
 
-  const allStops = (): { ref: StopRef; location: string }[] => [
+  const allStops = (): { ref: StopRef; location: string; position?: google.maps.LatLngLiteral }[] => [
     { ref: { kind: 'start' }, location: origin },
-    ...waypoints.map((wp, index) => ({ ref: { kind: 'stop' as const, index }, location: wp.location })),
+    ...waypoints.map((wp, index) => ({ ref: { kind: 'stop' as const, index }, location: wp.location, position: wp.position })),
     { ref: { kind: 'end' }, location: destination },
   ];
 
@@ -455,7 +458,9 @@ const App: React.FC = () => {
       const position = await geocodeAddress(r.address || `${r.name} ${stops[r.stopIndex]?.location || ''}`);
       let target = ref || stops[r.stopIndex]?.ref || stops[0].ref;
       if (position) {
-        const located = await Promise.all(stops.map(async s => ({ ...s, at: await geocodeAddress(s.location) })));
+        const located = await Promise.all(stops.map(async s => ({
+          ...s, at: s.position ? new google.maps.LatLng(s.position) : await geocodeAddress(s.location),
+        })));
         const ranked = located
           .filter(s => s.at)
           .map(s => ({ ...s, km: distanceKm(position, s.at!) }))
@@ -502,7 +507,7 @@ const App: React.FC = () => {
     }
   };
 
-  // A pin was dragged: snap to the nearest town, recalculate the route and refresh suggestions.
+  // A pin was dragged: name the place, recalculate the route and refresh suggestions.
   // Reservations stay attached to the stop; AI suggestions for the old place are replaced.
   const handleMoveStop = async (ref: StopRef, position: google.maps.LatLngLiteral) => {
     const town = await townAt(position);
@@ -517,7 +522,8 @@ const App: React.FC = () => {
     const newOrigin = ref.kind === 'start' ? town : origin;
     const newDestination = ref.kind === 'end' ? town : destination;
     const newWaypoints = waypoints.map((wp, i) =>
-      ref.kind === 'stop' && i === ref.index ? { ...wp, location: town, interests: keepReservations(wp.interests) } : wp
+      // Stops keep the exact spot where the pin was dropped; start and finish snap to the town.
+      ref.kind === 'stop' && i === ref.index ? { ...wp, location: town, position, interests: keepReservations(wp.interests) } : wp
     );
     const originInterests = ref.kind === 'start' ? keepReservations(routeInfo?.originInterests) : routeInfo?.originInterests || [];
     const destinationInterests = ref.kind === 'end' ? keepReservations(routeInfo?.destinationInterests) : routeInfo?.destinationInterests || [];
@@ -529,39 +535,52 @@ const App: React.FC = () => {
     setToast({ message: `${stopLabel(ref)} moved to ${town}. Finding places nearby…`, type: 'success' });
     await calculateRoute(newOrigin, newDestination, newWaypoints, travelMode, { origin: originInterests, destination: destinationInterests });
 
-    try {
-      const response = await fetch('/api/recommendations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location: town, travelMode }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Could not load suggestions');
-      const fresh: InterestCategory[] = data.recommendations?.interests || [];
-      updateStopInterests(ref, cats => {
-        const merged = fresh.map(f => {
-          const mine = cats.find(c => c.category.toLowerCase() === f.category.toLowerCase());
-          return {
-            category: f.category,
-            items: [
-              ...(mine?.items.filter(i => i.source === 'reservation') || []),
-              ...f.items.map(i => ({ ...i, source: 'ai' as const })),
-            ],
-          };
-        });
-        // Keep categories that only hold reservations.
-        cats.forEach(c => {
-          if (!merged.some(m => m.category.toLowerCase() === c.category.toLowerCase())) {
-            const kept = c.items.filter(i => i.source === 'reservation');
-            if (kept.length) merged.push({ category: c.category, items: kept });
+    loadSuggestions([ref], [ref.kind === 'stop' ? position : town], travelMode, lodging);
+  };
+
+  // Suggestions replace older ones but never touch the user's reservations.
+  const mergeSuggestions = (cats: InterestCategory[], fresh: InterestCategory[]) => {
+    const merged = fresh.map(f => {
+      const mine = cats.find(c => c.category.toLowerCase() === f.category.toLowerCase());
+      return { category: f.category, items: [...(mine?.items.filter(i => i.source === 'reservation') || []), ...f.items] };
+    });
+    cats.forEach(c => {
+      if (!merged.some(m => m.category.toLowerCase() === c.category.toLowerCase())) {
+        const kept = c.items.filter(i => i.source === 'reservation');
+        if (kept.length) merged.push({ category: c.category, items: kept });
+      }
+    });
+    return merged;
+  };
+
+  // Fetch Google Places suggestions for several stops (in the background).
+  const loadSuggestions = (refs: StopRef[], locations: (string | google.maps.LatLngLiteral)[], mode: string, lodgingPref: LodgingPreference) => {
+    let failed = false;
+    refs.forEach((ref, i) => {
+      placeSuggestions(locations[i], mode, lodgingPref)
+        .then(fresh => { if (fresh.length) updateStopInterests(ref, cats => mergeSuggestions(cats, fresh)); })
+        .catch(err => {
+          console.error('Place suggestions failed:', err);
+          if (!failed) {
+            failed = true;
+            setToast({ message: 'Could not load place suggestions. Check that "Places API (New)" is enabled for your Maps key.', type: 'error' });
           }
         });
-        return merged;
-      });
-    } catch (err) {
-      console.error('Suggestions failed:', err);
-      setToast({ message: `Route updated, but suggestions for ${town} could not be loaded.`, type: 'error' });
-    }
+    });
+  };
+
+  // Manual planning: calculate, then fill in suggestions for stops that have none yet.
+  const handleCalculate = async () => {
+    const legs = await calculateRoute();
+    if (!legs) return;
+    const stops = allStops();
+    const empty = stops.filter(({ ref }) => {
+      const cats = ref.kind === 'start' ? routeInfo?.originInterests
+        : ref.kind === 'end' ? routeInfo?.destinationInterests
+        : waypoints[ref.index!]?.interests;
+      return !cats?.some(c => c.items.some(i => i.source !== 'reservation'));
+    });
+    loadSuggestions(empty.map(s => s.ref), empty.map(s => s.position || s.location), travelMode, lodging);
   };
 
   const handleSave = async () => {
@@ -619,11 +638,11 @@ const App: React.FC = () => {
           setWaypoints={(val) => { setWaypoints(val); setHasChanges(true); }}
           travelMode={travelMode as any}
           setTravelMode={(val) => { setTravelMode(val); setHasChanges(true); }}
-          onCalculate={calculateRoute}
+          onCalculate={handleCalculate}
           onSave={handleSave}
           onShowSaved={() => setShowSaved(true)}
           onAISummary={setAiSummary}
-          onAIPlan={handleAIPlan}
+          onPlanTrip={handlePlanTrip}
           routeInfo={routeInfo}
           aiSummary={aiSummary}
           error={error}
