@@ -1,6 +1,6 @@
 import type { Plugin, Connect } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
+import { ApiError, GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -13,6 +13,7 @@ interface PlanEnv {
   CLAUDE_MODEL?: string;
   GEMINI_API_KEY?: string;
   GEMINI_MODEL?: string;
+  GEMINI_FALLBACK_MODEL?: string;
   OPENAI_API_KEY?: string;
   OPENAI_MODEL?: string;
   AI_PROVIDER?: string;
@@ -187,16 +188,40 @@ async function planWithClaude(env: PlanEnv, prompt: string) {
   return JSON.parse(text);
 }
 
+// Free-tier Gemini often returns 503 (overloaded) or 429 (rate limit) for a few seconds.
+// Retry briefly, then fall back to the other model, before giving up.
+// Flash-Lite is the default: ~10-20 s per plan versus 30 s to several minutes for Flash when it's busy.
+const GEMINI_RETRYABLE = new Set([429, 500, 503]);
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function planWithGemini(env: PlanEnv, prompt: string) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
-  const response = await ai.models.generateContent({
-    model: env.GEMINI_MODEL || 'gemini-flash-latest',
-    contents: prompt,
-    // Low thinking keeps responses fast enough for an interactive planner.
-    config: { responseMimeType: 'application/json', responseSchema, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
-  });
-  if (!response.text) throw new Error('Empty response from Gemini');
-  return JSON.parse(response.text);
+  const models = [...new Set([
+    env.GEMINI_MODEL || 'gemini-flash-lite-latest',
+    env.GEMINI_FALLBACK_MODEL || 'gemini-flash-latest',
+  ])];
+
+  let lastError: unknown;
+  for (const model of models) {
+    for (const delay of [0, 3000]) {
+      if (delay) await sleep(delay);
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          // Low thinking keeps responses fast enough for an interactive planner.
+          config: { responseMimeType: 'application/json', responseSchema, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
+        });
+        if (!response.text) throw new Error('Empty response from Gemini');
+        return JSON.parse(response.text);
+      } catch (err) {
+        lastError = err;
+        if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
+        console.warn(`[plan-api] ${model} returned ${err.status}, retrying`);
+      }
+    }
+  }
+  throw lastError;
 }
 
 async function planWithOpenAI(env: PlanEnv, prompt: string) {
