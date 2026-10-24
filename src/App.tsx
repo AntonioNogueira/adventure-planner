@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map from './components/Map';
 import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
-import { RouteInfo, Waypoint, InterestCategory } from './types';
+import { RouteInfo, Waypoint, InterestCategory, AIPlanParams, RouteLeg } from './types';
 import { formatDistance, formatDuration } from './lib/utils';
 import { Sparkles, MapPin } from 'lucide-react';
 import { db, auth, handleFirestoreError, OperationType } from './firebase';
@@ -105,7 +105,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
               autoFocus
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g., A 7-day bikepacking trip through the Swiss Alps..."
+              placeholder="e.g., Bikepacking from Cádiz to Silves, about 70 km per day, camping where possible..."
               className="min-h-[120px] w-full rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900 dark:bg-emerald-900/20"
             />
           </div>
@@ -227,15 +227,8 @@ const App: React.FC = () => {
     setMapReady(true);
   }, []);
 
-  const handleAIPlan = (params: { 
-    origin: string; 
-    originInterests?: InterestCategory[];
-    destination: string; 
-    destinationInterests?: InterestCategory[];
-    waypoints: { location: string; interests: InterestCategory[] }[]; 
-    travelMode: string; 
-    summary?: string 
-  }) => {
+  // Returns the calculated legs so the AI planner can check real daily distances.
+  const handleAIPlan = (params: AIPlanParams): Promise<RouteLeg[] | null> => {
     setOrigin(params.origin);
     setDestination(params.destination);
     
@@ -278,7 +271,7 @@ const App: React.FC = () => {
     setHasChanges(true);
 
     // Trigger calculation immediately
-    calculateRoute(
+    return calculateRoute(
       params.origin, 
       params.destination, 
       mappedWaypoints, 
@@ -293,14 +286,14 @@ const App: React.FC = () => {
     overrideWaypoints?: Waypoint[],
     overrideTravelMode?: string,
     overrideInterests?: { origin?: InterestCategory[], destination?: InterestCategory[] }
-  ) => {
+  ): Promise<RouteLeg[] | null> => {
     const currentOrigin = overrideOrigin || origin;
     const currentDestination = overrideDestination || destination;
     const currentWaypoints = overrideWaypoints || waypoints;
     const currentTravelMode = overrideTravelMode || travelMode;
 
     if (!currentOrigin || !currentDestination || !directionsServiceRef.current || !directionsRendererRef.current) {
-      return;
+      return null;
     }
 
     setIsLoading(true);
@@ -349,6 +342,14 @@ const App: React.FC = () => {
       });
       setWaypoints(updatedWaypoints);
 
+      const routeLegs: RouteLeg[] = legs.map((leg, i) => ({
+        from: i === 0 ? currentOrigin : currentWaypoints[i - 1]?.location || leg.start_address,
+        to: i === legs.length - 1 ? currentDestination : currentWaypoints[i]?.location || leg.end_address,
+        distance: leg.distance?.text || '',
+        duration: formatDuration(leg.duration?.value || 0),
+        distanceMeters: leg.distance?.value,
+      }));
+
       setRouteInfo({
         name: expeditionName || `${currentOrigin} to ${currentDestination} Expedition`,
         origin: currentOrigin,
@@ -359,12 +360,7 @@ const App: React.FC = () => {
         travelMode: currentTravelMode as string,
         distance: formatDistance(totalDistance),
         duration: formatDuration(totalDuration),
-        legs: legs.map((leg, i) => ({
-          from: i === 0 ? currentOrigin : currentWaypoints[i - 1]?.location || leg.start_address,
-          to: i === legs.length - 1 ? currentDestination : currentWaypoints[i]?.location || leg.end_address,
-          distance: leg.distance?.text || '',
-          duration: formatDuration(leg.duration?.value || 0),
-        })),
+        legs: routeLegs,
         notice,
         startAddress: legs[0].start_address,
         endAddress: legs[legs.length - 1].end_address,
@@ -374,6 +370,7 @@ const App: React.FC = () => {
           duration: step.duration?.text || '',
         }))),
       } as RouteInfo);
+      return routeLegs;
     } catch (err: any) {
       console.error('Directions request failed:', err);
       let message = 'Could not calculate route. Please check your addresses and try again.';
@@ -384,6 +381,7 @@ const App: React.FC = () => {
       }
       setError(message);
       setRouteInfo(null);
+      return null;
     } finally {
       setIsLoading(false);
     }

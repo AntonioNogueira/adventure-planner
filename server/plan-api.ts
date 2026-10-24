@@ -39,9 +39,18 @@ ${historyContext || '(none)'}
 NEW REQUEST: "${request}"
 
 CRITICAL GUIDELINES:
-1. REALISM: Use realistic daily distances. Bikepacking 60-100 km/day, hiking 15-30 km/day, adventure motorcycling 200-400 km/day.
+1. DAILY DISTANCE (most important): plan each day by the real road/trail distance, not the straight line, which is often 20-40% shorter.
+   - Bikepacking (loaded bike): 50-80 km/day, never more than 90 km. Hilly terrain: aim for the low end.
+   - Hiking: 15-25 km/day, never more than 30 km.
+   - Adventure motorcycling: 200-350 km/day, never more than 450 km.
+   - If the user states a daily distance, use it instead.
+   Before answering, estimate the route distance between each pair of consecutive stops and check every day against these limits.
 2. TERRAIN: Prioritize scenic secondary roads and off-road trails.
-3. STOPS: For a trip of N days provide exactly N-1 intermediate waypoints (the overnight stop at the end of each day except the last).
+3. STOPS: Each waypoint is the overnight stop at the end of a day (except the last day, which ends at the finish).
+   - If the user gives a number of days N, provide exactly N-1 waypoints.
+   - If not, choose the number of days from the total distance and the daily limits above.
+   - Overnight stops must be towns or villages with somewhere to sleep.
+   - Never more than 20 waypoints.
 4. RECOMMENDATIONS: For the START, the FINISH and EACH STOP provide exactly 4 categories (${CATEGORIES.map(c => `"${c}"`).join(', ')}) with 3 specific, real places per category, each with a one-line description.
 5. CONTINUITY: If the user is refining a previous plan, keep the core route and apply the requested changes.
 6. GEOLOCATION: Every origin, destination and waypoint must be a specific geocodable name such as "Moab, Utah" or "Porto, Portugal". Never use placeholders like "Home" or "My location".

@@ -27,6 +27,18 @@ export interface RouteLeg {
   to: string;
   distance: string;
   duration: string;
+  distanceMeters?: number;
+}
+
+/** A plan returned by the AI planner, before the route is calculated. */
+export interface AIPlanParams {
+  origin: string;
+  originInterests?: InterestCategory[];
+  destination: string;
+  destinationInterests?: InterestCategory[];
+  waypoints: { location: string; interests: InterestCategory[] }[];
+  travelMode: string;
+  summary?: string;
 }
 
 export interface RouteInfo {

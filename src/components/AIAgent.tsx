@@ -1,23 +1,62 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, Loader2, MessageSquare } from 'lucide-react';
-import { InterestCategory } from '../types';
+import { Sparkles, Send, Loader2 } from 'lucide-react';
+import { AIPlanParams, RouteLeg } from '../types';
 
 interface AIAgentProps {
   initialPrompt?: string;
-  onPlanRoute: (params: {
-    origin: string;
-    originInterests?: InterestCategory[];
-    destination: string;
-    destinationInterests?: InterestCategory[];
-    waypoints: any[];
-    travelMode: string;
-    summary?: string;
-  }) => void;
+  /** Shows the plan on the map and resolves with the real route legs (null if routing failed). */
+  onPlanRoute: (params: AIPlanParams) => Promise<RouteLeg[] | null>;
+}
+
+// Longest comfortable day per travel mode, in km. The AI can't measure road distances,
+// so the app checks the real route and asks it to fix any day that's longer than this.
+const DAILY_MAX_KM: Record<string, number> = { BICYCLING: 90, WALKING: 30, DRIVING: 450 };
+const MAX_CORRECTIONS = 2;
+// Days up to 10% over the limit are accepted: a few km over isn't worth another AI round trip.
+const TOLERANCE = 1.1;
+
+// Honour a limit written in the request, e.g. "70 km per day" or "max 60km/day".
+function dailyLimitFromText(text: string): number | null {
+  const match = text.match(/(\d{2,3})\s*km\s*(?:\/|per|a|each|por|ao)\s*(?:day|dia)/i);
+  return match ? Number(match[1]) : null;
+}
+
+function toPlanParams(result: any): AIPlanParams {
+  return {
+    origin: result.origin || "",
+    originInterests: result.originInterests || [],
+    destination: result.destination || "",
+    destinationInterests: result.destinationInterests || [],
+    waypoints: (result.waypoints || []).map((w: any) => ({
+      location: w.location || "",
+      interests: w.interests || []
+    })),
+    travelMode: result.travelMode || "DRIVING",
+    summary: result.adventureSummary || ""
+  };
+}
+
+async function requestPlan(prompt: string, history: Message[]) {
+  // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
+  const response = await fetch('/api/plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, history }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
+    const detail = Array.isArray(data.details) && data.details[0] ? ` ${String(data.details[0]).slice(0, 180)}` : '';
+    throw new Error(`${data.error || `Planner request failed (${response.status})`}.${detail}`);
+  }
+  return data.plan;
 }
 
 interface Message {
   role: 'user' | 'model';
   text: string;
+  /** Sent to the AI as context but not shown in the chat (automatic distance corrections). */
+  hidden?: boolean;
 }
 
 const AIAgent: React.FC<AIAgentProps> = ({ onPlanRoute, initialPrompt }) => {
@@ -28,7 +67,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanRoute, initialPrompt }) => {
   const hasAutoPlanned = useRef(false);
 
   const placeholders = [
-    "e.g., 10-day bikepacking trip from Paris to Rome...",
+    "e.g., Bikepacking from Paris to Rome, about 80 km per day...",
     "e.g., 5-day moto adventure in the Pyrenees, include off-road trails",
     "e.g., Hiking the West Highland Way, suggest wild camping spots",
     "e.g., Road trip through Portugal, save the camping X in Porto stop",
@@ -67,47 +106,89 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanRoute, initialPrompt }) => {
     const messageToPlan = overridePrompt || prompt.trim();
     if (!messageToPlan) return;
 
-    setMessages(prev => [...prev, { role: 'user', text: messageToPlan }]);
+    // Track the conversation locally too: React state updates aren't visible inside this loop.
+    let history: Message[] = [...messages, { role: 'user', text: messageToPlan }];
+    const say = (text: string) => {
+      history = [...history, { role: 'model', text }];
+      setMessages(history);
+    };
+    setMessages(history);
     setPrompt('');
     setIsPlanning(true);
 
-    try {
-      // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
-      const response = await fetch('/api/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: messageToPlan, history: messages }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
-        const detail = Array.isArray(data.details) && data.details[0] ? ` ${String(data.details[0]).slice(0, 180)}` : '';
-        throw new Error(`${data.error || `Planner request failed (${response.status})`}.${detail}`);
-      }
-      const result = data.plan;
+    const userLimit = [...history].reverse().map(m => m.role === 'user' ? dailyLimitFromText(m.text) : null).find(Boolean) || null;
 
-      const stops = (result.waypoints || []).length;
-      setMessages(prev => [...prev, {
-        role: 'model',
-        text: `Plan ready: ${result.origin} → ${result.destination} with ${stops} overnight stop${stops === 1 ? '' : 's'}. See the brief and itinerary below, or ask me to change anything.`
-      }]);
-      
-      onPlanRoute({
-        origin: result.origin || "",
-        originInterests: result.originInterests || [],
-        destination: result.destination || "",
-        destinationInterests: result.destinationInterests || [],
-        waypoints: (result.waypoints || []).map((w: any) => ({
-          location: w.location || "",
-          interests: w.interests || []
-        })),
-        travelMode: result.travelMode || "DRIVING",
-        summary: result.adventureSummary || ""
-      });
+    try {
+      let request = messageToPlan;
+      let best: { plan: AIPlanParams; legs: RouteLeg[] | null; score: number } | null = null;
+      for (let attempt = 0; ; attempt++) {
+        // Send the conversation as context, minus the request itself (the server adds it separately).
+        let plan = toPlanParams(await requestPlan(request, history.filter(m => m.text !== request)));
+        let legs = await onPlanRoute(plan);
+
+        let maxKm = userLimit || DAILY_MAX_KM[plan.travelMode];
+        const lengths = (legs || []).map(leg => (leg.distanceMeters || 0) / 1000);
+        // Score = total km over the daily limit (lower is better). A day over 3x the limit
+        // usually means a stop was geocoded in the wrong place, so treat the plan as broken.
+        const score = !legs ? Infinity
+          : !maxKm ? 0
+          : lengths.some(l => l > maxKm * 3) ? Infinity
+          : lengths.reduce((sum, l) => sum + Math.max(0, l - maxKm), 0);
+        if (!best || score < best.score) {
+          best = { plan, legs, score };
+        }
+
+        if (!legs && attempt < MAX_CORRECTIONS) {
+          // The route couldn't be calculated (unknown place or too many stops): ask again.
+          say('That route could not be drawn on the map. Trying again…');
+          continue;
+        }
+
+        let tooLong = legs && maxKm
+          ? legs.filter(leg => (leg.distanceMeters || 0) / 1000 > maxKm * TOLERANCE)
+          : [];
+
+        if (tooLong.length === 0 || attempt === MAX_CORRECTIONS) {
+          if (best.plan !== plan) {
+            // A correction made things worse: go back to the best plan we've seen.
+            plan = best.plan;
+            legs = await onPlanRoute(plan);
+            maxKm = userLimit || DAILY_MAX_KM[plan.travelMode];
+            tooLong = legs && maxKm ? legs.filter(leg => (leg.distanceMeters || 0) / 1000 > maxKm * TOLERANCE) : [];
+          }
+          const stops = plan.waypoints.length;
+          const warning = tooLong.length
+            ? ` Some days are still over ${maxKm} km; ask me to add stops or set a daily distance (e.g. "max 70 km per day").`
+            : '';
+          const verb = { BICYCLING: 'cycle', WALKING: 'hike', DRIVING: 'ride' }[plan.travelMode] || 'travel';
+          const tip = userLimit || !maxKm
+            ? ''
+            : `\n\nTip: for better results, tell me your average daily distance to ${verb} (e.g. "about ${Math.round(maxKm * 0.75)} km per day"). I'm using up to ${maxKm} km per day.`;
+          say(`Plan ready: ${plan.origin} → ${plan.destination}, ${stops + 1} day${stops ? 's' : ''}. See the itinerary below, or ask me to change anything.${warning}${tip}`);
+          break;
+        }
+
+        // Feed the real distances back to the AI and tell it exactly which days to split.
+        const km = (leg: RouteLeg) => Math.round((leg.distanceMeters || 0) / 1000);
+        const dayList = legs!.map((leg, i) => `Day ${i + 1}: ${leg.from} → ${leg.to} = ${km(leg)} km`).join('\n');
+        const fixes = tooLong.map(leg => {
+          const extraStops = Math.ceil(km(leg) / maxKm) - 1;
+          return `- ${leg.from} → ${leg.to} is ${km(leg)} km: insert ${extraStops} new overnight stop${extraStops > 1 ? 's' : ''} (a town on the route roughly every ${Math.round(km(leg) / (extraStops + 1))} km), or move the previous overnight stop further along if the day before it is short.`;
+        }).join('\n');
+        say(`Checking real distances… ${tooLong.length} day${tooLong.length > 1 ? 's are' : ' is'} over ${maxKm} km (longest ${Math.round(Math.max(...tooLong.map(l => (l.distanceMeters || 0) / 1000)))} km). Adjusting the stops…`);
+        request = `The plan you proposed was measured on the real ${plan.travelMode.toLowerCase()} route:
+${dayList}
+
+Every day must be ${maxKm} km or less. Fix these days:
+${fixes}
+
+Keep the same start (${plan.origin}), finish (${plan.destination}), travel mode and all other stops unless they need to move. List waypoints in travel order; each new stop must be a real town on the route between its neighbours (written as "Town, Country"), never a detour. Adding days is fine unless the user fixed the number of days, in which case balance the days as evenly as possible. Return the full corrected plan with recommendations for every stop.`;
+        history = [...history, { role: 'user', text: request, hidden: true }];
+      }
     } catch (error) {
       console.error('AI Planning failed:', error);
       const reason = error instanceof Error ? error.message : '';
-      setMessages(prev => [...prev, { role: 'model', text: `Sorry, I couldn't plan that route. ${reason}`.trim() }]);
+      say(`Sorry, I couldn't plan that route. ${reason}`.trim());
     } finally {
       setIsPlanning(false);
     }
@@ -125,7 +206,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanRoute, initialPrompt }) => {
           ref={scrollRef}
           className="max-h-[260px] overflow-y-auto p-3 space-y-3 border-b border-emerald-200 dark:border-emerald-900/30"
         >
-          {messages.map((msg, i) => (
+          {messages.filter(msg => !msg.hidden).map((msg, i) => (
             <div 
               key={i} 
               className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}

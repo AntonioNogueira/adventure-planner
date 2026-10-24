@@ -20,7 +20,7 @@ import {
   Info,
   CalendarDays,
 } from 'lucide-react';
-import { RouteInfo, Waypoint, InterestCategory } from '../types';
+import { RouteInfo, Waypoint, AIPlanParams, RouteLeg } from '../types';
 import { cn } from '../lib/utils';
 import AIAgent from './AIAgent';
 import StopDetails from './StopDetails';
@@ -38,15 +38,7 @@ interface SidebarProps {
   onSave: () => void;
   onShowSaved: () => void;
   onAISummary: (summary: string) => void;
-  onAIPlan: (params: { 
-    origin: string; 
-    originInterests?: InterestCategory[];
-    destination: string; 
-    destinationInterests?: InterestCategory[];
-    waypoints: any[]; 
-    travelMode: string; 
-    summary?: string 
-  }) => void;
+  onAIPlan: (params: AIPlanParams) => Promise<RouteLeg[] | null>;
   routeInfo: RouteInfo | null;
   aiSummary: string | null;
   error: string | null;
