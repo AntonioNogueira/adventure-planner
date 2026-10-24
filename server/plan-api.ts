@@ -2,11 +2,15 @@ import type { Plugin, Connect } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { GoogleGenAI, Type } from '@google/genai';
 
+import Anthropic from '@anthropic-ai/sdk';
+
 // Server-side AI planning endpoint (POST /api/plan).
 // Runs inside the Vite dev/preview server so API keys never reach the browser bundle.
-// Provider order: Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY) as a fallback.
+// Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
 interface PlanEnv {
+  ANTHROPIC_API_KEY?: string;
+  CLAUDE_MODEL?: string;
   GEMINI_API_KEY?: string;
   GEMINI_MODEL?: string;
   OPENAI_API_KEY?: string;
@@ -108,6 +112,81 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "adventureSummary": string
 }`;
 
+// Plain JSON Schema for Claude structured outputs (every object closed with additionalProperties: false).
+const interestsJsonSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      category: { type: 'string' },
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { name: { type: 'string' }, description: { type: 'string' } },
+          required: ['name', 'description'],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ['category', 'items'],
+    additionalProperties: false,
+  },
+};
+
+const planJsonSchema = {
+  type: 'object',
+  properties: {
+    origin: { type: 'string' },
+    originInterests: interestsJsonSchema,
+    destination: { type: 'string' },
+    destinationInterests: interestsJsonSchema,
+    waypoints: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { location: { type: 'string' }, interests: interestsJsonSchema },
+        required: ['location', 'interests'],
+        additionalProperties: false,
+      },
+    },
+    travelMode: { type: 'string', enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
+    adventureSummary: { type: 'string' },
+  },
+  required: [
+    'origin', 'originInterests',
+    'destination', 'destinationInterests',
+    'waypoints', 'travelMode', 'adventureSummary',
+  ],
+  additionalProperties: false,
+};
+
+async function planWithClaude(env: PlanEnv, prompt: string) {
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const response = await client.beta.messages.create({
+    model: env.CLAUDE_MODEL || 'claude-opus-5-5',
+    max_tokens: 16000,
+    // If a safety classifier declines, the API retries on Anthropic's recommended fallback model.
+    betas: ['server-side-fallback-2026-07-01'],
+    fallbacks: 'default',
+    output_config: {
+      effort: 'medium',
+      format: { type: 'json_schema', schema: planJsonSchema },
+    },
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  if (response.stop_reason === 'refusal') {
+    throw new Error(`Claude declined the request${response.stop_details?.category ? ` (${response.stop_details.category})` : ''}`);
+  }
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('Claude ran out of output tokens; try a shorter trip or fewer stops');
+  }
+  const text = response.content.flatMap(block => (block.type === 'text' ? [block.text] : [])).join('');
+  if (!text) throw new Error('Empty response from Claude');
+  return JSON.parse(text);
+}
+
 async function planWithGemini(env: PlanEnv, prompt: string) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
   const response = await ai.models.generateContent({
@@ -144,6 +223,7 @@ async function planWithOpenAI(env: PlanEnv, prompt: string) {
 
 function providers(env: PlanEnv) {
   const list: { name: string; run: (prompt: string) => Promise<any> }[] = [];
+  if (env.ANTHROPIC_API_KEY) list.push({ name: 'claude', run: p => planWithClaude(env, p) });
   if (env.GEMINI_API_KEY) list.push({ name: 'gemini', run: p => planWithGemini(env, p) });
   if (env.OPENAI_API_KEY) list.push({ name: 'openai', run: p => planWithOpenAI(env, p) });
   if (env.AI_PROVIDER) {
@@ -179,7 +259,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
     const available = providers(env);
     if (available.length === 0) {
       return sendJson(res, 503, {
-        error: 'No AI provider configured. Add GEMINI_API_KEY or OPENAI_API_KEY to .env.local and restart.',
+        error: 'No AI provider configured. Add ANTHROPIC_API_KEY (or GEMINI_API_KEY / OPENAI_API_KEY) to .env.local and restart.',
       });
     }
 

@@ -14,7 +14,8 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
    ```
 2. Copy `.env.example` to `.env.local` and fill in your keys:
    - `VITE_GOOGLE_MAPS_API_KEY`: needs the **Maps JavaScript**, **Directions** and **Geocoding** APIs enabled.
-   - `GEMINI_API_KEY` and/or `OPENAI_API_KEY`: the AI planner tries Gemini first, then OpenAI.
+   - `ANTHROPIC_API_KEY`: powers the AI planner with Claude (default model `claude-opus-5-5`). Create one at https://platform.claude.com/settings/keys. A Claude.ai chat subscription does not include API access; API usage is billed separately.
+   - Optional fallbacks: `GEMINI_API_KEY` and/or `OPENAI_API_KEY`. Providers are tried in the order Claude, Gemini, OpenAI.
 3. Start the dev server:
    ```bash
    npm run dev
@@ -29,7 +30,7 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
 |---|---|---|
 | UI | `src/` (React 19 + Tailwind 4) | Responsive: sidebar on desktop, map above the planner on phones |
 | Map, routes, geocoding | `src/components/Map.tsx`, `src/App.tsx` | Google Maps JS API, loaded in `index.html` |
-| AI planner | `server/plan-api.ts` → `POST /api/plan` | Runs on the server so AI keys never reach the browser |
+| AI planner | `server/plan-api.ts` → `POST /api/plan` | Claude with structured JSON output; runs on the server so AI keys never reach the browser |
 | Sign-in and saved trips | `src/firebase.ts`, `firestore.rules` | Firebase Auth (Google) + Firestore `trips` collection |
 
 ## API keys and security
@@ -37,7 +38,7 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
 - `.env.local` is git-ignored. Never commit real keys.
 - The Google Maps key is visible in the browser by design. In Google Cloud Console, restrict it by **HTTP referrer** (for example `http://localhost:3000/*` and your production domain) and to the Maps APIs only.
 - The Firebase web config in `firebase-applet-config.json` is public by design. Firestore access is controlled by `firestore.rules`.
-- Gemini and OpenAI keys are only read by the server (`server/plan-api.ts`).
+- Anthropic, Gemini and OpenAI keys are only read by the server (`server/plan-api.ts`).
 
 ## Deploying
 
