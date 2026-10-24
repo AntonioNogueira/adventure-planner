@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   MapPin,
   Navigation,
@@ -19,8 +19,10 @@ import {
   ChevronDown,
   Info,
   CalendarDays,
+  Paperclip,
 } from 'lucide-react';
-import { RouteInfo, Waypoint, AIPlanParams, RouteLeg } from '../types';
+import { RouteInfo, Waypoint, AIPlanParams, RouteLeg, StopRef } from '../types';
+import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
 import AIAgent from './AIAgent';
 import StopDetails from './StopDetails';
@@ -47,6 +49,9 @@ interface SidebarProps {
   onLogin: () => void;
   onLogout: () => void;
   hasChanges: boolean;
+  onRemoveItem: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
+  onAttachFile: (ref: StopRef | null, file: File) => void;
+  attachingKey: string | null;
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
@@ -77,7 +82,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   expeditionName,
   setExpeditionName,
   initialPrompt,
+  onRemoveItem,
+  onAttachFile,
+  attachingKey,
 }) => {
+  const reservationInput = useRef<HTMLInputElement>(null);
   const travelModes = [
     { id: 'DRIVING', icon: Car, label: 'Moto/Car' },
     { id: 'WALKING', icon: Footprints, label: 'Hike' },
@@ -387,31 +396,59 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {(routeInfo.originInterests?.length ||
-            routeInfo.waypoints.some(wp => wp.interests?.length) ||
-            routeInfo.destinationInterests?.length) ? (
-            <div className="space-y-3">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700">Expedition Details</h3>
-              {routeInfo.originInterests && routeInfo.originInterests.length > 0 && (
-                <StopDetails kind="start" badge="S" title="Start" location={routeInfo.origin} interests={routeInfo.originInterests} />
-              )}
-              {routeInfo.waypoints.map((wp, i) => wp.interests && wp.interests.length > 0 && (
-                <StopDetails
-                  key={i}
-                  kind="stop"
-                  badge={String(i + 1)}
-                  title={`Stop ${i + 1}`}
-                  location={wp.location}
-                  interests={wp.interests}
-                  distanceFromPrev={wp.distanceFromPrev}
-                  distanceToNext={wp.distanceToNext}
-                />
-              ))}
-              {routeInfo.destinationInterests && routeInfo.destinationInterests.length > 0 && (
-                <StopDetails kind="end" badge="F" title="Finish" location={routeInfo.destination} interests={routeInfo.destinationInterests} />
-              )}
+              <input
+                ref={reservationInput}
+                type="file"
+                accept={ACCEPTED_FILES}
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onAttachFile(null, file);
+                  e.target.value = '';
+                }}
+              />
+              <button
+                onClick={() => reservationInput.current?.click()}
+                disabled={attachingKey !== null}
+                title="Attach a booking PDF, email or screenshot; it's placed on the matching stop automatically"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-60"
+              >
+                {attachingKey === 'any' ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
+                {attachingKey === 'any' ? 'Reading…' : 'Add reservation'}
+              </button>
             </div>
-          ) : null}
+            <p className="text-[11px] text-muted-foreground">Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.</p>
+            <StopDetails
+              kind="start" badge="S" title="Start" location={routeInfo.origin} interests={routeInfo.originInterests || []}
+              onRemoveItem={(c, i) => onRemoveItem({ kind: 'start' }, c, i)}
+              onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
+              attaching={attachingKey === 'start'}
+            />
+            {routeInfo.waypoints.map((wp, i) => (
+              <StopDetails
+                key={i}
+                kind="stop"
+                badge={String(i + 1)}
+                title={`Stop ${i + 1}`}
+                location={wp.location}
+                interests={wp.interests || []}
+                distanceFromPrev={wp.distanceFromPrev}
+                distanceToNext={wp.distanceToNext}
+                onRemoveItem={(c, j) => onRemoveItem({ kind: 'stop', index: i }, c, j)}
+                onAttachFile={(file) => onAttachFile({ kind: 'stop', index: i }, file)}
+                attaching={attachingKey === `stop-${i}`}
+              />
+            ))}
+            <StopDetails
+              kind="end" badge="F" title="Finish" location={routeInfo.destination} interests={routeInfo.destinationInterests || []}
+              onRemoveItem={(c, i) => onRemoveItem({ kind: 'end' }, c, i)}
+              onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
+              attaching={attachingKey === 'end'}
+            />
+          </div>
         </div>
       )}
 

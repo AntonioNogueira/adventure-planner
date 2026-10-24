@@ -2,7 +2,9 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map from './components/Map';
 import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
-import { RouteInfo, Waypoint, InterestCategory, AIPlanParams, RouteLeg } from './types';
+import { RouteInfo, Waypoint, InterestCategory, InterestItem, AIPlanParams, RouteLeg, StopRef } from './types';
+import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
+import { storeAttachment, readAsBase64, fileMimeType } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
 import { Sparkles, MapPin } from 'lucide-react';
 import { db, auth, handleFirestoreError, OperationType } from './firebase';
@@ -152,11 +154,13 @@ const App: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [initialPrompt, setInitialPrompt] = useState('');
   const [mapReady, setMapReady] = useState(false);
+  // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
+  const [attachingKey, setAttachingKey] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
+      const timer = setTimeout(() => setToast(null), 4000);
       return () => clearTimeout(timer);
     }
   }, [toast]);
@@ -396,16 +400,181 @@ const App: React.FC = () => {
     }
   }, [origin, destination, mapReady, routeInfo, isLoading, error, calculateRoute]);
 
+  // ---- Editing stops: suggestions, reservations and moved pins ----
+
+  const stopLabel = (ref: StopRef) => ref.kind === 'start' ? 'Start' : ref.kind === 'end' ? 'Finish' : `Stop ${ref.index! + 1}`;
+
+  const allStops = (): { ref: StopRef; location: string }[] => [
+    { ref: { kind: 'start' }, location: origin },
+    ...waypoints.map((wp, index) => ({ ref: { kind: 'stop' as const, index }, location: wp.location })),
+    { ref: { kind: 'end' }, location: destination },
+  ];
+
+  const updateStopInterests = (ref: StopRef, update: (cats: InterestCategory[]) => InterestCategory[]) => {
+    if (ref.kind === 'stop') {
+      const apply = (list: Waypoint[]) => list.map((wp, i) => i === ref.index ? { ...wp, interests: update(wp.interests || []) } : wp);
+      setWaypoints(apply);
+      setRouteInfo(prev => prev && { ...prev, waypoints: apply(prev.waypoints) });
+    } else {
+      const key = ref.kind === 'start' ? 'originInterests' : 'destinationInterests';
+      setRouteInfo(prev => prev && { ...prev, [key]: update(prev[key] || []) });
+    }
+    setHasChanges(true);
+  };
+
+  const handleRemoveItem = (ref: StopRef, categoryIndex: number, itemIndex: number) => {
+    updateStopInterests(ref, cats => cats.map((cat, i) =>
+      i === categoryIndex ? { ...cat, items: cat.items.filter((_, j) => j !== itemIndex) } : cat
+    ));
+  };
+
+  // Read a booking file with the AI, then place it on the stop whose town is nearest to the booking's address.
+  // `ref` is where the user attached it; it wins unless the address is clearly at another stop.
+  const handleAttachFile = async (ref: StopRef | null, file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      setToast({ message: 'That file is over 10 MB. Try a smaller PDF or the booking email.', type: 'error' });
+      return;
+    }
+    const stops = allStops();
+    setAttachingKey(ref ? (ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind) : 'any');
+    try {
+      const response = await fetch('/api/extract-reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          mimeType: fileMimeType(file),
+          data: await readAsBase64(file),
+          stops: stops.map(s => `${stopLabel(s.ref)}: ${s.location}`),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Could not read the file (${response.status})`);
+      const r = data.reservation;
+
+      const position = await geocodeAddress(r.address || `${r.name} ${stops[r.stopIndex]?.location || ''}`);
+      let target = ref || stops[r.stopIndex]?.ref || stops[0].ref;
+      if (position) {
+        const located = await Promise.all(stops.map(async s => ({ ...s, at: await geocodeAddress(s.location) })));
+        const ranked = located
+          .filter(s => s.at)
+          .map(s => ({ ...s, km: distanceKm(position, s.at!) }))
+          .sort((a, b) => a.km - b.km);
+        const nearest = ranked[0];
+        const chosen = ranked.find(s => s.ref.kind === target.kind && s.ref.index === target.index);
+        if (nearest && (!ref || !chosen || (chosen.km > 50 && nearest.km < chosen.km))) {
+          target = nearest.ref;
+        }
+      }
+
+      const item: InterestItem = {
+        name: r.name || file.name,
+        description: r.notes || undefined,
+        source: 'reservation',
+        reservation: {
+          fileName: file.name,
+          fileType: fileMimeType(file),
+          fileId: storeAttachment(file),
+          address: r.address || undefined,
+          checkIn: r.checkIn || undefined,
+          checkOut: r.checkOut || undefined,
+          confirmation: r.confirmation || undefined,
+          notes: r.notes || undefined,
+          lat: position?.lat(),
+          lng: position?.lng(),
+        },
+      };
+      updateStopInterests(target, cats => {
+        const idx = cats.findIndex(c => c.category.toLowerCase() === String(r.category).toLowerCase());
+        if (idx === -1) return [...cats, { category: r.category, items: [item] }];
+        return cats.map((c, i) => i === idx ? { ...c, items: [item, ...c.items] } : c);
+      });
+      const moved = ref && (ref.kind !== target.kind || ref.index !== target.index);
+      setToast({
+        message: `Added "${item.name}" to ${stopLabel(target)} · ${r.category}${moved ? ' (matched by its address)' : ''}`,
+        type: 'success',
+      });
+    } catch (err) {
+      console.error('Reservation import failed:', err);
+      setToast({ message: err instanceof Error ? err.message : 'Could not read that file.', type: 'error' });
+    } finally {
+      setAttachingKey(null);
+    }
+  };
+
+  // A pin was dragged: snap to the nearest town, recalculate the route and refresh suggestions.
+  // Reservations stay attached to the stop; AI suggestions for the old place are replaced.
+  const handleMoveStop = async (ref: StopRef, position: google.maps.LatLngLiteral) => {
+    const town = await townAt(position);
+    if (!town) {
+      setToast({ message: 'Could not find a town there. Try dropping the pin closer to one.', type: 'error' });
+      return;
+    }
+    const keepReservations = (cats: InterestCategory[] = []) => cats
+      .map(c => ({ ...c, items: c.items.filter(i => i.source === 'reservation') }))
+      .filter(c => c.items.length > 0);
+
+    const newOrigin = ref.kind === 'start' ? town : origin;
+    const newDestination = ref.kind === 'end' ? town : destination;
+    const newWaypoints = waypoints.map((wp, i) =>
+      ref.kind === 'stop' && i === ref.index ? { ...wp, location: town, interests: keepReservations(wp.interests) } : wp
+    );
+    const originInterests = ref.kind === 'start' ? keepReservations(routeInfo?.originInterests) : routeInfo?.originInterests || [];
+    const destinationInterests = ref.kind === 'end' ? keepReservations(routeInfo?.destinationInterests) : routeInfo?.destinationInterests || [];
+
+    setOrigin(newOrigin);
+    setDestination(newDestination);
+    setWaypoints(newWaypoints);
+    setHasChanges(true);
+    setToast({ message: `${stopLabel(ref)} moved to ${town}. Finding places nearby…`, type: 'success' });
+    await calculateRoute(newOrigin, newDestination, newWaypoints, travelMode, { origin: originInterests, destination: destinationInterests });
+
+    try {
+      const response = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: town, travelMode }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Could not load suggestions');
+      const fresh: InterestCategory[] = data.recommendations?.interests || [];
+      updateStopInterests(ref, cats => {
+        const merged = fresh.map(f => {
+          const mine = cats.find(c => c.category.toLowerCase() === f.category.toLowerCase());
+          return {
+            category: f.category,
+            items: [
+              ...(mine?.items.filter(i => i.source === 'reservation') || []),
+              ...f.items.map(i => ({ ...i, source: 'ai' as const })),
+            ],
+          };
+        });
+        // Keep categories that only hold reservations.
+        cats.forEach(c => {
+          if (!merged.some(m => m.category.toLowerCase() === c.category.toLowerCase())) {
+            const kept = c.items.filter(i => i.source === 'reservation');
+            if (kept.length) merged.push({ category: c.category, items: kept });
+          }
+        });
+        return merged;
+      });
+    } catch (err) {
+      console.error('Suggestions failed:', err);
+      setToast({ message: `Route updated, but suggestions for ${town} could not be loaded.`, type: 'error' });
+    }
+  };
+
   const handleSave = async () => {
     if (!routeInfo || !user) return;
     const path = 'trips';
     try {
-      await addDoc(collection(db, path), {
+      // Firestore rejects undefined values; a JSON round trip drops them.
+      await addDoc(collection(db, path), JSON.parse(JSON.stringify({
         ...routeInfo,
         name: expeditionName || `${origin} to ${destination}`,
         userId: user.uid,
         createdAt: Date.now()
-      });
+      })));
       setHasChanges(false);
       setToast({ message: 'Expedition saved successfully!', type: 'success' });
     } catch (err) {
@@ -466,6 +635,9 @@ const App: React.FC = () => {
           expeditionName={expeditionName}
           setExpeditionName={(val) => { setExpeditionName(val); setHasChanges(true); }}
           initialPrompt={initialPrompt}
+          onRemoveItem={handleRemoveItem}
+          onAttachFile={handleAttachFile}
+          attachingKey={attachingKey}
         />
         <main className="relative min-h-0 flex-1">
           <Map 
@@ -474,6 +646,10 @@ const App: React.FC = () => {
             origin={origin} 
             destination={destination} 
             routeInfo={routeInfo}
+            onMoveStop={handleMoveStop}
+            onRemoveItem={handleRemoveItem}
+            onAttachFile={handleAttachFile}
+            attachingKey={attachingKey}
           />
         </main>
 

@@ -4,8 +4,10 @@ import { ApiError, GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 import Anthropic from '@anthropic-ai/sdk';
 
-// Server-side AI planning endpoint (POST /api/plan).
-// Runs inside the Vite dev/preview server so API keys never reach the browser bundle.
+// Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
+//   POST /api/plan                 plan a trip from a chat request
+//   POST /api/recommendations      places to stay/eat/etc. near one location (after a stop is moved)
+//   POST /api/extract-reservation  read a booking PDF/email/image and return its details
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
 interface PlanEnv {
@@ -171,8 +173,25 @@ const planJsonSchema = {
   additionalProperties: false,
 };
 
-async function planWithClaude(env: PlanEnv, prompt: string) {
+// A file sent by the browser (base64), already split into what each provider accepts.
+interface UploadedFile {
+  mimeType: string;
+  data: string;   // base64, for PDFs and images
+  text?: string;  // decoded text, for emails and text files
+}
+
+async function runClaude(env: PlanEnv, prompt: string, schema: Record<string, unknown>, file?: UploadedFile) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const content: Anthropic.Beta.Messages.BetaContentBlockParam[] = [];
+  if (file?.text) {
+    content.push({ type: 'text', text: `ATTACHED FILE CONTENT:\n${file.text}` });
+  } else if (file?.mimeType === 'application/pdf') {
+    content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: file.data } });
+  } else if (file) {
+    content.push({ type: 'image', source: { type: 'base64', media_type: file.mimeType as 'image/png', data: file.data } });
+  }
+  content.push({ type: 'text', text: prompt });
+
   const response = await client.beta.messages.create({
     model: env.CLAUDE_MODEL || 'claude-opus-5-5',
     max_tokens: 16000,
@@ -181,9 +200,9 @@ async function planWithClaude(env: PlanEnv, prompt: string) {
     fallbacks: 'default',
     output_config: {
       effort: 'medium',
-      format: { type: 'json_schema', schema: planJsonSchema },
+      format: { type: 'json_schema', schema },
     },
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'user', content }],
   });
 
   if (response.stop_reason === 'refusal') {
@@ -203,7 +222,7 @@ async function planWithClaude(env: PlanEnv, prompt: string) {
 const GEMINI_RETRYABLE = new Set([429, 500, 503]);
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function planWithGemini(env: PlanEnv, prompt: string) {
+async function runGemini(env: PlanEnv, prompt: string, responseSchema: object, file?: UploadedFile) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
   const models = [...new Set([
     env.GEMINI_MODEL || 'gemini-flash-lite-latest',
@@ -217,7 +236,12 @@ async function planWithGemini(env: PlanEnv, prompt: string) {
       try {
         const response = await ai.models.generateContent({
           model,
-          contents: prompt,
+          contents: file
+            ? [{ role: 'user', parts: [
+                file.text ? { text: `ATTACHED FILE CONTENT:\n${file.text}` } : { inlineData: { mimeType: file.mimeType, data: file.data } },
+                { text: prompt },
+              ] }]
+            : prompt,
           // Low thinking keeps responses fast enough for an interactive planner.
           config: { responseMimeType: 'application/json', responseSchema, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } },
         });
@@ -233,6 +257,7 @@ async function planWithGemini(env: PlanEnv, prompt: string) {
   throw lastError;
 }
 
+// OpenAI is only used for trip planning (text in, JSON out).
 async function planWithOpenAI(env: PlanEnv, prompt: string) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -256,11 +281,20 @@ async function planWithOpenAI(env: PlanEnv, prompt: string) {
   return JSON.parse(text);
 }
 
-function providers(env: PlanEnv) {
-  const list: { name: string; run: (prompt: string) => Promise<any> }[] = [];
-  if (env.ANTHROPIC_API_KEY) list.push({ name: 'claude', run: p => planWithClaude(env, p) });
-  if (env.GEMINI_API_KEY) list.push({ name: 'gemini', run: p => planWithGemini(env, p) });
-  if (env.OPENAI_API_KEY) list.push({ name: 'openai', run: p => planWithOpenAI(env, p) });
+interface AiTask {
+  prompt: string;
+  geminiSchema: object;
+  claudeSchema: Record<string, unknown>;
+  file?: UploadedFile;
+  /** Only plain trip planning can use OpenAI's JSON mode. */
+  allowOpenAI?: boolean;
+}
+
+function providers(env: PlanEnv, task: AiTask) {
+  const list: { name: string; run: () => Promise<any> }[] = [];
+  if (env.ANTHROPIC_API_KEY) list.push({ name: 'claude', run: () => runClaude(env, task.prompt, task.claudeSchema, task.file) });
+  if (env.GEMINI_API_KEY) list.push({ name: 'gemini', run: () => runGemini(env, task.prompt, task.geminiSchema, task.file) });
+  if (env.OPENAI_API_KEY && task.allowOpenAI) list.push({ name: 'openai', run: () => planWithOpenAI(env, task.prompt) });
   if (env.AI_PROVIDER) {
     const preferred = list.filter(p => p.name === env.AI_PROVIDER);
     return [...preferred, ...list.filter(p => p.name !== env.AI_PROVIDER)];
@@ -268,12 +302,12 @@ function providers(env: PlanEnv) {
   return list;
 }
 
-function readBody(req: IncomingMessage): Promise<string> {
+function readBody(req: IncomingMessage, limit: number): Promise<string> {
   return new Promise((resolve, reject) => {
     let body = '';
     req.on('data', chunk => {
       body += chunk;
-      if (body.length > 100_000) reject(new Error('Request too large'));
+      if (body.length > limit) reject(new Error('Request too large'));
     });
     req.on('end', () => resolve(body));
     req.on('error', reject);
@@ -286,42 +320,155 @@ function sendJson(res: ServerResponse, status: number, payload: unknown) {
   res.end(JSON.stringify(payload));
 }
 
+async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: string) {
+  const available = providers(env, task);
+  if (available.length === 0) {
+    return sendJson(res, 503, {
+      error: 'No AI provider configured. Add GEMINI_API_KEY (or ANTHROPIC_API_KEY) to .env.local and restart.',
+    });
+  }
+  const failures: string[] = [];
+  for (const provider of available) {
+    try {
+      const result = await provider.run();
+      return sendJson(res, 200, { provider: provider.name, [key]: result });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[plan-api] ${provider.name} failed:`, message);
+      failures.push(`${provider.name}: ${message.slice(0, 200)}`);
+    }
+  }
+  sendJson(res, 502, { error: 'All AI providers failed', details: failures });
+}
+
+const recommendationsGeminiSchema = {
+  type: Type.OBJECT,
+  properties: { interests: interestsSchema },
+  required: ['interests'],
+};
+const recommendationsJsonSchema = {
+  type: 'object',
+  properties: { interests: interestsJsonSchema },
+  required: ['interests'],
+  additionalProperties: false,
+};
+
+function buildRecommendationsPrompt(location: string, travelMode: string) {
+  return `You are an expert adventure travel planner. A traveller (travel mode: ${travelMode}) is stopping overnight in "${location}".
+Provide exactly 4 categories (${CATEGORIES.map(c => `"${c}"`).join(', ')}) with 3 specific, real places per category in or very near ${location}, each with a one-line description.`;
+}
+
+const reservationFields = ['category', 'name', 'address', 'checkIn', 'checkOut', 'confirmation', 'notes', 'stopIndex'] as const;
+const reservationGeminiSchema = {
+  type: Type.OBJECT,
+  properties: {
+    category: { type: Type.STRING, enum: CATEGORIES },
+    name: { type: Type.STRING, description: 'Name of the hotel, campsite, restaurant, shop or attraction' },
+    address: { type: Type.STRING, description: 'Full street address including town and country, or the town if no address is given' },
+    checkIn: { type: Type.STRING, description: 'Check-in / reservation date and time, as written, or empty' },
+    checkOut: { type: Type.STRING, description: 'Check-out date, or empty' },
+    confirmation: { type: Type.STRING, description: 'Booking reference / confirmation number, or empty' },
+    notes: { type: Type.STRING, description: 'One short line: room/table type, guests, price or other key detail' },
+    stopIndex: { type: Type.INTEGER, description: 'Index of the trip stop this booking belongs to' },
+  },
+  required: [...reservationFields],
+};
+const reservationJsonSchema = {
+  type: 'object',
+  properties: {
+    category: { type: 'string', enum: CATEGORIES },
+    name: { type: 'string' },
+    address: { type: 'string' },
+    checkIn: { type: 'string' },
+    checkOut: { type: 'string' },
+    confirmation: { type: 'string' },
+    notes: { type: 'string' },
+    stopIndex: { type: 'integer' },
+  },
+  required: [...reservationFields],
+  additionalProperties: false,
+};
+
+function buildReservationPrompt(fileName: string, stops: string[]) {
+  return `The attached file ("${fileName}") is a booking or reservation for a trip (for example a hotel, hostel or campsite confirmation, a restaurant reservation, a bike rental or a tour ticket).
+Extract the booking details. Use empty strings for anything that is not in the file.
+
+Choose "category":
+- "Accommodations" for hotels, hostels, campsites, apartments and other places to sleep
+- "Restaurants/Cafes" for food and drink
+- "Bike/Moto Shops" for rentals, repairs and gear
+- "Points of Interest" for tours, tickets and attractions
+
+The trip stops are:
+${stops.map((stop, i) => `${i}: ${stop}`).join('\n')}
+Set "stopIndex" to the stop the booking is in or nearest to.`;
+}
+
+// Emails and text files are sent as text; long base64 blocks (attachments, images) are dropped.
+function decodeTextFile(base64: string) {
+  const raw = Buffer.from(base64, 'base64').toString('utf8');
+  return raw
+    .replace(/(?:^[A-Za-z0-9+/=]{60,}\r?\n?){3,}/gm, '[binary data removed]\n')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ')
+    .slice(0, 60_000);
+}
+
+const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    if (req.url !== '/api/plan') return next();
+    const routes = ['/api/plan', '/api/recommendations', '/api/extract-reservation'];
+    if (!req.url || !routes.includes(req.url)) return next();
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
 
-    const available = providers(env);
-    if (available.length === 0) {
-      return sendJson(res, 503, {
-        error: 'No AI provider configured. Add ANTHROPIC_API_KEY (or GEMINI_API_KEY / OPENAI_API_KEY) to .env.local and restart.',
-      });
-    }
-
-    let request: string;
-    let history: ChatMessage[];
+    let body: any;
     try {
-      const body = JSON.parse(await readBody(req));
-      request = String(body.prompt || '').trim().slice(0, 2000);
-      history = Array.isArray(body.history) ? body.history.slice(-10) : [];
+      body = JSON.parse(await readBody(req, req.url === '/api/extract-reservation' ? 15_000_000 : 100_000));
     } catch {
-      return sendJson(res, 400, { error: 'Invalid request body' });
+      return sendJson(res, 400, { error: 'Invalid or too large request body' });
     }
-    if (!request) return sendJson(res, 400, { error: 'Prompt is required' });
 
-    const prompt = buildPrompt(request, history);
-    const failures: string[] = [];
-    for (const provider of available) {
-      try {
-        const plan = await provider.run(prompt);
-        return sendJson(res, 200, { provider: provider.name, plan });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(`[plan-api] ${provider.name} failed:`, message);
-        failures.push(`${provider.name}: ${message.slice(0, 200)}`);
-      }
+    if (req.url === '/api/plan') {
+      const request = String(body.prompt || '').trim().slice(0, 4000);
+      const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-10) : [];
+      if (!request) return sendJson(res, 400, { error: 'Prompt is required' });
+      return runTask(env, {
+        prompt: buildPrompt(request, history),
+        geminiSchema: responseSchema,
+        claudeSchema: planJsonSchema,
+        allowOpenAI: true,
+      }, res, 'plan');
     }
-    sendJson(res, 502, { error: 'All AI providers failed', details: failures });
+
+    if (req.url === '/api/recommendations') {
+      const location = String(body.location || '').trim().slice(0, 300);
+      if (!location) return sendJson(res, 400, { error: 'Location is required' });
+      return runTask(env, {
+        prompt: buildRecommendationsPrompt(location, String(body.travelMode || 'DRIVING')),
+        geminiSchema: recommendationsGeminiSchema,
+        claudeSchema: recommendationsJsonSchema,
+      }, res, 'recommendations');
+    }
+
+    // /api/extract-reservation
+    const fileName = String(body.fileName || 'file').slice(0, 200);
+    const mimeType = String(body.mimeType || '').toLowerCase();
+    const data = String(body.data || '');
+    const stops: string[] = Array.isArray(body.stops) ? body.stops.map(String).slice(0, 30) : [];
+    if (!data) return sendJson(res, 400, { error: 'File is required' });
+
+    const isText = mimeType.startsWith('text/') || mimeType === 'message/rfc822' || /\.(eml|txt|html?)$/i.test(fileName);
+    if (!isText && !SUPPORTED_BINARY.has(mimeType)) {
+      return sendJson(res, 415, { error: 'Unsupported file. Use a PDF, an email saved as .eml, a text file or an image (PNG/JPG).' });
+    }
+    return runTask(env, {
+      prompt: buildReservationPrompt(fileName, stops),
+      geminiSchema: reservationGeminiSchema,
+      claudeSchema: reservationJsonSchema,
+      file: isText ? { mimeType: 'text/plain', data, text: decodeTextFile(data) } : { mimeType, data },
+    }, res, 'reservation');
   };
 }
 

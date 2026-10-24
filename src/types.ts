@@ -4,9 +4,34 @@ export interface RouteStep {
   duration: string;
 }
 
+export interface Reservation {
+  fileName: string;
+  fileType: string;
+  /** Key into the in-browser attachment store (files are kept for the session only). */
+  fileId?: string;
+  address?: string;
+  checkIn?: string;
+  checkOut?: string;
+  confirmation?: string;
+  notes?: string;
+  lat?: number;
+  lng?: number;
+}
+
 export interface InterestItem {
   name: string;
   description?: string;
+  /** 'ai' suggestions are replaced when a stop moves; 'reservation' items are always kept. */
+  source?: 'ai' | 'reservation';
+  reservation?: Reservation;
+}
+
+export type StopKind = 'start' | 'stop' | 'end';
+
+/** Identifies the start, one of the stops (by index) or the finish. */
+export interface StopRef {
+  kind: StopKind;
+  index?: number;
 }
 
 export interface InterestCategory {

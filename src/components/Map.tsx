@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Waypoint, RouteInfo, InterestCategory } from '../types';
+import { Waypoint, RouteInfo, InterestCategory, StopRef } from '../types';
 import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
 import { createRoot, Root } from 'react-dom/client';
 import { cn } from '../lib/utils';
 import StopDetails, { StopKind } from './StopDetails';
+import { geocodeAddress } from '../lib/geocode';
 
 interface MapProps {
   onLoad: (
@@ -15,6 +16,11 @@ interface MapProps {
   origin?: string;
   destination?: string;
   routeInfo?: RouteInfo | null;
+  /** Editing callbacks, shared with the sidebar. */
+  onMoveStop?: (ref: StopRef, position: google.maps.LatLngLiteral) => void;
+  onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
+  onAttachFile?: (ref: StopRef, file: File) => void;
+  attachingKey?: string | null;
 }
 
 type MapType = 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
@@ -28,17 +34,31 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
 
 const PIN_COLORS: Record<StopKind, string> = { start: '#2563eb', stop: '#059669', end: '#dc2626' };
 
-// Geocode results are cached for the session so markers don't re-query Google on every render.
-// (globalThis.Map because this component is itself named Map.)
-const geocodeCache = new globalThis.Map<string, google.maps.LatLng | null>();
+const RESERVATION_GLYPHS: [RegExp, string][] = [
+  [/accommodation|hotel|stay|camp/i, '🛏'],
+  [/restaurant|cafe|food/i, '🍴'],
+  [/bike|moto|shop/i, '🔧'],
+];
 
-const Map: React.FC<MapProps> = ({ onLoad, waypoints = [], origin, destination, routeInfo }) => {
+const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
+
+const Map: React.FC<MapProps> = ({
+  onLoad, waypoints = [], origin, destination, routeInfo, onMoveStop, onRemoveItem, onAttachFile, attachingKey,
+}) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const infoRootRef = useRef<Root | null>(null);
   const [mapType, setMapType] = useState<MapType>('roadmap');
+  // Callbacks change every render; keep the latest in a ref so markers don't need rebuilding for them.
+  const callbacksRef = useRef({ onMoveStop, onRemoveItem, onAttachFile });
+  callbacksRef.current = { onMoveStop, onRemoveItem, onAttachFile };
+  // The stop whose popup is open, so it can be re-rendered after edits instead of closing.
+  const openStopRef = useRef<string | null>(null);
+  // Only re-zoom when the set of places changes, and not right after the user dragged a pin.
+  const lastBoundsKeyRef = useRef('');
+  const skipFitRef = useRef(false);
   const [mapsError, setMapsError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -87,7 +107,8 @@ const Map: React.FC<MapProps> = ({ onLoad, waypoints = [], origin, destination, 
       });
 
       googleMapRef.current = map;
-      infoWindowRef.current = new InfoWindow({ maxWidth: 380 });
+      infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
+      infoWindowRef.current.addListener('closeclick', () => { openStopRef.current = null; });
       onLoad(map, directionsService, directionsRenderer);
       setIsReady(true);
     };
@@ -107,38 +128,50 @@ const Map: React.FC<MapProps> = ({ onLoad, waypoints = [], origin, destination, 
     const updateMarkers = async () => {
       try {
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
-        const { Geocoder } = await google.maps.importLibrary("geocoding") as google.maps.GeocodingLibrary;
-        const geocoder = new Geocoder();
 
-        const allPoints: (Partial<Waypoint> & { location: string; kind: StopKind; label: string; badge: string })[] = [
-          ...(origin ? [{ location: origin, kind: 'start' as const, label: 'Start', badge: 'S' }] : []),
-          ...waypoints.map((wp, i) => ({ ...wp, kind: 'stop' as const, label: `Stop ${i + 1}`, badge: String(i + 1) })),
-          ...(destination ? [{ location: destination, kind: 'end' as const, label: 'Finish', badge: 'F' }] : [])
+        type Point = Partial<Waypoint> & { location: string; kind: StopKind; ref: StopRef; label: string; badge: string; interests: InterestCategory[] };
+        const allPoints: Point[] = [
+          ...(origin ? [{ location: origin, kind: 'start' as const, ref: { kind: 'start' as const }, label: 'Start', badge: 'S', interests: routeInfo?.originInterests || [] }] : []),
+          ...waypoints.map((wp, i) => ({
+            ...wp, kind: 'stop' as const, ref: { kind: 'stop' as const, index: i }, label: `Stop ${i + 1}`, badge: String(i + 1),
+            interests: routeInfo?.waypoints[i]?.interests || wp.interests || [],
+          })),
+          ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: 'Finish', badge: 'F', interests: routeInfo?.destinationInterests || [] }] : [])
         ];
 
-        const placeholders = ['apt', 'home', 'my location', 'office', 'work'];
-        const geocode = async (address: string) => {
-          const key = address.trim().toLowerCase();
-          if (key.length < 3 || placeholders.includes(key)) return null;
-          if (geocodeCache.has(key)) return geocodeCache.get(key)!;
-          try {
-            const { results } = await geocoder.geocode({ address });
-            const location = results?.[0]?.geometry.location ?? null;
-            geocodeCache.set(key, location);
-            return location;
-          } catch (error: any) {
-            if (error.code !== 'ZERO_RESULTS') console.error(`Geocoding failed for ${address}:`, error);
-            geocodeCache.set(key, null);
-            return null;
-          }
-        };
-
-        const locations = await Promise.all(allPoints.map(p => geocode(p.location)));
+        const locations = await Promise.all(allPoints.map(p => geocodeAddress(p.location)));
         if (cancelled) return;
 
         markersRef.current.forEach(marker => { marker.map = null; });
         markersRef.current = [];
         const bounds = new google.maps.LatLngBounds();
+
+        const openPopup = (point: Point, anchor: google.maps.marker.AdvancedMarkerElement) => {
+          const key = refKey(point.ref);
+          const content = document.createElement('div');
+          infoRootRef.current?.unmount();
+          infoRootRef.current = createRoot(content);
+          infoRootRef.current.render(
+            <div className="w-[360px] max-w-[78vw]">
+              <StopDetails
+                compact
+                kind={point.kind}
+                badge={point.badge}
+                title={point.label}
+                location={point.location}
+                interests={point.interests}
+                distanceFromPrev={point.distanceFromPrev}
+                distanceToNext={point.distanceToNext}
+                onRemoveItem={(c, i) => callbacksRef.current.onRemoveItem?.(point.ref, c, i)}
+                onAttachFile={(file) => callbacksRef.current.onAttachFile?.(point.ref, file)}
+                attaching={attachingKey === key}
+              />
+            </div>
+          );
+          infoWindowRef.current?.setContent(content);
+          infoWindowRef.current?.open({ map: googleMapRef.current, anchor });
+          openStopRef.current = key;
+        };
 
         allPoints.forEach((point, idx) => {
           const position = locations[idx];
@@ -157,44 +190,59 @@ const Map: React.FC<MapProps> = ({ onLoad, waypoints = [], origin, destination, 
           const marker = new AdvancedMarkerElement({
             position,
             map: googleMapRef.current,
-            title: `${point.label}: ${point.location}`,
+            title: `${point.label}: ${point.location} (drag to move)`,
             content: pin,
-            gmpClickable: true
+            gmpClickable: true,
+            gmpDraggable: Boolean(callbacksRef.current.onMoveStop),
           });
 
-          marker.addEventListener('gmp-click', () => {
-            const interests: InterestCategory[] =
-              point.kind === 'start' ? routeInfo?.originInterests || [] :
-              point.kind === 'end' ? routeInfo?.destinationInterests || [] :
-              point.interests || [];
-
-            const content = document.createElement('div');
-            infoRootRef.current?.unmount();
-            infoRootRef.current = createRoot(content);
-            infoRootRef.current.render(
-              <div className="w-[300px] max-w-full">
-                <StopDetails
-                  compact
-                  kind={point.kind}
-                  badge={point.badge}
-                  title={point.label}
-                  location={point.location}
-                  interests={interests}
-                  distanceFromPrev={point.distanceFromPrev}
-                  distanceToNext={point.distanceToNext}
-                />
-              </div>
-            );
-            infoWindowRef.current?.setContent(content);
-            infoWindowRef.current?.open({ map: googleMapRef.current, anchor: marker });
+          marker.addEventListener('gmp-click', () => openPopup(point, marker));
+          marker.addListener('dragend', () => {
+            const pos = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null;
+            if (!pos) return;
+            const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
+            const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
+            skipFitRef.current = true;
+            infoWindowRef.current?.close();
+            openStopRef.current = null;
+            callbacksRef.current.onMoveStop?.(point.ref, { lat, lng });
           });
-
           markersRef.current.push(marker);
+
+          // Keep an open popup open (with fresh content) after edits.
+          if (openStopRef.current === refKey(point.ref)) openPopup(point, marker);
+
+          // Small violet pins for reservations that have an address.
+          point.interests.forEach(cat => cat.items.forEach(item => {
+            const r = item.reservation;
+            if (item.source !== 'reservation' || r?.lat == null || r?.lng == null) return;
+            const glyph = RESERVATION_GLYPHS.find(([re]) => re.test(cat.category))?.[1] || '★';
+            const resPin = new PinElement({
+              background: '#7c3aed',
+              borderColor: '#ffffff',
+              glyphColor: '#ffffff',
+              ...({ glyphText: glyph } as google.maps.marker.PinElementOptions),
+              scale: 0.75,
+            });
+            const resMarker = new AdvancedMarkerElement({
+              position: { lat: r.lat, lng: r.lng },
+              map: googleMapRef.current,
+              title: `${item.name}${r.checkIn ? ` · ${r.checkIn}` : ''} (${point.label})`,
+              content: resPin,
+              gmpClickable: true,
+              zIndex: 1,
+            });
+            resMarker.addEventListener('gmp-click', () => openPopup(point, resMarker));
+            markersRef.current.push(resMarker);
+          }));
         });
 
-        if (!bounds.isEmpty() && googleMapRef.current) {
+        const boundsKey = allPoints.map(p => p.location).join('|');
+        if (!bounds.isEmpty() && googleMapRef.current && boundsKey !== lastBoundsKeyRef.current && !skipFitRef.current) {
           googleMapRef.current.fitBounds(bounds, 60);
         }
+        lastBoundsKeyRef.current = boundsKey;
+        skipFitRef.current = false;
       } catch (err) {
         console.error("Error updating markers:", err);
       }
@@ -202,7 +250,7 @@ const Map: React.FC<MapProps> = ({ onLoad, waypoints = [], origin, destination, 
 
     updateMarkers();
     return () => { cancelled = true; };
-  }, [isReady, waypoints, origin, destination, routeInfo]);
+  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey]);
 
   return (
     <div className="relative h-full w-full">

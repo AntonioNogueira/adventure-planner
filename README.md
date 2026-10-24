@@ -31,6 +31,7 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
 | UI | `src/` (React 19 + Tailwind 4) | Responsive: sidebar on desktop, map above the planner on phones |
 | Map, routes, geocoding | `src/components/Map.tsx`, `src/App.tsx` | Google Maps JS API, loaded in `index.html` |
 | AI planner | `server/plan-api.ts` → `POST /api/plan` | Gemini, Claude or OpenAI with structured JSON output; runs on the server so AI keys never reach the browser. A plan takes about 10–20 s |
+| Editing stops | `src/components/StopDetails.tsx`, `src/App.tsx` | Drag pins to move a stop (snaps to the nearest town, recalculates the route and refreshes suggestions); remove suggestions; attach booking PDFs, `.eml` emails or screenshots, which the AI reads and files under the matching stop (`POST /api/extract-reservation`) |
 | Sign-in and saved trips | `src/firebase.ts`, `firestore.rules` | Firebase Auth (Google) + Firestore `trips` collection |
 
 ## API keys and security
@@ -39,6 +40,7 @@ Describe a trip ("3-day bike trip from Porto to Lisbon along the coast") and the
 - The Google Maps key is visible in the browser by design. In Google Cloud Console, restrict it by **HTTP referrer** (for example `http://localhost:3000/*` and your production domain) and to the Maps APIs only.
 - The Firebase web config in `firebase-applet-config.json` is public by design. Firestore access is controlled by `firestore.rules`.
 - Anthropic, Gemini and OpenAI keys are only read by the server (`server/plan-api.ts`).
+- Attached reservation files stay in the browser for the session; saved trips keep the extracted booking details (name, dates, reference, address), not the file.
 
 ## Deploying
 

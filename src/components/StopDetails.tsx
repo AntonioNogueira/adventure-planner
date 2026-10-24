@@ -1,9 +1,10 @@
-import React from 'react';
-import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowLeft, ArrowRight } from 'lucide-react';
-import { InterestCategory } from '../types';
+import React, { useRef } from 'react';
+import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowLeft, ArrowRight, X, Paperclip, Loader2, FileText, MapPin } from 'lucide-react';
+import { InterestCategory, StopKind } from '../types';
 import { cn } from '../lib/utils';
+import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
 
-export type StopKind = 'start' | 'stop' | 'end';
+export type { StopKind } from '../types';
 
 // Full class names (no string interpolation) so Tailwind can detect and generate them.
 const THEMES: Record<StopKind, {
@@ -66,12 +67,21 @@ interface StopDetailsProps {
   distanceFromPrev?: string;
   distanceToNext?: string;
   compact?: boolean;
+  /** Editing: remove one item, or attach a reservation file to this stop. */
+  onRemoveItem?: (categoryIndex: number, itemIndex: number) => void;
+  onAttachFile?: (file: File) => void;
+  attaching?: boolean;
 }
+
+const mapsLink = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
+  onRemoveItem, onAttachFile, attaching,
 }) => {
   const t = THEMES[kind];
+  const fileInput = useRef<HTMLInputElement>(null);
+
   return (
     <div className={cn('rounded-xl border p-3 font-sans', t.card, compact && 'border-0 bg-transparent p-1')}>
       <div className={cn('mb-2 flex items-center gap-2 font-semibold', t.title)}>
@@ -93,38 +103,112 @@ const StopDetails: React.FC<StopDetailsProps> = ({
       )}
 
       {interests.length > 0 ? (
-        <div className={cn('grid gap-2', compact ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2')}>
-          {interests.slice(0, 4).map((cat, idx) => (
-            <div key={idx} className={cn('min-w-0 rounded-lg p-2', t.tile)}>
-              <div className={cn('mb-1 flex items-center gap-1.5 border-b pb-1', t.tileBorder)}>
-                <InterestIcon category={cat.category} className={cn('shrink-0', t.icon)} />
-                <span className={cn('text-[11px] font-bold uppercase tracking-wide', compact ? 'min-w-0 leading-tight [overflow-wrap:anywhere]' : 'truncate', t.category)}>
-                  {cat.category}
-                </span>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {interests.map((cat, catIdx) => {
+            // Reservations first, then suggestions (fewer in the compact map popup).
+            const indexed = cat.items.map((item, itemIdx) => ({ item, itemIdx }));
+            const reservations = indexed.filter(({ item }) => item.source === 'reservation');
+            const suggestions = indexed.filter(({ item }) => item.source !== 'reservation').slice(0, compact ? 3 : 5);
+            return (
+              <div key={catIdx} className={cn('min-w-0 rounded-lg p-2', t.tile)}>
+                <div className={cn('mb-1 flex items-center gap-1.5 border-b pb-1', t.tileBorder)}>
+                  <InterestIcon category={cat.category} className={cn('shrink-0', t.icon)} />
+                  <span className={cn('truncate whitespace-nowrap text-[11px] font-bold uppercase tracking-wide', t.category)} title={cat.category}>
+                    {cat.category}
+                  </span>
+                </div>
+                <ul className="space-y-1">
+                  {[...reservations, ...suggestions].map(({ item, itemIdx }) => {
+                    const r = item.reservation;
+                    const fileUrl = attachmentUrl(r?.fileId);
+                    return (
+                      <li
+                        key={itemIdx}
+                        className={cn('group relative text-xs leading-snug', r && 'rounded-md border border-violet-200 bg-violet-50/70 p-1.5')}
+                      >
+                        <div className="flex items-start gap-1 pr-4">
+                          {r && <Paperclip size={11} className="mt-0.5 shrink-0 text-violet-600" />}
+                          <a
+                            href={mapsLink(r?.address || `${item.name} ${location}`)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={item.description || item.name}
+                            className={cn('block min-w-0 truncate font-medium hover:underline', r ? 'text-violet-800' : t.link)}
+                          >
+                            {item.name}
+                          </a>
+                        </div>
+                        {r ? (
+                          <div className="mt-0.5 space-y-0.5 text-[11px] text-violet-900/80">
+                            {(r.checkIn || r.checkOut) && <p>{[r.checkIn, r.checkOut].filter(Boolean).join(' → ')}</p>}
+                            {r.confirmation && <p>Ref: <span className="font-semibold">{r.confirmation}</span></p>}
+                            {!compact && r.notes && <p className="line-clamp-2">{r.notes}</p>}
+                            <div className="flex flex-wrap gap-x-2">
+                              {fileUrl ? (
+                                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 font-medium text-violet-700 hover:underline">
+                                  <FileText size={10} />{r.fileName}
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5" title="Files are kept until the page is closed; booking details are saved with the trip">
+                                  <FileText size={10} />{r.fileName}
+                                </span>
+                              )}
+                              {r.address && (
+                                <a href={mapsLink(r.address)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-violet-700 hover:underline">
+                                  <MapPin size={10} />Map
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          !compact && item.description && (
+                            <span className="line-clamp-2 text-[11px] text-muted-foreground">{item.description}</span>
+                          )
+                        )}
+                        {onRemoveItem && (
+                          <button
+                            onClick={() => onRemoveItem(catIdx, itemIdx)}
+                            aria-label={`Remove ${item.name}`}
+                            title="Remove"
+                            className="absolute right-0 top-0 rounded p-0.5 text-muted-foreground/60 hover:bg-red-50 hover:text-red-600 md:opacity-0 md:group-hover:opacity-100"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <ul className="space-y-1">
-                {cat.items.slice(0, compact ? 3 : 5).map((item, i) => (
-                  <li key={i} className="text-xs leading-snug">
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name} ${location}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={item.description || item.name}
-                      className={cn('block truncate font-medium hover:underline', t.link)}
-                    >
-                      {item.name}
-                    </a>
-                    {!compact && item.description && (
-                      <span className="line-clamp-2 text-[11px] text-muted-foreground">{item.description}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="py-1 text-xs italic text-muted-foreground">No recommendations for this stop yet.</p>
+      )}
+
+      {onAttachFile && (
+        <>
+          <input
+            ref={fileInput}
+            type="file"
+            accept={ACCEPTED_FILES}
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onAttachFile(file);
+              e.target.value = '';
+            }}
+          />
+          <button
+            onClick={() => fileInput.current?.click()}
+            disabled={attaching}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-dashed border-violet-300 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 disabled:opacity-60"
+          >
+            {attaching ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
+            {attaching ? 'Reading reservation…' : 'Add reservation (PDF, email, image)'}
+          </button>
+        </>
       )}
     </div>
   );
