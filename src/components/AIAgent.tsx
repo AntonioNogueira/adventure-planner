@@ -80,7 +80,9 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanRoute, initialPrompt }) => {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || `Planner request failed (${response.status})`);
+        // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
+        const detail = Array.isArray(data.details) && data.details[0] ? ` ${String(data.details[0]).slice(0, 180)}` : '';
+        throw new Error(`${data.error || `Planner request failed (${response.status})`}.${detail}`);
       }
       const result = data.plan;
 

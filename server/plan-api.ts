@@ -190,7 +190,7 @@ async function planWithClaude(env: PlanEnv, prompt: string) {
 async function planWithGemini(env: PlanEnv, prompt: string) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
   const response = await ai.models.generateContent({
-    model: env.GEMINI_MODEL || 'gemini-3-flash-preview',
+    model: env.GEMINI_MODEL || 'gemini-flash-latest',
     contents: prompt,
     config: { responseMimeType: 'application/json', responseSchema },
   });
