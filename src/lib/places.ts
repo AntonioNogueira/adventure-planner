@@ -71,7 +71,13 @@ async function searchCategory(
       ({ places } = await Place.searchByText({
         textQuery: shopQuery(travelMode),
         fields: FIELDS,
-        locationBias: { center, radius: radius * 2 },
+        // Text search can only be restricted to a box: roughly 2 × radius around the stop.
+        locationRestriction: {
+          north: center.lat() + (radius * 2) / 111_000,
+          south: center.lat() - (radius * 2) / 111_000,
+          east: center.lng() + (radius * 2) / (111_000 * Math.cos((center.lat() * Math.PI) / 180)),
+          west: center.lng() - (radius * 2) / (111_000 * Math.cos((center.lat() * Math.PI) / 180)),
+        },
         maxResultCount: count,
       }));
     } else {
@@ -79,7 +85,8 @@ async function searchCategory(
         : category === 'food' ? ['restaurant', 'cafe']
         : ['tourist_attraction', 'museum', 'park'];
       ({ places } = await Place.searchNearby({
-        includedTypes,
+        // Match the main type for food and sights (a hotel with a restaurant isn't a restaurant suggestion).
+        ...(category === 'stay' ? { includedTypes } : { includedPrimaryTypes: includedTypes }),
         fields: FIELDS,
         locationRestriction: { center, radius },
         maxResultCount: count,
