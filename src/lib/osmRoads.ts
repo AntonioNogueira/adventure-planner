@@ -28,7 +28,27 @@ export interface RoadData {
   speedLimits: { limit: number; km: number }[];
   surfaces: { group: SurfaceGroup; km: number }[];
   roadClasses: { roadClass: string; km: number }[];
+  /** Surface in route order: each run covers fromKm–toKm from the segment's start. */
+  surfaceRuns: SurfaceRun[];
   totalKm: number;
+}
+
+export interface SurfaceRun { group: SurfaceGroup; fromKm: number; toKm: number }
+
+/** Consecutive edges with the same surface merged into runs, in route order. */
+export function surfaceRuns(edges: Edge[]): SurfaceRun[] {
+  const runs: SurfaceRun[] = [];
+  let at = 0;
+  for (const e of edges) {
+    const km = e.length || 0;
+    if (km <= 0) continue;
+    const group = SURFACE_GROUP[e.surface || ''] || 'paved';
+    const last = runs[runs.length - 1];
+    if (last && last.group === group) last.toKm = at + km;
+    else runs.push({ group, fromKm: at, toKm: at + km });
+    at += km;
+  }
+  return runs;
 }
 
 const add = <K,>(map: Map<K, number>, key: K, km: number) => map.set(key, (map.get(key) || 0) + km);
@@ -52,6 +72,7 @@ export function summariseEdges(edges: Edge[]): RoadData {
     speedLimits: sorted(speeds).map(([limit, km]) => ({ limit, km: round1(km) })),
     surfaces: sorted(surfaces).map(([group, km]) => ({ group, km: round1(km) })),
     roadClasses: sorted(classes).map(([roadClass, km]) => ({ roadClass, km: round1(km) })),
+    surfaceRuns: surfaceRuns(edges),
     totalKm: round1(total),
   };
 }

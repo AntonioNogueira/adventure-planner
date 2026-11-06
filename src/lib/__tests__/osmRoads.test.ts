@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { summariseEdges, splitPath } from '../osmRoads';
+import { summariseEdges, splitPath, surfaceRuns } from '../osmRoads';
 
 describe('summariseEdges', () => {
   it('totals km by speed limit, surface group and road type', () => {
@@ -14,6 +14,24 @@ describe('summariseEdges', () => {
     expect(data.surfaces).toEqual([{ group: 'paved', km: 64.5 }, { group: 'gravel', km: 5 }, { group: 'dirt', km: 1.5 }]);
     expect(data.roadClasses[0]).toEqual({ roadClass: 'motorway', km: 49.4 });
     expect(data.totalKm).toBe(71);
+  });
+});
+
+describe('surfaceRuns', () => {
+  it('keeps surfaces in route order and merges neighbours', () => {
+    expect(surfaceRuns([
+      { length: 2, surface: 'paved' },
+      { length: 1, surface: 'gravel' },
+      { length: 1, surface: 'compacted' },
+      { length: 0 },
+      { length: 3, surface: 'paved_smooth' },
+      { length: 0.5, surface: 'dirt' },
+    ])).toEqual([
+      { group: 'paved', fromKm: 0, toKm: 2 },
+      { group: 'gravel', fromKm: 2, toKm: 4 },
+      { group: 'paved', fromKm: 4, toKm: 7 },
+      { group: 'dirt', fromKm: 7, toKm: 7.5 },
+    ]);
   });
 });
 
