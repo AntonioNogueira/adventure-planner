@@ -45,6 +45,7 @@ Describe a trip ("Cádiz to Silves, bikepacking, about 60 km per day") and the p
 | Routing | `src/lib/routing.ts` | Routes API when enabled, Directions service otherwise; avoid highways/ferries/tolls |
 | Elevation and effort | `src/lib/elevation.ts` | Climbing per day and profile; days are split by distance + climbing (10 km per 1000 m by bike) |
 | Itinerary | `src/components/Itinerary.tsx`, `src/lib/schedule.ts`, `src/lib/weather.ts` | Dates, rest days, Open-Meteo forecast per day, booking costs and date checks |
+| Segment details | `src/components/SegmentDetails.tsx`, `src/lib/terrain.ts`, `src/lib/osmRoads.ts` | Click a day on the map: gradient-coloured terrain profile (bike/hike), main roads and average speed (moto/car), and speed limits, surface and road types from OpenStreetMap via the public [Valhalla](https://valhalla1.openstreetmap.de) service (fair use) |
 | GPX | `src/lib/gpx.ts` | Whole trip (one track per day) or one day, with stops and bookings as waypoints |
 | Sign-in, saved and shared trips | `src/firebase.ts`, `firestore.rules`, `storage.rules` | Firebase Auth (Google), Firestore `trips` (shared trips open with `?trip=<id>`), Storage for booking files |
 
