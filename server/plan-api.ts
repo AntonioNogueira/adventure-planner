@@ -52,10 +52,11 @@ Return:
   Every place must lie between the origin and destination in the direction of travel; never add detours.
   Set overnight=true only if the user wants to sleep there. Leave the list empty if nothing is needed.
 - lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any".
+- avoidFerries: true if they want to travel overland / without ferries or boats, otherwise false.
 - summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'summary'];
+const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'summary'];
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -73,6 +74,7 @@ const responseSchema = {
       },
     },
     lodging: { type: Type.STRING, enum: ['any', 'camping', 'hostel', 'hotel'] },
+    avoidFerries: { type: Type.BOOLEAN },
     summary: { type: Type.STRING },
   },
   required: intentFields,
@@ -88,6 +90,7 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "dailyKm": number,
   "route": [{ "place": string, "overnight": boolean }],
   "lodging": "any" | "camping" | "hostel" | "hotel",
+  "avoidFerries": boolean,
   "summary": string
 }`;
 
@@ -110,6 +113,7 @@ const planJsonSchema = {
       },
     },
     lodging: { type: 'string', enum: ['any', 'camping', 'hostel', 'hotel'] },
+    avoidFerries: { type: 'boolean' },
     summary: { type: 'string' },
   },
   required: intentFields,
@@ -297,7 +301,8 @@ function sendJson(res: ServerResponse, status: number, payload: unknown) {
 export function describeIntent(intent: any) {
   const via = (intent.route || []).map((r: any) => `${r.place}${r.overnight ? ' (night)' : ''}`).join(' → ');
   return `${intent.origin} → ${via ? via + ' → ' : ''}${intent.destination} · ${intent.travelMode}`
-    + `${intent.days ? ` · ${intent.days} days` : ''}${intent.dailyKm ? ` · ${intent.dailyKm} km/day` : ''} · lodging ${intent.lodging}`;
+    + `${intent.days ? ` · ${intent.days} days` : ''}${intent.dailyKm ? ` · ${intent.dailyKm} km/day` : ''} · lodging ${intent.lodging}`
+    + `${intent.avoidFerries ? ' · no ferries' : ''}`;
 }
 
 async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: string) {

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowLeft, ArrowRight, X, Paperclip, Loader2, FileText, MapPin } from 'lucide-react';
 import { InterestCategory, StopKind } from '../types';
 import { cn } from '../lib/utils';
@@ -71,6 +71,8 @@ interface StopDetailsProps {
   onRemoveItem?: (categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (file: File) => void;
   attaching?: boolean;
+  /** Offered when the stop has no suggestions yet (long trips load them on request). */
+  onFindPlaces?: () => void;
   /** Shown as a "Remove stop" link (overnight stops only). */
   onRemoveStop?: () => void;
   /** Booking date problems, keyed "categoryIndex-itemIndex". */
@@ -81,9 +83,13 @@ const mapsLink = (query: string) => `https://www.google.com/maps/search/?api=1&q
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
-  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop,
+  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces,
 }) => {
   const t = THEMES[kind];
+  const [finding, setFinding] = useState(false);
+  const hasSuggestions = interests.some(c => c.items.some(i => i.source !== 'reservation'));
+  // Suggestions arrived: stop showing "Finding…".
+  useEffect(() => { if (hasSuggestions) setFinding(false); }, [hasSuggestions]);
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
@@ -111,7 +117,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
         </div>
       )}
 
-      {interests.length > 0 ? (
+      {interests.some(c => c.items.length > 0) ? (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {interests.map((cat, catIdx) => {
             // Reservations first, then suggestions (fewer in the compact map popup).
@@ -197,7 +203,18 @@ const StopDetails: React.FC<StopDetailsProps> = ({
           })}
         </div>
       ) : (
-        <p className="py-1 text-xs italic text-muted-foreground">No recommendations for this stop yet.</p>
+        !onFindPlaces && <p className="py-1 text-xs italic text-muted-foreground">No recommendations for this stop yet.</p>
+      )}
+
+      {onFindPlaces && !hasSuggestions && (
+        <button
+          onClick={() => { setFinding(true); onFindPlaces(); }}
+          disabled={finding}
+          className="mr-2 mt-2 inline-flex items-center gap-1.5 rounded-md border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          {finding ? <Loader2 size={12} className="animate-spin" /> : <MapPin size={12} />}
+          {finding ? 'Finding places…' : 'Find places nearby'}
+        </button>
       )}
 
       {onAttachFile && (

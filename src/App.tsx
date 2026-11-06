@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
 import { planOvernightStops } from './lib/tripBuilder';
-import { computeTrip, tripPath, RoutedTrip, RouteOptions, NO_AVOIDANCES } from './lib/routing';
+import { computeTrip, tripPath, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES } from './lib/routing';
 import { elevationsAlong, climbStats } from './lib/elevation';
 import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
@@ -146,6 +146,9 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
   );
 };
 
+// Trips with more stops than this load suggestions for intermediate stops on request.
+const MAX_EAGER_STOPS = 10;
+
 const App: React.FC = () => {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [origin, setOrigin] = useState('');
@@ -186,6 +189,8 @@ const App: React.FC = () => {
   const mapRef = useRef<google.maps.Map | null>(null);
   // The last calculated route (paths per day), used for drawing, elevation and GPX export.
   const tripRef = useRef<RoutedTrip | null>(null);
+  // What the AI understood for the current plan, to re-plan when route options change.
+  const lastIntentRef = useRef<TripIntent | null>(null);
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [routeOptions, setRouteOptions] = useState<RouteOptions>(NO_AVOIDANCES);
   const [startDate, setStartDate] = useState('');
@@ -246,9 +251,12 @@ const App: React.FC = () => {
 
   // The AI has understood the request; Google Maps does the rest: overnight stops along the real
   // route, the route itself, then Places suggestions for every stop.
-  const handlePlanTrip = async (intent: TripIntent): Promise<PlanSummary | null> => {
+  const handlePlanTrip = async (intent: TripIntent, baseOptions: RouteOptions = routeOptions): Promise<PlanSummary | null> => {
     if (!mapReady) return null;
-    const { waypoints: stops, targetKm } = await planOvernightStops(intent, routeOptions);
+    lastIntentRef.current = intent;
+    const options = intent.avoidFerries ? { ...baseOptions, avoidFerries: true } : baseOptions;
+    setRouteOptions(options);
+    const { waypoints: stops, targetKm } = await planOvernightStops(intent, options);
     const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
 
     setOrigin(intent.origin);
@@ -275,19 +283,19 @@ const App: React.FC = () => {
     });
     setHasChanges(true);
 
-    const legs = await calculateRoute(intent.origin, intent.destination, mappedWaypoints, intent.travelMode, { origin: [], destination: [] });
+    const legs = await calculateRoute(intent.origin, intent.destination, mappedWaypoints, intent.travelMode, { origin: [], destination: [] }, options);
     if (!legs) return null;
-    loadSuggestions(
-      [{ kind: 'start' }, ...stops.map((_, index) => ({ kind: 'stop' as const, index })), { kind: 'end' }],
-      [intent.origin, ...stops.map(s => s.position || s.name), intent.destination],
-      intent.travelMode,
-      intent.lodging,
-    );
+    // Long trips: suggestions for the start and finish now, other stops on request ("Find places nearby"),
+    // to keep Places searches (and their cost) down.
+    const allRefs: StopRef[] = [{ kind: 'start' }, ...stops.map((_, index) => ({ kind: 'stop' as const, index })), { kind: 'end' }];
+    const allLocations = [intent.origin, ...stops.map(s => s.position || s.name), intent.destination];
+    const eager = stops.length <= MAX_EAGER_STOPS ? allRefs.map((_, i) => i) : [0, allRefs.length - 1];
+    loadSuggestions(eager.map(i => allRefs[i]), eager.map(i => allLocations[i]), intent.travelMode, intent.lodging);
     return {
       days: legs.length,
       stops: stops.map(s => s.name),
       targetKm,
-      longestKm: Math.round(Math.max(...legs.map(l => (l.distanceMeters || 0) / 1000))),
+      longestKm: Math.round(Math.max(...legs.map(l => (l.distanceMeters || 0) / 1000 - (l.ferryKm || 0)))),
     };
   };
 
@@ -342,6 +350,11 @@ const App: React.FC = () => {
 
       tripRef.current = trip;
       setRoutePath(tripPath(trip));
+      const ferry = ferryKm(trip);
+      if (ferry >= 10) {
+        const tip = currentTravelMode === 'DRIVING' || options.avoidFerries ? '' : ' Turn on "Avoid ferries" to travel the whole way overland.';
+        notice = `${notice ? notice + ' ' : ''}This route includes about ${ferry} km by ferry (no riding, and no overnight stops at sea).${tip}`;
+      }
       const legs = trip.legs;
       const totalDistance = legs.reduce((acc, leg) => acc + leg.distanceMeters, 0);
       const totalDuration = legs.reduce((acc, leg) => acc + leg.durationSeconds, 0);
@@ -367,6 +380,7 @@ const App: React.FC = () => {
         distanceMeters: leg.distanceMeters,
         durationSeconds: leg.durationSeconds,
         end: leg.path[leg.path.length - 1],
+        ferryKm: Math.round(leg.steps.filter(st => st.ferry).reduce((sum, st) => sum + st.distanceMeters, 0) / 1000) || undefined,
       }));
 
       setRouteInfo({
@@ -606,6 +620,11 @@ const App: React.FC = () => {
     });
   };
 
+  const handleFindPlaces = (ref: StopRef) => {
+    const stop = allStops().find(s => s.ref.kind === ref.kind && s.ref.index === ref.index);
+    if (stop) loadSuggestions([ref], [stop.position || stop.location], travelMode, lodging);
+  };
+
   // Manual planning: calculate, then fill in suggestions for stops that have none yet.
   const handleCalculate = async () => {
     const legs = await calculateRoute();
@@ -617,7 +636,8 @@ const App: React.FC = () => {
         : waypoints[ref.index!]?.interests;
       return !cats?.some(c => c.items.some(i => i.source !== 'reservation'));
     });
-    loadSuggestions(empty.map(s => s.ref), empty.map(s => s.position || s.location), travelMode, lodging);
+    const some = empty.length <= MAX_EAGER_STOPS + 2 ? empty : empty.filter(s => s.ref.kind !== 'stop');
+    loadSuggestions(some.map(s => s.ref), some.map(s => s.position || s.location), travelMode, lodging);
   };
 
   // ---- Schedule: dates, rest days, booking checks, costs, GPX ----
@@ -656,7 +676,17 @@ const App: React.FC = () => {
   const handleRouteOptionsChange = (options: RouteOptions) => {
     setRouteOptions(options);
     setHasChanges(true);
-    if (routeInfo) calculateRoute(undefined, undefined, undefined, undefined, undefined, options);
+    if (!routeInfo) return;
+    // An AI-planned trip without bookings is re-planned, so the overnight stops follow the new route
+    // (e.g. overland instead of by ferry). Otherwise keep the stops and just re-route between them.
+    const hasBookings = [routeInfo.originInterests || [], ...routeInfo.waypoints.map(w => w.interests || []), routeInfo.destinationInterests || []]
+      .flat().some(c => c.items.some(i => i.source === 'reservation'));
+    const intent = lastIntentRef.current;
+    if (intent && !hasBookings && intent.origin === origin && intent.destination === destination) {
+      handlePlanTrip({ ...intent, avoidFerries: options.avoidFerries }, options);
+    } else {
+      calculateRoute(undefined, undefined, undefined, undefined, undefined, options);
+    }
   };
 
   // GPX: the whole trip (one track per day) or a single day, with stops and bookings as waypoints.
@@ -882,6 +912,7 @@ const App: React.FC = () => {
           shareLink={shareLink}
           onShare={handleShare}
           onStopSharing={handleStopSharing}
+          onFindPlaces={handleFindPlaces}
         />
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
           <Map 
@@ -894,6 +925,7 @@ const App: React.FC = () => {
             onMoveStop={handleMoveStop}
             onAddStop={routeInfo ? handleAddStop : undefined}
             onRemoveStop={handleRemoveStop}
+            onFindPlaces={handleFindPlaces}
             onRemoveItem={handleRemoveItem}
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}

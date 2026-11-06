@@ -72,6 +72,8 @@ export interface RouteLeg {
   duration: string;
   distanceMeters?: number;
   durationSeconds?: number;
+  /** Part of the day spent on a ferry, in km. */
+  ferryKm?: number;
   /** Where the day ends (for weather); filled from the route. */
   end?: { lat: number; lng: number };
   /** Climbing in metres and ~60 evenly spaced elevations for the profile; filled after the route. */
@@ -91,6 +93,8 @@ export interface TripIntent {
   /** Places in travel order the route must pass; `overnight` ones become stops. */
   route: { place: string; overnight: boolean }[];
   lodging: 'any' | 'camping' | 'hostel' | 'hotel';
+  /** The user asked for no ferries ("overland", "no boats"). */
+  avoidFerries?: boolean;
   summary: string;
 }
 

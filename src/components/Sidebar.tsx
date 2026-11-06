@@ -73,6 +73,7 @@ interface SidebarProps {
   shareLink: string | null;
   onShare: () => void;
   onStopSharing: () => void;
+  onFindPlaces: (ref: StopRef) => void;
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
@@ -120,6 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   shareLink,
   onShare,
   onStopSharing,
+  onFindPlaces,
 }) => {
   const reservationInput = useRef<HTMLInputElement>(null);
   const [sheet, setSheet] = useState<SheetHeight>('half');
@@ -496,6 +498,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               kind="start" badge="S" title="Start" location={routeInfo.origin} interests={routeInfo.originInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'start' }, c, i)}
               warnings={warningsFor('start')}
+              onFindPlaces={() => onFindPlaces({ kind: 'start' })}
               onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
               attaching={attachingKey === 'start'}
             />
@@ -511,6 +514,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 distanceToNext={wp.distanceToNext}
                 onRemoveItem={(c, j) => onRemoveItem({ kind: 'stop', index: i }, c, j)}
                 warnings={warningsFor(`stop-${i}`)}
+                onFindPlaces={() => onFindPlaces({ kind: 'stop', index: i })}
                 onAttachFile={(file) => onAttachFile({ kind: 'stop', index: i }, file)}
                 attaching={attachingKey === `stop-${i}`}
               />
@@ -519,6 +523,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               kind="end" badge="F" title="Finish" location={routeInfo.destination} interests={routeInfo.destinationInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'end' }, c, i)}
               warnings={warningsFor('end')}
+              onFindPlaces={() => onFindPlaces({ kind: 'end' })}
               onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
               attaching={attachingKey === 'end'}
             />

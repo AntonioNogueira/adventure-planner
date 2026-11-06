@@ -20,6 +20,7 @@ interface MapProps {
   /** Click on the map → "Add overnight stop here". */
   onAddStop?: (position: google.maps.LatLngLiteral) => void;
   onRemoveStop?: (index: number) => void;
+  onFindPlaces?: (ref: StopRef) => void;
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (ref: StopRef, file: File) => void;
   attachingKey?: string | null;
@@ -41,7 +42,7 @@ const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
 const Map: React.FC<MapProps> = ({
-  onLoad, routePath = [], waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onRemoveItem, onAttachFile, attachingKey,
+  onLoad, routePath = [], waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey,
 }) => {
   const routeLineRef = useRef<google.maps.Polyline | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -51,8 +52,8 @@ const Map: React.FC<MapProps> = ({
   const infoRootRef = useRef<Root | null>(null);
   const [mapType, setMapType] = useState<MapType>('roadmap');
   // Callbacks change every render; keep the latest in a ref so markers don't need rebuilding for them.
-  const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onRemoveItem, onAttachFile });
-  callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onRemoveItem, onAttachFile };
+  const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile });
+  callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile };
   // The stop whose popup is open, so it can be re-rendered after edits instead of closing.
   const openStopRef = useRef<string | null>(null);
   // Only re-zoom when the set of places changes, and not right after the user dragged a pin.
@@ -186,6 +187,7 @@ const Map: React.FC<MapProps> = ({
                 distanceToNext={point.distanceToNext}
                 onRemoveItem={(c, i) => callbacksRef.current.onRemoveItem?.(point.ref, c, i)}
                 onAttachFile={(file) => callbacksRef.current.onAttachFile?.(point.ref, file)}
+                onFindPlaces={() => callbacksRef.current.onFindPlaces?.(point.ref)}
                 onRemoveStop={point.ref.kind === 'stop' && callbacksRef.current.onRemoveStop
                   ? () => { infoWindowRef.current?.close(); openStopRef.current = null; callbacksRef.current.onRemoveStop?.(point.ref.index!); }
                   : undefined}

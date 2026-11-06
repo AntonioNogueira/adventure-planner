@@ -19,20 +19,32 @@ export function climbStats(elevations: number[]): { ascent: number; descent: num
   return { ascent: Math.round(ascent), descent: Math.round(descent) };
 }
 
+/** Distance ranges (km from the start of a stretch) with no riding, e.g. ferry crossings. */
+export type KmRange = [number, number];
+
+const inRanges = (km: number, ranges: KmRange[]) => ranges.find(([a, b]) => km > a && km < b);
+
 /**
  * Where to end each day along a stretch of `totalKm`, splitting by effort (distance plus climbing)
  * rather than by distance alone. `elevations` are evenly spaced samples along the stretch.
+ * Ferry ranges count as no effort, and a day never ends at sea: it ends at the arrival port.
  */
-export function splitByEffort(totalKm: number, elevations: number[] | null, kmPer1000m: number, days: number): number[] {
+export function splitByEffort(
+  totalKm: number, elevations: number[] | null, kmPer1000m: number, days: number, ferries: KmRange[] = [],
+): number[] {
   if (days <= 1) return [];
-  if (!elevations || elevations.length < 2 || kmPer1000m === 0) {
+  const flat = !elevations || elevations.length < 2 || kmPer1000m === 0;
+  if (flat && ferries.length === 0) {
     return Array.from({ length: days - 1 }, (_, k) => (totalKm * (k + 1)) / days);
   }
-  const n = elevations.length;
+  const samples = elevations && elevations.length >= 2 ? elevations : new Array(257).fill(0);
+  const n = samples.length;
+  const step = totalKm / (n - 1);
   const effort: number[] = [0];
   for (let i = 1; i < n; i++) {
-    const climb = Math.max(0, elevations[i] - elevations[i - 1]);
-    effort.push(effort[i - 1] + totalKm / (n - 1) + (climb * kmPer1000m) / 1000);
+    const riding = !inRanges((i - 0.5) * step, ferries);
+    const climb = riding && !flat ? Math.max(0, samples[i] - samples[i - 1]) : 0;
+    effort.push(effort[i - 1] + (riding ? step : 0) + (climb * kmPer1000m) / 1000);
   }
   const total = effort[n - 1];
   return Array.from({ length: days - 1 }, (_, k) => {
@@ -40,13 +52,14 @@ export function splitByEffort(totalKm: number, elevations: number[] | null, kmPe
     const i = Math.max(1, effort.findIndex(e => e >= goal));
     // Interpolate between the two samples around the goal.
     const frac = (goal - effort[i - 1]) / ((effort[i] - effort[i - 1]) || 1);
-    return (totalKm * (i - 1 + frac)) / (n - 1);
+    const km = step * (i - 1 + frac);
+    return inRanges(km, ferries)?.[1] ?? km;
   });
 }
 
 /** Flat-equivalent km for a stretch, used to decide how many days it needs. */
-export function effortKm(totalKm: number, elevations: number[] | null, kmPer1000m: number) {
-  return totalKm + (elevations ? climbStats(elevations).ascent * kmPer1000m / 1000 : 0);
+export function effortKm(totalKm: number, elevations: number[] | null, kmPer1000m: number, ferryKm = 0) {
+  return totalKm - ferryKm + (elevations ? climbStats(elevations).ascent * kmPer1000m / 1000 : 0);
 }
 
 const cache = new Map<string, number[] | null>();
@@ -60,7 +73,8 @@ export async function elevationsAlong(path: LatLng[], samples: number): Promise<
   try {
     const { ElevationService } = await google.maps.importLibrary('elevation') as google.maps.ElevationLibrary;
     const { results } = await new ElevationService().getElevationAlongPath({ path: short, samples });
-    const elevations = results.map(r => r.elevation);
+    // Over water the API returns the sea floor (thousands of metres below zero): treat it as sea level.
+    const elevations = results.map(r => Math.max(0, r.elevation));
     cache.set(key, elevations);
     return elevations;
   } catch (err) {

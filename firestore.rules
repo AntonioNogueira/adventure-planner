@@ -45,7 +45,7 @@ service cloud.firestore {
              data.destination is string && data.destination.size() < 512 &&
              data.createdAt is number &&
              (!('name' in data) || (data.name is string && data.name.size() < 256)) &&
-             (!('waypoints' in data) || (data.waypoints is list && data.waypoints.size() < 25)) &&
+             (!('waypoints' in data) || (data.waypoints is list && data.waypoints.size() < 100)) &&
              (!('travelMode' in data) || (data.travelMode is string && data.travelMode.size() < 32)) &&
              (!('distance' in data) || (data.distance is string && data.distance.size() < 64)) &&
              (!('duration' in data) || (data.duration is string && data.duration.size() < 64)) &&

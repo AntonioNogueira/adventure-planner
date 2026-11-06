@@ -150,7 +150,9 @@ const Itinerary: React.FC<ItineraryProps> = ({
               <div className="min-w-0 flex-1 space-y-0.5">
                 <p className="truncate font-medium" title={`${leg.from} → ${leg.to}`}>{leg.from} → {leg.to}</p>
                 <p className="text-muted-foreground">
-                  {leg.distance} · {leg.duration}
+                  {leg.ferryKm
+                    ? <>{Math.round((leg.distanceMeters || 0) / 1000 - leg.ferryKm)} km riding + ⛴ {leg.ferryKm} km ferry</>
+                    : leg.distance} · {leg.duration}
                   {leg.ascent != null && <> · ↑ {leg.ascent} m ↓ {leg.descent} m</>}
                 </p>
                 <div className="flex flex-wrap items-center gap-2">

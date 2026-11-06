@@ -33,3 +33,20 @@ describe('effortKm', () => {
     expect(effortKm(60, null, 10)).toBe(60);
   });
 });
+
+describe('splitByEffort with ferries', () => {
+  it('never ends a day at sea and does not count the crossing as riding', () => {
+    // 300 km stretch: 100 km riding, 100 km ferry, 100 km riding, split into 2 days.
+    const [split] = splitByEffort(300, null, 10, 2, [[100, 200]]);
+    // Equal riding each day: the night falls at a port (departure ~100 km or arrival 200 km), never at sea.
+    expect(split <= 100.5 || split >= 200).toBe(true);
+    expect(Math.min(Math.abs(split - 100), Math.abs(split - 200))).toBeLessThan(1);
+  });
+  it('keeps days balanced on the riding parts', () => {
+    const splits = splitByEffort(400, null, 10, 4, [[100, 200]]);
+    // 300 km of riding in 4 days = 75 km each: 75, then 150 riding = 250 real, 225 riding = 325 real.
+    expect(splits[0]).toBeCloseTo(75, 0);
+    expect(splits[1]).toBeCloseTo(250, 0);
+    expect(splits[2]).toBeCloseTo(325, 0);
+  });
+});

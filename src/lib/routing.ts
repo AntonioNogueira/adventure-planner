@@ -16,6 +16,8 @@ export interface RoutedStep {
   instruction: string;
   distanceMeters: number;
   durationSeconds: number;
+  /** A ferry crossing (no riding, and no place to stop for the night). */
+  ferry?: boolean;
 }
 
 export interface RoutedLeg {
@@ -44,6 +46,12 @@ export interface TripRequest {
 // Once the Routes API answers "not enabled", stop trying it for this page load.
 let routesApiUsable = true;
 
+// Both services accept at most 25 intermediate points per request; longer trips are routed in chunks.
+const MAX_INTERMEDIATES = 23;
+
+const isFerry = (maneuver?: string | null, instruction?: string | null) =>
+  /ferry/i.test(maneuver || '') || /\bferr(y|i|ies)\b|\bbalsa\b/i.test(instruction || '');
+
 const toLiteral = (p: { lat: number | (() => number); lng: number | (() => number) }): google.maps.LatLngLiteral => ({
   lat: typeof p.lat === 'function' ? p.lat() : p.lat,
   lng: typeof p.lng === 'function' ? p.lng() : p.lng,
@@ -71,6 +79,7 @@ async function viaRoutesApi(req: TripRequest): Promise<RoutedTrip> {
         instruction: step.instructions || '',
         distanceMeters: step.distanceMeters,
         durationSeconds: Math.round((step.staticDurationMillis || 0) / 1000),
+        ferry: isFerry(step.maneuver, step.instructions),
       })),
     })),
   };
@@ -99,13 +108,16 @@ async function viaDirections(req: TripRequest): Promise<RoutedTrip> {
         instruction: step.instructions,
         distanceMeters: step.distance?.value || 0,
         durationSeconds: step.duration?.value || 0,
+        ferry: isFerry(step.maneuver, step.instructions),
       })),
     })),
   };
 }
 
-export async function computeTrip(req: TripRequest): Promise<RoutedTrip> {
-  if (routesApiUsable) {
+async function computeOnce(req: TripRequest): Promise<RoutedTrip> {
+  // The Routes API only avoids highways/ferries/tolls for driving; the Directions service does it for every mode.
+  const needsDirections = req.travelMode !== 'DRIVING' && req.options && Object.values(req.options).some(Boolean);
+  if (routesApiUsable && !needsDirections) {
     try {
       return await viaRoutesApi(req);
     } catch (err) {
@@ -118,6 +130,30 @@ export async function computeTrip(req: TripRequest): Promise<RoutedTrip> {
     }
   }
   return viaDirections(req);
+}
+
+/** Route a trip of any length: more than 23 stops are routed in consecutive chunks. */
+export async function computeTrip(req: TripRequest): Promise<RoutedTrip> {
+  if (req.stops.length <= MAX_INTERMEDIATES) return computeOnce(req);
+  const points = [req.origin, ...req.stops.map(s => s.location), req.destination];
+  const legs: RoutedLeg[] = [];
+  let engine: RoutedTrip['engine'] = 'routes';
+  let a = 0;
+  while (a < points.length - 1) {
+    let b = Math.min(a + MAX_INTERMEDIATES + 1, points.length - 1);
+    // A chunk must end at a real stop (not a pass-through point), so legs line up with stops.
+    while (b > a + 1 && b < points.length - 1 && req.stops[b - 1].via) b--;
+    const part = await computeOnce({ ...req, origin: points[a], destination: points[b], stops: req.stops.slice(a, b - 1) });
+    legs.push(...part.legs);
+    if (part.engine === 'directions') engine = 'directions';
+    a = b;
+  }
+  return { legs, engine };
+}
+
+/** Total ferry distance in a trip, in km. */
+export function ferryKm(trip: RoutedTrip): number {
+  return Math.round(trip.legs.flatMap(l => l.steps).filter(s => s.ferry).reduce((sum, s) => sum + s.distanceMeters, 0) / 1000);
 }
 
 /** Every point of the trip in order, for drawing and export. */

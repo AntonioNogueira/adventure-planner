@@ -6,7 +6,7 @@ import { overnightTownNear } from './places';
 import { geocodeAddress } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
 import { haversineKm, pathWithDistances, pointAt } from './geo';
-import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort } from './elevation';
+import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange } from './elevation';
 
 /** Typical comfortable day, used when the user gives neither days nor a daily distance. */
 export const DEFAULT_DAILY_KM: Record<string, number> = { BICYCLING: 70, WALKING: 22, DRIVING: 300 };
@@ -14,8 +14,25 @@ export const DEFAULT_DAILY_KM: Record<string, number> = { BICYCLING: 70, WALKING
 const SPLIT_TOLERANCE = 1.15;
 // A pass-through place the AI suggests is dropped if it makes that stretch this much longer (straight line).
 const MAX_DETOUR = 1.3;
-// Routing allows 25 waypoints per request.
-const MAX_WAYPOINTS = 23;
+// Long trips are routed in chunks; this caps a runaway plan (e.g. a tiny daily distance).
+const MAX_WAYPOINTS = 90;
+
+/** Ferry crossings in a stretch, as km ranges from its start. */
+function ferryRanges(legs: RoutedLeg[]): KmRange[] {
+  const ranges: KmRange[] = [];
+  let km = 0;
+  for (const leg of legs) {
+    const stepsKm = leg.steps.reduce((sum, st) => sum + st.distanceMeters, 0) / 1000;
+    // Steps may not add up exactly to the leg; scale them to the leg's distance.
+    const scale = stepsKm > 0 ? leg.distanceMeters / 1000 / stepsKm : 1;
+    for (const st of leg.steps) {
+      const length = (st.distanceMeters / 1000) * scale;
+      if (st.ferry) ranges.push([km, km + length]);
+      km += length;
+    }
+  }
+  return ranges;
+}
 
 export interface OvernightPlan {
   /** Overnight stops in order (not including start and finish); split stops carry an exact position. */
@@ -82,7 +99,9 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
   const profiles = await Promise.all(segments.map(segment =>
     kmPer1000m ? elevationsAlong(segment.legs.flatMap(l => l.path), 256) : Promise.resolve(null)));
   const segmentKm = segments.map(s => s.legs.reduce((sum, leg) => sum + leg.distanceMeters, 0) / 1000);
-  const segmentEffort = segments.map((_, i) => effortKm(segmentKm[i], profiles[i], kmPer1000m));
+  const ferries = segments.map(s => ferryRanges(s.legs));
+  const segmentEffort = segments.map((_, i) => effortKm(
+    segmentKm[i], profiles[i], kmPer1000m, ferries[i].reduce((sum, [a, b]) => sum + b - a, 0)));
   const totalEffort = segmentEffort.reduce((a, b) => a + b, 0);
 
   const target = intent.days > 0
@@ -96,7 +115,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
       : Math.max(1, Math.ceil(segmentEffort[s] / (target * SPLIT_TOLERANCE)));
     if (days > 1) {
       const points = pathWithDistances(segments[s].legs);
-      const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days);
+      const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);
       const towns = await Promise.all(splits.map(km =>
         overnightTownNear(new google.maps.LatLng(pointAt(points, km)), intent.lodging)));
       towns.forEach(town => {
