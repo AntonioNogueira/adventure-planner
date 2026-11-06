@@ -19,6 +19,7 @@ interface PlanEnv {
   OPENAI_API_KEY?: string;
   OPENAI_MODEL?: string;
   AI_PROVIDER?: string;
+  AI_REQUESTS_PER_HOUR?: string;
 }
 
 interface ChatMessage {
@@ -387,6 +388,20 @@ function decodeTextFile(base64: string) {
     .slice(0, 60_000);
 }
 
+// Simple per-visitor limit so a public deployment can't burn through the AI quota.
+// AI_REQUESTS_PER_HOUR in the environment overrides the default.
+const requestLog = new Map<string, number[]>();
+function overLimit(env: PlanEnv, req: IncomingMessage) {
+  const perHour = Number(env.AI_REQUESTS_PER_HOUR) || 60;
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const visitor = forwarded || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const recent = (requestLog.get(visitor) || []).filter(t => now - t < 3_600_000);
+  recent.push(now);
+  requestLog.set(visitor, recent);
+  return recent.length > perHour;
+}
+
 const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
@@ -394,6 +409,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
     const routes = ['/api/plan', '/api/extract-reservation'];
     if (!req.url || !routes.includes(req.url)) return next();
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+    if (overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });
 
     let body: any;
     try {

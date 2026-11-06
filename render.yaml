@@ -1,0 +1,19 @@
+# Render blueprint: https://render.com → New → Blueprint → pick this repository.
+# Render asks for the secret values (sync: false) when the service is created.
+services:
+  - type: web
+    name: adventure-planner
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npx vite preview
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_REQUESTS_PER_HOUR
+        value: "60"
