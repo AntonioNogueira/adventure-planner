@@ -114,7 +114,15 @@ const MapOsm: React.FC<MapOsmProps> = ({
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
 
   // One popup, re-used for stops, places, segments and "add stop here".
-  const showPopup = (at: LatLng, node: React.ReactNode, offset = 12) => {
+  // `offset` is the height of the pin the popup belongs to: above the pin it is lifted by that much,
+  // below it (near the top of the map) it starts at the pin's tip.
+  const showPopup = (at: LatLng, node: React.ReactNode, pinHeight = 0) => {
+    const h = pinHeight ? pinHeight + 4 : 12;
+    const offset: maplibregl.Offset = {
+      top: [0, pinHeight ? 4 : 12], 'top-left': [0, pinHeight ? 4 : 12], 'top-right': [0, pinHeight ? 4 : 12],
+      bottom: [0, -h], 'bottom-left': [0, -h], 'bottom-right': [0, -h],
+      left: [12, -h / 2], right: [-12, -h / 2], center: [0, 0],
+    };
     const map = mapRef.current;
     if (!map) return;
     const content = document.createElement('div');
@@ -239,9 +247,11 @@ const MapOsm: React.FC<MapOsmProps> = ({
                 ? () => { popupRef.current?.remove(); callbacksRef.current.onRemoveStop?.(point.ref.index!); }
                 : undefined}
             />
-        ), 30);
+        ), pinHeight(point));
         openStopRef.current = key;
       };
+      const pinElements = new Map<string, HTMLElement>();
+      const pinHeight = (point: MapPoint) => pinElements.get(refKey(point.ref))?.offsetHeight || 38;
 
       allPoints.forEach((point, idx) => {
         const at = locations[idx];
@@ -249,6 +259,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
         bounds.extend([at.lng, at.lat]);
         const el = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (drag to move)`);
         el.style.zIndex = '10';
+        pinElements.set(refKey(point.ref), el);
         el.addEventListener('click', (e) => { e.stopPropagation(); openStop(point, at); });
         const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', draggable: Boolean(callbacksRef.current.onMoveStop) })
           .setLngLat([at.lng, at.lat]).addTo(map);
@@ -278,7 +289,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
                 point={point}
                 onRemove={() => { popupRef.current?.remove(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
               />
-            ), 20);
+            ), placeEl.offsetHeight || (isBooking ? 30 : 25));
             openStopRef.current = null;
           });
           markersRef.current.push(new maplibregl.Marker({ element: placeEl, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map));

@@ -119,6 +119,7 @@ const Map: React.FC<MapProps> = ({
             + Add overnight stop here
           </button>
         );
+        infoWindowRef.current?.setOptions({ pixelOffset: new google.maps.Size(0, 0) });
         infoWindowRef.current?.setContent(content);
         infoWindowRef.current?.setPosition(position);
         infoWindowRef.current?.open({ map });
@@ -155,6 +156,7 @@ const Map: React.FC<MapProps> = ({
         infoRootRef.current?.unmount();
         infoRootRef.current = createRoot(content);
         infoRootRef.current.render(<SegmentDetails label={segment.label} leg={segment.leg} travelMode={travelMode} />);
+        infoWindowRef.current?.setOptions({ pixelOffset: new google.maps.Size(0, 0) });
         infoWindowRef.current?.setContent(content);
         infoWindowRef.current?.setPosition(e.latLng || segment.path[Math.floor(segment.path.length / 2)]);
         infoWindowRef.current?.open({ map });
@@ -171,6 +173,19 @@ const Map: React.FC<MapProps> = ({
   useEffect(() => {
     if (!isReady || !googleMapRef.current) return;
     let cancelled = false;
+
+    // Opens the popup just above a pin. Uses the stop's position and the pin's height rather than
+    // anchoring to the marker: a marker that was just re-created has no measured height yet, so an
+    // anchored popup would open too low and the pin would cover its tail.
+    const openAbove = (content: HTMLElement, position: google.maps.LatLngLiteral, pin: HTMLElement, fallbackHeight: number) => {
+      const iw = infoWindowRef.current;
+      if (!iw) return;
+      const height = pin.offsetHeight || fallbackHeight;
+      iw.setOptions({ pixelOffset: new google.maps.Size(0, -height - 2) });
+      iw.setContent(content);
+      iw.setPosition(position);
+      iw.open({ map: googleMapRef.current });
+    };
 
     const updateMarkers = async () => {
       try {
@@ -212,8 +227,7 @@ const Map: React.FC<MapProps> = ({
                 attaching={attachingKey === key}
               />
           );
-          infoWindowRef.current?.setContent(content);
-          infoWindowRef.current?.open({ map: googleMapRef.current, anchor });
+          openAbove(content, at, anchor.content as HTMLElement, 38);
           openStopRef.current = key;
         };
 
@@ -236,6 +250,7 @@ const Map: React.FC<MapProps> = ({
           });
 
           marker.addEventListener('gmp-click', () => openPopup(point, marker, position));
+          marker.addListener('dragstart', () => { infoWindowRef.current?.close(); openStopRef.current = null; });
           marker.addListener('dragend', () => {
             const pos = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null;
             if (!pos) return;
@@ -286,8 +301,7 @@ const Map: React.FC<MapProps> = ({
                   onRemove={() => { infoWindowRef.current?.close(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
                 />
               );
-              infoWindowRef.current?.setContent(content);
-              infoWindowRef.current?.open({ map: googleMapRef.current, anchor: placeMarker });
+              openAbove(content, { lat, lng }, placePin.element ?? (placePin as unknown as HTMLElement), isBooking ? 32 : 26);
               openStopRef.current = null;
             });
             markersRef.current.push(placeMarker);

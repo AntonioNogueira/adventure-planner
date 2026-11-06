@@ -67,3 +67,8 @@
 .stop-labels-hidden .stop-pin > div:first-child {
   padding-right: 2px !important;
 }
+
+/* Map popups (OSM version) always sit above the pins, including stop pins (z-index 10). */
+.maplibregl-popup {
+  z-index: 20;
+}
