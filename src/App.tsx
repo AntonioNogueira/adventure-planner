@@ -623,7 +623,12 @@ const App: React.FC = () => {
           console.error('Place suggestions failed:', err);
           if (!failed) {
             failed = true;
-            setToast({ message: 'Could not load place suggestions. Check that "Places API (New)" is enabled for your Maps key.', type: 'error' });
+            setToast({
+              message: isOsm
+                ? 'Could not load place suggestions from OpenStreetMap (Overpass may be busy). Try "Find places nearby" again in a minute.'
+                : 'Could not load place suggestions. Check that "Places API (New)" is enabled for your Maps key.',
+              type: 'error',
+            });
           }
         });
     });
