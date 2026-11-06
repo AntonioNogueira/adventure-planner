@@ -1,8 +1,11 @@
-// Google Places (New) lookups, run in the browser with the Maps key:
-// overnight towns that have somewhere to sleep, and real suggestions for each stop.
-// Only "Pro" fields are requested (no ratings) to stay within the cheaper Places SKU.
+// Places to stay, eat, fix the bike and visit, and overnight towns with somewhere to sleep.
+// Google Places (New) with the Maps key (only "Pro" fields, no ratings, to stay on the cheaper SKU),
+// or OpenStreetMap data via Overpass in the open version (see overpass.ts).
 import { InterestCategory, InterestItem } from '../types';
 import { geocodeAddress, placeAt } from './geocode';
+import { isOsm } from './provider';
+import { LatLng } from './geo';
+import { osmSuggestions, osmOvernightTowns } from './overpass';
 
 export type CategoryId = 'stay' | 'food' | 'shop' | 'sights';
 
@@ -59,9 +62,9 @@ function toItem(place: google.maps.places.Place, category: CategoryId): Interest
 const cache = new Map<string, InterestItem[]>();
 
 async function searchCategory(
-  category: CategoryId, center: google.maps.LatLng, travelMode: string, lodging: LodgingPreference, count: number,
+  category: CategoryId, center: LatLng, travelMode: string, lodging: LodgingPreference, count: number,
 ): Promise<InterestItem[]> {
-  const key = [category, center.toUrlValue(3), travelMode, lodging, count].join('|');
+  const key = [category, center.lat.toFixed(3), center.lng.toFixed(3), travelMode, lodging, count].join('|');
   if (cache.has(key)) return cache.get(key)!;
   const { Place, SearchNearbyRankPreference } = await placesLib();
   const radius = travelMode === 'DRIVING' ? 8000 : 4000;
@@ -73,10 +76,10 @@ async function searchCategory(
         fields: FIELDS,
         // Text search can only be restricted to a box: roughly 2 × radius around the stop.
         locationRestriction: {
-          north: center.lat() + (radius * 2) / 111_000,
-          south: center.lat() - (radius * 2) / 111_000,
-          east: center.lng() + (radius * 2) / (111_000 * Math.cos((center.lat() * Math.PI) / 180)),
-          west: center.lng() - (radius * 2) / (111_000 * Math.cos((center.lat() * Math.PI) / 180)),
+          north: center.lat + (radius * 2) / 111_000,
+          south: center.lat - (radius * 2) / 111_000,
+          east: center.lng + (radius * 2) / (111_000 * Math.cos((center.lat * Math.PI) / 180)),
+          west: center.lng - (radius * 2) / (111_000 * Math.cos((center.lat * Math.PI) / 180)),
         },
         maxResultCount: count,
       }));
@@ -106,8 +109,9 @@ async function searchCategory(
 export async function placeSuggestions(
   location: string | google.maps.LatLngLiteral, travelMode: string, lodging: LodgingPreference = 'any', count = 3,
 ): Promise<InterestCategory[]> {
-  const center = typeof location === 'string' ? await geocodeAddress(location) : new google.maps.LatLng(location);
+  const center = typeof location === 'string' ? await geocodeAddress(location) : location;
   if (!center) return [];
+  if (isOsm) return osmSuggestions(center, travelMode, lodging, count);
   const ids: CategoryId[] = ['stay', 'food', 'shop', 'sights'];
   const results = await Promise.allSettled(ids.map(id => searchCategory(id, center, travelMode, lodging, count)));
   if (results.every(r => r.status === 'rejected')) {
@@ -120,12 +124,15 @@ export async function placeSuggestions(
 }
 
 /**
- * Where to sleep near a point on the route: the nearest place to stay (named after its town),
- * or the point itself if Places finds nothing.
+ * Where to sleep near each point on the route: the nearest place to stay (named after its town),
+ * or the point itself if nothing is found.
  */
-export async function overnightTownNear(
-  point: google.maps.LatLng, lodging: LodgingPreference,
-): Promise<{ name: string; position: google.maps.LatLngLiteral } | null> {
+export async function overnightTownsNear(points: LatLng[], lodging: LodgingPreference): Promise<({ name: string; position: LatLng } | null)[]> {
+  if (isOsm) return osmOvernightTowns(points, lodging);
+  return Promise.all(points.map(point => overnightTownNear(point, lodging)));
+}
+
+async function overnightTownNear(point: LatLng, lodging: LodgingPreference): Promise<{ name: string; position: LatLng } | null> {
   try {
     const { Place, SearchNearbyRankPreference } = await placesLib();
     const { places } = await Place.searchNearby({
@@ -144,5 +151,5 @@ export async function overnightTownNear(
   } catch (err) {
     console.warn('Overnight search fell back to reverse geocoding', err);
   }
-  return placeAt(point.toJSON());
+  return placeAt(point);
 }

@@ -53,3 +53,22 @@ export function downsample<T>(points: T[], max: number): T[] {
   const step = (points.length - 1) / (max - 1);
   return Array.from({ length: max }, (_, i) => points[Math.round(i * step)]);
 }
+
+/** `n` points evenly spaced by distance along a path (first and last included). */
+export function evenlySpaced(path: LatLng[], n: number): LatLng[] {
+  if (path.length < 2 || n < 2) return path.slice(0, 1);
+  const raw: number[] = [0];
+  for (let i = 1; i < path.length; i++) raw.push(raw[i - 1] + haversineKm(path[i - 1], path[i]));
+  const total = raw[raw.length - 1];
+  const out: LatLng[] = [];
+  let j = 0;
+  for (let k = 0; k < n; k++) {
+    const target = (total * k) / (n - 1);
+    while (j < raw.length - 2 && raw[j + 1] < target) j++;
+    const span = raw[j + 1] - raw[j] || 1;
+    const f = Math.min(1, Math.max(0, (target - raw[j]) / span));
+    out.push({ lat: path[j].lat + (path[j + 1].lat - path[j].lat) * f, lng: path[j].lng + (path[j + 1].lng - path[j].lng) * f });
+  }
+  return out;
+}
+

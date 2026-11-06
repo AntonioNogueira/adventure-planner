@@ -2,7 +2,7 @@
 // into overnight stops, using the real route from Google Maps instead of AI guesses.
 // Days are split by effort: distance plus climbing, so hilly days come out shorter.
 import { TripIntent } from '../types';
-import { overnightTownNear } from './places';
+import { overnightTownsNear } from './places';
 import { geocodeAddress } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
 import { haversineKm, pathWithDistances, pointAt } from './geo';
@@ -47,11 +47,9 @@ export interface OvernightPlan {
  * Overnight places stay: the user asked to sleep there.
  */
 async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> {
-  const [startAt, endAt] = await Promise.all([geocodeAddress(intent.origin), geocodeAddress(intent.destination)]);
-  if (!startAt || !endAt) return intent.route;
-  const start = startAt.toJSON();
-  const end = endAt.toJSON();
-  const located = await Promise.all(intent.route.map(async r => ({ ...r, at: (await geocodeAddress(r.place))?.toJSON() })));
+  const [start, end] = await Promise.all([geocodeAddress(intent.origin), geocodeAddress(intent.destination)]);
+  if (!start || !end) return intent.route;
+  const located = await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) })));
   const kept: typeof located = [];
   located.forEach((r, i) => {
     if (r.overnight) { kept.push(r); return; }
@@ -117,8 +115,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     if (days > 1) {
       const points = pathWithDistances(segments[s].legs);
       const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);
-      const towns = await Promise.all(splits.map(km =>
-        overnightTownNear(new google.maps.LatLng(pointAt(points, km)), intent.lodging)));
+      const towns = await overnightTownsNear(splits.map(km => pointAt(points, km)), intent.lodging);
       towns.forEach(town => {
         if (town && town.name !== waypoints[waypoints.length - 1]?.name && town.name !== intent.origin && town.name !== intent.destination) {
           waypoints.push(town);

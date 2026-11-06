@@ -1,5 +1,6 @@
 // Elevation along routes (Google Elevation API, same Maps key) and climbing statistics.
-import { LatLng, downsample } from './geo';
+import { LatLng, downsample, evenlySpaced } from './geo';
+import { isOsm } from './provider';
 
 /** Flat-equivalent km added per 1000 m of climbing, per travel mode (hiking follows Naismith's rule). */
 export const EFFORT_KM_PER_1000M: Record<string, number> = { BICYCLING: 10, WALKING: 8, DRIVING: 0, TRANSIT: 0 };
@@ -71,6 +72,19 @@ export async function elevationsAlong(path: LatLng[], samples: number): Promise<
   const key = `${samples}|${short.length}|${short[0].lat},${short[0].lng}|${short[short.length - 1].lat},${short[short.length - 1].lng}`;
   if (cache.has(key)) return cache.get(key)!;
   try {
+    if (isOsm) {
+      // Valhalla's elevation service (free): heights at evenly spaced points.
+      const res = await fetch('https://valhalla1.openstreetmap.de/height', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shape: evenlySpaced(path, samples).map(p => ({ lat: p.lat, lon: p.lng })), range: false }),
+      });
+      const data = await res.json();
+      if (!Array.isArray(data.height)) throw new Error(data.error || 'no heights');
+      const heights = data.height.map((h: number | null) => Math.max(0, h ?? 0));
+      cache.set(key, heights);
+      return heights;
+    }
     const { ElevationService } = await google.maps.importLibrary('elevation') as google.maps.ElevationLibrary;
     const { results } = await new ElevationService().getElevationAlongPath({ path: short, samples });
     // Over water the API returns the sea floor (thousands of metres below zero): treat it as sea level.

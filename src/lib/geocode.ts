@@ -1,32 +1,96 @@
-// Shared, cached geocoding so markers, reservations and moved stops don't re-query Google.
-const cache = new Map<string, google.maps.LatLng | null>();
-const PLACEHOLDERS = ['apt', 'home', 'my location', 'office', 'work'];
+// Place names ↔ coordinates, cached. Google Geocoding, or Photon (OpenStreetMap, free) in the open version.
+import { isOsm } from './provider';
+import { LatLng } from './geo';
 
-async function geocoder() {
+const cache = new Map<string, Promise<LatLng | null>>();
+const PLACEHOLDERS = ['apt', 'home', 'my location', 'office', 'work'];
+const PHOTON = 'https://photon.komoot.io';
+
+async function googleGeocoder() {
   const { Geocoder } = await google.maps.importLibrary("geocoding") as google.maps.GeocodingLibrary;
   return new Geocoder();
 }
 
-export async function geocodeAddress(address: string): Promise<google.maps.LatLng | null> {
-  const key = address.trim().toLowerCase();
-  if (key.length < 3 || PLACEHOLDERS.includes(key)) return null;
-  if (cache.has(key)) return cache.get(key)!;
+interface PhotonFeature {
+  geometry: { coordinates: [number, number] };
+  properties: Record<string, string | undefined>;
+}
+
+// Photon is a free shared service: at most two requests at a time, retried on hiccups.
+let active = 0;
+const waiting: (() => void)[] = [];
+async function slot<T>(run: () => Promise<T>): Promise<T> {
+  if (active >= 2) await new Promise<void>(resolve => waiting.push(resolve));
+  active++;
+  try { return await run(); } finally { active--; waiting.shift()?.(); }
+}
+
+async function photon(path: string): Promise<PhotonFeature[]> {
+  return slot(async () => {
+    let lastError: unknown;
+    for (const delay of [0, 600, 1800]) {
+      if (delay) await new Promise(r => setTimeout(r, delay));
+      try {
+        // English names, to match the AI's place names ("Spain", not "España").
+        const res = await fetch(`${PHOTON}${path}${path.includes('?') ? '&' : '?'}lang=en`);
+        if (res.ok) return (await res.json()).features || [];
+        lastError = new Error(`Photon ${res.status}`);
+        if (res.status !== 429 && res.status < 500) break;
+      } catch (err) {
+        lastError = err; // network hiccup: retry
+      }
+    }
+    throw lastError;
+  });
+}
+
+const SETTLEMENT = new Set(['city', 'town', 'village', 'hamlet', 'municipality', 'suburb', 'locality', 'island']);
+
+class LookupFailed extends Error {}
+
+async function lookup(address: string): Promise<LatLng | null> {
   try {
-    const { results } = await (await geocoder()).geocode({ address });
-    const location = results?.[0]?.geometry.location ?? null;
-    cache.set(key, location);
-    return location;
+    if (isOsm) {
+      const features = await photon(`/api/?q=${encodeURIComponent(address)}&limit=5`);
+      // Prefer a town or city over a street that happens to share the name.
+      const best = features.find(f => f.properties.osm_key === 'place' && SETTLEMENT.has(f.properties.osm_value || ''))
+        || features.find(f => f.properties.type === 'city')
+        || features[0];
+      return best ? { lat: best.geometry.coordinates[1], lng: best.geometry.coordinates[0] } : null;
+    }
+    const { results } = await (await googleGeocoder()).geocode({ address });
+    return results?.[0]?.geometry.location.toJSON() ?? null;
   } catch (error: any) {
-    if (error?.code !== 'ZERO_RESULTS') console.error(`Geocoding failed for ${address}:`, error);
-    cache.set(key, null);
-    return null;
+    if (error?.code === 'ZERO_RESULTS') return null;
+    console.error(`Geocoding failed for ${address}:`, error);
+    throw new LookupFailed(String(error));
   }
 }
 
+export function geocodeAddress(address: string): Promise<LatLng | null> {
+  const key = address.trim().toLowerCase();
+  if (key.length < 3 || PLACEHOLDERS.includes(key)) return Promise.resolve(null);
+  if (!cache.has(key)) {
+    // Remember answers (including "not found"), but not service failures, so they can be retried.
+    const pending = lookup(address).catch(() => { cache.delete(key); return null; });
+    cache.set(key, pending);
+  }
+  return cache.get(key)!;
+}
+
 /** A readable name for a position: "Tavira, Portugal", or "Near <area>, <country>" in the countryside. */
-export async function townAt(position: google.maps.LatLngLiteral): Promise<string | null> {
+export async function townAt(position: LatLng): Promise<string | null> {
   try {
-    const { results } = await (await geocoder()).geocode({ location: position });
+    if (isOsm) {
+      const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`);
+      if (!f) return null;
+      const p = f.properties;
+      const town = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
+      if (town) return p.country ? `${town}, ${p.country}` : town;
+      const area = p.county || p.state;
+      return area ? `Near ${area}${p.country ? `, ${p.country}` : ''}` : p.name || null;
+    }
+    const { results } = await (await googleGeocoder()).geocode({ location: position });
     if (!results.length) return null;
     const part = (type: string) => results
       .flatMap(r => r.address_components)
@@ -44,24 +108,21 @@ export async function townAt(position: google.maps.LatLngLiteral): Promise<strin
 }
 
 /** A name plus a nearby routable spot (the nearest address, so never in a river or the sea). */
-export async function placeAt(position: google.maps.LatLngLiteral): Promise<{ name: string; position: google.maps.LatLngLiteral } | null> {
+export async function placeAt(position: LatLng): Promise<{ name: string; position: LatLng } | null> {
   try {
-    const { results } = await (await geocoder()).geocode({ location: position });
-    const onLand = results.find(r => r.types.includes('street_address') || r.types.includes('route') || r.types.includes('premise'));
     const name = await townAt(position);
     if (!name) return null;
+    if (isOsm) {
+      // The nearest street is a routable spot.
+      const [street] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1&layer=street`).catch(() => []);
+      const at = street ? { lat: street.geometry.coordinates[1], lng: street.geometry.coordinates[0] } : position;
+      return { name, position: at };
+    }
+    const { results } = await (await googleGeocoder()).geocode({ location: position });
+    const onLand = results.find(r => r.types.includes('street_address') || r.types.includes('route') || r.types.includes('premise'));
     return { name, position: (onLand || results[0])?.geometry.location.toJSON() || position };
   } catch (error) {
     console.error('Reverse geocoding failed:', error);
     return null;
   }
-}
-
-/** Straight-line distance in km (haversine). */
-export function distanceKm(a: google.maps.LatLng, b: google.maps.LatLng) {
-  const rad = (d: number) => (d * Math.PI) / 180;
-  const dLat = rad(b.lat() - a.lat());
-  const dLng = rad(b.lng() - a.lng());
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat())) * Math.cos(rad(b.lat())) * Math.sin(dLng / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(h));
 }

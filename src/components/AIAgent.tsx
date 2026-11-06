@@ -101,7 +101,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   const runPlan = async (intent: TripIntent) => {
     const plan = await onPlanTrip(intent);
     if (!plan) {
-      say({ text: `I understood ${intent.origin} → ${intent.destination}, but Google Maps couldn't draw that route. Try more specific place names.` });
+      say({ text: `I understood ${intent.origin} → ${intent.destination}, but the map couldn't draw that route. Try more specific place names.` });
       return;
     }
     intentRef.current = intent;

@@ -1,0 +1,25 @@
+// Which map stack the app uses, chosen by the server's MAP_PROVIDER setting:
+//   'google' – Google Maps, Directions/Routes, Places, Geocoding, Elevation (needs a Maps key)
+//   'osm'    – "Adventure Planner Open": MapLibre + OpenFreeMap, OSRM, Valhalla, Photon, Overpass (no keys)
+export type MapProvider = 'google' | 'osm';
+
+declare global {
+  interface Window { __APP_CONFIG__?: { mapProvider?: string } }
+}
+
+export const MAP_PROVIDER: MapProvider =
+  typeof window !== 'undefined' && window.__APP_CONFIG__?.mapProvider === 'osm' ? 'osm' : 'google';
+
+export const isOsm = MAP_PROVIDER === 'osm';
+
+/** A link to look a place up on the provider's own map site. */
+export function mapSearchUrl(query: string, at?: { lat: number; lng: number }) {
+  if (isOsm) {
+    return at
+      ? `https://www.openstreetmap.org/?mlat=${at.lat.toFixed(5)}&mlon=${at.lng.toFixed(5)}#map=17/${at.lat.toFixed(5)}/${at.lng.toFixed(5)}`
+      : `https://www.openstreetmap.org/search?query=${encodeURIComponent(query)}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+export const mapSiteName = isOsm ? 'OpenStreetMap' : 'Google Maps';

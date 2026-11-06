@@ -3,6 +3,7 @@ import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowL
 import { InterestCategory, StopKind } from '../types';
 import { cn } from '../lib/utils';
 import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
+import { mapSearchUrl } from '../lib/provider';
 
 export type { StopKind } from '../types';
 
@@ -79,7 +80,7 @@ interface StopDetailsProps {
   warnings?: Record<string, string>;
 }
 
-const mapsLink = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+const mapsLink = (query: string, at?: { lat: number; lng: number }) => mapSearchUrl(query, at);
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,

@@ -1,3 +1,6 @@
+import { isOsm } from './provider';
+import { osmTrip } from './osrm';
+
 // One routing entry point for the app. It tries Google's Routes API (the successor of the
 // Directions service) and falls back to the Directions service when the Routes API isn't
 // enabled for the key, so the app keeps working either way.
@@ -31,7 +34,7 @@ export interface RoutedLeg {
 
 export interface RoutedTrip {
   legs: RoutedLeg[];
-  engine: 'routes' | 'directions';
+  engine: 'routes' | 'directions' | 'osm';
 }
 
 export interface TripRequest {
@@ -115,6 +118,7 @@ async function viaDirections(req: TripRequest): Promise<RoutedTrip> {
 }
 
 async function computeOnce(req: TripRequest): Promise<RoutedTrip> {
+  if (isOsm) return osmTrip(req);
   // The Routes API only avoids highways/ferries/tolls for driving; the Directions service does it for every mode.
   const needsDirections = req.travelMode !== 'DRIVING' && req.options && Object.values(req.options).some(Boolean);
   if (routesApiUsable && !needsDirections) {
@@ -132,9 +136,9 @@ async function computeOnce(req: TripRequest): Promise<RoutedTrip> {
   return viaDirections(req);
 }
 
-/** Route a trip of any length: more than 23 stops are routed in consecutive chunks. */
+/** Route a trip of any length: more than 23 stops are routed in consecutive chunks (Google only). */
 export async function computeTrip(req: TripRequest): Promise<RoutedTrip> {
-  if (req.stops.length <= MAX_INTERMEDIATES) return computeOnce(req);
+  if (isOsm || req.stops.length <= MAX_INTERMEDIATES) return computeOnce(req);
   const points = [req.origin, ...req.stops.map(s => s.location), req.destination];
   const legs: RoutedLeg[] = [];
   let engine: RoutedTrip['engine'] = 'routes';

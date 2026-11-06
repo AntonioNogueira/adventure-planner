@@ -8,9 +8,17 @@ import { planApi } from './server/plan-api';
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const mapsKey = env.GOOGLE_MAPS_API_KEY || env.VITE_GOOGLE_MAPS_API_KEY || '';
+  // 'google' (default) or 'osm' for Adventure Planner Open (OpenStreetMap services, no Maps key).
+  const mapProvider = env.MAP_PROVIDER === 'osm' ? 'osm' : 'google';
+  // Tells the page which map stack to use; the Google Maps script is only loaded for 'google'.
+  const providerScripts = `<script>window.__APP_CONFIG__ = { mapProvider: "${mapProvider}" };</script>`
+    + (mapProvider === 'google'
+      ? `\n    <script src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry&key=${mapsKey}&v=weekly&loading=async" async></script>`
+      : '');
+  const servePage = (html: string) => html.replace('<!--MAP_PROVIDER_SCRIPTS-->', providerScripts);
   // Hosting services (Render, Cloud Run…) tell the app which port to use.
   const port = Number(process.env.PORT) || 3000;
-  if (!mapsKey) {
+  if (!mapsKey && mapProvider === 'google') {
     console.warn('\n[adventure-planner] VITE_GOOGLE_MAPS_API_KEY is not set. Copy .env.example to .env.local and add your key.\n');
   }
 
@@ -31,11 +39,11 @@ export default defineConfig(({ mode, command }) => {
       // AI keys stay on the server: the browser calls /api/plan instead of Gemini/OpenAI directly.
       planApi(env),
       {
-        // The Maps key is inserted when the page is served, not baked into the build,
-        // so one build works with whatever key the server is started with.
+        // The map provider (and Google Maps key) is inserted when the page is served, not baked
+        // into the build, so one build works with whatever settings the server is started with.
         name: 'maps-key',
         transformIndexHtml(html) {
-          return command === 'build' ? html : html.replace(/__MAPS_API_KEY__/g, mapsKey);
+          return command === 'build' ? html : servePage(html);
         },
         configurePreviewServer(server) {
           server.middlewares.use((req, res, next) => {
@@ -43,7 +51,7 @@ export default defineConfig(({ mode, command }) => {
             if (pathname !== '/' && pathname !== '/index.html') return next();
             const file = path.resolve(server.config.root, server.config.build.outDir, 'index.html');
             res.setHeader('Content-Type', 'text/html');
-            res.end(fs.readFileSync(file, 'utf8').replace(/__MAPS_API_KEY__/g, mapsKey));
+            res.end(servePage(fs.readFileSync(file, 'utf8')));
           });
         },
       },

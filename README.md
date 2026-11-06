@@ -12,6 +12,21 @@ Describe a trip ("Cádiz to Silves, bikepacking, about 60 km per day") and the p
 - **Editing**: drag stops, click the map to add one, avoid highways/ferries/tolls, remove suggestions
 - **Save and share**: sign in with Google to save trips (with their booking files) and share a read-only link
 
+## Two versions: Google or OpenStreetMap ("Adventure Planner Open")
+
+One codebase, two map stacks, chosen with `MAP_PROVIDER` in `.env.local` (or on the host):
+
+| | `MAP_PROVIDER=google` (default) | `MAP_PROVIDER=osm` – Adventure Planner Open |
+|---|---|---|
+| Map | Google Maps | [MapLibre](https://maplibre.org) + [OpenFreeMap](https://openfreemap.org) (Map / Light), [OpenTopoMap](https://opentopomap.org), [EOX Sentinel-2](https://s2maps.eu) satellite (non-commercial) |
+| Routing | Routes API / Directions | [OSRM](https://routing.openstreetmap.de) (car, bike, foot); [Valhalla](https://valhalla1.openstreetmap.de) for car routes avoiding highways/tolls/ferries |
+| Elevation | Elevation API | Valhalla `/height` |
+| Place search | Geocoding API | [Photon](https://photon.komoot.io) |
+| Suggestions | Places API (New) | [Overpass](https://overpass-api.de) (OpenStreetMap data) |
+| Keys | Google Maps key | none (Gemini key still needed for the AI) |
+
+The OSM services are free public servers with fair-use limits: fine for personal use and testing; for many users, self-host them (all have Docker images) or use an OSM-based provider. Everything else (AI planner, itinerary, bookings, GPX, weather, saving and sharing) is the same in both.
+
 ## Run locally
 
 **Prerequisites:** Node.js 20+
@@ -20,7 +35,7 @@ Describe a trip ("Cádiz to Silves, bikepacking, about 60 km per day") and the p
    ```bash
    npm install
    ```
-2. Copy `.env.example` to `.env.local` and fill in your keys:
+2. Copy `.env.example` to `.env.local` and fill in your keys (set `MAP_PROVIDER=osm` for the open version, which needs no Maps key):
    - `VITE_GOOGLE_MAPS_API_KEY`: needs the **Maps JavaScript**, **Directions**, **Geocoding**, **Elevation** and **Places API (New)** APIs enabled (and allowed in the key's API restrictions). Optionally enable the **Routes API** too: the app uses it when available and falls back to Directions otherwise.
    - `GEMINI_API_KEY`: the free way to run the AI planner. Create a key at https://aistudio.google.com/apikey in a project **without billing** so it uses the free tier (default model `gemini-flash-lite-latest`, falling back to `gemini-flash-latest` when busy).
    - Optional: `ANTHROPIC_API_KEY` to use Claude instead (paid API, default model `claude-opus-5-5`; a Claude.ai subscription does not include API access) or `OPENAI_API_KEY`. Providers are tried in the order Claude, Gemini, OpenAI, skipping any without a key.

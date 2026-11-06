@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Waypoint, RouteInfo, InterestCategory, StopRef } from '../types';
+import { Waypoint, RouteInfo, StopRef } from '../types';
 import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
 import { createRoot, Root } from 'react-dom/client';
 import { cn } from '../lib/utils';
-import StopDetails, { StopKind } from './StopDetails';
+import StopDetails from './StopDetails';
 import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import SegmentDetails from './SegmentDetails';
+import { buildPoints, MapPoint, PlacePopup, PIN_COLORS, refKey } from './mapShared';
 
 interface MapProps {
   onLoad: (map: google.maps.Map) => void;
@@ -38,11 +39,9 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'terrain', label: 'Terrain', icon: Mountain },
 ];
 
-const PIN_COLORS: Record<StopKind, string> = { start: '#2563eb', stop: '#059669', end: '#dc2626' };
 
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 
-const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
 const Map: React.FC<MapProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey,
@@ -174,18 +173,11 @@ const Map: React.FC<MapProps> = ({
       try {
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
 
-        type Point = Partial<Waypoint> & { location: string; kind: StopKind; ref: StopRef; label: string; badge: string; interests: InterestCategory[] };
-        const allPoints: Point[] = [
-          ...(origin ? [{ location: origin, kind: 'start' as const, ref: { kind: 'start' as const }, label: 'Start', badge: 'S', interests: routeInfo?.originInterests || [] }] : []),
-          ...waypoints.map((wp, i) => ({
-            ...wp, kind: 'stop' as const, ref: { kind: 'stop' as const, index: i }, label: `Stop ${i + 1}`, badge: String(i + 1),
-            interests: routeInfo?.waypoints[i]?.interests || wp.interests || [],
-          })),
-          ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: 'Finish', badge: 'F', interests: routeInfo?.destinationInterests || [] }] : [])
-        ];
+        type Point = MapPoint;
+        const allPoints = buildPoints(origin, waypoints, destination, routeInfo);
 
         const locations = await Promise.all(allPoints.map(p =>
-          p.position ? Promise.resolve(new google.maps.LatLng(p.position)) : geocodeAddress(p.location)));
+          p.position ? Promise.resolve(p.position) : geocodeAddress(p.location)));
         if (cancelled) return;
 
         markersRef.current.forEach(marker => { marker.map = null; });
@@ -291,29 +283,13 @@ const Map: React.FC<MapProps> = ({
               const content = document.createElement('div');
               infoRootRef.current?.unmount();
               infoRootRef.current = createRoot(content);
-              const link = isBooking && item.reservation?.address
-                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.reservation.address)}`
-                : item.url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${item.name} ${point.location}`)}`;
               infoRootRef.current.render(
-                <div className="w-[240px] max-w-[70vw] space-y-1 p-1 font-sans text-xs">
-                  <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: isBooking ? '#6d28d9' : CATEGORIES[id].color }}>
-                    {CATEGORIES[id].glyph} {isBooking ? 'Booked · ' : ''}{CATEGORIES[id].name}
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">{item.name}</p>
-                  {isBooking && item.reservation?.checkIn && <p className="text-slate-700">{[item.reservation.checkIn, item.reservation.checkOut].filter(Boolean).join(' → ')}</p>}
-                  {isBooking && item.reservation?.confirmation && <p className="text-slate-700">Ref: <b>{item.reservation.confirmation}</b></p>}
-                  {item.description && <p className="text-slate-500">{item.description}</p>}
-                  <p className="text-slate-400">Near {point.label}: {point.location}</p>
-                  <div className="flex gap-3 pt-1">
-                    <a href={link} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">Open in Google Maps</a>
-                    <button
-                      className="font-semibold text-red-600 hover:underline"
-                      onClick={() => { infoWindowRef.current?.close(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
+                <PlacePopup
+                  item={item}
+                  categoryId={id}
+                  point={point}
+                  onRemove={() => { infoWindowRef.current?.close(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
+                />
               );
               infoWindowRef.current?.setContent(content);
               infoWindowRef.current?.open({ map: googleMapRef.current, anchor: placeMarker });

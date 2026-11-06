@@ -1,5 +1,9 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import Map from './components/Map';
+import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
+import GoogleMapView from './components/Map';
+import { isOsm } from './lib/provider';
+// The open version's map (MapLibre) is loaded only when used.
+const OsmMapView = lazy(() => import('./components/MapOsm'));
+const MapView: React.ComponentType<React.ComponentProps<typeof GoogleMapView>> = isOsm ? (OsmMapView as any) : GoogleMapView;
 import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
@@ -11,8 +15,8 @@ import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
 import { downsample } from './lib/geo';
 import { placeSuggestions, LodgingPreference } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
-import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
-import { bestInsertIndex } from './lib/geo';
+import { geocodeAddress, townAt } from './lib/geocode';
+import { bestInsertIndex, haversineKm } from './lib/geo';
 import { mergeSuggestions, keepReservations } from './lib/suggestions';
 import { storeAttachment, readAsBase64, fileMimeType, attachmentFile } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
@@ -76,12 +80,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          const { Geocoder } = await google.maps.importLibrary("geocoding") as google.maps.GeocodingLibrary;
-          const { results } = await new Geocoder().geocode({
-            location: { lat: position.coords.latitude, lng: position.coords.longitude },
-          });
-          const place = results.find(r => r.types.includes('locality')) || results[0];
-          const city = place?.formatted_address;
+          const city = await townAt({ lat: position.coords.latitude, lng: position.coords.longitude });
           if (city) {
             setLocationLabel(`Starting from ${city}`);
             setPrompt(prev => prev.includes(city) ? prev : `${prev.trim()}${prev.trim() ? ' ' : ''}Starting from ${city}.`);
@@ -512,11 +511,11 @@ const App: React.FC = () => {
       let target = ref || stops[r.stopIndex]?.ref || stops[0].ref;
       if (position) {
         const located = await Promise.all(stops.map(async s => ({
-          ...s, at: s.position ? new google.maps.LatLng(s.position) : await geocodeAddress(s.location),
+          ...s, at: s.position || await geocodeAddress(s.location),
         })));
         const ranked = located
           .filter(s => s.at)
-          .map(s => ({ ...s, km: distanceKm(position, s.at!) }))
+          .map(s => ({ ...s, km: haversineKm(position, s.at!) }))
           .sort((a, b) => a.km - b.km);
         const nearest = ranked[0];
         const chosen = ranked.find(s => s.ref.kind === target.kind && s.ref.index === target.index);
@@ -542,8 +541,8 @@ const App: React.FC = () => {
           currency: r.currency || undefined,
           confirmation: r.confirmation || undefined,
           notes: r.notes || undefined,
-          lat: position?.lat(),
-          lng: position?.lng(),
+          lat: position?.lat,
+          lng: position?.lng,
         },
       };
       updateStopInterests(target, cats => {
@@ -595,7 +594,7 @@ const App: React.FC = () => {
   const handleAddStop = async (position: google.maps.LatLngLiteral) => {
     const name = await townAt(position);
     if (!name) return;
-    const points = await Promise.all(allStops().map(async s => s.position || (await geocodeAddress(s.location))?.toJSON()));
+    const points = await Promise.all(allStops().map(async s => s.position || await geocodeAddress(s.location)));
     if (points.some(p => !p)) return;
     const insertAt = bestInsertIndex(points as google.maps.LatLngLiteral[], position);
     const newWaypoints = [...waypoints];
@@ -936,7 +935,8 @@ const App: React.FC = () => {
           onFindPlaces={handleFindPlaces}
         />
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
-          <Map 
+          <Suspense fallback={<div className="h-full w-full bg-slate-100" />}>
+          <MapView
             onLoad={handleMapLoad} 
             segments={segments}
             travelMode={travelMode as string}
@@ -952,6 +952,7 @@ const App: React.FC = () => {
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}
           />
+          </Suspense>
         </main>
 
         {showSaved && (

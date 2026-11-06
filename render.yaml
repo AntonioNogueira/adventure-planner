@@ -17,3 +17,21 @@ services:
         sync: false
       - key: AI_REQUESTS_PER_HOUR
         value: "60"
+
+  # Adventure Planner Open: the same code with OpenStreetMap services (no Google Maps key).
+  - type: web
+    name: adventure-planner-open
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npx vite preview
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MAP_PROVIDER
+        value: osm
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_REQUESTS_PER_HOUR
+        value: "60"
