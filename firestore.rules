@@ -29,12 +29,6 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
-    function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "ammnogueira@gmail.com" && request.auth.token.email_verified == true));
-    }
-
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'email']) &&
              data.uid is string && data.uid.size() < 128 &&
@@ -55,6 +49,8 @@ service cloud.firestore {
              (!('travelMode' in data) || (data.travelMode is string && data.travelMode.size() < 32)) &&
              (!('distance' in data) || (data.distance is string && data.distance.size() < 64)) &&
              (!('duration' in data) || (data.duration is string && data.duration.size() < 64)) &&
+             (!('addedOriginInterests' in data) || (data.addedOriginInterests is list && data.addedOriginInterests.size() < 20)) &&
+             (!('addedDestinationInterests' in data) || (data.addedDestinationInterests is list && data.addedDestinationInterests.size() < 20)) &&
              (!('shared' in data) || data.shared is bool);
     }
 
