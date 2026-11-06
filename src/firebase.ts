@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, getDocFromServer, doc } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 // Import the Firebase configuration
 import firebaseConfig from '../firebase-applet-config.json';
@@ -8,6 +9,8 @@ import firebaseConfig from '../firebase-applet-config.json';
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Reservation files (PDFs, emails, images) saved with trips.
+export const storage = getStorage(app);
 
 // Validate Connection to Firestore
 async function testConnection() {

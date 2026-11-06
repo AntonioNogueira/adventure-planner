@@ -7,8 +7,10 @@ export interface RouteStep {
 export interface Reservation {
   fileName: string;
   fileType: string;
-  /** Key into the in-browser attachment store (files are kept for the session only). */
+  /** Key into the in-browser attachment store (this session). */
   fileId?: string;
+  /** Firebase Storage link, once the trip has been saved. */
+  fileUrl?: string;
   address?: string;
   checkIn?: string;
   checkOut?: string;

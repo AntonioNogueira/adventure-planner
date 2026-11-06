@@ -20,6 +20,7 @@ import {
   Info,
   CalendarDays,
   Paperclip,
+  Share2,
 } from 'lucide-react';
 import { RouteInfo, Waypoint, StopRef, TripIntent } from '../types';
 import type { PlanSummary } from './AIAgent';
@@ -70,6 +71,11 @@ interface SidebarProps {
   costs: Record<string, number>;
   routeOptions: RouteOptions;
   onRouteOptionsChange: (options: RouteOptions) => void;
+  isSaved: boolean;
+  viewingShared: boolean;
+  shareLink: string | null;
+  onShare: () => void;
+  onStopSharing: () => void;
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
@@ -112,6 +118,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   costs,
   routeOptions,
   onRouteOptionsChange,
+  isSaved,
+  viewingShared,
+  shareLink,
+  onShare,
+  onStopSharing,
 }) => {
   const reservationInput = useRef<HTMLInputElement>(null);
   const [sheet, setSheet] = useState<SheetHeight>('half');
@@ -183,6 +194,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
       </div>
+
+      {viewingShared && (
+        <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
+          You're viewing a shared trip. Changes stay on your screen; {user ? 'Save keeps your own copy.' : 'sign in to save your own copy.'}
+        </div>
+      )}
 
       <div className="mb-6 rounded-xl border bg-muted/30 p-4">
         {user ? (
@@ -390,20 +407,37 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
               <button
                 onClick={onSave}
-                disabled={!user || !hasChanges}
+                disabled={!user || (!hasChanges && !viewingShared)}
                 className={cn(
                   "flex items-center justify-center gap-2 rounded-md px-4 text-xs font-bold text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap",
-                  hasChanges 
+                  hasChanges || viewingShared
                     ? "bg-emerald-600 shadow-emerald-900/20 hover:bg-emerald-700" 
                     : "bg-muted-foreground/40 shadow-none"
                 )}
               >
                 <Save size={14} />
-                {hasChanges ? 'Save' : 'Saved'}
+                {viewingShared ? 'Save copy' : hasChanges ? 'Save' : 'Saved'}
               </button>
             </div>
             {!user && (
               <p className="text-[10px] text-muted-foreground">Sign in to save your adventure</p>
+            )}
+            {user && isSaved && !viewingShared && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  onClick={onShare}
+                  className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 font-semibold text-emerald-700 hover:bg-emerald-50"
+                  title="Anyone with the link can view this trip (read-only)"
+                >
+                  <Share2 size={12} /> {shareLink ? 'Copy share link' : 'Share'}
+                </button>
+                {shareLink && (
+                  <>
+                    <input readOnly value={shareLink} onFocus={(e) => e.target.select()} className="min-w-0 flex-1 rounded border border-emerald-100 px-1.5 py-1 text-[11px] text-muted-foreground" aria-label="Share link" />
+                    <button onClick={onStopSharing} className="text-[11px] text-red-600 hover:underline">Stop sharing</button>
+                  </>
+                )}
+              </div>
             )}
           </div>
         )}

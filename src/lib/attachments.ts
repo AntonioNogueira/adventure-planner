@@ -1,15 +1,19 @@
-// Uploaded reservation files, kept as object URLs for this browser session.
-// Saved trips keep the extracted booking details, not the file itself.
-const files = new Map<string, string>();
+// Reservation files attached in this browser session (object URLs for viewing, the File for upload).
+// When a trip is saved, files are uploaded to Firebase Storage and the reservation keeps the link.
+const files = new Map<string, { url: string; file: File }>();
 
 export function storeAttachment(file: File) {
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  files.set(id, URL.createObjectURL(file));
+  files.set(id, { url: URL.createObjectURL(file), file });
   return id;
 }
 
 export function attachmentUrl(id?: string) {
-  return id ? files.get(id) : undefined;
+  return id ? files.get(id)?.url : undefined;
+}
+
+export function attachmentFile(id?: string) {
+  return id ? files.get(id)?.file : undefined;
 }
 
 export function readAsBase64(file: File): Promise<string> {

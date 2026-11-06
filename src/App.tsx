@@ -13,11 +13,12 @@ import { placeSuggestions, LodgingPreference } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
 import { haversineKm } from './lib/geo';
-import { storeAttachment, readAsBase64, fileMimeType } from './lib/attachments';
+import { storeAttachment, readAsBase64, fileMimeType, attachmentFile } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
 import { Sparkles, MapPin } from 'lucide-react';
-import { db, auth, handleFirestoreError, OperationType } from './firebase';
-import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { db, auth, storage, handleFirestoreError, OperationType } from './firebase';
+import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string | null }> {
@@ -187,6 +188,10 @@ const App: React.FC = () => {
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [routeOptions, setRouteOptions] = useState<RouteOptions>(NO_AVOIDANCES);
   const [startDate, setStartDate] = useState('');
+  // The saved trip being edited, whether it's someone else's shared trip, and its share link.
+  const [currentTripId, setCurrentTripId] = useState<string | null>(null);
+  const [viewingShared, setViewingShared] = useState(false);
+  const [shareLink, setShareLink] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -710,42 +715,143 @@ const App: React.FC = () => {
     downloadFile(gpxFileName(legIndex === null ? name : `${name} day ${legIndex + 1}`), gpx);
   };
 
+  // Upload reservation files attached in this session to Firebase Storage; returns how many failed.
+  const uploadAttachments = async (info: RouteInfo, uid: string): Promise<{ info: RouteInfo; failed: number }> => {
+    let failed = 0;
+    const upload = async (cats: InterestCategory[] = []) => Promise.all(cats.map(async cat => ({
+      ...cat,
+      items: await Promise.all(cat.items.map(async item => {
+        const r = item.reservation;
+        const file = attachmentFile(r?.fileId);
+        if (!r || r.fileUrl || !file) return item;
+        try {
+          const safeName = file.name.replace(/[^A-Za-z0-9._-]+/g, '_');
+          const stored = storageRef(storage, `users/${uid}/attachments/${r.fileId}-${safeName}`);
+          await uploadBytes(stored, file, { contentType: r.fileType });
+          return { ...item, reservation: { ...r, fileUrl: await getDownloadURL(stored) } };
+        } catch (err) {
+          console.error('File upload failed:', err);
+          failed++;
+          return item;
+        }
+      })),
+    })));
+    return {
+      info: {
+        ...info,
+        originInterests: await upload(info.originInterests),
+        destinationInterests: await upload(info.destinationInterests),
+        waypoints: await Promise.all(info.waypoints.map(async wp => ({ ...wp, interests: await upload(wp.interests) }))),
+      },
+      failed,
+    };
+  };
+
+  // Save: update the trip if it's yours, otherwise (new or someone's shared trip) save a new copy.
   const handleSave = async () => {
     if (!routeInfo || !user) return;
     const path = 'trips';
     try {
+      const { info, failed } = await uploadAttachments(routeInfo, user.uid);
+      const { id: _id, ...rest } = info;
+      const owned = currentTripId && !viewingShared;
       // Firestore rejects undefined values; a JSON round trip drops them.
-      await addDoc(collection(db, path), JSON.parse(JSON.stringify({
-        ...routeInfo,
+      const data = JSON.parse(JSON.stringify({
+        ...rest,
         name: expeditionName || `${origin} to ${destination}`,
         userId: user.uid,
-        createdAt: Date.now()
-      })));
+        startDate: startDate || undefined,
+        avoid: routeOptions,
+        lodging,
+        shared: owned ? routeInfo.shared : false,
+        createdAt: owned && routeInfo.createdAt ? routeInfo.createdAt : Date.now(),
+      }));
+      let id = owned ? currentTripId : null;
+      if (id) await setDoc(doc(db, path, id), data);
+      else id = (await addDoc(collection(db, path), data)).id;
+      setCurrentTripId(id);
+      setViewingShared(false);
+      setRouteInfo(prev => prev && { ...info, id: id!, shared: data.shared, createdAt: data.createdAt, userId: user.uid });
       setHasChanges(false);
-      setToast({ message: 'Expedition saved successfully!', type: 'success' });
+      setToast(failed
+        ? { message: `Saved, but ${failed} file(s) couldn't be uploaded (is Firebase Storage enabled?). Booking details were saved.`, type: 'error' }
+        : { message: 'Expedition saved successfully!', type: 'success' });
     } catch (err) {
       setToast({ message: 'Failed to save expedition.', type: 'error' });
       try { handleFirestoreError(err, OperationType.CREATE, path); } catch { /* logged */ }
     }
   };
 
-  const handleLoadRoute = (route: RouteInfo) => {
+  // Share: make the saved trip viewable by link (read-only) and copy the link.
+  const handleShare = async () => {
+    if (!currentTripId || !user || viewingShared) return;
+    try {
+      await updateDoc(doc(db, 'trips', currentTripId), { shared: true });
+      setRouteInfo(prev => prev && { ...prev, shared: true });
+      const link = `${window.location.origin}${window.location.pathname}?trip=${currentTripId}`;
+      await navigator.clipboard?.writeText(link).catch(() => undefined);
+      setShareLink(link);
+      setToast({ message: 'Share link copied. Anyone with the link can view this trip.', type: 'success' });
+    } catch (err) {
+      console.error('Sharing failed:', err);
+      setToast({ message: 'Could not share the trip. Check the Firestore rules (see README).', type: 'error' });
+    }
+  };
+
+  const handleStopSharing = async () => {
+    if (!currentTripId) return;
+    try {
+      await updateDoc(doc(db, 'trips', currentTripId), { shared: false });
+      setRouteInfo(prev => prev && { ...prev, shared: false });
+      setShareLink(null);
+      setToast({ message: 'The link no longer opens this trip.', type: 'success' });
+    } catch (err) {
+      console.error('Unsharing failed:', err);
+    }
+  };
+
+  const handleLoadRoute = (route: RouteInfo, options: { shared?: boolean } = {}) => {
     setOrigin(route.origin);
     setDestination(route.destination);
     setWaypoints(route.waypoints);
     setTravelMode(route.travelMode as any);
     setExpeditionName(route.name || `${route.origin} to ${route.destination} Expedition`);
+    setStartDate(route.startDate || '');
+    setRouteOptions(route.avoid || NO_AVOIDANCES);
+    setLodging(route.lodging || 'any');
+    setCurrentTripId(route.id || null);
+    setViewingShared(Boolean(options.shared));
+    setShareLink(route.shared && route.id ? `${window.location.origin}${window.location.pathname}?trip=${route.id}` : null);
     setShowSaved(false);
+    setShowWelcome(false);
     setHasChanges(false);
     setError(null);
     // Keep the saved recommendations; distance '...' makes the route recalculate on the map.
     setRouteInfo({ ...route, distance: '...', duration: '...' });
   };
 
+  // Open a shared trip from a ?trip=<id> link.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('trip');
+    if (!id) return;
+    setShowWelcome(false);
+    getDoc(doc(db, 'trips', id))
+      .then(snap => {
+        if (!snap.exists()) throw new Error('not found');
+        const data = { id: snap.id, ...snap.data() } as RouteInfo;
+        handleLoadRoute(data, { shared: data.userId !== auth.currentUser?.uid });
+      })
+      .catch(err => {
+        console.error('Could not open shared trip:', err);
+        setToast({ message: 'This trip link is not shared (or no longer exists).', type: 'error' });
+      });
+  }, []);
+
   const handleDeleteRoute = async (id: string) => {
     const path = `trips/${id}`;
     try {
       await deleteDoc(doc(db, 'trips', id));
+      if (id === currentTripId) { setCurrentTripId(null); setShareLink(null); }
       setToast({ message: 'Expedition deleted.', type: 'success' });
     } catch (err) {
       setToast({ message: 'Failed to delete expedition.', type: 'error' });
@@ -794,6 +900,11 @@ const App: React.FC = () => {
           costs={costs}
           routeOptions={routeOptions}
           onRouteOptionsChange={handleRouteOptionsChange}
+          isSaved={Boolean(currentTripId)}
+          viewingShared={viewingShared}
+          shareLink={shareLink}
+          onShare={handleShare}
+          onStopSharing={handleStopSharing}
         />
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
           <Map 

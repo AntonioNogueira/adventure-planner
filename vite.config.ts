@@ -32,12 +32,16 @@ export default defineConfig(({ mode }) => {
         },
       },
     ],
+    // Pre-bundle Firebase together so its modules share one app instance in development.
+    optimizeDeps: {
+      include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+    },
     build: {
       target: 'esnext',
       rollupOptions: {
         output: {
           manualChunks: {
-            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
           },
         },
       },

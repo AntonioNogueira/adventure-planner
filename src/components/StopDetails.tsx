@@ -129,7 +129,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                 <ul className="space-y-1">
                   {[...reservations, ...suggestions].map(({ item, itemIdx }) => {
                     const r = item.reservation;
-                    const fileUrl = attachmentUrl(r?.fileId);
+                    const fileUrl = attachmentUrl(r?.fileId) || r?.fileUrl;
                     return (
                       <li
                         key={itemIdx}
