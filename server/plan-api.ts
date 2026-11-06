@@ -294,7 +294,7 @@ function sendJson(res: ServerResponse, status: number, payload: unknown) {
 }
 
 // One line showing what the AI understood, so odd routes are easy to trace in the terminal.
-function describeIntent(intent: any) {
+export function describeIntent(intent: any) {
   const via = (intent.route || []).map((r: any) => `${r.place}${r.overnight ? ' (night)' : ''}`).join(' → ');
   return `${intent.origin} → ${via ? via + ' → ' : ''}${intent.destination} · ${intent.travelMode}`
     + `${intent.days ? ` · ${intent.days} days` : ''}${intent.dailyKm ? ` · ${intent.dailyKm} km/day` : ''} · lodging ${intent.lodging}`;
@@ -378,7 +378,7 @@ Set "stopIndex" to the stop the booking is in or nearest to.`;
 }
 
 // Emails and text files are sent as text; long base64 blocks (attachments, images) are dropped.
-function decodeTextFile(base64: string) {
+export function decodeTextFile(base64: string) {
   const raw = Buffer.from(base64, 'base64').toString('utf8');
   return raw
     .replace(/(?:^[A-Za-z0-9+/=]{60,}\r?\n?){3,}/gm, '[binary data removed]\n')

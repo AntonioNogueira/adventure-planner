@@ -8,8 +8,6 @@ import {
   Bus,
   Loader2,
   AlertCircle,
-  Clock,
-  Map as MapIcon,
   Plus,
   Trash2,
   Save,
@@ -18,7 +16,6 @@ import {
   ChevronUp,
   ChevronDown,
   Info,
-  CalendarDays,
   Paperclip,
   Share2,
 } from 'lucide-react';

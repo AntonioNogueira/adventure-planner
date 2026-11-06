@@ -36,6 +36,17 @@ export function pointAt(points: PathPoint[], km: number): LatLng {
   return (points.find(p => p.km >= km) || points[points.length - 1]).at;
 }
 
+/** Where to insert a new point into a sequence so it adds the least straight-line distance (index of the gap). */
+export function bestInsertIndex(points: LatLng[], point: LatLng): number {
+  let best = 0;
+  let bestExtra = Infinity;
+  for (let i = 0; i < points.length - 1; i++) {
+    const extra = haversineKm(points[i], point) + haversineKm(point, points[i + 1]) - haversineKm(points[i], points[i + 1]);
+    if (extra < bestExtra) { bestExtra = extra; best = i; }
+  }
+  return best;
+}
+
 /** At most `max` points, evenly picked, always keeping the first and last. */
 export function downsample<T>(points: T[], max: number): T[] {
   if (points.length <= max) return points;

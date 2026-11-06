@@ -12,7 +12,8 @@ import { downsample } from './lib/geo';
 import { placeSuggestions, LodgingPreference } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
-import { haversineKm } from './lib/geo';
+import { bestInsertIndex } from './lib/geo';
+import { mergeSuggestions, keepReservations } from './lib/suggestions';
 import { storeAttachment, readAsBase64, fileMimeType, attachmentFile } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
 import { Sparkles, MapPin } from 'lucide-react';
@@ -547,10 +548,6 @@ const App: React.FC = () => {
       setToast({ message: 'Could not find a town there. Try dropping the pin closer to one.', type: 'error' });
       return;
     }
-    const keepReservations = (cats: InterestCategory[] = []) => cats
-      .map(c => ({ ...c, items: c.items.filter(i => i.source === 'reservation') }))
-      .filter(c => c.items.length > 0);
-
     const newOrigin = ref.kind === 'start' ? town : origin;
     const newDestination = ref.kind === 'end' ? town : destination;
     const newWaypoints = waypoints.map((wp, i) =>
@@ -576,12 +573,7 @@ const App: React.FC = () => {
     if (!name) return;
     const points = await Promise.all(allStops().map(async s => s.position || (await geocodeAddress(s.location))?.toJSON()));
     if (points.some(p => !p)) return;
-    let insertAt = 0;
-    let best = Infinity;
-    for (let i = 0; i < points.length - 1; i++) {
-      const extra = haversineKm(points[i]!, position) + haversineKm(position, points[i + 1]!) - haversineKm(points[i]!, points[i + 1]!);
-      if (extra < best) { best = extra; insertAt = i; }
-    }
+    const insertAt = bestInsertIndex(points as google.maps.LatLngLiteral[], position);
     const newWaypoints = [...waypoints];
     newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests: [] });
     setWaypoints(newWaypoints);
@@ -596,21 +588,6 @@ const App: React.FC = () => {
     setWaypoints(newWaypoints);
     setHasChanges(true);
     await calculateRoute(undefined, undefined, newWaypoints);
-  };
-
-  // Suggestions replace older ones but never touch the user's reservations.
-  const mergeSuggestions = (cats: InterestCategory[], fresh: InterestCategory[]) => {
-    const merged = fresh.map(f => {
-      const mine = cats.find(c => c.category.toLowerCase() === f.category.toLowerCase());
-      return { category: f.category, items: [...(mine?.items.filter(i => i.source === 'reservation') || []), ...f.items] };
-    });
-    cats.forEach(c => {
-      if (!merged.some(m => m.category.toLowerCase() === c.category.toLowerCase())) {
-        const kept = c.items.filter(i => i.source === 'reservation');
-        if (kept.length) merged.push({ category: c.category, items: kept });
-      }
-    });
-    return merged;
   };
 
   // Fetch Google Places suggestions for several stops (in the background).

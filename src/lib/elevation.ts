@@ -37,8 +37,10 @@ export function splitByEffort(totalKm: number, elevations: number[] | null, kmPe
   const total = effort[n - 1];
   return Array.from({ length: days - 1 }, (_, k) => {
     const goal = (total * (k + 1)) / days;
-    const i = effort.findIndex(e => e >= goal);
-    return (totalKm * Math.max(0, i)) / (n - 1);
+    const i = Math.max(1, effort.findIndex(e => e >= goal));
+    // Interpolate between the two samples around the goal.
+    const frac = (goal - effort[i - 1]) / ((effort[i] - effort[i - 1]) || 1);
+    return (totalKm * (i - 1 + frac)) / (n - 1);
   });
 }
 
