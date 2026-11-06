@@ -12,6 +12,7 @@ import { downsample } from './lib/geo';
 import { placeSuggestions, LodgingPreference } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
+import { haversineKm } from './lib/geo';
 import { storeAttachment, readAsBase64, fileMimeType } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
 import { Sparkles, MapPin } from 'lucide-react';
@@ -564,6 +565,34 @@ const App: React.FC = () => {
     loadSuggestions([ref], [ref.kind === 'stop' ? position : town], travelMode, lodging);
   };
 
+  // A click on the map: add an overnight stop where it adds the least distance, then re-route.
+  const handleAddStop = async (position: google.maps.LatLngLiteral) => {
+    const name = await townAt(position);
+    if (!name) return;
+    const points = await Promise.all(allStops().map(async s => s.position || (await geocodeAddress(s.location))?.toJSON()));
+    if (points.some(p => !p)) return;
+    let insertAt = 0;
+    let best = Infinity;
+    for (let i = 0; i < points.length - 1; i++) {
+      const extra = haversineKm(points[i]!, position) + haversineKm(position, points[i + 1]!) - haversineKm(points[i]!, points[i + 1]!);
+      if (extra < best) { best = extra; insertAt = i; }
+    }
+    const newWaypoints = [...waypoints];
+    newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests: [] });
+    setWaypoints(newWaypoints);
+    setHasChanges(true);
+    setToast({ message: `Added a stop at ${name}. Finding places nearby…`, type: 'success' });
+    const legs = await calculateRoute(undefined, undefined, newWaypoints);
+    if (legs) loadSuggestions([{ kind: 'stop', index: insertAt }], [position], travelMode, lodging);
+  };
+
+  const handleRemoveStop = async (index: number) => {
+    const newWaypoints = waypoints.filter((_, i) => i !== index);
+    setWaypoints(newWaypoints);
+    setHasChanges(true);
+    await calculateRoute(undefined, undefined, newWaypoints);
+  };
+
   // Suggestions replace older ones but never touch the user's reservations.
   const mergeSuggestions = (cats: InterestCategory[], fresh: InterestCategory[]) => {
     const merged = fresh.map(f => {
@@ -726,7 +755,8 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-[100dvh] w-full flex-col-reverse overflow-hidden bg-background text-foreground md:flex-row">
+      {/* Phones: full-screen map with the planner as a bottom sheet. Desktop: sidebar + map. */}
+      <div className="relative h-[100dvh] w-full overflow-hidden bg-background text-foreground md:flex md:flex-row">
         <Sidebar
           origin={origin}
           setOrigin={(val) => { setOrigin(val); setHasChanges(true); }}
@@ -765,7 +795,7 @@ const App: React.FC = () => {
           routeOptions={routeOptions}
           onRouteOptionsChange={handleRouteOptionsChange}
         />
-        <main className="relative min-h-0 flex-1">
+        <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
           <Map 
             onLoad={handleMapLoad} 
             routePath={routePath}
@@ -774,6 +804,8 @@ const App: React.FC = () => {
             destination={destination} 
             routeInfo={routeInfo}
             onMoveStop={handleMoveStop}
+            onAddStop={routeInfo ? handleAddStop : undefined}
+            onRemoveStop={handleRemoveStop}
             onRemoveItem={handleRemoveItem}
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}

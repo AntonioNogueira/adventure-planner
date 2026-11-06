@@ -17,6 +17,9 @@ interface MapProps {
   routeInfo?: RouteInfo | null;
   /** Editing callbacks, shared with the sidebar. */
   onMoveStop?: (ref: StopRef, position: google.maps.LatLngLiteral) => void;
+  /** Click on the map → "Add overnight stop here". */
+  onAddStop?: (position: google.maps.LatLngLiteral) => void;
+  onRemoveStop?: (index: number) => void;
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (ref: StopRef, file: File) => void;
   attachingKey?: string | null;
@@ -38,7 +41,7 @@ const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
 const Map: React.FC<MapProps> = ({
-  onLoad, routePath = [], waypoints = [], origin, destination, routeInfo, onMoveStop, onRemoveItem, onAttachFile, attachingKey,
+  onLoad, routePath = [], waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onRemoveItem, onAttachFile, attachingKey,
 }) => {
   const routeLineRef = useRef<google.maps.Polyline | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -48,8 +51,8 @@ const Map: React.FC<MapProps> = ({
   const infoRootRef = useRef<Root | null>(null);
   const [mapType, setMapType] = useState<MapType>('roadmap');
   // Callbacks change every render; keep the latest in a ref so markers don't need rebuilding for them.
-  const callbacksRef = useRef({ onMoveStop, onRemoveItem, onAttachFile });
-  callbacksRef.current = { onMoveStop, onRemoveItem, onAttachFile };
+  const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onRemoveItem, onAttachFile });
+  callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onRemoveItem, onAttachFile };
   // The stop whose popup is open, so it can be re-rendered after edits instead of closing.
   const openStopRef = useRef<string | null>(null);
   // Only re-zoom when the set of places changes, and not right after the user dragged a pin.
@@ -88,7 +91,8 @@ const Map: React.FC<MapProps> = ({
         zoomControl: true,
         fullscreenControl: true,
         zoomControlOptions: {
-          position: google.maps.ControlPosition.RIGHT_BOTTOM
+          // Right-centre stays visible above the phone's bottom sheet.
+          position: google.maps.ControlPosition.RIGHT_CENTER
         }
       });
       routeLineRef.current = new google.maps.Polyline({
@@ -100,6 +104,27 @@ const Map: React.FC<MapProps> = ({
 
       googleMapRef.current = map;
       infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
+
+      // Clicking empty map offers to add an overnight stop there (once a route exists).
+      map.addListener('click', (e: google.maps.MapMouseEvent) => {
+        if (!e.latLng || !callbacksRef.current.onAddStop) return;
+        const position = e.latLng.toJSON();
+        const content = document.createElement('div');
+        infoRootRef.current?.unmount();
+        infoRootRef.current = createRoot(content);
+        infoRootRef.current.render(
+          <button
+            className="rounded-md bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-700"
+            onClick={() => { infoWindowRef.current?.close(); callbacksRef.current.onAddStop?.(position); }}
+          >
+            + Add overnight stop here
+          </button>
+        );
+        infoWindowRef.current?.setContent(content);
+        infoWindowRef.current?.setPosition(position);
+        infoWindowRef.current?.open({ map });
+        openStopRef.current = null;
+      });
       infoWindowRef.current.addListener('closeclick', () => { openStopRef.current = null; });
       onLoad(map);
       setIsReady(true);
@@ -161,6 +186,9 @@ const Map: React.FC<MapProps> = ({
                 distanceToNext={point.distanceToNext}
                 onRemoveItem={(c, i) => callbacksRef.current.onRemoveItem?.(point.ref, c, i)}
                 onAttachFile={(file) => callbacksRef.current.onAttachFile?.(point.ref, file)}
+                onRemoveStop={point.ref.kind === 'stop' && callbacksRef.current.onRemoveStop
+                  ? () => { infoWindowRef.current?.close(); openStopRef.current = null; callbacksRef.current.onRemoveStop?.(point.ref.index!); }
+                  : undefined}
                 attaching={attachingKey === key}
               />
             </div>
@@ -191,6 +219,8 @@ const Map: React.FC<MapProps> = ({
             content: pin,
             gmpClickable: true,
             gmpDraggable: Boolean(callbacksRef.current.onMoveStop),
+            // Above suggestion and booking pins, which often sit in the same town.
+            zIndex: 10,
           });
 
           marker.addEventListener('gmp-click', () => openPopup(point, marker));
@@ -270,7 +300,11 @@ const Map: React.FC<MapProps> = ({
 
         const boundsKey = allPoints.map(p => p.location).join('|');
         if (!bounds.isEmpty() && googleMapRef.current && boundsKey !== lastBoundsKeyRef.current && !skipFitRef.current) {
-          googleMapRef.current.fitBounds(bounds, 60);
+          // On phones the planner sheet covers the lower half: keep the route in the visible top part.
+          const phone = window.innerWidth < 768;
+          googleMapRef.current.fitBounds(bounds, phone
+            ? { top: 110, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) }
+            : 60);
         }
         lastBoundsKeyRef.current = boundsKey;
         skipFitRef.current = false;
@@ -294,7 +328,7 @@ const Map: React.FC<MapProps> = ({
       )}
 
       {/* Category legend: show or hide suggestion pins */}
-      <div className="absolute bottom-6 left-3 z-10 flex flex-wrap gap-1 md:left-6">
+      <div className="absolute left-3 top-16 z-10 flex flex-wrap gap-1 md:bottom-6 md:left-6 md:top-auto">
         {CATEGORY_IDS.map(id => {
           const hidden = hiddenCategories.includes(id);
           return (

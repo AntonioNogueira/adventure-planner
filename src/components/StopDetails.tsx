@@ -71,6 +71,8 @@ interface StopDetailsProps {
   onRemoveItem?: (categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (file: File) => void;
   attaching?: boolean;
+  /** Shown as a "Remove stop" link (overnight stops only). */
+  onRemoveStop?: () => void;
   /** Booking date problems, keyed "categoryIndex-itemIndex". */
   warnings?: Record<string, string>;
 }
@@ -79,7 +81,7 @@ const mapsLink = (query: string) => `https://www.google.com/maps/search/?api=1&q
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
-  onRemoveItem, onAttachFile, attaching, warnings,
+  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop,
 }) => {
   const t = THEMES[kind];
   const fileInput = useRef<HTMLInputElement>(null);
@@ -90,7 +92,12 @@ const StopDetails: React.FC<StopDetailsProps> = ({
         <div className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', t.badge)}>
           {badge}
         </div>
-        <span className="truncate text-sm" title={location}>{title}: {location}</span>
+        <span className="min-w-0 flex-1 truncate text-sm" title={location}>{title}: {location}</span>
+        {onRemoveStop && (
+          <button onClick={onRemoveStop} className="shrink-0 text-[11px] font-medium text-red-600 hover:underline" title="Remove this overnight stop">
+            Remove stop
+          </button>
+        )}
       </div>
 
       {(distanceFromPrev || distanceToNext) && (

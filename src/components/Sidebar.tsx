@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   MapPin,
   Navigation,
@@ -30,6 +30,11 @@ import StopDetails from './StopDetails';
 import Itinerary from './Itinerary';
 import { ScheduleDay, BookingWarning } from '../lib/schedule';
 import { RouteOptions } from '../lib/routing';
+
+// Phone bottom-sheet heights (desktop always uses the full-height sidebar).
+type SheetHeight = 'peek' | 'half' | 'full';
+const SHEET_HEIGHTS: Record<SheetHeight, string> = { peek: 'h-[22dvh]', half: 'h-[55dvh]', full: 'h-[92dvh]' };
+const SHEET_NEXT: Record<SheetHeight, SheetHeight> = { peek: 'half', half: 'full', full: 'peek' };
 
 interface SidebarProps {
   origin: string;
@@ -109,6 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRouteOptionsChange,
 }) => {
   const reservationInput = useRef<HTMLInputElement>(null);
+  const [sheet, setSheet] = useState<SheetHeight>('half');
   const warningsFor = (key: string) => Object.fromEntries(
     warnings.filter(w => w.key === key).map(w => [`${w.categoryIndex}-${w.itemIndex}`, w.message]));
   const travelModes = [
@@ -145,7 +151,20 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="z-10 flex h-[55dvh] w-full shrink-0 flex-col overflow-y-auto border-t bg-card p-4 shadow-xl md:h-full md:w-[26rem] md:border-r md:border-t-0 md:p-6">
+    <aside className={cn(
+      "absolute inset-x-0 bottom-0 z-20 flex w-full shrink-0 flex-col overflow-y-auto rounded-t-2xl border-t bg-card px-4 pb-4 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] transition-[height] duration-300",
+      "md:static md:h-full md:w-[26rem] md:rounded-none md:border-r md:border-t-0 md:p-6 md:shadow-xl md:transition-none",
+      SHEET_HEIGHTS[sheet],
+    )}>
+      {/* Phone handle: tap to switch between peek, half and full height. */}
+      <button
+        onClick={() => setSheet(SHEET_NEXT[sheet])}
+        className="sticky top-0 z-10 -mx-4 mb-2 flex flex-col items-center gap-1 bg-card pb-1 pt-2 md:hidden"
+        aria-label={sheet === 'full' ? 'Show more map' : 'Show more of the planner'}
+      >
+        <span className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+        <span className="text-[10px] text-muted-foreground">{sheet === 'full' ? 'Tap to show the map' : 'Tap to expand'}</span>
+      </button>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="rounded-lg bg-emerald-600 p-2 text-white shadow-lg shadow-emerald-900/20">
