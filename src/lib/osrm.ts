@@ -8,8 +8,22 @@ import type { RoutedLeg, RoutedStep, RoutedTrip, TripRequest } from './routing';
 const OSRM = 'https://routing.openstreetmap.de';
 const VALHALLA = 'https://valhalla1.openstreetmap.de/route';
 const PROFILE: Record<string, string> = { DRIVING: 'routed-car', BICYCLING: 'routed-bike', WALKING: 'routed-foot' };
-// Bike/foot routes that must avoid ferries are guided through points this far apart on the car route.
+// Long bike/foot routes are guided through points this far apart on the car route.
 const GUIDE_SPACING_KM = 80;
+// Above this straight-line distance, bike/foot trips follow the car route's corridor: OSRM's bike and
+// foot profiles otherwise happily chain long ferries (e.g. Tanger-Med → Genoa) as the "fastest" way.
+const GUIDED_ABOVE_KM = 150;
+
+/**
+ * OSRM marks some ferries as "pushing bike". A ferry is also recognisable by its shape: a long step drawn
+ * with very few points (a straight line over water), which no road has.
+ */
+export function isFerryStep(step: { mode?: string; name?: string; distance: number; geometry?: { coordinates: unknown[] } }): boolean {
+  if (step.mode === 'ferry' || step.mode === 'train') return true;
+  const points = step.geometry?.coordinates.length || 0;
+  if (step.distance > 20_000 && points > 0 && step.distance / points > 3_000) return true;
+  return /ferry|ferri|traghetto|\(GNV\)|grimaldi|tirrenia|moby|bal[eé]aria|trasmed|naviera/i.test(step.name || '');
+}
 
 interface Loc { at: LatLng; via: boolean }
 
@@ -25,7 +39,7 @@ async function resolve(req: TripRequest): Promise<Loc[]> {
 const describe = (step: any) => {
   const m = step.maneuver || {};
   const road = [step.name, step.ref].filter(Boolean).join(' ');
-  if (step.mode === 'ferry') return `Take the ferry${road ? ` ${road}` : ''}`;
+  if (isFerryStep(step)) return `Take the ferry${road ? ` ${road}` : ''}`;
   const verb = m.type === 'depart' ? 'Head' : m.type === 'arrive' ? 'Arrive' : m.modifier ? `Turn ${m.modifier}` : 'Continue';
   return road ? `${verb} onto ${road}` : verb;
 };
@@ -47,7 +61,7 @@ async function osrm(profile: string, locs: Loc[]): Promise<RoutedTrip> {
         instruction: describe(st),
         distanceMeters: st.distance,
         durationSeconds: st.duration,
-        ferry: st.mode === 'ferry',
+        ferry: isFerryStep(st),
       })),
     })),
   };
@@ -128,11 +142,14 @@ export async function osmTrip(req: TripRequest): Promise<RoutedTrip> {
     }
   }
 
-  if (req.travelMode !== 'DRIVING' && avoid.avoidFerries) {
-    // OSRM can't exclude ferries for bikes/walkers: follow the car route (which keeps to land)
-    // by adding guide points along it between each pair of stops.
+  const breaks0 = locs.filter(l => !l.via);
+  const longestHop = Math.max(...breaks0.slice(1).map((l, i) => haversineKm(breaks0[i].at, l.at)));
+  if (req.travelMode !== 'DRIVING' && (avoid.avoidFerries || longestHop > GUIDED_ABOVE_KM)) {
+    // Follow the car route (which keeps to land unless a ferry is unavoidable) by adding guide points
+    // along it between each pair of stops; OSRM still picks bike/foot-friendly roads between them.
     const car = await osrm(PROFILE.DRIVING, locs);
-    if (!car.legs.some(l => l.steps.some(s => s.ferry))) {
+    // When the user asked to avoid ferries but even the car needs one (islands), route directly.
+    if (!avoid.avoidFerries || !car.legs.some(l => l.steps.some(s => s.ferry))) {
       const breaks = locs.filter(l => !l.via);
       const guided: Loc[] = [];
       car.legs.forEach((leg, i) => {

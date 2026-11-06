@@ -52,3 +52,14 @@ describe('evenlySpaced', () => {
     expect(haversineKm(pts[0], pts[1])).toBeCloseTo(haversineKm(pts[1], pts[2]), 3);
   });
 });
+
+describe('isFerryStep', () => {
+  it('spots ferries OSRM labels as "pushing bike"', async () => {
+    const { isFerryStep } = await import('../osrm');
+    const straight = { coordinates: Array(37).fill([0, 0]) };
+    expect(isFerryStep({ mode: 'pushing bike', name: 'Tanger-Med - Barcelona - Genova (GNV)', distance: 1_657_000, geometry: straight })).toBe(true);
+    expect(isFerryStep({ mode: 'pushing bike', name: 'Calle Real', distance: 300, geometry: { coordinates: Array(5).fill([0, 0]) } })).toBe(false);
+    expect(isFerryStep({ mode: 'cycling', name: 'N-340', distance: 40_000, geometry: { coordinates: Array(900).fill([0, 0]) } })).toBe(false);
+    expect(isFerryStep({ mode: 'ferry', name: '', distance: 1000 })).toBe(true);
+  });
+});
