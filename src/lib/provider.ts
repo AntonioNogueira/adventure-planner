@@ -4,7 +4,7 @@
 export type MapProvider = 'google' | 'osm';
 
 declare global {
-  interface Window { __APP_CONFIG__?: { mapProvider?: string } }
+  interface Window { __APP_CONFIG__?: { mapProvider?: string; authProviders?: string } }
 }
 
 export const MAP_PROVIDER: MapProvider =
@@ -23,3 +23,13 @@ export function mapSearchUrl(query: string, at?: { lat: number; lng: number }) {
 }
 
 export const mapSiteName = isOsm ? 'OpenStreetMap' : 'Google Maps';
+
+export type AuthProvider = 'email' | 'google' | 'facebook' | 'apple';
+
+/**
+ * Login options to offer, from the server's AUTH_PROVIDERS setting (default "email,google").
+ * Facebook and Apple also need setting up in Firebase → Authentication → Sign-in method.
+ */
+export const AUTH_PROVIDERS: AuthProvider[] = (
+  (typeof window !== 'undefined' && window.__APP_CONFIG__?.authProviders) || 'email,google'
+).split(',').map(s => s.trim()).filter((s): s is AuthProvider => ['email', 'google', 'facebook', 'apple'].includes(s));

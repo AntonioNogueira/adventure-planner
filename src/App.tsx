@@ -24,7 +24,9 @@ import { Sparkles, MapPin } from 'lucide-react';
 import { db, auth, storage, handleFirestoreError, OperationType } from './firebase';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult, signOut } from 'firebase/auth';
+import LoginDialog from './components/LoginDialog';
+import { authErrorMessage } from './lib/authErrors';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -167,6 +169,7 @@ const App: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [initialPrompt, setInitialPrompt] = useState('');
   const [mapReady, setMapReady] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [lodging, setLodging] = useState<LodgingPreference>('any');
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
@@ -225,15 +228,13 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
-  const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      console.error('Login failed:', err);
-      setToast({ message: 'Sign-in failed. Allow pop-ups for this site and try again.', type: 'error' });
-    }
-  };
+  // "Log in" opens the login dialog (email, Google, and any other enabled providers).
+  const handleLogin = () => setShowLogin(true);
+
+  // Finish a sign-in that fell back to a full-page redirect (when pop-ups were blocked).
+  useEffect(() => {
+    getRedirectResult(auth).catch(err => setToast({ message: authErrorMessage(err), type: 'error' }));
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -975,6 +976,16 @@ const App: React.FC = () => {
               setInitialPrompt(prompt);
               setShowWelcome(false);
             }} 
+          />
+        )}
+
+        {showLogin && (
+          <LoginDialog
+            onClose={() => setShowLogin(false)}
+            onSignedIn={() => {
+              setShowLogin(false);
+              setToast({ message: 'You\'re logged in. Your expeditions can now be saved.', type: 'success' });
+            }}
           />
         )}
 

@@ -10,8 +10,10 @@ export default defineConfig(({ mode, command }) => {
   const mapsKey = env.GOOGLE_MAPS_API_KEY || env.VITE_GOOGLE_MAPS_API_KEY || '';
   // 'google' (default) or 'osm' for Adventure Planner Open (OpenStreetMap services, no Maps key).
   const mapProvider = env.MAP_PROVIDER === 'osm' ? 'osm' : 'google';
+  // Login options shown in the login dialog: email, google, facebook, apple (each enabled in Firebase).
+  const authProviders = (env.AUTH_PROVIDERS || 'email,google').replace(/[^a-z,]/g, '');
   // Tells the page which map stack to use; the Google Maps script is only loaded for 'google'.
-  const providerScripts = `<script>window.__APP_CONFIG__ = { mapProvider: "${mapProvider}" };</script>`
+  const providerScripts = `<script>window.__APP_CONFIG__ = { mapProvider: "${mapProvider}", authProviders: "${authProviders}" };</script>`
     + (mapProvider === 'google'
       ? `\n    <script src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry&key=${mapsKey}&v=weekly&loading=async" async></script>`
       : '');

@@ -90,7 +90,8 @@ The app uses the Firebase project in `firebase-applet-config.json`. In the [Fire
 
 1. **Firestore → Rules**: paste `firestore.rules` and publish (allows share links).
 2. **Storage → Get started**, then **Rules**: paste `storage.rules` and publish. Storage may ask you to switch the project to the pay-as-you-go Blaze plan; a personal project normally stays within its free allowance. Without Storage, trips still save their booking details, just not the files.
-3. **Authentication → Settings → Authorized domains**: add the domain you deploy to (e.g. `adventure-planner.onrender.com`).
+3. **Authentication → Settings → Authorized domains**: add `localhost` (for running on your PC) and the domain you deploy to (e.g. `adventure-planner.onrender.com`).
+4. **Authentication → Sign-in method**: enable **Email/Password** and **Google**. Facebook and Apple are optional (they need a Facebook developer app / an Apple Developer account); list the ones you enable in `AUTH_PROVIDERS` (default `email,google`).
 
 ## Deploying
 

@@ -225,12 +225,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 text-center">
-            <p className="text-xs text-muted-foreground">Sign in to save your expeditions and access them anywhere.</p>
-            <button 
+            <p className="text-xs text-muted-foreground">Log in to save your expeditions, keep bookings and share trips.</p>
+            <button
               onClick={onLogin}
               className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-colors"
             >
-              Sign In with Google
+              Log in
             </button>
           </div>
         )}
@@ -419,7 +419,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
             {!user && (
-              <p className="text-[10px] text-muted-foreground">Sign in to save your adventure</p>
+              <p className="text-[10px] text-muted-foreground">
+                <button onClick={onLogin} className="font-semibold text-emerald-700 hover:underline">Log in</button> to save your adventure
+              </p>
             )}
             {user && isSaved && !viewingShared && (
               <div className="flex flex-wrap items-center gap-2 text-xs">
