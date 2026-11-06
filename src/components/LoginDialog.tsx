@@ -114,6 +114,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
                 {s.label}
               </button>
             ))}
+            {busy && busy !== 'email' && (
+              <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                Pick your account in the {socials.find(s => s.id === busy)?.label.replace('Continue with ', '')} window that just opened.
+                It may say "continue to …firebaseapp.com": that's the secure sign-in service this app uses.
+              </p>
+            )}
           </div>
         )}
 
