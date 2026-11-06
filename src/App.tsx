@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
 import { planOvernightStops } from './lib/tripBuilder';
-import { computeTrip, tripPath, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES } from './lib/routing';
+import { computeTrip, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES } from './lib/routing';
 import { elevationsAlong, climbStats } from './lib/elevation';
 import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
@@ -191,7 +191,7 @@ const App: React.FC = () => {
   const tripRef = useRef<RoutedTrip | null>(null);
   // What the AI understood for the current plan, to re-plan when route options change.
   const lastIntentRef = useRef<TripIntent | null>(null);
-  const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
+  const [trip, setTrip] = useState<RoutedTrip | null>(null);
   const [routeOptions, setRouteOptions] = useState<RouteOptions>(NO_AVOIDANCES);
   const [startDate, setStartDate] = useState('');
   // The saved trip being edited, whether it's someone else's shared trip, and its share link.
@@ -359,7 +359,7 @@ const App: React.FC = () => {
       }
 
       tripRef.current = trip;
-      setRoutePath(tripPath(trip));
+      setTrip(trip);
       const ferry = ferryKm(trip);
       if (ferry >= 10) {
         const tip = currentTravelMode === 'DRIVING' || options.avoidFerries ? '' : ' Turn on "Avoid ferries" to travel the whole way overland.';
@@ -427,7 +427,7 @@ const App: React.FC = () => {
       }
       setError(message);
       setRouteInfo(null);
-      setRoutePath([]);
+      setTrip(null);
       return null;
     } finally {
       setIsLoading(false);
@@ -670,6 +670,17 @@ const App: React.FC = () => {
   const costs = useMemo(() => routeInfo ? bookingCosts([
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ]) : {}, [routeInfo]);
+
+  // Map segments: one per riding day, labelled with the day number (rest days included).
+  const segments = useMemo(() => (trip?.legs || []).map((leg, i) => {
+    const dayNumber = schedule.findIndex(d => d.kind === 'ride' && d.legIndex === i) + 1;
+    const info = routeInfo?.legs?.[i];
+    return {
+      path: leg.path,
+      leg,
+      label: `Day ${dayNumber || i + 1}: ${info?.from.split(',')[0] || ''} → ${info?.to.split(',')[0] || ''} · ${formatDistance(leg.distanceMeters)} · ${formatDuration(leg.durationSeconds)}`,
+    };
+  }), [trip, schedule, routeInfo?.legs]);
 
   const handleRestDaysChange = (stopIndex: number, restDays: number) => {
     const apply = (list: Waypoint[]) => list.map((wp, i) => i === stopIndex ? { ...wp, restDays: Math.max(0, restDays) } : wp);
@@ -927,7 +938,8 @@ const App: React.FC = () => {
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
           <Map 
             onLoad={handleMapLoad} 
-            routePath={routePath}
+            segments={segments}
+            travelMode={travelMode as string}
             waypoints={waypoints} 
             origin={origin} 
             destination={destination} 

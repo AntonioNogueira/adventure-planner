@@ -6,11 +6,14 @@ import { cn } from '../lib/utils';
 import StopDetails, { StopKind } from './StopDetails';
 import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
+import { RoutedLeg } from '../lib/routing';
+import SegmentDetails from './SegmentDetails';
 
 interface MapProps {
   onLoad: (map: google.maps.Map) => void;
-  /** The route to draw, as one continuous path. */
-  routePath?: google.maps.LatLngLiteral[];
+  /** The route, one clickable segment per day; clicking opens its terrain/road details. */
+  segments?: { path: google.maps.LatLngLiteral[]; label: string; leg: RoutedLeg }[];
+  travelMode?: string;
   waypoints?: Waypoint[];
   origin?: string;
   destination?: string;
@@ -42,9 +45,9 @@ const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
 const Map: React.FC<MapProps> = ({
-  onLoad, routePath = [], waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey,
+  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey,
 }) => {
-  const routeLineRef = useRef<google.maps.Polyline | null>(null);
+  const segmentLinesRef = useRef<google.maps.Polyline[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -96,13 +99,6 @@ const Map: React.FC<MapProps> = ({
           position: google.maps.ControlPosition.RIGHT_CENTER
         }
       });
-      routeLineRef.current = new google.maps.Polyline({
-        map,
-        strokeColor: '#059669',
-        strokeWeight: 6,
-        strokeOpacity: 0.85,
-      });
-
       googleMapRef.current = map;
       infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
 
@@ -126,7 +122,11 @@ const Map: React.FC<MapProps> = ({
         infoWindowRef.current?.open({ map });
         openStopRef.current = null;
       });
-      infoWindowRef.current.addListener('closeclick', () => { openStopRef.current = null; });
+      infoWindowRef.current.addListener('closeclick', () => {
+        openStopRef.current = null;
+        // Un-highlight the selected day.
+        segmentLinesRef.current.forEach(line => line.setOptions({ strokeColor: '#059669', strokeWeight: 6, strokeOpacity: 0.85 }));
+      });
       onLoad(map);
       setIsReady(true);
     };
@@ -139,9 +139,32 @@ const Map: React.FC<MapProps> = ({
     googleMapRef.current?.setMapTypeId(mapType);
   }, [mapType]);
 
+  // One line per day. Clicking a line highlights it and opens its details.
   useEffect(() => {
-    routeLineRef.current?.setPath(routePath);
-  }, [routePath, isReady]);
+    const map = googleMapRef.current;
+    if (!isReady || !map) return;
+    segmentLinesRef.current.forEach(line => line.setMap(null));
+    const style = (active: boolean) => ({ strokeColor: active ? '#065f46' : '#059669', strokeWeight: active ? 9 : 6, strokeOpacity: active ? 1 : 0.85 });
+    segmentLinesRef.current = segments.map((segment, i) => {
+      const line = new google.maps.Polyline({ map, path: segment.path, clickable: true, zIndex: 1, ...style(false) });
+      line.addListener('click', (e: google.maps.PolyMouseEvent) => {
+        segmentLinesRef.current.forEach((other, j) => other.setOptions(style(j === i)));
+        const content = document.createElement('div');
+        infoRootRef.current?.unmount();
+        infoRootRef.current = createRoot(content);
+        infoRootRef.current.render(<SegmentDetails label={segment.label} leg={segment.leg} travelMode={travelMode} />);
+        infoWindowRef.current?.setContent(content);
+        infoWindowRef.current?.setPosition(e.latLng || segment.path[Math.floor(segment.path.length / 2)]);
+        infoWindowRef.current?.open({ map });
+        openStopRef.current = null;
+      });
+      line.addListener('mouseover', () => line.setOptions({ strokeWeight: 9 }));
+      line.addListener('mouseout', () => line.setOptions({ strokeWeight: line.get('strokeColor') === '#065f46' ? 9 : 6 }));
+      return line;
+    });
+    // Development only: lets browser tests click a day line (they're drawn on a canvas).
+    if (import.meta.env.DEV) (window as any).__segmentLines = segmentLinesRef.current;
+  }, [segments, isReady, travelMode]);
 
   useEffect(() => {
     if (!isReady || !googleMapRef.current) return;
