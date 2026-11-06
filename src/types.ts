@@ -12,6 +12,11 @@ export interface Reservation {
   address?: string;
   checkIn?: string;
   checkOut?: string;
+  /** Dates as YYYY-MM-DD, for checking against the trip schedule. */
+  checkInDate?: string;
+  checkOutDate?: string;
+  price?: number;
+  currency?: string;
   confirmation?: string;
   notes?: string;
   lat?: number;
@@ -51,6 +56,8 @@ export interface Waypoint {
   /** Exact spot (from route splitting or a dragged pin); used for routing instead of geocoding the name. */
   position?: { lat: number; lng: number };
   stopover: boolean;
+  /** Extra nights at this stop. */
+  restDays?: number;
   interests?: InterestCategory[];
   distanceFromPrev?: string;
   distanceToNext?: string;
@@ -62,6 +69,13 @@ export interface RouteLeg {
   distance: string;
   duration: string;
   distanceMeters?: number;
+  durationSeconds?: number;
+  /** Where the day ends (for weather); filled from the route. */
+  end?: { lat: number; lng: number };
+  /** Climbing in metres and ~60 evenly spaced elevations for the profile; filled after the route. */
+  ascent?: number;
+  descent?: number;
+  profile?: number[];
 }
 
 /** What the AI understood from the chat; the app turns it into a route with Google Maps. */
@@ -95,4 +109,11 @@ export interface RouteInfo {
   legs?: RouteLeg[];
   notice?: string;
   createdAt?: number;
+  /** First riding day, YYYY-MM-DD. */
+  startDate?: string;
+  avoid?: { avoidHighways: boolean; avoidFerries: boolean; avoidTolls: boolean };
+  lodging?: 'any' | 'camping' | 'hostel' | 'hotel';
+  /** Anyone with the link can view a shared trip. */
+  shared?: boolean;
+  userId?: string;
 }

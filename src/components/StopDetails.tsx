@@ -71,13 +71,15 @@ interface StopDetailsProps {
   onRemoveItem?: (categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (file: File) => void;
   attaching?: boolean;
+  /** Booking date problems, keyed "categoryIndex-itemIndex". */
+  warnings?: Record<string, string>;
 }
 
 const mapsLink = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
-  onRemoveItem, onAttachFile, attaching,
+  onRemoveItem, onAttachFile, attaching, warnings,
 }) => {
   const t = THEMES[kind];
   const fileInput = useRef<HTMLInputElement>(null);
@@ -142,6 +144,10 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                           <div className="mt-0.5 space-y-0.5 text-[11px] text-violet-900/80">
                             {(r.checkIn || r.checkOut) && <p>{[r.checkIn, r.checkOut].filter(Boolean).join(' → ')}</p>}
                             {r.confirmation && <p>Ref: <span className="font-semibold">{r.confirmation}</span></p>}
+                            {r.price ? <p>{r.price.toFixed(2)} {r.currency}</p> : null}
+                            {warnings?.[`${catIdx}-${itemIdx}`] && (
+                              <p className="rounded bg-amber-100 px-1 py-0.5 font-medium text-amber-900">⚠ {warnings[`${catIdx}-${itemIdx}`]}</p>
+                            )}
                             {!compact && r.notes && <p className="line-clamp-2">{r.notes}</p>}
                             <div className="flex flex-wrap gap-x-2">
                               {fileUrl ? (

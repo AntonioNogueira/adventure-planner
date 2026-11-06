@@ -1,9 +1,14 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import Map from './components/Map';
 import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
 import { planOvernightStops } from './lib/tripBuilder';
+import { computeTrip, tripPath, RoutedTrip, RouteOptions, NO_AVOIDANCES } from './lib/routing';
+import { elevationsAlong, climbStats } from './lib/elevation';
+import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
+import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
+import { downsample } from './lib/geo';
 import { placeSuggestions, LodgingPreference } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt, distanceKm } from './lib/geocode';
@@ -175,9 +180,12 @@ const App: React.FC = () => {
     }
   }, [origin, destination]);
 
-  const directionsServiceRef = useRef<google.maps.DirectionsService | null>(null);
-  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
+  // The last calculated route (paths per day), used for drawing, elevation and GPX export.
+  const tripRef = useRef<RoutedTrip | null>(null);
+  const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
+  const [routeOptions, setRouteOptions] = useState<RouteOptions>(NO_AVOIDANCES);
+  const [startDate, setStartDate] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -224,22 +232,16 @@ const App: React.FC = () => {
     }
   };
 
-  const handleMapLoad = useCallback((
-    map: google.maps.Map,
-    directionsService: google.maps.DirectionsService,
-    directionsRenderer: google.maps.DirectionsRenderer
-  ) => {
+  const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
-    directionsServiceRef.current = directionsService;
-    directionsRendererRef.current = directionsRenderer;
     setMapReady(true);
   }, []);
 
   // The AI has understood the request; Google Maps does the rest: overnight stops along the real
   // route, the route itself, then Places suggestions for every stop.
   const handlePlanTrip = async (intent: TripIntent): Promise<PlanSummary | null> => {
-    if (!directionsServiceRef.current) return null;
-    const { waypoints: stops, targetKm } = await planOvernightStops(directionsServiceRef.current, intent);
+    if (!mapReady) return null;
+    const { waypoints: stops, targetKm } = await planOvernightStops(intent, routeOptions);
     const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
 
     setOrigin(intent.origin);
@@ -287,74 +289,77 @@ const App: React.FC = () => {
     overrideDestination?: string,
     overrideWaypoints?: Waypoint[],
     overrideTravelMode?: string,
-    overrideInterests?: { origin?: InterestCategory[], destination?: InterestCategory[] }
+    overrideInterests?: { origin?: InterestCategory[], destination?: InterestCategory[] },
+    overrideOptions?: RouteOptions,
   ): Promise<RouteLeg[] | null> => {
     const currentOrigin = overrideOrigin || origin;
     const currentDestination = overrideDestination || destination;
     const currentWaypoints = overrideWaypoints || waypoints;
     const currentTravelMode = overrideTravelMode || travelMode;
+    const options = overrideOptions || routeOptions;
 
-    if (!currentOrigin || !currentDestination || !directionsServiceRef.current || !directionsRendererRef.current) {
+    if (!currentOrigin || !currentDestination || !mapReady) {
       return null;
     }
 
     setIsLoading(true);
     setError(null);
 
-    const request = (mode: string, exact = true) => directionsServiceRef.current!.route({
+    const stops = currentWaypoints.filter(wp => wp.location.trim() !== '');
+    const request = (mode: string, exact = true) => computeTrip({
       origin: currentOrigin,
       destination: currentDestination,
-      waypoints: currentWaypoints.filter(wp => wp.location.trim() !== '').map(wp => ({
-        location: (exact && wp.position) || wp.location,
-        stopover: wp.stopover
-      })),
-      travelMode: mode as google.maps.TravelMode,
+      stops: stops.map(wp => ({ location: (exact && wp.position) || wp.location, via: !wp.stopover })),
+      travelMode: mode,
+      options,
     });
 
     try {
       let notice: string | undefined;
-      let result: google.maps.DirectionsResult;
+      let trip: RoutedTrip;
       try {
-        result = await request(currentTravelMode as string).catch(err => {
+        trip = await request(currentTravelMode as string).catch(err => {
           // An exact stop position can be unroutable for bikes/walkers (e.g. on a ferry line):
           // try the town names before giving up on this travel mode.
-          if (!currentWaypoints.some(wp => wp.position)) throw err;
+          if (!stops.some(wp => wp.position)) throw err;
           return request(currentTravelMode as string, false);
         });
       } catch (err) {
         // Transit doesn't support stops and bike/walk routing isn't available everywhere:
         // fall back to driving so the trip still shows on the map.
         if (currentTravelMode === 'DRIVING') throw err;
-        result = await request('DRIVING');
+        trip = await request('DRIVING');
         const modeName = { WALKING: 'Walking', BICYCLING: 'Cycling', TRANSIT: 'Transit' }[currentTravelMode as string] || 'These';
-        notice = `${modeName} directions aren't available for this route${currentTravelMode === 'TRANSIT' && currentWaypoints.length ? ' with stops' : ''}, so the driving route is shown instead.`;
+        notice = `${modeName} directions aren't available for this route${currentTravelMode === 'TRANSIT' && stops.length ? ' with stops' : ''}, so the driving route is shown instead.`;
       }
 
-      directionsRendererRef.current!.setDirections(result);
-      
-      const legs = result.routes[0].legs;
-      const totalDistance = legs.reduce((acc, leg) => acc + (leg.distance?.value || 0), 0);
-      const totalDuration = legs.reduce((acc, leg) => acc + (leg.duration?.value || 0), 0);
+      tripRef.current = trip;
+      setRoutePath(tripPath(trip));
+      const legs = trip.legs;
+      const totalDistance = legs.reduce((acc, leg) => acc + leg.distanceMeters, 0);
+      const totalDuration = legs.reduce((acc, leg) => acc + leg.durationSeconds, 0);
 
       const updatedWaypoints = currentWaypoints.map((wp, index) => {
         const newWp = { ...wp };
         // Preserve interests from currentWaypoints (which might be from AI or previous state)
         if (index < legs.length) {
-          newWp.distanceFromPrev = legs[index].distance?.text;
+          newWp.distanceFromPrev = formatDistance(legs[index].distanceMeters);
         }
         if (index + 1 < legs.length) {
-          newWp.distanceToNext = legs[index + 1].distance?.text;
+          newWp.distanceToNext = formatDistance(legs[index + 1].distanceMeters);
         }
         return newWp;
       });
       setWaypoints(updatedWaypoints);
 
       const routeLegs: RouteLeg[] = legs.map((leg, i) => ({
-        from: i === 0 ? currentOrigin : currentWaypoints[i - 1]?.location || leg.start_address,
-        to: i === legs.length - 1 ? currentDestination : currentWaypoints[i]?.location || leg.end_address,
-        distance: leg.distance?.text || '',
-        duration: formatDuration(leg.duration?.value || 0),
-        distanceMeters: leg.distance?.value,
+        from: i === 0 ? currentOrigin : currentWaypoints[i - 1]?.location || leg.startAddress || '',
+        to: i === legs.length - 1 ? currentDestination : currentWaypoints[i]?.location || leg.endAddress || '',
+        distance: formatDistance(leg.distanceMeters),
+        duration: formatDuration(leg.durationSeconds),
+        distanceMeters: leg.distanceMeters,
+        durationSeconds: leg.durationSeconds,
+        end: leg.path[leg.path.length - 1],
       }));
 
       setRouteInfo({
@@ -369,17 +374,20 @@ const App: React.FC = () => {
         duration: formatDuration(totalDuration),
         legs: routeLegs,
         notice,
-        startAddress: legs[0].start_address,
-        endAddress: legs[legs.length - 1].end_address,
+        startAddress: legs[0].startAddress || currentOrigin,
+        endAddress: legs[legs.length - 1].endAddress || currentDestination,
         steps: legs.flatMap(leg => leg.steps.map(step => ({
-          instruction: step.instructions,
-          distance: step.distance?.text || '',
-          duration: step.duration?.text || '',
+          instruction: step.instruction,
+          distance: formatDistance(step.distanceMeters),
+          duration: formatDuration(step.durationSeconds),
         }))),
       } as RouteInfo);
+
+      // Climbing per day, filled in when the Elevation API answers.
+      addElevation(trip);
       return routeLegs;
     } catch (err: any) {
-      console.error('Directions request failed:', err);
+      console.error('Route request failed:', err);
       let message = 'Could not calculate route. Please check your addresses and try again.';
       if (err.code === 'NOT_FOUND' || (err.message && err.message.includes('NOT_FOUND'))) {
         message = 'One or more locations could not be found. Please use more specific names (e.g., "San Francisco, CA").';
@@ -388,11 +396,25 @@ const App: React.FC = () => {
       }
       setError(message);
       setRouteInfo(null);
+      setRoutePath([]);
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [origin, destination, waypoints, travelMode, expeditionName, routeInfo]);
+  }, [origin, destination, waypoints, travelMode, expeditionName, routeInfo, routeOptions, mapReady]);
+
+  // Elevation profile and climbing for each day of the current route.
+  const addElevation = async (trip: RoutedTrip) => {
+    const profiles = await Promise.all(trip.legs.map(leg => elevationsAlong(leg.path, 64)));
+    if (tripRef.current !== trip || profiles.every(p => !p)) return;
+    setRouteInfo(prev => prev && prev.legs && {
+      ...prev,
+      legs: prev.legs.map((leg, i) => {
+        const profile = profiles[i];
+        return profile ? { ...leg, ...climbStats(profile), profile: profile.map(e => Math.round(e)) } : leg;
+      }),
+    });
+  };
 
   useEffect(() => {
     const hasInputs = origin && destination && mapReady;
@@ -483,6 +505,10 @@ const App: React.FC = () => {
           address: r.address || undefined,
           checkIn: r.checkIn || undefined,
           checkOut: r.checkOut || undefined,
+          checkInDate: /^\d{4}-\d{2}-\d{2}$/.test(r.checkInDate) ? r.checkInDate : undefined,
+          checkOutDate: /^\d{4}-\d{2}-\d{2}$/.test(r.checkOutDate) ? r.checkOutDate : undefined,
+          price: typeof r.price === 'number' && r.price > 0 ? r.price : undefined,
+          currency: r.currency || undefined,
           confirmation: r.confirmation || undefined,
           notes: r.notes || undefined,
           lat: position?.lat(),
@@ -583,6 +609,78 @@ const App: React.FC = () => {
     loadSuggestions(empty.map(s => s.ref), empty.map(s => s.position || s.location), travelMode, lodging);
   };
 
+  // ---- Schedule: dates, rest days, booking checks, costs, GPX ----
+
+  const schedule = useMemo(
+    () => buildSchedule(routeInfo?.legs?.length || 0, (routeInfo?.waypoints || []).map(wp => wp.restDays || 0), startDate || undefined),
+    [routeInfo, startDate],
+  );
+
+  const warnings = useMemo(() => {
+    if (!routeInfo) return [];
+    const stays = staysByStop(schedule, routeInfo.waypoints.length);
+    return bookingWarnings([
+      { key: 'start', label: routeInfo.origin, interests: routeInfo.originInterests || [] },
+      ...routeInfo.waypoints.map((wp, i) => ({ key: `stop-${i}`, label: wp.location, interests: wp.interests || [] })),
+      { key: 'end', label: routeInfo.destination, interests: routeInfo.destinationInterests || [] },
+    ], stays);
+  }, [routeInfo, schedule]);
+
+  const costs = useMemo(() => routeInfo ? bookingCosts([
+    routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
+  ]) : {}, [routeInfo]);
+
+  const handleRestDaysChange = (stopIndex: number, restDays: number) => {
+    const apply = (list: Waypoint[]) => list.map((wp, i) => i === stopIndex ? { ...wp, restDays: Math.max(0, restDays) } : wp);
+    setWaypoints(apply);
+    setRouteInfo(prev => prev && { ...prev, waypoints: apply(prev.waypoints) });
+    setHasChanges(true);
+  };
+
+  const handleStartDateChange = (date: string) => {
+    setStartDate(date);
+    setHasChanges(true);
+  };
+
+  const handleRouteOptionsChange = (options: RouteOptions) => {
+    setRouteOptions(options);
+    setHasChanges(true);
+    if (routeInfo) calculateRoute(undefined, undefined, undefined, undefined, undefined, options);
+  };
+
+  // GPX: the whole trip (one track per day) or a single day, with stops and bookings as waypoints.
+  const handleExportGpx = (legIndex: number | null) => {
+    const trip = tripRef.current;
+    if (!trip || !routeInfo) return;
+    const name = expeditionName || `${origin} to ${destination}`;
+    const dayLabel = (i: number) => {
+      const day = schedule.find(d => d.kind === 'ride' && d.legIndex === i);
+      const n = schedule.indexOf(day!) + 1;
+      return `Day ${n}: ${routeInfo.legs?.[i]?.from} → ${routeInfo.legs?.[i]?.to}`;
+    };
+    const legs = legIndex === null ? trip.legs.map((leg, i) => ({ leg, i })) : [{ leg: trip.legs[legIndex], i: legIndex }];
+    const stopPoints = [
+      { name: `Start: ${origin}`, at: trip.legs[0]?.path[0] },
+      ...trip.legs.map((leg, i) => ({ name: i === trip.legs.length - 1 ? `Finish: ${destination}` : `Night ${i + 1}: ${routeInfo.legs?.[i]?.to}`, at: leg.path[leg.path.length - 1] })),
+    ].filter(p => p.at).map(p => ({ name: p.name, lat: p.at!.lat, lng: p.at!.lng }));
+    const bookings = [routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || []]
+      .flat().flatMap(cat => cat.items)
+      .filter(item => item.source === 'reservation' && item.reservation?.lat != null)
+      .map(item => ({
+        name: `Booked: ${item.name}`,
+        lat: item.reservation!.lat!,
+        lng: item.reservation!.lng!,
+        description: [item.reservation?.checkIn, item.reservation?.confirmation && `Ref ${item.reservation.confirmation}`].filter(Boolean).join(' · '),
+      }));
+    const gpx = buildGpx(
+      legIndex === null ? name : `${name} – ${dayLabel(legIndex)}`,
+      // ~2,500 points per day keeps files small for GPS devices while following every turn closely.
+      legs.map(({ leg, i }) => ({ name: dayLabel(i), points: downsample(leg.path, 2500) })),
+      [...stopPoints, ...bookings],
+    );
+    downloadFile(gpxFileName(legIndex === null ? name : `${name} day ${legIndex + 1}`), gpx);
+  };
+
   const handleSave = async () => {
     if (!routeInfo || !user) return;
     const path = 'trips';
@@ -657,10 +755,20 @@ const App: React.FC = () => {
           onRemoveItem={handleRemoveItem}
           onAttachFile={handleAttachFile}
           attachingKey={attachingKey}
+          schedule={schedule}
+          startDate={startDate}
+          onStartDateChange={handleStartDateChange}
+          onRestDaysChange={handleRestDaysChange}
+          onExportGpx={handleExportGpx}
+          warnings={warnings}
+          costs={costs}
+          routeOptions={routeOptions}
+          onRouteOptionsChange={handleRouteOptionsChange}
         />
         <main className="relative min-h-0 flex-1">
           <Map 
             onLoad={handleMapLoad} 
+            routePath={routePath}
             waypoints={waypoints} 
             origin={origin} 
             destination={destination} 

@@ -8,11 +8,9 @@ import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 
 interface MapProps {
-  onLoad: (
-    map: google.maps.Map,
-    directionsService: google.maps.DirectionsService,
-    directionsRenderer: google.maps.DirectionsRenderer
-  ) => void;
+  onLoad: (map: google.maps.Map) => void;
+  /** The route to draw, as one continuous path. */
+  routePath?: google.maps.LatLngLiteral[];
   waypoints?: Waypoint[];
   origin?: string;
   destination?: string;
@@ -40,8 +38,9 @@ const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
 const Map: React.FC<MapProps> = ({
-  onLoad, waypoints = [], origin, destination, routeInfo, onMoveStop, onRemoveItem, onAttachFile, attachingKey,
+  onLoad, routePath = [], waypoints = [], origin, destination, routeInfo, onMoveStop, onRemoveItem, onAttachFile, attachingKey,
 }) => {
+  const routeLineRef = useRef<google.maps.Polyline | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -79,7 +78,6 @@ const Map: React.FC<MapProps> = ({
       }
 
       const { Map: GoogleMap, InfoWindow } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
-      const { DirectionsService, DirectionsRenderer } = await google.maps.importLibrary("routes") as google.maps.RoutesLibrary;
       const map = new GoogleMap(mapRef.current!, {
         center: { lat: 48.8566, lng: 2.3522 }, // Paris
         zoom: 5,
@@ -93,22 +91,17 @@ const Map: React.FC<MapProps> = ({
           position: google.maps.ControlPosition.RIGHT_BOTTOM
         }
       });
-      const directionsService = new DirectionsService();
-      const directionsRenderer = new DirectionsRenderer({
+      routeLineRef.current = new google.maps.Polyline({
         map,
-        suppressMarkers: true,
-        preserveViewport: true,
-        polylineOptions: {
-          strokeColor: '#059669',
-          strokeWeight: 6,
-          strokeOpacity: 0.85
-        }
+        strokeColor: '#059669',
+        strokeWeight: 6,
+        strokeOpacity: 0.85,
       });
 
       googleMapRef.current = map;
       infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
       infoWindowRef.current.addListener('closeclick', () => { openStopRef.current = null; });
-      onLoad(map, directionsService, directionsRenderer);
+      onLoad(map);
       setIsReady(true);
     };
 
@@ -119,6 +112,10 @@ const Map: React.FC<MapProps> = ({
   useEffect(() => {
     googleMapRef.current?.setMapTypeId(mapType);
   }, [mapType]);
+
+  useEffect(() => {
+    routeLineRef.current?.setPath(routePath);
+  }, [routePath, isReady]);
 
   useEffect(() => {
     if (!isReady || !googleMapRef.current) return;

@@ -321,7 +321,7 @@ async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: str
   sendJson(res, 502, { error: 'All AI providers failed', details: failures });
 }
 
-const reservationFields = ['category', 'name', 'address', 'checkIn', 'checkOut', 'confirmation', 'notes', 'stopIndex'] as const;
+const reservationFields = ['category', 'name', 'address', 'checkIn', 'checkOut', 'checkInDate', 'checkOutDate', 'price', 'currency', 'confirmation', 'notes', 'stopIndex'] as const;
 const reservationGeminiSchema = {
   type: Type.OBJECT,
   properties: {
@@ -330,6 +330,10 @@ const reservationGeminiSchema = {
     address: { type: Type.STRING, description: 'Full street address including town and country, or the town if no address is given' },
     checkIn: { type: Type.STRING, description: 'Check-in / reservation date and time, as written, or empty' },
     checkOut: { type: Type.STRING, description: 'Check-out date, or empty' },
+    checkInDate: { type: Type.STRING, description: 'Check-in or reservation date as YYYY-MM-DD, or empty' },
+    checkOutDate: { type: Type.STRING, description: 'Check-out date as YYYY-MM-DD, or empty' },
+    price: { type: Type.NUMBER, description: 'Total price as a number, or 0 if not given' },
+    currency: { type: Type.STRING, description: 'ISO currency code such as EUR, or empty' },
     confirmation: { type: Type.STRING, description: 'Booking reference / confirmation number, or empty' },
     notes: { type: Type.STRING, description: 'One short line: room/table type, guests, price or other key detail' },
     stopIndex: { type: Type.INTEGER, description: 'Index of the trip stop this booking belongs to' },
@@ -344,6 +348,10 @@ const reservationJsonSchema = {
     address: { type: 'string' },
     checkIn: { type: 'string' },
     checkOut: { type: 'string' },
+    checkInDate: { type: 'string' },
+    checkOutDate: { type: 'string' },
+    price: { type: 'number' },
+    currency: { type: 'string' },
     confirmation: { type: 'string' },
     notes: { type: 'string' },
     stopIndex: { type: 'integer' },
@@ -354,7 +362,8 @@ const reservationJsonSchema = {
 
 function buildReservationPrompt(fileName: string, stops: string[]) {
   return `The attached file ("${fileName}") is a booking or reservation for a trip (for example a hotel, hostel or campsite confirmation, a restaurant reservation, a bike rental or a tour ticket).
-Extract the booking details. Use empty strings for anything that is not in the file.
+Extract the booking details. Use empty strings for anything that is not in the file (0 for a missing price).
+Give dates twice: as written in checkIn/checkOut, and as YYYY-MM-DD in checkInDate/checkOutDate.
 
 Choose "category":
 - "Accommodations" for hotels, hostels, campsites, apartments and other places to sleep

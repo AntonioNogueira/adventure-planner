@@ -27,6 +27,9 @@ import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
 import AIAgent from './AIAgent';
 import StopDetails from './StopDetails';
+import Itinerary from './Itinerary';
+import { ScheduleDay, BookingWarning } from '../lib/schedule';
+import { RouteOptions } from '../lib/routing';
 
 interface SidebarProps {
   origin: string;
@@ -53,6 +56,15 @@ interface SidebarProps {
   onRemoveItem: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   onAttachFile: (ref: StopRef | null, file: File) => void;
   attachingKey: string | null;
+  schedule: ScheduleDay[];
+  startDate: string;
+  onStartDateChange: (date: string) => void;
+  onRestDaysChange: (stopIndex: number, restDays: number) => void;
+  onExportGpx: (legIndex: number | null) => void;
+  warnings: BookingWarning[];
+  costs: Record<string, number>;
+  routeOptions: RouteOptions;
+  onRouteOptionsChange: (options: RouteOptions) => void;
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
@@ -86,8 +98,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRemoveItem,
   onAttachFile,
   attachingKey,
+  schedule,
+  startDate,
+  onStartDateChange,
+  onRestDaysChange,
+  onExportGpx,
+  warnings,
+  costs,
+  routeOptions,
+  onRouteOptionsChange,
 }) => {
   const reservationInput = useRef<HTMLInputElement>(null);
+  const warningsFor = (key: string) => Object.fromEntries(
+    warnings.filter(w => w.key === key).map(w => [`${w.categoryIndex}-${w.itemIndex}`, w.message]));
   const travelModes = [
     { id: 'DRIVING', icon: Car, label: 'Moto/Car' },
     { id: 'WALKING', icon: Footprints, label: 'Hike' },
@@ -301,6 +324,26 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Route options">
+          {([
+            ['avoidHighways', 'Avoid highways'],
+            ['avoidFerries', 'Avoid ferries'],
+            ['avoidTolls', 'Avoid tolls'],
+          ] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => onRouteOptionsChange({ ...routeOptions, [key]: !routeOptions[key] })}
+              aria-pressed={routeOptions[key]}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                routeOptions[key] ? "border-emerald-600 bg-emerald-600 text-white" : "border-emerald-100 text-muted-foreground hover:bg-emerald-50"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex gap-2">
           {(!routeInfo || hasChanges) && (
             <button
@@ -363,40 +406,16 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {routeInfo && (
         <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-700">
-                <MapIcon size={18} />
-                <span className="text-sm font-semibold">{routeInfo.distance}</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock size={18} />
-                <span className="text-sm font-semibold">{routeInfo.duration}</span>
-              </div>
-            </div>
-
-            {routeInfo.legs && routeInfo.legs.length > 0 ? (
-              <ol className="space-y-2">
-                {routeInfo.legs.map((leg, i) => (
-                  <li key={i} className="flex items-start gap-3 text-xs">
-                    <span className="mt-0.5 flex shrink-0 items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 font-bold text-emerald-800">
-                      <CalendarDays size={11} />
-                      Day {i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium" title={`${leg.from} → ${leg.to}`}>{leg.from} → {leg.to}</p>
-                      <p className="text-muted-foreground">{leg.distance} · {leg.duration}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p>{routeInfo.startAddress}</p>
-                <p>→ {routeInfo.endAddress}</p>
-              </div>
-            )}
-          </div>
+          <Itinerary
+            routeInfo={routeInfo}
+            schedule={schedule}
+            startDate={startDate}
+            onStartDateChange={onStartDateChange}
+            onRestDaysChange={onRestDaysChange}
+            onExportGpx={onExportGpx}
+            warnings={warnings}
+            costs={costs}
+          />
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
@@ -426,6 +445,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <StopDetails
               kind="start" badge="S" title="Start" location={routeInfo.origin} interests={routeInfo.originInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'start' }, c, i)}
+              warnings={warningsFor('start')}
               onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
               attaching={attachingKey === 'start'}
             />
@@ -440,6 +460,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 distanceFromPrev={wp.distanceFromPrev}
                 distanceToNext={wp.distanceToNext}
                 onRemoveItem={(c, j) => onRemoveItem({ kind: 'stop', index: i }, c, j)}
+                warnings={warningsFor(`stop-${i}`)}
                 onAttachFile={(file) => onAttachFile({ kind: 'stop', index: i }, file)}
                 attaching={attachingKey === `stop-${i}`}
               />
@@ -447,6 +468,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <StopDetails
               kind="end" badge="F" title="Finish" location={routeInfo.destination} interests={routeInfo.destinationInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'end' }, c, i)}
+              warnings={warningsFor('end')}
               onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
               attaching={attachingKey === 'end'}
             />
