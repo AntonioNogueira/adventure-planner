@@ -1,5 +1,8 @@
 // Pieces shared by the Google map (Map.tsx) and the OpenStreetMap map (MapOsm.tsx).
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import StopDetails from './StopDetails';
+import { placeHighlight, PlaceHighlight, townName } from '../lib/wiki';
+import { LatLng } from '../lib/geo';
 import { InterestCategory, InterestItem, RouteInfo, StopKind, StopRef, Waypoint } from '../types';
 import { CATEGORIES, CategoryId } from '../lib/places';
 import { mapSearchUrl, mapSiteName } from '../lib/provider';
@@ -57,6 +60,61 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
         )}
         <button className="font-semibold text-red-600 hover:underline" onClick={onRemove}>Remove</button>
       </div>
+    </div>
+  );
+};
+
+/**
+ * A stop pin with its number and town name ("③ Tavira"), like a Google Maps label. The name hides when
+ * the map is zoomed far out (see .stop-labels-hidden in index.css) so long trips stay readable.
+ */
+export function stopPinElement(kind: StopKind, badge: string, location: string, title: string): HTMLElement {
+  const color = PIN_COLORS[kind];
+  const el = document.createElement('div');
+  el.title = title;
+  el.className = 'stop-pin';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;background:#fff;border:2px solid ${color};border-radius:999px;
+      padding:2px 9px 2px 2px;box-shadow:0 2px 6px rgba(0,0,0,.3);font:600 12px/1 Inter,sans-serif;color:#0f172a;
+      white-space:nowrap;cursor:pointer;">
+      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;
+        background:${color};color:#fff;font-size:11px;">${badge}</span>
+      <span class="stop-pin-label"></span>
+    </div>
+    <div style="width:0;height:0;margin:0 auto;border-left:6px solid transparent;border-right:6px solid transparent;
+      border-top:7px solid ${color};"></div>`;
+  // Set as text, not HTML, since the name comes from geocoding results.
+  el.querySelector('.stop-pin-label')!.textContent = townName(location);
+  return el;
+}
+
+interface StopPopupProps extends React.ComponentProps<typeof StopDetails> {
+  at: LatLng;
+}
+
+/** A stop's card: a Wikipedia photo and description of the place on top, then its details. */
+export const StopPopup: React.FC<StopPopupProps> = ({ at, ...details }) => {
+  const [highlight, setHighlight] = useState<PlaceHighlight | null | undefined>(undefined);
+  useEffect(() => {
+    let live = true;
+    placeHighlight(details.location, at).then(h => { if (live) setHighlight(h); });
+    return () => { live = false; };
+  }, [details.location, at.lat, at.lng]);
+
+  return (
+    <div className="w-[360px] max-w-[78vw] font-sans">
+      {highlight === undefined && <div className="mb-2 h-32 w-full animate-pulse rounded-lg bg-slate-100" />}
+      {highlight && (
+        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="group mb-2 block overflow-hidden rounded-lg">
+          <div className="relative">
+            <img src={highlight.image} alt={highlight.title} className="h-36 w-full object-cover transition-transform group-hover:scale-105" />
+            <span className="absolute bottom-1 left-2 rounded bg-black/55 px-1.5 py-0.5 text-[11px] font-semibold text-white">{highlight.title}</span>
+          </div>
+          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-600">{highlight.extract}</p>
+          <p className="text-[10px] text-slate-400">Wikipedia (CC BY-SA) · read more</p>
+        </a>
+      )}
+      <StopDetails {...details} />
     </div>
   );
 };

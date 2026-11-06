@@ -3,12 +3,11 @@ import { Waypoint, RouteInfo, StopRef } from '../types';
 import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
 import { createRoot, Root } from 'react-dom/client';
 import { cn } from '../lib/utils';
-import StopDetails from './StopDetails';
 import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import SegmentDetails from './SegmentDetails';
-import { buildPoints, MapPoint, PlacePopup, PIN_COLORS, refKey } from './mapShared';
+import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapProps {
   onLoad: (map: google.maps.Map) => void;
@@ -99,6 +98,10 @@ const Map: React.FC<MapProps> = ({
         }
       });
       googleMapRef.current = map;
+      // Stop names show from regional zoom in; zoomed out, only the numbers.
+      const toggleLabels = () => mapRef.current?.classList.toggle('stop-labels-hidden', (map.getZoom() || 0) < 7);
+      map.addListener('zoom_changed', toggleLabels);
+      toggleLabels();
       infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
 
       // Clicking empty map offers to add an overnight stop there (once a route exists).
@@ -184,14 +187,14 @@ const Map: React.FC<MapProps> = ({
         markersRef.current = [];
         const bounds = new google.maps.LatLngBounds();
 
-        const openPopup = (point: Point, anchor: google.maps.marker.AdvancedMarkerElement) => {
+        const openPopup = (point: Point, anchor: google.maps.marker.AdvancedMarkerElement, at: google.maps.LatLngLiteral) => {
           const key = refKey(point.ref);
           const content = document.createElement('div');
           infoRootRef.current?.unmount();
           infoRootRef.current = createRoot(content);
           infoRootRef.current.render(
-            <div className="w-[360px] max-w-[78vw]">
-              <StopDetails
+              <StopPopup
+                at={at}
                 compact
                 kind={point.kind}
                 badge={point.badge}
@@ -208,7 +211,6 @@ const Map: React.FC<MapProps> = ({
                   : undefined}
                 attaching={attachingKey === key}
               />
-            </div>
           );
           infoWindowRef.current?.setContent(content);
           infoWindowRef.current?.open({ map: googleMapRef.current, anchor });
@@ -220,14 +222,7 @@ const Map: React.FC<MapProps> = ({
           if (!position) return;
           bounds.extend(position);
 
-          const pin = new PinElement({
-            background: PIN_COLORS[point.kind],
-            borderColor: '#ffffff',
-            glyphColor: '#ffffff',
-            // glyphText replaces the deprecated glyph property (not yet in @types/google.maps).
-            ...({ glyphText: point.badge } as google.maps.marker.PinElementOptions),
-            scale: point.kind === 'stop' ? 0.9 : 1.1,
-          });
+          const pin = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (drag to move)`);
 
           const marker = new AdvancedMarkerElement({
             position,
@@ -240,7 +235,7 @@ const Map: React.FC<MapProps> = ({
             zIndex: 10,
           });
 
-          marker.addEventListener('gmp-click', () => openPopup(point, marker));
+          marker.addEventListener('gmp-click', () => openPopup(point, marker, position));
           marker.addListener('dragend', () => {
             const pos = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null;
             if (!pos) return;
@@ -254,7 +249,7 @@ const Map: React.FC<MapProps> = ({
           markersRef.current.push(marker);
 
           // Keep an open popup open (with fresh content) after edits.
-          if (openStopRef.current === refKey(point.ref)) openPopup(point, marker);
+          if (openStopRef.current === refKey(point.ref)) openPopup(point, marker, position);
 
           // A small pin for every suggestion and booking with a known position, iconed by category.
           // Bookings are violet; suggestions use their category colour.

@@ -59,3 +59,11 @@
   @apply bg-muted-foreground/50;
 }
 
+
+/* Stop pin names hide when the map is zoomed far out (set by the map components). */
+.stop-labels-hidden .stop-pin-label {
+  display: none;
+}
+.stop-labels-hidden .stop-pin > div:first-child {
+  padding-right: 2px !important;
+}

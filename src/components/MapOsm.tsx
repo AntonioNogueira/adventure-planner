@@ -8,13 +8,12 @@ import { createRoot, Root } from 'react-dom/client';
 import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
 import { Waypoint, RouteInfo, StopRef } from '../types';
 import { cn } from '../lib/utils';
-import StopDetails from './StopDetails';
 import SegmentDetails from './SegmentDetails';
 import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
-import { buildPoints, MapPoint, PlacePopup, PIN_COLORS, refKey } from './mapShared';
+import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapOsmProps {
   onLoad: (map: unknown) => void;
@@ -154,6 +153,10 @@ const MapOsm: React.FC<MapOsmProps> = ({
     // A new style (Map/Light/Topo/Satellite) starts without our layers: draw the route again.
     map.on('style.load', () => drawRoute(map, segmentsRef.current, activeSegmentRef.current));
     map.on('load', () => { setIsReady(true); onLoad(map); });
+    // Stop names show from regional zoom in; zoomed out, only the numbers.
+    const toggleLabels = () => containerRef.current?.parentElement?.classList.toggle('stop-labels-hidden', map.getZoom() < 6);
+    map.on('zoom', toggleLabels);
+    toggleLabels();
 
     // Hovering a day line shows a pointer; clicking it opens its details; clicking elsewhere offers a new stop.
     map.on('mousemove', (e) => {
@@ -218,8 +221,8 @@ const MapOsm: React.FC<MapOsmProps> = ({
       const openStop = (point: MapPoint, at: LatLng) => {
         const key = refKey(point.ref);
         showPopup(at, (
-          <div className="w-[360px] max-w-[78vw]">
-            <StopDetails
+            <StopPopup
+              at={at}
               compact
               kind={point.kind}
               badge={point.badge}
@@ -236,7 +239,6 @@ const MapOsm: React.FC<MapOsmProps> = ({
                 ? () => { popupRef.current?.remove(); callbacksRef.current.onRemoveStop?.(point.ref.index!); }
                 : undefined}
             />
-          </div>
         ), 30);
         openStopRef.current = key;
       };
@@ -245,7 +247,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
         const at = locations[idx];
         if (!at) return;
         bounds.extend([at.lng, at.lat]);
-        const el = pinElement(PIN_COLORS[point.kind], point.badge, point.kind === 'stop' ? 26 : 30, `${point.label}: ${point.location} (drag to move)`);
+        const el = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (drag to move)`);
         el.style.zIndex = '10';
         el.addEventListener('click', (e) => { e.stopPropagation(); openStop(point, at); });
         const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', draggable: Boolean(callbacksRef.current.onMoveStop) })

@@ -73,6 +73,8 @@ async function searchCategory(
     if (category === 'shop') {
       ({ places } = await Place.searchByText({
         textQuery: shopQuery(travelMode),
+        // For bikes, only real bicycle shops (otherwise nearby hotels and bars fill the list).
+        ...(travelMode === 'BICYCLING' ? { includedType: 'bicycle_store', useStrictTypeFiltering: true } : {}),
         fields: FIELDS,
         // Text search can only be restricted to a box: roughly 2 × radius around the stop.
         locationRestriction: {
