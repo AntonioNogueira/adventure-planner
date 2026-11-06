@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent } from '../types';
-import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, mentionsTravelMode } from '../lib/conversation';
+import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, mentionsTravelMode, mergeIntent } from '../lib/conversation';
 import { cn } from '../lib/utils';
 
 export type { PlanSummary } from '../lib/conversation';
@@ -14,12 +14,13 @@ interface AIAgentProps {
   onStartDateChange: (date: string) => void;
 }
 
-async function requestPlan(prompt: string, history: Message[]) {
+async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
   // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
   const response = await fetch('/api/plan', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, history }),
+    // The current plan travels with the request, so the AI changes only what the user asks.
+    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current }),
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -118,10 +119,12 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     setIsPlanning(true);
     try {
       // The AI only reads the request (start, finish, mode, days or daily distance, places to pass).
-      const intent: TripIntent = await requestPlan(messageToPlan, history);
       const previous = intentRef.current;
-      if (!previous || previous.origin !== intent.origin || previous.destination !== intent.destination) {
-        // A new trip: ask the questions again.
+      const understood: TripIntent = await requestPlan(messageToPlan, history, previous);
+      const newTrip = !previous || previous.origin !== understood.origin || previous.destination !== understood.destination;
+      // A change to the current trip keeps the choices already made; a new trip starts fresh.
+      const intent = newTrip ? understood : mergeIntent(previous, understood, messageToPlan);
+      if (newTrip) {
         askedRef.current = new Set();
         modeMentionedRef.current = false;
       }

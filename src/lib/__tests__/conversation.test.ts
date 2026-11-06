@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAnswer, mentionsTravelMode, nextQuestion, summaryText, PlanSummary, ConversationState } from '../conversation';
+import { applyAnswer, mentionsTravelMode, nextQuestion, summaryText, mergeIntent, PlanSummary, ConversationState } from '../conversation';
 import { TripIntent } from '../../types';
 
 const intent: TripIntent = {
@@ -62,5 +62,25 @@ describe('mentionsTravelMode', () => {
     expect(mentionsTravelMode('hiking the camino')).toBe(true);
     expect(mentionsTravelMode('moto trip in the Pyrenees')).toBe(true);
     expect(mentionsTravelMode('from cadiz to naples')).toBe(false);
+  });
+});
+
+describe('mergeIntent', () => {
+  const settled: TripIntent = { ...intent, dailyKm: 50, lodging: 'camping', avoidFerries: true };
+  it('keeps settled choices the AI forgot', () => {
+    const forgot: TripIntent = { ...intent, travelMode: 'DRIVING', route: [{ place: 'Málaga, Spain', overnight: false }] };
+    const merged = mergeIntent(settled, forgot, 'keep this plan but go along the coast');
+    expect(merged).toMatchObject({ travelMode: 'BICYCLING', dailyKm: 50, lodging: 'camping', avoidFerries: true });
+    expect(merged.route).toEqual(forgot.route);
+  });
+  it('ignores a day count the AI copied from the summary', () => {
+    const copied: TripIntent = { ...intent, days: 59, dailyKm: 50 };
+    expect(mergeIntent(settled, copied, 'keep this plan but go along the coast')).toMatchObject({ days: 0, dailyKm: 50 });
+  });
+  it('lets the message change a choice', () => {
+    expect(mergeIntent(settled, { ...intent, dailyKm: 80 }, 'make it 80 km a day').dailyKm).toBe(80);
+    expect(mergeIntent(settled, { ...intent, lodging: 'hotel' }, 'hotels please').lodging).toBe('hotel');
+    expect(mergeIntent(settled, { ...intent, avoidFerries: false }, 'take the ferry after all').avoidFerries).toBe(false);
+    expect(mergeIntent(settled, { ...intent, travelMode: 'WALKING' }, 'actually I want to hike').travelMode).toBe('WALKING');
   });
 });

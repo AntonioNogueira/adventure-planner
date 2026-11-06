@@ -29,34 +29,52 @@ interface ChatMessage {
 
 const CATEGORIES = ['Accommodations', 'Restaurants/Cafes', 'Bike/Moto Shops', 'Points of Interest'];
 
-function buildPrompt(request: string, history: ChatMessage[]) {
+function buildPrompt(request: string, history: ChatMessage[], current?: unknown) {
   const historyContext = history
     .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
     .join('\n');
+  const currentPlan = current
+    ? `CURRENT PLAN (what the map shows now, including choices the user made with buttons):
+${JSON.stringify(current, null, 2)}
+
+The user is refining this plan unless they clearly ask for a different trip.
+- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries and the existing route places.
+- A request about part of the trip (e.g. "Cádiz to Valencia along the coast instead of inland") changes only that part:
+  keep the overall origin and destination, and add or replace route places for that stretch.
+- "Keep the plan but …" always means: start from the current plan and apply only the change.`
+    : 'CURRENT PLAN: none yet (this is a new trip).';
 
   return `You read trip requests for an adventure route planner (bikepacking, hiking, adventure motorcycling).
-The app calculates the route and picks overnight towns itself with Google Maps; your job is only to understand the request.
+The app calculates the route and picks overnight towns itself; your job is only to understand the request.
+
+${currentPlan}
 
 PREVIOUS CONVERSATION:
 ${historyContext || '(none)'}
 
 NEW REQUEST: "${request}"
 
-Return:
-- origin, destination: specific geocodable places, e.g. "Cádiz, Spain". If the user is changing an earlier plan, keep its start and finish unless they change them.
+Return the complete plan:
+- origin, destination: specific geocodable places, e.g. "Cádiz, Spain".
 - travelMode: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips, TRANSIT only for public transport.
-- days: number of days if the user gives one, otherwise 0.
-- dailyKm: the daily distance if the user gives one (e.g. "about 60 km per day"), otherwise 0.
+- days: only if the user states a number of days themselves; otherwise the current plan's value (0 if none).
+  Never copy a day count from the assistant's summaries.
+- dailyKm: the daily distance if the user gives one (e.g. "about 60 km per day"), otherwise 0 (or the current plan's value).
 - route: places in travel order between origin and destination that the route must pass through.
-  Include a place only if the user names it, or if the requested style needs it (e.g. "along the coast": 1-3 coastal towns that keep the route on the coast).
+  Include a place only if the user names it, or if the requested style needs it.
+  For "along the coast" / "by the coast": list coastal towns about every 100-150 km along that stretch, in order, so the
+  whole stretch stays on the coast (e.g. Cádiz → Valencia along the coast: Tarifa, Algeciras, Marbella, Málaga, Motril,
+  Almería, Cartagena, Alicante, Dénia).
   Every place must lie between the origin and destination in the direction of travel; never add detours.
-  Set overnight=true only if the user wants to sleep there. Leave the list empty if nothing is needed.
-- lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any".
-- avoidFerries: true if they want to travel overland / without ferries or boats, otherwise false.
+  Set overnight=true only if the user wants to sleep there.
+- lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any" (or the current plan's value).
+- avoidFerries: true if they want to travel overland / without ferries or boats (or the current plan says so), otherwise false.
+- coastFrom, coastTo: if the user wants the trip (or part of it) along the coast, the start and end of that coastal stretch
+  (the whole trip: origin and destination). Otherwise empty strings. The app fills in the coastal towns itself.
 - summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'summary'];
+const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'coastFrom', 'coastTo', 'summary'];
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -75,6 +93,8 @@ const responseSchema = {
     },
     lodging: { type: Type.STRING, enum: ['any', 'camping', 'hostel', 'hotel'] },
     avoidFerries: { type: Type.BOOLEAN },
+    coastFrom: { type: Type.STRING },
+    coastTo: { type: Type.STRING },
     summary: { type: Type.STRING },
   },
   required: intentFields,
@@ -91,6 +111,8 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "route": [{ "place": string, "overnight": boolean }],
   "lodging": "any" | "camping" | "hostel" | "hotel",
   "avoidFerries": boolean,
+  "coastFrom": string,
+  "coastTo": string,
   "summary": string
 }`;
 
@@ -114,6 +136,8 @@ const planJsonSchema = {
     },
     lodging: { type: 'string', enum: ['any', 'camping', 'hostel', 'hotel'] },
     avoidFerries: { type: 'boolean' },
+    coastFrom: { type: 'string' },
+    coastTo: { type: 'string' },
     summary: { type: 'string' },
   },
   required: intentFields,
@@ -305,26 +329,76 @@ export function describeIntent(intent: any) {
     + `${intent.avoidFerries ? ' · no ferries' : ''}`;
 }
 
-async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: string) {
+class NoProvider extends Error {}
+class AllFailed extends Error { constructor(public details: string[]) { super('All AI providers failed'); } }
+
+async function runTaskResult(env: PlanEnv, task: AiTask): Promise<{ provider: string; result: any }> {
   const available = providers(env, task);
-  if (available.length === 0) {
-    return sendJson(res, 503, {
-      error: 'No AI provider configured. Add GEMINI_API_KEY (or ANTHROPIC_API_KEY) to .env.local and restart.',
-    });
-  }
+  if (available.length === 0) throw new NoProvider();
   const failures: string[] = [];
   for (const provider of available) {
     try {
-      const result = await provider.run();
-      if (key === 'plan') console.log(`[ai] understood: ${describeIntent(result)}`);
-      return sendJson(res, 200, { provider: provider.name, [key]: result });
+      return { provider: provider.name, result: await provider.run() };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[plan-api] ${provider.name} failed:`, message);
       failures.push(`${provider.name}: ${message.slice(0, 200)}`);
     }
   }
-  sendJson(res, 502, { error: 'All AI providers failed', details: failures });
+  throw new AllFailed(failures);
+}
+
+function sendTaskError(res: ServerResponse, err: unknown) {
+  if (err instanceof NoProvider) {
+    return sendJson(res, 503, { error: 'No AI provider configured. Add GEMINI_API_KEY (or ANTHROPIC_API_KEY) to .env.local and restart.' });
+  }
+  if (err instanceof AllFailed) return sendJson(res, 502, { error: err.message, details: err.details });
+  sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
+}
+
+async function runTask(env: PlanEnv, task: AiTask, res: ServerResponse, key: string) {
+  try {
+    const { provider, result } = await runTaskResult(env, task);
+    sendJson(res, 200, { provider, [key]: result });
+  } catch (err) {
+    sendTaskError(res, err);
+  }
+}
+
+// A focused second question when the user wants (part of) the trip along the coast: one task the AI does
+// well (list coastal towns in order) instead of a detail buried in the big request.
+const coastGeminiSchema = {
+  type: Type.OBJECT,
+  properties: {
+    route: {
+      type: Type.ARRAY,
+      items: { type: Type.OBJECT, properties: { place: { type: Type.STRING }, overnight: { type: Type.BOOLEAN } }, required: ['place', 'overnight'] },
+    },
+  },
+  required: ['route'],
+};
+const coastJsonSchema = {
+  type: 'object',
+  properties: {
+    route: {
+      type: 'array',
+      items: { type: 'object', properties: { place: { type: 'string' }, overnight: { type: 'boolean' } }, required: ['place', 'overnight'], additionalProperties: false },
+    },
+  },
+  required: ['route'],
+  additionalProperties: false,
+};
+
+function buildCoastPrompt(intent: any) {
+  return `A ${String(intent.travelMode).toLowerCase()} trip goes from ${intent.origin} to ${intent.destination}.
+Its current list of places to pass, in order: ${JSON.stringify(intent.route || [])}.
+The traveller wants the stretch from ${intent.coastFrom} to ${intent.coastTo} to follow the coast${intent.avoidFerries ? ', overland (no ferries)' : ''}.
+
+Return the complete, ordered list of places to pass for the whole trip:
+- For the stretch from ${intent.coastFrom} to ${intent.coastTo}: towns directly on the sea, about every 80-120 km, in travel order,
+  following the coastline (include the stretch's end points if they are not the trip's origin or destination).
+- Keep the other places from the current list (outside that stretch) in their order, and keep their overnight flags.
+- Never include the trip's origin or destination themselves. Use "Town, Country" names.`;
 }
 
 const reservationFields = ['category', 'name', 'address', 'checkIn', 'checkOut', 'checkInDate', 'checkOutDate', 'price', 'currency', 'confirmation', 'notes', 'stopIndex'] as const;
@@ -426,14 +500,32 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
     if (req.url === '/api/plan') {
       const request = String(body.prompt || '').trim().slice(0, 4000);
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-10) : [];
+      // The plan the map shows now (with choices made via quick replies), so changes build on it.
+      const current = body.current && typeof body.current === 'object' ? body.current : undefined;
       if (!request) return sendJson(res, 400, { error: 'Prompt is required' });
-      return runTask(env, {
-        name: 'plan',
-        prompt: buildPrompt(request, history),
-        geminiSchema: responseSchema,
-        claudeSchema: planJsonSchema,
-        allowOpenAI: true,
-      }, res, 'plan');
+      try {
+        const { provider, result: intent } = await runTaskResult(env, {
+          name: 'plan',
+          prompt: buildPrompt(request, history, current),
+          geminiSchema: responseSchema,
+          claudeSchema: planJsonSchema,
+          allowOpenAI: true,
+        });
+        if (intent.coastFrom && intent.coastTo) {
+          try {
+            const { result } = await runTaskResult(env, {
+              name: 'coast', prompt: buildCoastPrompt(intent), geminiSchema: coastGeminiSchema, claudeSchema: coastJsonSchema,
+            });
+            if (Array.isArray(result.route) && result.route.length) intent.route = result.route;
+          } catch (err) {
+            console.warn('[plan-api] coastal towns unavailable, keeping the first answer:', err instanceof Error ? err.message : err);
+          }
+        }
+        console.log(`[ai] understood: ${describeIntent(intent)}`);
+        return sendJson(res, 200, { provider, plan: intent });
+      } catch (err) {
+        return sendTaskError(res, err);
+      }
     }
 
     // /api/extract-reservation

@@ -119,3 +119,28 @@ export function applyAnswer(intent: TripIntent, topic: Topic, value: string): Tr
     default: return intent;
   }
 }
+
+const MENTIONS = {
+  distance: /\d+\s*(km|kilomet|mi\b|miles)|\bdays?\b|per day|a day|daily|shorter|longer|faster|slower/i,
+  lodging: /camp|hostel|hotel|guest ?house|b&b|airbnb|bivouac|wild|sleep|accommodation/i,
+  ferry: /ferr(y|ies)|boat|overland|crossing|by sea|by land/i,
+};
+
+/**
+ * Keep the choices already settled (travel mode, daily distance, lodging, overland) when the AI's new
+ * reading of a typed change forgets them, unless the message itself is about that choice.
+ */
+export function mergeIntent(previous: TripIntent | null, next: TripIntent, message: string): TripIntent {
+  if (!previous) return next;
+  const merged = { ...next };
+  if (!mentionsTravelMode(message)) merged.travelMode = previous.travelMode;
+  // Distance and day count change only when the message talks about them (the AI sometimes copies
+  // the day count from the planner's own summary, which would override a chosen daily distance).
+  if (!MENTIONS.distance.test(message)) {
+    merged.dailyKm = previous.dailyKm;
+    merged.days = previous.days;
+  }
+  if (!MENTIONS.lodging.test(message) && next.lodging === 'any') merged.lodging = previous.lodging;
+  if (!MENTIONS.ferry.test(message) && previous.avoidFerries && !next.avoidFerries) merged.avoidFerries = true;
+  return merged;
+}

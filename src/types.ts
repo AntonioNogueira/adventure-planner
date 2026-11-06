@@ -95,6 +95,9 @@ export interface TripIntent {
   lodging: 'any' | 'camping' | 'hostel' | 'hotel';
   /** The user asked for no ferries ("overland", "no boats"). */
   avoidFerries?: boolean;
+  /** A stretch the user wants along the coast (the server fills the coastal towns into `route`). */
+  coastFrom?: string;
+  coastTo?: string;
   summary: string;
 }
 
