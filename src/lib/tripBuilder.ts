@@ -10,7 +10,8 @@ import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange 
 
 /** Typical comfortable day, used when the user gives neither days nor a daily distance. */
 export const DEFAULT_DAILY_KM: Record<string, number> = { BICYCLING: 70, WALKING: 22, DRIVING: 300 };
-// A day may run this much over the target before it's split into two.
+// With a guessed daily distance, a day may run this much over before it's split into two.
+// A distance the user chose is treated as a maximum.
 const SPLIT_TOLERANCE = 1.15;
 // A pass-through place the AI suggests is dropped if it makes that stretch this much longer (straight line).
 const MAX_DETOUR = 1.3;
@@ -112,7 +113,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
   for (let s = 0; s < segments.length; s++) {
     const days = intent.days > 0
       ? Math.max(1, Math.round(segmentEffort[s] / target))
-      : Math.max(1, Math.ceil(segmentEffort[s] / (target * SPLIT_TOLERANCE)));
+      : Math.max(1, Math.ceil(segmentEffort[s] / (target * (intent.dailyKm ? 1 : SPLIT_TOLERANCE))));
     if (days > 1) {
       const points = pathWithDistances(segments[s].legs);
       const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);

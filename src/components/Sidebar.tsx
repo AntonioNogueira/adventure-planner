@@ -237,7 +237,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="mb-6">
-        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} />
       </div>
 
       {aiSummary && (

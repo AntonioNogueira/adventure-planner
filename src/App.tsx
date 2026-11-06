@@ -254,7 +254,8 @@ const App: React.FC = () => {
   const handlePlanTrip = async (intent: TripIntent, baseOptions: RouteOptions = routeOptions): Promise<PlanSummary | null> => {
     if (!mapReady) return null;
     lastIntentRef.current = intent;
-    const options = intent.avoidFerries ? { ...baseOptions, avoidFerries: true } : baseOptions;
+    // The plan's own choice about ferries wins (from the request or the planner's ferry question).
+    const options = intent.avoidFerries === undefined ? baseOptions : { ...baseOptions, avoidFerries: intent.avoidFerries };
     setRouteOptions(options);
     const { waypoints: stops, targetKm } = await planOvernightStops(intent, options);
     const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
@@ -264,6 +265,7 @@ const App: React.FC = () => {
     setWaypoints(mappedWaypoints);
     setTravelMode(intent.travelMode as google.maps.TravelMode);
     setLodging(intent.lodging);
+    setTravelMode(intent.travelMode as google.maps.TravelMode);
     setAiSummary(intent.summary || null);
     const newName = expeditionName && !expeditionName.includes(' to ') ? expeditionName : `${intent.origin} to ${intent.destination} Expedition`;
     setExpeditionName(newName);
@@ -291,11 +293,19 @@ const App: React.FC = () => {
     const allLocations = [intent.origin, ...stops.map(s => s.position || s.name), intent.destination];
     const eager = stops.length <= MAX_EAGER_STOPS ? allRefs.map((_, i) => i) : [0, allRefs.length - 1];
     loadSuggestions(eager.map(i => allRefs[i]), eager.map(i => allLocations[i]), intent.travelMode, intent.lodging);
+    const totalKm = legs.reduce((sum, l) => sum + (l.distanceMeters || 0), 0) / 1000;
+    const ferryTotal = legs.reduce((sum, l) => sum + (l.ferryKm || 0), 0);
+    const ferryLeg = legs.reduce<{ i: number; km: number } | null>((best, l, i) =>
+      (l.ferryKm || 0) >= 10 && (!best || (l.ferryKm || 0) > best.km) ? { i, km: l.ferryKm! } : best, null);
     return {
       days: legs.length,
       stops: stops.map(s => s.name),
       targetKm,
       longestKm: Math.round(Math.max(...legs.map(l => (l.distanceMeters || 0) / 1000 - (l.ferryKm || 0)))),
+      totalKm: Math.round(totalKm),
+      averageKm: Math.round((totalKm - ferryTotal) / legs.length),
+      ferryKm: ferryTotal,
+      ferry: ferryLeg ? { day: ferryLeg.i + 1, from: legs[ferryLeg.i].from, to: legs[ferryLeg.i].to, km: ferryLeg.km } : undefined,
     };
   };
 

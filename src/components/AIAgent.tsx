@@ -1,18 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent } from '../types';
+import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, mentionsTravelMode } from '../lib/conversation';
+import { cn } from '../lib/utils';
 
-export interface PlanSummary {
-  days: number;
-  stops: string[];
-  targetKm: number | null;
-  longestKm: number;
-}
+export type { PlanSummary } from '../lib/conversation';
 
 interface AIAgentProps {
   initialPrompt?: string;
   /** Builds the trip with Google Maps from what the AI understood; null if the route failed. */
   onPlanTrip: (intent: TripIntent) => Promise<PlanSummary | null>;
+  startDate: string;
+  onStartDateChange: (date: string) => void;
 }
 
 async function requestPlan(prompt: string, history: Message[]) {
@@ -34,14 +33,21 @@ async function requestPlan(prompt: string, history: Message[]) {
 interface Message {
   role: 'user' | 'model';
   text: string;
+  /** A follow-up question with quick replies; `answer` is the label picked. */
+  question?: Question;
+  answer?: string;
 }
 
-const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt }) => {
+const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange }) => {
   const [prompt, setPrompt] = useState(initialPrompt || '');
   const [isPlanning, setIsPlanning] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasAutoPlanned = useRef(false);
+  // The current plan as understood, and which questions have been asked, so answers refine it.
+  const intentRef = useRef<TripIntent | null>(null);
+  const askedRef = useRef(new Set<Topic>());
+  const modeMentionedRef = useRef(false);
 
   const placeholders = [
     "e.g., Bikepacking from Paris to Rome, about 80 km per day...",
@@ -79,35 +85,78 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt }) => {
     }
   }, [messages]);
 
+  const say = (message: Omit<Message, 'role'>) => setMessages(prev => [...prev, { role: 'model', ...message }]);
+
+  // After a plan: a short summary, then the next open question (if any).
+  const reportPlan = (intent: TripIntent, plan: PlanSummary, dateSet = Boolean(startDate)) => {
+    const question = nextQuestion(intent, plan, {
+      asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: dateSet,
+    });
+    say({
+      text: question ? `${summaryText(intent, plan)}\n\n${question.text}` : `${summaryText(intent, plan)}\n\nAll set! Drag the pins or ask me for any change.`,
+      question: question || undefined,
+    });
+  };
+
+  const runPlan = async (intent: TripIntent) => {
+    const plan = await onPlanTrip(intent);
+    if (!plan) {
+      say({ text: `I understood ${intent.origin} → ${intent.destination}, but Google Maps couldn't draw that route. Try more specific place names.` });
+      return;
+    }
+    intentRef.current = intent;
+    reportPlan(intent, plan);
+  };
+
   const handlePlan = async (overridePrompt?: string) => {
     const messageToPlan = overridePrompt || prompt.trim();
     if (!messageToPlan) return;
 
     const history = messages;
-    const next: Message[] = [...history, { role: 'user', text: messageToPlan }];
-    setMessages(next);
+    setMessages([...history, { role: 'user', text: messageToPlan }]);
     setPrompt('');
     setIsPlanning(true);
-
-    const say = (text: string) => setMessages(prev => [...prev, { role: 'model', text }]);
     try {
       // The AI only reads the request (start, finish, mode, days or daily distance, places to pass).
       const intent: TripIntent = await requestPlan(messageToPlan, history);
-      const plan = await onPlanTrip(intent);
-      if (!plan) {
-        say(`I understood ${intent.origin} → ${intent.destination}, but Google Maps couldn't draw that route. Try more specific place names.`);
-        return;
+      const previous = intentRef.current;
+      if (!previous || previous.origin !== intent.origin || previous.destination !== intent.destination) {
+        // A new trip: ask the questions again.
+        askedRef.current = new Set();
+        modeMentionedRef.current = false;
       }
-      const via = plan.stops.length ? ` Overnight stops: ${plan.stops.join(', ')}.` : '';
-      const verb = { BICYCLING: 'cycle', WALKING: 'hike', DRIVING: 'ride' }[intent.travelMode] || 'travel';
-      const tip = !intent.days && !intent.dailyKm && plan.targetKm
-        ? `\n\nTip: for better results, tell me your average daily distance to ${verb} (e.g. "about ${plan.targetKm} km per day"). I planned about ${plan.targetKm} km per day.`
-        : '';
-      say(`Plan ready: ${intent.origin} → ${intent.destination}, ${plan.days} day${plan.days === 1 ? '' : 's'} (longest ${plan.longestKm} km).${via} Ask me to change anything, or drag the pins.${tip}`);
+      if (mentionsTravelMode(messageToPlan)) modeMentionedRef.current = true;
+      await runPlan(intent);
     } catch (error) {
       console.error('AI Planning failed:', error);
       const reason = error instanceof Error ? error.message : '';
-      say(`Sorry, I couldn't plan that route. ${reason}`.trim());
+      say({ text: `Sorry, I couldn't plan that route. ${reason}`.trim() });
+    } finally {
+      setIsPlanning(false);
+    }
+  };
+
+  // A quick reply: refine the plan directly with Google Maps (no AI call needed).
+  const handleAnswer = async (index: number, question: Question, label: string, value: string) => {
+    setMessages(prev => [...prev.map((m, i) => i === index ? { ...m, answer: label } : m), { role: 'user', text: label }]);
+    askedRef.current.add(question.topic);
+    if (question.topic === 'mode') modeMentionedRef.current = true;
+    const intent = intentRef.current;
+    if (!intent) return;
+
+    if (question.topic === 'date') {
+      if (value) onStartDateChange(value);
+      const next = nextQuestion(intent, { days: 0, stops: [], targetKm: null, longestKm: 0, totalKm: 0, averageKm: 0, ferryKm: 0 }, {
+        asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: Boolean(value || startDate),
+      });
+      say(next
+        ? { text: next.text, question: next }
+        : { text: value ? 'Dates and forecasts are in the itinerary below. Drag the pins or ask me for any change.' : 'No problem: set a start date in the itinerary whenever you know it.' });
+      return;
+    }
+    setIsPlanning(true);
+    try {
+      await runPlan(applyAnswer(intent, question.topic, value));
     } finally {
       setIsPlanning(false);
     }
@@ -123,7 +172,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt }) => {
       {messages.length > 0 && (
         <div 
           ref={scrollRef}
-          className="max-h-[260px] overflow-y-auto p-3 space-y-3 border-b border-emerald-200 dark:border-emerald-900/30"
+          className="max-h-[320px] overflow-y-auto p-3 space-y-3 border-b border-emerald-200 dark:border-emerald-900/30"
         >
           {messages.map((msg, i) => (
             <div 
@@ -137,6 +186,36 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt }) => {
               }`}>
                 {msg.text}
               </div>
+              {msg.question && (
+                <div className="mt-1.5 flex max-w-[95%] flex-wrap items-center gap-1.5">
+                  {msg.question.dateInput && !msg.answer && (
+                    <input
+                      type="date"
+                      aria-label="Start date"
+                      min={new Date().toISOString().slice(0, 10)}
+                      onChange={(e) => e.target.value && handleAnswer(i, msg.question!, new Date(`${e.target.value}T00:00:00Z`).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }), e.target.value)}
+                      className="h-8 rounded-full border border-emerald-300 bg-white px-3 text-xs text-emerald-800"
+                    />
+                  )}
+                  {msg.question.choices.map(choice => (
+                    <button
+                      key={choice.value + choice.label}
+                      onClick={() => handleAnswer(i, msg.question!, choice.label, choice.value)}
+                      disabled={Boolean(msg.answer) || isPlanning}
+                      className={cn(
+                        'rounded-full border px-3 py-1 text-xs font-semibold transition-colors',
+                        msg.answer === choice.label
+                          ? 'border-emerald-600 bg-emerald-600 text-white'
+                          : msg.answer
+                            ? 'border-emerald-100 text-emerald-300'
+                            : 'border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50'
+                      )}
+                    >
+                      {choice.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
           {isPlanning && (
