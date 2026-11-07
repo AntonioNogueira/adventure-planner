@@ -22,19 +22,41 @@ export interface BudgetSettings {
 
 export type Lodging = 'any' | 'camping' | 'hostel' | 'hotel';
 
-const STAY: Record<Lodging, number> = { camping: 20, hostel: 30, hotel: 75, any: 55 };
+interface Preset { stay: Record<Lodging, number>; food: number; fuelPerLitre: number; other: number }
 
-/** Sensible starting averages for the travel mode and lodging choice (the traveller edits them). */
-export function defaultBudget(travelMode: string, lodging: Lodging = 'any'): BudgetSettings {
-  const motor = travelMode === 'DRIVING';
+/** Typical starting costs per currency (the traveller edits them). */
+const PRESETS: Record<string, Preset> = {
+  EUR: { stay: { camping: 20, hostel: 30, hotel: 75, any: 55 }, food: 30, fuelPerLitre: 1.75, other: 10 },
+  GBP: { stay: { camping: 20, hostel: 30, hotel: 80, any: 60 }, food: 30, fuelPerLitre: 1.45, other: 10 },
+  USD: { stay: { camping: 30, hostel: 40, hotel: 120, any: 90 }, food: 40, fuelPerLitre: 0.95, other: 15 },
+  BRL: { stay: { camping: 60, hostel: 90, hotel: 250, any: 180 }, food: 90, fuelPerLitre: 6.2, other: 30 },
+};
+/** Other currencies: the euro figures at a rough exchange rate, rounded. */
+const PER_EURO: Record<string, number> = { CHF: 1, SEK: 11.5, NOK: 11.7, DKK: 7.5, PLN: 4.3, CZK: 25, CAD: 1.5, AUD: 1.65, JPY: 160 };
+
+function preset(currency: string): Preset {
+  if (PRESETS[currency]) return PRESETS[currency];
+  const rate = PER_EURO[currency] ?? 1;
+  const e = PRESETS.EUR;
+  const r = (n: number) => (rate >= 10 ? Math.round(n * rate / 10) * 10 : Math.round(n * rate));
   return {
-    currency: 'EUR',
-    stayPerNight: STAY[lodging] ?? STAY.any,
-    foodPerDay: 30,
+    stay: { camping: r(e.stay.camping), hostel: r(e.stay.hostel), hotel: r(e.stay.hotel), any: r(e.stay.any) },
+    food: r(e.food), fuelPerLitre: Math.round(e.fuelPerLitre * rate * 100) / 100, other: r(e.other),
+  };
+}
+
+/** Sensible starting averages for the travel mode, lodging choice and currency (the traveller edits them). */
+export function defaultBudget(travelMode: string, lodging: Lodging = 'any', currency = 'EUR'): BudgetSettings {
+  const motor = travelMode === 'DRIVING';
+  const p = preset(currency);
+  return {
+    currency,
+    stayPerNight: p.stay[lodging] ?? p.stay.any,
+    foodPerDay: p.food,
     fuelPer100km: motor ? 6 : 0,
-    fuelPrice: motor ? 1.75 : 0,
+    fuelPrice: motor ? p.fuelPerLitre : 0,
     tollsTotal: 0,
-    otherPerDay: travelMode === 'TRANSIT' ? 20 : 10,
+    otherPerDay: travelMode === 'TRANSIT' ? p.other * 2 : p.other,
     includeFinishNight: false,
     extras: [],
   };

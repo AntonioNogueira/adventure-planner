@@ -30,6 +30,7 @@ import StopDetails from './StopDetails';
 import Itinerary from './Itinerary';
 import { ScheduleDay, BookingWarning } from '../lib/schedule';
 import { RouteOptions } from '../lib/routing';
+import { useSettings } from '../lib/settings';
 
 // Phone bottom-sheet heights (desktop always uses the full-height sidebar).
 type SheetHeight = 'peek' | 'half' | 'full';
@@ -131,6 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onStopSharing,
   onFindPlaces,
 }) => {
+  const { t, localizeText } = useSettings();
   const reservationInput = useRef<HTMLInputElement>(null);
   const [sheet, setSheet] = useState<SheetHeight>('half');
   const [accountOpen, setAccountOpen] = useState(false);
@@ -144,10 +146,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   const warningsFor = (key: string) => Object.fromEntries(
     warnings.filter(w => w.key === key).map(w => [`${w.categoryIndex}-${w.itemIndex}`, w.message]));
   const travelModes = [
-    { id: 'DRIVING', icon: Car, label: 'Moto/Car' },
-    { id: 'WALKING', icon: Footprints, label: 'Hike' },
-    { id: 'BICYCLING', icon: Bike, label: 'Bike' },
-    { id: 'TRANSIT', icon: Bus, label: 'Transit' },
+    { id: 'DRIVING', icon: Car, label: t('Moto/Car') },
+    { id: 'WALKING', icon: Footprints, label: t('Hike') },
+    { id: 'BICYCLING', icon: Bike, label: t('Bike') },
+    { id: 'TRANSIT', icon: Bus, label: t('Transit') },
   ];
 
   const addWaypoint = () => {
@@ -186,10 +188,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       <button
         onClick={() => setSheet(SHEET_NEXT[sheet])}
         className="sticky top-0 z-10 -mx-4 mb-2 flex flex-col items-center gap-1 bg-card pb-1 pt-2 md:hidden"
-        aria-label={sheet === 'full' ? 'Show more map' : 'Show more of the planner'}
+        aria-label={sheet === 'full' ? t('Show more map') : t('Show more of the planner')}
       >
         <span className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
-        <span className="text-[10px] text-muted-foreground">{sheet === 'full' ? 'Tap to show the map' : 'Tap to expand'}</span>
+        <span className="text-[10px] text-muted-foreground">{sheet === 'full' ? t('Tap to show the map') : t('Tap to expand')}</span>
       </button>
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
@@ -202,8 +204,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onShowSaved}
             className="rounded-full p-2 text-muted-foreground hover:bg-accent"
-            title="Saved Expeditions"
-            aria-label="Saved Expeditions"
+            title={t('Saved expeditions')}
+            aria-label={t('Saved expeditions')}
           >
             <History size={18} />
           </button>
@@ -212,8 +214,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button
                 onClick={() => setAccountOpen(o => !o)}
                 className="rounded-full ring-emerald-300 hover:ring-2"
-                title={user.email || 'Account'}
-                aria-label="Account"
+                title={user.email || t('Account')}
+                aria-label={t('Account')}
                 aria-expanded={accountOpen}
               >
                 {user.photoURL ? (
@@ -226,10 +228,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
               {accountOpen && (
                 <div className="absolute right-0 top-10 z-30 w-56 rounded-lg border bg-white p-3 text-xs shadow-xl">
-                  <p className="truncate font-bold">{user.displayName || 'Explorer'}</p>
+                  <p className="truncate font-bold">{user.displayName || t('Explorer')}</p>
                   <p className="mb-2 truncate text-muted-foreground">{user.email}</p>
                   <button onClick={() => { setAccountOpen(false); onLogout(); }} className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline">
-                    <LogOut size={12} /> Sign out
+                    <LogOut size={12} /> {t('Sign out')}
                   </button>
                 </div>
               )}
@@ -238,9 +240,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onLogin}
               className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-md transition-colors hover:bg-emerald-700"
-              title="Log in to save your expeditions, keep bookings and share trips"
+              title={t('Log in to save your expeditions, keep bookings and share trips')}
             >
-              Log in
+              {t('Log in')}
             </button>
           )}
         </div>
@@ -248,7 +250,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {viewingShared && (
         <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
-          You're viewing a shared trip. Changes stay on your screen; {user ? 'Save keeps your own copy.' : 'sign in to save your own copy.'}
+          {t("You're viewing a shared trip. Changes stay on your screen.")} {user ? t('Save keeps your own copy.') : t('Log in to save your own copy.')}
         </div>
       )}
 
@@ -260,11 +262,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={() => setBriefOpen(o => !o)}
           className="mb-4 w-full rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-left text-xs text-emerald-900"
-          title={briefOpen ? 'Show less' : 'Show all'}
+          title={briefOpen ? t('Show less') : t('Show all')}
         >
           <div className="mb-1 flex items-center gap-1 font-bold uppercase tracking-wider">
             <Sparkles size={12} />
-            Adventure Brief
+            {t('Adventure brief')}
           </div>
           <p className={cn("italic leading-relaxed opacity-90", !briefOpen && "line-clamp-2")}>{aiSummary}</p>
         </button>
@@ -278,24 +280,24 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="flex w-full items-center gap-2 rounded-lg border border-emerald-100 bg-white px-3 py-2 text-left text-xs hover:bg-emerald-50"
           >
             {formOpen ? <ChevronDown size={14} className="shrink-0 text-emerald-700" /> : <ChevronRight size={14} className="shrink-0 text-emerald-700" />}
-            <span className="font-bold uppercase tracking-wider text-emerald-700">Route</span>
+            <span className="font-bold uppercase tracking-wider text-emerald-700">{t('Route')}</span>
             <span className="min-w-0 flex-1 truncate text-muted-foreground">
-              {origin.split(',')[0]} → {destination.split(',')[0]} · {waypoints.length} stop{waypoints.length === 1 ? '' : 's'} · {travelModes.find(m => m.id === travelMode)?.label}
+              {origin.split(',')[0]} → {destination.split(',')[0]} · {waypoints.length === 1 ? t('1 stop') : t('{n} stops', { n: waypoints.length })} · {travelModes.find(m => m.id === travelMode)?.label}
             </span>
-            <span className="shrink-0 font-semibold text-emerald-700">{formOpen ? 'Hide' : 'Edit'}</span>
+            <span className="shrink-0 font-semibold text-emerald-700">{formOpen ? t('Hide') : t('Edit')}</span>
           </button>
         )}
         {(formOpen || !hasRoute) && (
         <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-            Start
+            {t('Start')}
           </label>
           <div className="relative">
             <MapPin className="absolute left-3 top-3 h-4 w-4 text-emerald-600/50" />
             <input
               type="text"
-              placeholder="Enter origin"
+              placeholder={t('Enter origin')}
               className="flex h-10 w-full rounded-md border border-emerald-100 bg-background px-9 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 "
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
@@ -306,7 +308,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {waypoints.length > 0 && (
           <div className="space-y-3">
             <label className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-              Stops
+              {t('Stops')}
             </label>
             {waypoints.map((wp, index) => (
               <div key={index} className="relative flex items-center gap-2">
@@ -315,7 +317,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => moveWaypoint(index, 'up')}
                     disabled={index === 0}
                     className="text-muted-foreground hover:text-emerald-600 disabled:opacity-30"
-                    title="Move Up"
+                    title={t('Move up')}
                   >
                     <ChevronUp size={14} />
                   </button>
@@ -323,7 +325,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => moveWaypoint(index, 'down')}
                     disabled={index === waypoints.length - 1}
                     className="text-muted-foreground hover:text-emerald-600 disabled:opacity-30"
-                    title="Move Down"
+                    title={t('Move down')}
                   >
                     <ChevronDown size={14} />
                   </button>
@@ -332,7 +334,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <div className="absolute left-3 top-3 h-4 w-4 rounded-full border-2 border-emerald-600/30" />
                   <input
                     type="text"
-                    placeholder={`Stop ${index + 1}`}
+                    placeholder={t('Stop {n}', { n: index + 1 })}
                     className="flex h-10 w-full rounded-md border border-emerald-100 bg-background px-9 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 "
                     value={wp.location}
                     onChange={(e) => updateWaypoint(index, e.target.value)}
@@ -354,18 +356,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="flex items-center gap-2 text-xs font-medium text-emerald-600 hover:underline"
         >
           <Plus size={14} />
-          Add Stop
+          {t('Add stop')}
         </button>
 
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-            End
+            {t('End')}
           </label>
           <div className="relative">
             <Navigation className="absolute left-3 top-3 h-4 w-4 text-emerald-600/50" />
             <input
               type="text"
-              placeholder="Enter destination"
+              placeholder={t('Enter destination')}
               className="flex h-10 w-full rounded-md border border-emerald-100 bg-background px-9 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 "
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
@@ -395,7 +397,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Route options">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('Route options')}>
           {([
             ['avoidHighways', 'Avoid highways'],
             ['avoidFerries', 'Avoid ferries'],
@@ -410,7 +412,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 routeOptions[key] ? "border-emerald-600 bg-emerald-600 text-white" : "border-emerald-100 text-muted-foreground hover:bg-emerald-50"
               )}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
@@ -424,7 +426,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               disabled={isLoading || !origin || !destination}
               className="flex-1 inline-flex h-10 items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-emerald-700 disabled:opacity-50 animate-in fade-in zoom-in-95"
             >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Calculate Expedition'}
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('Calculate expedition')}
             </button>
           )}
         </div>
@@ -434,8 +436,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Give your expedition a name"
-                aria-label="Expedition name"
+                placeholder={t('Give your expedition a name')}
+                aria-label={t('Expedition name')}
                 className="flex h-10 min-w-0 flex-1 rounded-md border border-emerald-100 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 "
                 value={expeditionName}
                 onChange={(e) => setExpeditionName(e.target.value)}
@@ -451,12 +453,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 )}
               >
                 <Save size={14} />
-                {viewingShared ? 'Save copy' : hasChanges ? 'Save' : 'Saved'}
+                {viewingShared ? t('Save copy') : hasChanges ? t('Save') : t('Saved')}
               </button>
             </div>
             {!user && (
               <p className="text-[10px] text-muted-foreground">
-                <button onClick={onLogin} className="font-semibold text-emerald-700 hover:underline">Log in</button> to save your adventure
+                <button onClick={onLogin} className="font-semibold text-emerald-700 hover:underline">{t('Log in')}</button> {t('to save your adventure')}
               </p>
             )}
             {user && isSaved && !viewingShared && (
@@ -464,14 +466,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={onShare}
                   className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 font-semibold text-emerald-700 hover:bg-emerald-50"
-                  title="Anyone with the link can view this trip (read-only)"
+                  title={t('Anyone with the link can view this trip (read-only)')}
                 >
-                  <Share2 size={12} /> {shareLink ? 'Copy share link' : 'Share'}
+                  <Share2 size={12} /> {shareLink ? t('Copy share link') : t('Share')}
                 </button>
                 {shareLink && (
                   <>
-                    <input readOnly value={shareLink} onFocus={(e) => e.target.select()} className="min-w-0 flex-1 rounded border border-emerald-100 px-1.5 py-1 text-[11px] text-muted-foreground" aria-label="Share link" />
-                    <button onClick={onStopSharing} className="text-[11px] text-red-600 hover:underline">Stop sharing</button>
+                    <input readOnly value={shareLink} onFocus={(e) => e.target.select()} className="min-w-0 flex-1 rounded border border-emerald-100 px-1.5 py-1 text-[11px] text-muted-foreground" aria-label={t('Share link')} />
+                    <button onClick={onStopSharing} className="text-[11px] text-red-600 hover:underline">{t('Stop sharing')}</button>
                   </>
                 )}
               </div>
@@ -489,7 +491,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {routeInfo?.notice && (
           <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-xs text-amber-800">
             <Info size={14} className="shrink-0" />
-            <span>{routeInfo.notice}</span>
+            <span>{t(routeInfo.notice)}</span>
           </div>
         )}
       </div>
@@ -515,7 +517,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 className="flex min-w-0 items-center gap-1.5 text-left"
               >
                 {stopsOpen ? <ChevronDown size={14} className="shrink-0 text-emerald-700" /> : <ChevronRight size={14} className="shrink-0 text-emerald-700" />}
-                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700">Stops &amp; places</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700">{t('Stops & places')}</h3>
                 <span className="text-[11px] text-muted-foreground">({routeInfo.waypoints.length + 2})</span>
               </button>
               <input
@@ -532,17 +534,17 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button
                 onClick={() => reservationInput.current?.click()}
                 disabled={attachingKey !== null}
-                title="Attach a booking PDF, email or screenshot; it's placed on the matching stop automatically"
+                title={t("Attach a booking PDF, email or screenshot; it's placed on the matching stop automatically")}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-700 disabled:opacity-60"
               >
                 {attachingKey === 'any' ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
-                {attachingKey === 'any' ? 'Reading…' : 'Add reservation'}
+                {attachingKey === 'any' ? t('Reading…') : t('Add reservation')}
               </button>
             </div>
             {stopsOpen && (<>
-            <p className="text-[11px] text-muted-foreground">Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.</p>
+            <p className="text-[11px] text-muted-foreground">{t('Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.')}</p>
             <StopDetails
-              kind="start" badge="S" title="Start" location={routeInfo.origin} interests={routeInfo.originInterests || []}
+              kind="start" badge="S" title={t('Start')} location={routeInfo.origin} interests={routeInfo.originInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'start' }, c, i)}
               warnings={warningsFor('start')}
               onFindPlaces={() => onFindPlaces({ kind: 'start' })}
@@ -554,11 +556,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                 key={i}
                 kind="stop"
                 badge={String(i + 1)}
-                title={`Stop ${i + 1}`}
+                title={t('Stop {n}', { n: i + 1 })}
                 location={wp.location}
                 interests={wp.interests || []}
-                distanceFromPrev={wp.distanceFromPrev}
-                distanceToNext={wp.distanceToNext}
+                distanceFromPrev={wp.distanceFromPrev && localizeText(wp.distanceFromPrev)}
+                distanceToNext={wp.distanceToNext && localizeText(wp.distanceToNext)}
                 onRemoveItem={(c, j) => onRemoveItem({ kind: 'stop', index: i }, c, j)}
                 warnings={warningsFor(`stop-${i}`)}
                 onFindPlaces={() => onFindPlaces({ kind: 'stop', index: i })}
@@ -567,7 +569,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             ))}
             <StopDetails
-              kind="end" badge="F" title="Finish" location={routeInfo.destination} interests={routeInfo.destinationInterests || []}
+              kind="end" badge="F" title={t('Finish')} location={routeInfo.destination} interests={routeInfo.destinationInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'end' }, c, i)}
               warnings={warningsFor('end')}
               onFindPlaces={() => onFindPlaces({ kind: 'end' })}

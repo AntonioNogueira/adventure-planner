@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useSettings } from '../lib/settings';
 import { X, Navigation, Clock, Trash2, ArrowRight } from 'lucide-react';
 import { RouteInfo } from '../types';
 
@@ -10,6 +11,7 @@ interface SavedRoutesProps {
 }
 
 const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDelete }) => {
+  const { t, localizeText, locale } = useSettings();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -22,8 +24,8 @@ const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDe
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label="Saved Expeditions" onClick={(e) => e.stopPropagation()} className="flex max-h-[85dvh] min-h-[320px] w-full max-w-2xl flex-col rounded-2xl bg-card shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-emerald-100 p-4 sm:p-6">
-          <h2 className="text-xl font-bold text-emerald-950">Saved Expeditions</h2>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 hover:bg-emerald-50">
+          <h2 className="text-xl font-bold text-emerald-950">{t('Saved expeditions')}</h2>
+          <button onClick={onClose} aria-label={t('Close')} className="rounded-full p-2 hover:bg-emerald-50">
             <X size={20} />
           </button>
         </div>
@@ -32,7 +34,7 @@ const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDe
           {routes.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
               <Navigation size={48} className="mb-4 opacity-10" />
-              <p>No expeditions saved yet.</p>
+              <p>{t('No expeditions saved yet.')}</p>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -54,7 +56,7 @@ const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDe
                           {route.duration}
                         </div>
                         <div className="text-sm font-medium text-muted-foreground">
-                          {route.distance}
+                          {localizeText(route.distance)}
                         </div>
                       </div>
                     </div>
@@ -63,13 +65,13 @@ const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDe
                         onClick={() => onLoad(route)}
                         className="rounded-lg bg-emerald-600/10 px-3 py-1 text-xs font-bold text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors"
                       >
-                        Load
+                        {t('Load')}
                       </button>
                       <button
                         onClick={() => {
-                          if (window.confirm(`Delete "${route.name || 'this expedition'}"?`)) onDelete(route.id!);
+                          if (window.confirm(t('Delete "{name}"?', { name: route.name || t('this expedition') }))) onDelete(route.id!);
                         }}
-                        aria-label="Delete expedition"
+                        aria-label={t('Delete expedition')}
                         className="rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                       >
                         <Trash2 size={16} />
@@ -89,8 +91,8 @@ const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDe
                   
                   {route.waypoints.length > 0 && (
                     <div className="mt-2 text-xs text-muted-foreground">
-                      via {route.waypoints.length} stop{route.waypoints.length > 1 ? 's' : ''}
-                      {route.createdAt ? ` · saved ${new Date(route.createdAt).toLocaleDateString()}` : ''}
+                      {route.waypoints.length > 1 ? t('via {n} stops', { n: route.waypoints.length }) : t('via 1 stop')}
+                      {route.createdAt ? ` · ${t('saved {date}', { date: new Date(route.createdAt).toLocaleDateString(locale) })}` : ''}
                     </div>
                   )}
                 </div>

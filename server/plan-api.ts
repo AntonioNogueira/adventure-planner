@@ -29,7 +29,9 @@ interface ChatMessage {
 
 const CATEGORIES = ['Accommodations', 'Restaurants/Cafes', 'Bike/Moto Shops', 'Points of Interest'];
 
-function buildPrompt(request: string, history: ChatMessage[], current?: unknown) {
+const LANGUAGE_NAMES: Record<string, string> = { 'pt-PT': 'European Portuguese (Portugal)', 'pt-BR': 'Brazilian Portuguese' };
+
+function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string) {
   const historyContext = history
     .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
     .join('\n');
@@ -71,7 +73,8 @@ Return the complete plan:
 - avoidFerries: true if they want to travel overland / without ferries or boats (or the current plan says so), otherwise false.
 - coastFrom, coastTo: if the user wants the trip (or part of it) along the coast, the start and end of that coastal stretch
   (the whole trip: origin and destination). Otherwise empty strings. The app fills in the coastal towns itself.
-- summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.`;
+- summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.${LANGUAGE_NAMES[language || ''] ? `
+- Write the summary in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
 const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'coastFrom', 'coastTo', 'summary'];
@@ -502,11 +505,12 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-10) : [];
       // The plan the map shows now (with choices made via quick replies), so changes build on it.
       const current = body.current && typeof body.current === 'object' ? body.current : undefined;
+      const language = typeof body.language === 'string' ? body.language.slice(0, 8) : undefined;
       if (!request) return sendJson(res, 400, { error: 'Prompt is required' });
       try {
         const { provider, result: intent } = await runTaskResult(env, {
           name: 'plan',
-          prompt: buildPrompt(request, history, current),
+          prompt: buildPrompt(request, history, current, language),
           geminiSchema: responseSchema,
           claudeSchema: planJsonSchema,
           allowOpenAI: true,

@@ -1,6 +1,7 @@
 // Day-by-day schedule (riding days, rest days, dates), booking date checks and costs.
 // Pure functions, unit-tested.
 import { InterestCategory, StopRef } from '../types';
+import { getSettings, formatters, t } from './settings';
 
 export interface ScheduleDay {
   kind: 'ride' | 'rest';
@@ -65,8 +66,8 @@ export interface BookingWarning {
   message: string;
 }
 
-const pretty = (date: string) =>
-  new Date(`${date}T00:00:00Z`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+// Dates in the chosen language (Settings).
+const pretty = (date: string) => formatters(getSettings()).date(date);
 
 /** Accommodation bookings whose dates don't match the nights the schedule spends at that stop. */
 export function bookingWarnings(
@@ -85,7 +86,7 @@ export function bookingWarnings(
         if (checkIn < stay.checkIn || checkIn >= stay.checkOut) {
           warnings.push({
             key: stop.key, categoryIndex, itemIndex,
-            message: `${item.name} is booked from ${pretty(checkIn)}, but the plan has you at ${stop.label} on ${pretty(stay.checkIn)}.`,
+            message: t('{name} is booked from {booked}, but the plan has you at {stop} on {planned}.', { name: item.name, booked: pretty(checkIn), stop: stop.label, planned: pretty(stay.checkIn) }),
           });
         }
       });

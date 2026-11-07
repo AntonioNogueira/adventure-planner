@@ -31,6 +31,7 @@ import DocumentsView from './components/DocumentsView';
 import ViewTabs, { AppView } from './components/ViewTabs';
 import { BudgetSettings, defaultBudget } from './lib/budget';
 import { authErrorMessage } from './lib/authErrors';
+import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -67,6 +68,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 }
 
 const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStart }) => {
+  const { t } = useSettings();
   const [prompt, setPrompt] = useState('');
   const [isLocating, setIsLocating] = useState(false);
 
@@ -79,7 +81,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
   // Turn the browser location into a city name and add it to the prompt as the starting point.
   const requestLocation = () => {
     if (!("geolocation" in navigator)) {
-      setLocationLabel('Location is not available in this browser.');
+      setLocationLabel(t('Location is not available in this browser.'));
       return;
     }
     setIsLocating(true);
@@ -88,19 +90,19 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
         try {
           const city = await townAt({ lat: position.coords.latitude, lng: position.coords.longitude });
           if (city) {
-            setLocationLabel(`Starting from ${city}`);
-            setPrompt(prev => prev.includes(city) ? prev : `${prev.trim()}${prev.trim() ? ' ' : ''}Starting from ${city}.`);
+            setLocationLabel(t('Starting from {city}', { city }));
+            setPrompt(prev => prev.includes(city) ? prev : `${prev.trim()}${prev.trim() ? ' ' : ''}${t('Starting from {city}', { city })}.`);
           }
         } catch (err) {
           console.error("Reverse geocoding failed:", err);
-          setLocationLabel('Could not look up your city. Please type your starting point.');
+          setLocationLabel(t('Could not look up your city. Please type your starting point.'));
         } finally {
           setIsLocating(false);
         }
       },
       (error) => {
         console.error("Location error:", error);
-        setLocationLabel('Location permission was denied. Please type your starting point.');
+        setLocationLabel(t('Location permission was denied. Please type your starting point.'));
         setIsLocating(false);
       }
     );
@@ -113,8 +115,8 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400">
             <Sparkles size={32} />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-emerald-900">Welcome to Adventure Planner</h2>
-          <p className="text-muted-foreground">Describe your next multi-day roadtrip or adventure. I'll help you plan it!</p>
+          <h2 className="mb-2 text-2xl font-bold text-emerald-900">{t('Welcome to Adventure Planner')}</h2>
+          <p className="text-muted-foreground">{t("Describe your next multi-day roadtrip or adventure. I'll help you plan it!")}</p>
         </div>
 
         <div className="space-y-6">
@@ -123,7 +125,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
               autoFocus
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g., Bikepacking from Cádiz to Silves, about 70 km per day, camping where possible..."
+              placeholder={t('e.g., Bikepacking from Cádiz to Silves, about 70 km per day, camping where possible...')}
               className="min-h-[120px] w-full rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900 dark:bg-emerald-900/20"
             />
           </div>
@@ -135,14 +137,14 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
               className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 py-3 text-sm font-semibold text-emerald-700 transition-all hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
             >
               <MapPin size={18} />
-              {isLocating ? 'Locating...' : 'Use My Location as Start'}
+              {isLocating ? t('Locating...') : t('Use my location as start')}
             </button>
             {locationLabel && <p className="text-center text-xs text-muted-foreground">{locationLabel}</p>}
             <button
               onClick={handleStart}
               className="rounded-xl bg-emerald-600 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition-all hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98]"
             >
-              {prompt.trim() ? 'Plan My Adventure' : 'Skip and Plan Manually'}
+              {prompt.trim() ? t('Plan my adventure') : t('Skip and plan manually')}
             </button>
           </div>
         </div>
@@ -150,6 +152,11 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
     </div>
   );
 };
+
+// A trip's default name, the same in every language: "Tavira → Beja".
+const autoName = (from: string, to: string) => `${from.split(',')[0].trim()} → ${to.split(',')[0].trim()}`;
+// Names made by the app (including older "X to Y Expedition" ones) follow route changes; typed names stay.
+const isAutoName = (name: string) => / → | to /.test(name);
 
 // Trips with more stops than this load suggestions for intermediate stops on request.
 const MAX_EAGER_STOPS = 10;
@@ -175,6 +182,14 @@ const App: React.FC = () => {
   const [mapReady, setMapReady] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [lodging, setLodging] = useState<LodgingPreference>('any');
+  // Units, currency and language (Settings button); re-renders the app when they change.
+  const { settings: appSettings, ...fmt } = useSettings();
+  // A new currency in Settings also applies to the trip's budget.
+  const firstCurrency = useRef(true);
+  useEffect(() => {
+    if (firstCurrency.current) { firstCurrency.current = false; return; }
+    setBudgetSettings(prev => prev && { ...prev, currency: appSettings.currency });
+  }, [appSettings.currency]);
   // Top tabs: the map (Route), the Budget table or the Documents bucket.
   const [view, setView] = useState<AppView>('route');
   // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
@@ -194,7 +209,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (origin && destination && (!expeditionName || expeditionName.includes(' to '))) {
-      setExpeditionName(`${origin} to ${destination} Expedition`);
+      setExpeditionName(autoName(origin, destination));
     }
   }, [origin, destination]);
 
@@ -232,7 +247,7 @@ const App: React.FC = () => {
       try {
         handleFirestoreError(error, OperationType.LIST, path);
       } catch {
-        setToast({ message: 'Could not load saved expeditions.', type: 'error' });
+        setToast({ message: tr('Could not load saved expeditions.'), type: 'error' });
       }
     });
     return () => unsubscribe();
@@ -277,7 +292,7 @@ const App: React.FC = () => {
     setLodging(intent.lodging);
     setTravelMode(intent.travelMode as google.maps.TravelMode);
     setAiSummary(intent.summary || null);
-    const newName = expeditionName && !expeditionName.includes(' to ') ? expeditionName : `${intent.origin} to ${intent.destination} Expedition`;
+    const newName = expeditionName && !isAutoName(expeditionName) ? expeditionName : autoName(intent.origin, intent.destination);
     setExpeditionName(newName);
     setRouteInfo({
       name: newName,
@@ -364,16 +379,18 @@ const App: React.FC = () => {
         // fall back to driving so the trip still shows on the map.
         if (currentTravelMode === 'DRIVING') throw err;
         trip = await request('DRIVING');
-        const modeName = { WALKING: 'Walking', BICYCLING: 'Cycling', TRANSIT: 'Transit' }[currentTravelMode as string] || 'These';
-        notice = `${modeName} directions aren't available for this route${currentTravelMode === 'TRANSIT' && stops.length ? ' with stops' : ''}, so the driving route is shown instead.`;
+        const modeName = tr({ WALKING: 'Walking', BICYCLING: 'Cycling', TRANSIT: 'Transit' }[currentTravelMode as string] || 'These');
+        notice = currentTravelMode === 'TRANSIT' && stops.length
+          ? tr("{mode} directions aren't available for this route with stops, so the driving route is shown instead.", { mode: modeName })
+          : tr("{mode} directions aren't available for this route, so the driving route is shown instead.", { mode: modeName });
       }
 
       tripRef.current = trip;
       setTrip(trip);
       const ferry = ferryKm(trip);
       if (ferry >= 10) {
-        const tip = currentTravelMode === 'DRIVING' || options.avoidFerries ? '' : ' Turn on "Avoid ferries" to travel the whole way overland.';
-        notice = `${notice ? notice + ' ' : ''}This route includes about ${ferry} km by ferry (no riding, and no overnight stops at sea).${tip}`;
+        const tip = currentTravelMode === 'DRIVING' || options.avoidFerries ? '' : ` ${tr('Turn on "Avoid ferries" to travel the whole way overland.')}`;
+        notice = `${notice ? notice + ' ' : ''}${tr('This route includes about {d} by ferry (no riding, and no overnight stops at sea).', { d: formatters(getSettings()).dist(ferry, 0) })}${tip}`;
       }
       const legs = trip.legs;
       const totalDistance = legs.reduce((acc, leg) => acc + leg.distanceMeters, 0);
@@ -405,7 +422,7 @@ const App: React.FC = () => {
 
       setRouteStale(false);
       setRouteInfo({
-        name: expeditionName || `${currentOrigin} to ${currentDestination} Expedition`,
+        name: expeditionName || autoName(currentOrigin, currentDestination),
         origin: currentOrigin,
         originInterests: overrideInterests?.origin || routeInfo?.originInterests || [],
         destination: currentDestination,
@@ -430,11 +447,11 @@ const App: React.FC = () => {
       return routeLegs;
     } catch (err: any) {
       console.error('Route request failed:', err);
-      let message = 'Could not calculate route. Please check your addresses and try again.';
+      let message = tr('Could not calculate route. Please check your addresses and try again.');
       if (err.code === 'NOT_FOUND' || (err.message && err.message.includes('NOT_FOUND'))) {
-        message = 'One or more locations could not be found. Please use more specific names (e.g., "San Francisco, CA").';
+        message = tr('One or more locations could not be found. Please use more specific names (e.g., "San Francisco, CA").');
       } else if (err.code === 'ZERO_RESULTS' || (err.message && err.message.includes('ZERO_RESULTS'))) {
-        message = 'No route found between these locations. Try a different travel mode or check the terrain.';
+        message = tr('No route found between these locations. Try a different travel mode or check the terrain.');
       }
       setError(message);
       setRouteInfo(null);
@@ -471,7 +488,7 @@ const App: React.FC = () => {
 
   // ---- Editing stops: suggestions, reservations and moved pins ----
 
-  const stopLabel = (ref: StopRef) => ref.kind === 'start' ? 'Start' : ref.kind === 'end' ? 'Finish' : `Stop ${ref.index! + 1}`;
+  const stopLabel = (ref: StopRef) => ref.kind === 'start' ? tr('Start') : ref.kind === 'end' ? tr('Finish') : tr('Stop {n}', { n: ref.index! + 1 });
 
   const allStops = (): { ref: StopRef; location: string; position?: google.maps.LatLngLiteral }[] => [
     { ref: { kind: 'start' }, location: origin },
@@ -501,7 +518,7 @@ const App: React.FC = () => {
   // `ref` is where the user attached it; it wins unless the address is clearly at another stop.
   const handleAttachFile = async (ref: StopRef | null, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
-      setToast({ message: 'That file is over 10 MB. Try a smaller PDF or the booking email.', type: 'error' });
+      setToast({ message: tr('That file is over 10 MB. Try a smaller PDF or the booking email.'), type: 'error' });
       return;
     }
     const stops = allStops();
@@ -518,7 +535,7 @@ const App: React.FC = () => {
         }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || `Could not read the file (${response.status})`);
+      if (!response.ok) throw new Error(data.error || tr('Could not read the file ({status})', { status: response.status }));
       const r = data.reservation;
 
       const position = await geocodeAddress(r.address || `${r.name} ${stops[r.stopIndex]?.location || ''}`);
@@ -566,12 +583,12 @@ const App: React.FC = () => {
       });
       const moved = ref && (ref.kind !== target.kind || ref.index !== target.index);
       setToast({
-        message: `Added "${item.name}" to ${stopLabel(target)} · ${r.category}${moved ? ' (matched by its address)' : ''}`,
+        message: `${tr('Added "{name}" to {stop}', { name: item.name, stop: stopLabel(target) })} · ${tr(r.category)}${moved ? ` ${tr('(matched by its address)')}` : ''}`,
         type: 'success',
       });
     } catch (err) {
       console.error('Reservation import failed:', err);
-      setToast({ message: err instanceof Error ? err.message : 'Could not read that file.', type: 'error' });
+      setToast({ message: err instanceof Error ? err.message : tr('Could not read that file.'), type: 'error' });
     } finally {
       setAttachingKey(null);
     }
@@ -582,7 +599,7 @@ const App: React.FC = () => {
   const handleMoveStop = async (ref: StopRef, position: google.maps.LatLngLiteral) => {
     const town = await townAt(position);
     if (!town) {
-      setToast({ message: 'Could not find a town there. Try dropping the pin closer to one.', type: 'error' });
+      setToast({ message: tr('Could not find a town there. Try dropping the pin closer to one.'), type: 'error' });
       return;
     }
     const newOrigin = ref.kind === 'start' ? town : origin;
@@ -615,7 +632,7 @@ const App: React.FC = () => {
     newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests: [] });
     setWaypoints(newWaypoints);
     setHasChanges(true);
-    setToast({ message: `Added a stop at ${name}. Finding places nearby…`, type: 'success' });
+    setToast({ message: tr('Added a stop at {name}. Finding places nearby…', { name }), type: 'success' });
     const legs = await calculateRoute(undefined, undefined, newWaypoints);
     if (legs) loadSuggestions([{ kind: 'stop', index: insertAt }], [position], travelMode, lodging);
   };
@@ -639,8 +656,8 @@ const App: React.FC = () => {
             failed = true;
             setToast({
               message: isOsm
-                ? 'Could not load place suggestions from OpenStreetMap (Overpass may be busy). Try "Find places nearby" again in a minute.'
-                : 'Could not load place suggestions. Check that "Places API (New)" is enabled for your Maps key.',
+                ? tr('Could not load place suggestions from OpenStreetMap (Overpass may be busy). Try "Find places nearby" again in a minute.')
+                : tr('Could not load place suggestions. Check that "Places API (New)" is enabled for your Maps key.'),
               type: 'error',
             });
           }
@@ -700,9 +717,9 @@ const App: React.FC = () => {
     return {
       path: leg.path,
       leg,
-      label: `Day ${dayNumber || i + 1}: ${info?.from.split(',')[0] || ''} → ${info?.to.split(',')[0] || ''} · ${formatDistance(leg.distanceMeters)} · ${formatDuration(leg.durationSeconds)}`,
+      label: `${tr('Day {n}', { n: dayNumber || i + 1 })}: ${info?.from.split(',')[0] || ''} → ${info?.to.split(',')[0] || ''} · ${fmt.dist(leg.distanceMeters / 1000)} · ${formatDuration(leg.durationSeconds)}`,
     };
-  }), [trip, schedule, routeInfo?.legs]);
+  }), [trip, schedule, routeInfo?.legs, appSettings]);
 
   const handleRestDaysChange = (stopIndex: number, restDays: number) => {
     const apply = (list: Waypoint[]) => list.map((wp, i) => i === stopIndex ? { ...wp, restDays: Math.max(0, restDays) } : wp);
@@ -736,22 +753,22 @@ const App: React.FC = () => {
   const handleExportGpx = (legIndex: number | null) => {
     const trip = tripRef.current;
     if (!trip || !routeInfo) return;
-    const name = expeditionName || `${origin} to ${destination}`;
+    const name = expeditionName || autoName(origin, destination);
     const dayLabel = (i: number) => {
       const day = schedule.find(d => d.kind === 'ride' && d.legIndex === i);
       const n = schedule.indexOf(day!) + 1;
-      return `Day ${n}: ${routeInfo.legs?.[i]?.from} → ${routeInfo.legs?.[i]?.to}`;
+      return `${tr('Day {n}', { n })}: ${routeInfo.legs?.[i]?.from} → ${routeInfo.legs?.[i]?.to}`;
     };
     const legs = legIndex === null ? trip.legs.map((leg, i) => ({ leg, i })) : [{ leg: trip.legs[legIndex], i: legIndex }];
     const stopPoints = [
-      { name: `Start: ${origin}`, at: trip.legs[0]?.path[0] },
-      ...trip.legs.map((leg, i) => ({ name: i === trip.legs.length - 1 ? `Finish: ${destination}` : `Night ${i + 1}: ${routeInfo.legs?.[i]?.to}`, at: leg.path[leg.path.length - 1] })),
+      { name: `${tr('Start')}: ${origin}`, at: trip.legs[0]?.path[0] },
+      ...trip.legs.map((leg, i) => ({ name: i === trip.legs.length - 1 ? `${tr('Finish')}: ${destination}` : `${tr('Night {n}', { n: i + 1 })}: ${routeInfo.legs?.[i]?.to}`, at: leg.path[leg.path.length - 1] })),
     ].filter(p => p.at).map(p => ({ name: p.name, lat: p.at!.lat, lng: p.at!.lng }));
     const bookings = [routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || []]
       .flat().flatMap(cat => cat.items)
       .filter(item => item.source === 'reservation' && item.reservation?.lat != null)
       .map(item => ({
-        name: `Booked: ${item.name}`,
+        name: `${tr('Booked:')} ${item.name}`,
         lat: item.reservation!.lat!,
         lng: item.reservation!.lng!,
         description: [item.reservation?.checkIn, item.reservation?.confirmation && `Ref ${item.reservation.confirmation}`].filter(Boolean).join(' · '),
@@ -808,7 +825,7 @@ const App: React.FC = () => {
       // Firestore rejects undefined values; a JSON round trip drops them.
       const data = JSON.parse(JSON.stringify({
         ...rest,
-        name: expeditionName || `${origin} to ${destination}`,
+        name: expeditionName || autoName(origin, destination),
         userId: user.uid,
         startDate: startDate || undefined,
         avoid: routeOptions,
@@ -825,10 +842,10 @@ const App: React.FC = () => {
       setRouteInfo(prev => prev && { ...info, id: id!, shared: data.shared, createdAt: data.createdAt, userId: user.uid });
       setHasChanges(false);
       setToast(failed
-        ? { message: `Saved, but ${failed} file(s) couldn't be uploaded (is Firebase Storage enabled?). Booking details were saved.`, type: 'error' }
-        : { message: 'Expedition saved successfully!', type: 'success' });
+        ? { message: tr("Saved, but {n} file(s) couldn't be uploaded (is Firebase Storage enabled?). Booking details were saved.", { n: failed }), type: 'error' }
+        : { message: tr('Expedition saved successfully!'), type: 'success' });
     } catch (err) {
-      setToast({ message: 'Failed to save expedition.', type: 'error' });
+      setToast({ message: tr('Failed to save expedition.'), type: 'error' });
       try { handleFirestoreError(err, OperationType.CREATE, path); } catch { /* logged */ }
     }
   };
@@ -842,10 +859,10 @@ const App: React.FC = () => {
       const link = `${window.location.origin}${window.location.pathname}?trip=${currentTripId}`;
       await navigator.clipboard?.writeText(link).catch(() => undefined);
       setShareLink(link);
-      setToast({ message: 'Share link copied. Anyone with the link can view this trip.', type: 'success' });
+      setToast({ message: tr('Share link copied. Anyone with the link can view this trip.'), type: 'success' });
     } catch (err) {
       console.error('Sharing failed:', err);
-      setToast({ message: 'Could not share the trip. Check the Firestore rules (see README).', type: 'error' });
+      setToast({ message: tr('Could not share the trip. Check the Firestore rules (see README).'), type: 'error' });
     }
   };
 
@@ -855,7 +872,7 @@ const App: React.FC = () => {
       await updateDoc(doc(db, 'trips', currentTripId), { shared: false });
       setRouteInfo(prev => prev && { ...prev, shared: false });
       setShareLink(null);
-      setToast({ message: 'The link no longer opens this trip.', type: 'success' });
+      setToast({ message: tr('The link no longer opens this trip.'), type: 'success' });
     } catch (err) {
       console.error('Unsharing failed:', err);
     }
@@ -866,7 +883,7 @@ const App: React.FC = () => {
     setDestination(route.destination);
     setWaypoints(route.waypoints);
     setTravelMode(route.travelMode as any);
-    setExpeditionName(route.name || `${route.origin} to ${route.destination} Expedition`);
+    setExpeditionName(route.name || autoName(route.origin, route.destination));
     setStartDate(route.startDate || '');
     setRouteOptions(route.avoid || NO_AVOIDANCES);
     setLodging(route.lodging || 'any');
@@ -895,7 +912,7 @@ const App: React.FC = () => {
       })
       .catch(err => {
         console.error('Could not open shared trip:', err);
-        setToast({ message: 'This trip link is not shared (or no longer exists).', type: 'error' });
+        setToast({ message: tr('This trip link is not shared (or no longer exists).'), type: 'error' });
       });
   }, []);
 
@@ -904,9 +921,9 @@ const App: React.FC = () => {
     try {
       await deleteDoc(doc(db, 'trips', id));
       if (id === currentTripId) { setCurrentTripId(null); setShareLink(null); }
-      setToast({ message: 'Expedition deleted.', type: 'success' });
+      setToast({ message: tr('Expedition deleted.'), type: 'success' });
     } catch (err) {
-      setToast({ message: 'Failed to delete expedition.', type: 'error' });
+      setToast({ message: tr('Failed to delete expedition.'), type: 'error' });
       try { handleFirestoreError(err, OperationType.DELETE, path); } catch { /* logged */ }
     }
   };
@@ -970,7 +987,7 @@ const App: React.FC = () => {
                 <BudgetView
                   routeInfo={routeInfo}
                   schedule={schedule}
-                  settings={budgetSettings || defaultBudget(travelMode as string, lodging)}
+                  settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency)}
                   onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
                 />
               ) : (
@@ -1021,7 +1038,7 @@ const App: React.FC = () => {
             onClose={() => setShowLogin(false)}
             onSignedIn={() => {
               setShowLogin(false);
-              setToast({ message: 'You\'re logged in. Your expeditions can now be saved.', type: 'success' });
+              setToast({ message: tr("You're logged in. Your expeditions can now be saved."), type: 'success' });
             }}
           />
         )}

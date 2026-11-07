@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSettings, getSettings, t as tr } from '../lib/settings';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent } from '../types';
 import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, mentionsTravelMode, mergeIntent } from '../lib/conversation';
@@ -20,13 +21,13 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     // The current plan travels with the request, so the AI changes only what the user asks.
-    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current }),
+    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language }),
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
     const detail = Array.isArray(data.details) && data.details[0] ? ` ${String(data.details[0]).slice(0, 180)}` : '';
-    throw new Error(`${data.error || `Planner request failed (${response.status})`}.${detail}`);
+    throw new Error(`${data.error || tr('Planner request failed ({status})', { status: response.status })}.${detail}`);
   }
   return data.plan;
 }
@@ -40,6 +41,7 @@ interface Message {
 }
 
 const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange }) => {
+  const { t, locale } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
   const [isPlanning, setIsPlanning] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,23 +53,19 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   const modeMentionedRef = useRef(false);
 
   const placeholders = [
-    "e.g., Bikepacking from Paris to Rome, about 80 km per day...",
-    "e.g., 5-day moto adventure in the Pyrenees, include off-road trails",
-    "e.g., Hiking the West Highland Way, suggest wild camping spots",
-    "e.g., Road trip through Portugal, save the camping X in Porto stop",
-    "e.g., Mountain bike tour in Moab, include bike shops and repair stations",
-    "e.g., Surf trip along the Basque coast, find the best breaks and hostels"
+    t('e.g., Bikepacking from Paris to Rome, about 80 km per day...'),
+    t('e.g., 5-day moto adventure in the Pyrenees, include off-road trails'),
+    t('e.g., Hiking the West Highland Way, suggest wild camping spots'),
+    t('e.g., Road trip through Portugal, save the camping X in Porto stop'),
+    t('e.g., Mountain bike tour in Moab, include bike shops and repair stations'),
+    t('e.g., Surf trip along the Basque coast, find the best breaks and hostels'),
   ];
 
-  const [placeholder, setPlaceholder] = useState(placeholders[0]);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const placeholder = placeholders[placeholderIndex];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholder(prev => {
-        const currentIndex = placeholders.indexOf(prev);
-        return placeholders[(currentIndex + 1) % placeholders.length];
-      });
-    }, 5000);
+    const interval = setInterval(() => setPlaceholderIndex(i => (i + 1) % placeholders.length), 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -94,7 +92,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: dateSet,
     });
     say({
-      text: question ? `${summaryText(intent, plan)}\n\n${question.text}` : `${summaryText(intent, plan)}\n\nAll set! Drag the pins or ask me for any change.`,
+      text: question ? `${summaryText(intent, plan)}\n\n${question.text}` : `${summaryText(intent, plan)}\n\n${t('All set! Drag the pins or ask me for any change.')}`,
       question: question || undefined,
     });
   };
@@ -102,7 +100,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   const runPlan = async (intent: TripIntent) => {
     const plan = await onPlanTrip(intent);
     if (!plan) {
-      say({ text: `I understood ${intent.origin} → ${intent.destination}, but the map couldn't draw that route. Try more specific place names.` });
+      say({ text: t("I understood {from} → {to}, but the map couldn't draw that route. Try more specific place names.", { from: intent.origin, to: intent.destination }) });
       return;
     }
     intentRef.current = intent;
@@ -133,7 +131,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     } catch (error) {
       console.error('AI Planning failed:', error);
       const reason = error instanceof Error ? error.message : '';
-      say({ text: `Sorry, I couldn't plan that route. ${reason}`.trim() });
+      say({ text: `${t("Sorry, I couldn't plan that route.")} ${reason}`.trim() });
     } finally {
       setIsPlanning(false);
     }
@@ -154,7 +152,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       });
       say(next
         ? { text: next.text, question: next }
-        : { text: value ? 'Dates and forecasts are in the itinerary below. Drag the pins or ask me for any change.' : 'No problem: set a start date in the itinerary whenever you know it.' });
+        : { text: value ? t('Dates and forecasts are in the itinerary below. Drag the pins or ask me for any change.') : t('No problem: set a start date in the itinerary whenever you know it.') });
       return;
     }
     setIsPlanning(true);
@@ -169,7 +167,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     <div className="flex flex-col rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/20">
       <div className="border-b border-emerald-200 p-3 flex items-center gap-2 text-emerald-700 dark:text-emerald-400 dark:border-emerald-900/30">
         <Sparkles size={18} />
-        <h3 className="text-sm font-bold uppercase tracking-tight">AI Trip Planner</h3>
+        <h3 className="text-sm font-bold uppercase tracking-tight">{t('AI trip planner')}</h3>
       </div>
       
       {messages.length > 0 && (
@@ -194,9 +192,9 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
                   {msg.question.dateInput && !msg.answer && (
                     <input
                       type="date"
-                      aria-label="Start date"
+                      aria-label={t('Start date')}
                       min={new Date().toISOString().slice(0, 10)}
-                      onChange={(e) => e.target.value && handleAnswer(i, msg.question!, new Date(`${e.target.value}T00:00:00Z`).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }), e.target.value)}
+                      onChange={(e) => e.target.value && handleAnswer(i, msg.question!, new Date(`${e.target.value}T00:00:00Z`).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }), e.target.value)}
                       className="h-8 rounded-full border border-emerald-300 bg-white px-3 text-xs text-emerald-800"
                     />
                   )}
@@ -224,7 +222,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
           {isPlanning && (
             <div className="flex items-center gap-2 text-xs text-emerald-700">
               <Loader2 size={14} className="animate-spin" />
-              Planning your route and finding stops…
+              {t('Planning your route and finding stops…')}
             </div>
           )}
         </div>
@@ -241,13 +239,13 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
             }
           }}
           placeholder={placeholder}
-          aria-label="Describe your adventure"
+          aria-label={t('Describe your adventure')}
           className="min-h-[80px] w-full rounded-lg border border-emerald-200 bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-800"
         />
         <button
           onClick={() => handlePlan()}
           disabled={isPlanning || !prompt.trim()}
-          aria-label="Plan adventure"
+          aria-label={t('Plan adventure')}
           className="absolute bottom-6 right-6 rounded-md bg-emerald-600 p-2 text-white shadow-md transition-all hover:bg-emerald-700 hover:scale-105 disabled:opacity-50"
         >
           {isPlanning ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}

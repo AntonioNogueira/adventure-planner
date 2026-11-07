@@ -7,6 +7,7 @@ import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import SegmentDetails from './SegmentDetails';
+import { useSettings, t as tr } from '../lib/settings';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapProps {
@@ -62,6 +63,7 @@ const Map: React.FC<MapProps> = ({
   const skipFitRef = useRef(false);
   // Suggestion pins per category can be hidden from the legend; bookings are always shown.
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
+  const { t, settings } = useSettings();
   const [mapsError, setMapsError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -116,7 +118,7 @@ const Map: React.FC<MapProps> = ({
             className="rounded-md bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-700"
             onClick={() => { infoWindowRef.current?.close(); callbacksRef.current.onAddStop?.(position); }}
           >
-            + Add overnight stop here
+            + {tr('Add overnight stop here')}
           </button>
         );
         infoWindowRef.current?.setOptions({ pixelOffset: new google.maps.Size(0, 0) });
@@ -236,12 +238,12 @@ const Map: React.FC<MapProps> = ({
           if (!position) return;
           bounds.extend(position);
 
-          const pin = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (drag to move)`);
+          const pin = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (${tr('drag to move')})`);
 
           const marker = new AdvancedMarkerElement({
             position,
             map: googleMapRef.current,
-            title: `${point.label}: ${point.location} (drag to move)`,
+            title: `${point.label}: ${point.location} (${tr('drag to move')})`,
             content: pin,
             gmpClickable: true,
             gmpDraggable: Boolean(callbacksRef.current.onMoveStop),
@@ -284,7 +286,7 @@ const Map: React.FC<MapProps> = ({
             const placeMarker = new AdvancedMarkerElement({
               position: { lat, lng },
               map: googleMapRef.current,
-              title: `${isBooking ? 'Booked: ' : ''}${item.name} (${point.label})`,
+              title: `${isBooking ? `${tr('Booked:')} ` : ''}${item.name} (${point.label})`,
               content: placePin,
               gmpClickable: true,
               zIndex: isBooking ? 2 : 1,
@@ -325,7 +327,7 @@ const Map: React.FC<MapProps> = ({
 
     updateMarkers();
     return () => { cancelled = true; };
-  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories]);
+  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units]);
 
   return (
     <div className="vintage-map relative h-full w-full">
@@ -346,7 +348,7 @@ const Map: React.FC<MapProps> = ({
               key={id}
               onClick={() => setHiddenCategories(prev => hidden ? prev.filter(c => c !== id) : [...prev, id])}
               aria-pressed={!hidden}
-              title={`${hidden ? 'Show' : 'Hide'} ${CATEGORIES[id].name} on the map`}
+              title={hidden ? t('Show {name} on the map', { name: t(CATEGORIES[id].name) }) : t('Hide {name} on the map', { name: t(CATEGORIES[id].name) })}
               className={cn(
                 "flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity",
                 hidden && "opacity-50 line-through"
@@ -354,13 +356,13 @@ const Map: React.FC<MapProps> = ({
               style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
             >
               <span>{CATEGORIES[id].glyph}</span>
-              <span className="hidden sm:inline">{CATEGORIES[id].name}</span>
+              <span className="hidden sm:inline">{t(CATEGORIES[id].name)}</span>
             </button>
           );
         })}
         <span className="flex items-center gap-1 rounded-sm border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
           <span className="h-2 w-2 rounded-full bg-violet-600" />
-          <span className="hidden sm:inline">Booked</span>
+          <span className="hidden sm:inline">{t('Booked')}</span>
         </span>
       </div>
 
@@ -372,7 +374,7 @@ const Map: React.FC<MapProps> = ({
               key={id}
               onClick={() => setMapType(id)}
               aria-pressed={mapType === id}
-              title={label}
+              title={t(label)}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-bold transition-all md:px-3",
                 mapType === id
@@ -381,7 +383,7 @@ const Map: React.FC<MapProps> = ({
               )}
             >
               <Icon size={14} />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="hidden sm:inline">{t(label)}</span>
             </button>
           ))}
         </div>

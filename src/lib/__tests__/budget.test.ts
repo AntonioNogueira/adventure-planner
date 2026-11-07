@@ -24,6 +24,11 @@ describe('defaultBudget', () => {
     expect(defaultBudget('DRIVING', 'camping')).toMatchObject({ stayPerNight: 20, fuelPer100km: 6 });
     expect(defaultBudget('BICYCLING', 'hotel')).toMatchObject({ stayPerNight: 75, fuelPer100km: 0, fuelPrice: 0 });
   });
+  it('starts from local prices in the chosen currency', () => {
+    expect(defaultBudget('DRIVING', 'hotel', 'BRL')).toMatchObject({ currency: 'BRL', stayPerNight: 250, fuelPrice: 6.2 });
+    expect(defaultBudget('DRIVING', 'any', 'USD')).toMatchObject({ currency: 'USD', stayPerNight: 90 });
+    expect(defaultBudget('BICYCLING', 'any', 'SEK')).toMatchObject({ currency: 'SEK', stayPerNight: 630, foodPerDay: 350 });
+  });
 });
 
 describe('computeBudget', () => {

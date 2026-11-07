@@ -3,6 +3,7 @@ import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowL
 import { InterestCategory, StopKind } from '../types';
 import { cn } from '../lib/utils';
 import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
+import { useSettings } from '../lib/settings';
 import { mapSearchUrl } from '../lib/provider';
 
 export type { StopKind } from '../types';
@@ -87,6 +88,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
   onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces,
 }) => {
   const t = THEMES[kind];
+  const { t: tr } = useSettings();
   const [finding, setFinding] = useState(false);
   const hasSuggestions = interests.some(c => c.items.some(i => i.source !== 'reservation'));
   // Suggestions arrived: stop showing "Finding…".
@@ -101,8 +103,8 @@ const StopDetails: React.FC<StopDetailsProps> = ({
         </div>
         <span className="min-w-0 flex-1 truncate text-sm" title={location}>{title}: {location}</span>
         {onRemoveStop && (
-          <button onClick={onRemoveStop} className="shrink-0 text-[11px] font-medium text-red-600 hover:underline" title="Remove this overnight stop">
-            Remove stop
+          <button onClick={onRemoveStop} className="shrink-0 text-[11px] font-medium text-red-600 hover:underline" title={tr('Remove this overnight stop')}>
+            {tr('Remove stop')}
           </button>
         )}
       </div>
@@ -129,8 +131,8 @@ const StopDetails: React.FC<StopDetailsProps> = ({
               <div key={catIdx} className={cn('min-w-0 rounded-lg p-2', t.tile)}>
                 <div className={cn('mb-1 flex items-center gap-1.5 border-b pb-1', t.tileBorder)}>
                   <InterestIcon category={cat.category} className={cn('shrink-0', t.icon)} />
-                  <span className={cn('truncate whitespace-nowrap text-[11px] font-bold uppercase tracking-wide', t.category)} title={cat.category}>
-                    {cat.category}
+                  <span className={cn('truncate whitespace-nowrap text-[11px] font-bold uppercase tracking-wide', t.category)} title={tr(cat.category)}>
+                    {tr(cat.category)}
                   </span>
                 </div>
                 <ul className="space-y-1">
@@ -157,7 +159,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                         {r ? (
                           <div className="mt-0.5 space-y-0.5 text-[11px] text-violet-900/80">
                             {(r.checkIn || r.checkOut) && <p>{[r.checkIn, r.checkOut].filter(Boolean).join(' → ')}</p>}
-                            {r.confirmation && <p>Ref: <span className="font-semibold">{r.confirmation}</span></p>}
+                            {r.confirmation && <p>{tr('Ref:')} <span className="font-semibold">{r.confirmation}</span></p>}
                             {r.price ? <p>{r.price.toFixed(2)} {r.currency}</p> : null}
                             {warnings?.[`${catIdx}-${itemIdx}`] && (
                               <p className="rounded bg-amber-100 px-1 py-0.5 font-medium text-amber-900">⚠ {warnings[`${catIdx}-${itemIdx}`]}</p>
@@ -169,13 +171,13 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                                   <FileText size={10} />{r.fileName}
                                 </a>
                               ) : (
-                                <span className="inline-flex items-center gap-0.5" title="Files are kept until the page is closed; booking details are saved with the trip">
+                                <span className="inline-flex items-center gap-0.5" title={tr('Files are kept until the page is closed; booking details are saved with the trip')}>
                                   <FileText size={10} />{r.fileName}
                                 </span>
                               )}
                               {r.address && (
                                 <a href={mapsLink(r.address)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-violet-700 hover:underline">
-                                  <MapPin size={10} />Map
+                                  <MapPin size={10} />{tr('Map')}
                                 </a>
                               )}
                             </div>
@@ -188,8 +190,8 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                         {onRemoveItem && (
                           <button
                             onClick={() => onRemoveItem(catIdx, itemIdx)}
-                            aria-label={`Remove ${item.name}`}
-                            title="Remove"
+                            aria-label={tr('Remove {name}', { name: item.name })}
+                            title={tr('Remove')}
                             className="absolute right-0 top-0 rounded p-0.5 text-muted-foreground/60 hover:bg-red-50 hover:text-red-600 md:opacity-0 md:group-hover:opacity-100"
                           >
                             <X size={12} />
@@ -204,7 +206,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
           })}
         </div>
       ) : (
-        !onFindPlaces && <p className="py-1 text-xs italic text-muted-foreground">No recommendations for this stop yet.</p>
+        !onFindPlaces && <p className="py-1 text-xs italic text-muted-foreground">{tr('No recommendations for this stop yet.')}</p>
       )}
 
       {onFindPlaces && !hasSuggestions && (
@@ -214,7 +216,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
           className="mr-2 mt-2 inline-flex items-center gap-1.5 rounded-md border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
         >
           {finding ? <Loader2 size={12} className="animate-spin" /> : <MapPin size={12} />}
-          {finding ? 'Finding places…' : 'Find places nearby'}
+          {finding ? tr('Finding places…') : tr('Find places nearby')}
         </button>
       )}
 
@@ -237,7 +239,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
             className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-dashed border-violet-300 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 disabled:opacity-60"
           >
             {attaching ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
-            {attaching ? 'Reading reservation…' : 'Add reservation (PDF, email, image)'}
+            {attaching ? tr('Reading reservation…') : tr('Add reservation (PDF, email, image)')}
           </button>
         </>
       )}

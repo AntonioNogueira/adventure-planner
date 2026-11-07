@@ -1,4 +1,5 @@
 // Pieces shared by the Google map (Map.tsx) and the OpenStreetMap map (MapOsm.tsx).
+import { useSettings, t as tr } from '../lib/settings';
 import React, { useEffect, useState } from 'react';
 import StopDetails from './StopDetails';
 import { placeHighlight, PlaceHighlight, townName } from '../lib/wiki';
@@ -14,12 +15,12 @@ export type MapPoint = Partial<Waypoint> & {
 /** Start, overnight stops and finish, each with its suggestions and bookings. */
 export function buildPoints(origin: string | undefined, waypoints: Waypoint[], destination: string | undefined, routeInfo?: RouteInfo | null): MapPoint[] {
   return [
-    ...(origin ? [{ location: origin, kind: 'start' as const, ref: { kind: 'start' as const }, label: 'Start', badge: 'S', interests: routeInfo?.originInterests || [] }] : []),
+    ...(origin ? [{ location: origin, kind: 'start' as const, ref: { kind: 'start' as const }, label: tr('Start'), badge: 'S', interests: routeInfo?.originInterests || [] }] : []),
     ...waypoints.map((wp, i) => ({
-      ...wp, kind: 'stop' as const, ref: { kind: 'stop' as const, index: i }, label: `Stop ${i + 1}`, badge: String(i + 1),
+      ...wp, kind: 'stop' as const, ref: { kind: 'stop' as const, index: i }, label: tr('Stop {n}', { n: i + 1 }), badge: String(i + 1),
       interests: routeInfo?.waypoints[i]?.interests || wp.interests || [],
     })),
-    ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: 'Finish', badge: 'F', interests: routeInfo?.destinationInterests || [] }] : []),
+    ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: tr('Finish'), badge: 'F', interests: routeInfo?.destinationInterests || [] }] : []),
   ];
 }
 
@@ -36,29 +37,30 @@ interface PlacePopupProps {
 
 /** The card for a suggestion or booking pin. */
 export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point, onRemove }) => {
+  const { t } = useSettings();
   const isBooking = item.source === 'reservation';
   const cat = CATEGORIES[categoryId];
   const r = item.reservation;
   const at = isBooking ? (r?.lat != null && r?.lng != null ? { lat: r.lat, lng: r.lng } : undefined)
     : item.lat != null && item.lng != null ? { lat: item.lat, lng: item.lng } : undefined;
   const link = isBooking && r?.address ? mapSearchUrl(r.address, at) : item.url || mapSearchUrl(`${item.name} ${point.location}`, at);
-  const linkLabel = !isBooking && item.url && !/openstreetmap\.org|google\.com\/maps|maps\.google/.test(item.url) ? 'Website' : `Open in ${mapSiteName}`;
+  const linkLabel = !isBooking && item.url && !/openstreetmap\.org|google\.com\/maps|maps\.google/.test(item.url) ? t('Website') : t('Open in {site}', { site: mapSiteName });
   return (
     <div className="w-[240px] max-w-[70vw] space-y-1 p-1 font-sans text-xs">
       <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: isBooking ? '#6d28d9' : cat.color }}>
-        {cat.glyph} {isBooking ? 'Booked · ' : ''}{cat.name}
+        {cat.glyph} {isBooking ? `${t('Booked')} · ` : ''}{t(cat.name)}
       </p>
       <p className="text-sm font-semibold text-slate-900">{item.name}</p>
       {isBooking && r?.checkIn && <p className="text-slate-700">{[r.checkIn, r.checkOut].filter(Boolean).join(' → ')}</p>}
-      {isBooking && r?.confirmation && <p className="text-slate-700">Ref: <b>{r.confirmation}</b></p>}
+      {isBooking && r?.confirmation && <p className="text-slate-700">{t('Ref:')} <b>{r.confirmation}</b></p>}
       {item.description && <p className="text-slate-500">{item.description}</p>}
-      <p className="text-slate-400">Near {point.label}: {point.location}</p>
+      <p className="text-slate-400">{t('Near {stop}: {place}', { stop: point.label, place: point.location })}</p>
       <div className="flex gap-3 pt-1">
         <a href={link} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">{linkLabel}</a>
-        {at && !isBooking && item.url && linkLabel === 'Website' && (
-          <a href={mapSearchUrl(item.name, at)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">Map</a>
+        {at && !isBooking && item.url && linkLabel === t('Website') && (
+          <a href={mapSearchUrl(item.name, at)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">{t('Map')}</a>
         )}
-        <button className="font-semibold text-red-600 hover:underline" onClick={onRemove}>Remove</button>
+        <button className="font-semibold text-red-600 hover:underline" onClick={onRemove}>{t('Remove')}</button>
       </div>
     </div>
   );
@@ -95,12 +97,13 @@ interface StopPopupProps extends React.ComponentProps<typeof StopDetails> {
 
 /** A stop's card: a Wikipedia photo and description of the place on top, then its details. */
 export const StopPopup: React.FC<StopPopupProps> = ({ at, ...details }) => {
+  const { t, settings } = useSettings();
   const [highlight, setHighlight] = useState<PlaceHighlight | null | undefined>(undefined);
   useEffect(() => {
     let live = true;
-    placeHighlight(details.location, at).then(h => { if (live) setHighlight(h); });
+    placeHighlight(details.location, at, settings.language.startsWith('pt') ? 'pt' : 'en').then(h => { if (live) setHighlight(h); });
     return () => { live = false; };
-  }, [details.location, at.lat, at.lng]);
+  }, [details.location, at.lat, at.lng, settings.language]);
 
   return (
     <div className="w-[360px] max-w-[78vw] font-sans">
@@ -112,7 +115,7 @@ export const StopPopup: React.FC<StopPopupProps> = ({ at, ...details }) => {
             <span className="absolute bottom-1 left-2 rounded bg-black/55 px-1.5 py-0.5 text-[11px] font-semibold text-white">{highlight.title}</span>
           </div>
           <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-600">{highlight.extract}</p>
-          <p className="text-[10px] text-slate-400">Wikipedia (CC BY-SA) · read more</p>
+          <p className="text-[10px] text-slate-400">Wikipedia (CC BY-SA) · {t('read more')}</p>
         </a>
       )}
       <StopDetails {...details} />

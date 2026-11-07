@@ -13,6 +13,7 @@ import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
+import { useSettings, t as tr } from '../lib/settings';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapOsmProps {
@@ -112,6 +113,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
   const [mapType, setMapType] = useState<MapType>('map');
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
+  const { t, settings } = useSettings();
 
   // One popup, re-used for stops, places, segments and "add stop here".
   // `offset` is the height of the pin the popup belongs to: above the pin it is lifted by that much,
@@ -189,7 +191,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
           className="rounded-md bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-700"
           onClick={() => { popupRef.current?.remove(); callbacksRef.current.onAddStop?.(at); }}
         >
-          + Add overnight stop here
+          + {tr('Add overnight stop here')}
         </button>
       ), 0);
       openStopRef.current = null;
@@ -257,7 +259,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
         const at = locations[idx];
         if (!at) return;
         bounds.extend([at.lng, at.lat]);
-        const el = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (drag to move)`);
+        const el = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (${tr('drag to move')})`);
         el.style.zIndex = '10';
         pinElements.set(refKey(point.ref), el);
         el.addEventListener('click', (e) => { e.stopPropagation(); openStop(point, at); });
@@ -279,7 +281,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
           const lng = isBooking ? item.reservation?.lng : item.lng;
           const id = categoryId(item.category || cat.category);
           if (lat == null || lng == null || (!isBooking && hiddenCategories.includes(id))) return;
-          const placeEl = pinElement(isBooking ? '#6d3f63' : CATEGORIES[id].color, CATEGORIES[id].glyph, isBooking ? 24 : 20, `${isBooking ? 'Booked: ' : ''}${item.name} (${point.label})`);
+          const placeEl = pinElement(isBooking ? '#6d3f63' : CATEGORIES[id].color, CATEGORIES[id].glyph, isBooking ? 24 : 20, `${isBooking ? `${tr('Booked:')} ` : ''}${item.name} (${point.label})`);
           placeEl.addEventListener('click', (e) => {
             e.stopPropagation();
             showPopup({ lat, lng }, (
@@ -306,7 +308,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       skipFitRef.current = false;
     })();
     return () => { cancelled = true; };
-  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories]);
+  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units]);
 
   return (
     <div className="vintage-map relative h-full w-full">
@@ -321,18 +323,18 @@ const MapOsm: React.FC<MapOsmProps> = ({
               key={id}
               onClick={() => setHiddenCategories(prev => hidden ? prev.filter(c => c !== id) : [...prev, id])}
               aria-pressed={!hidden}
-              title={`${hidden ? 'Show' : 'Hide'} ${CATEGORIES[id].name} on the map`}
+              title={hidden ? t('Show {name} on the map', { name: t(CATEGORIES[id].name) }) : t('Hide {name} on the map', { name: t(CATEGORIES[id].name) })}
               className={cn("flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity", hidden && "opacity-50 line-through")}
               style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
             >
               <span>{CATEGORIES[id].glyph}</span>
-              <span className="hidden sm:inline">{CATEGORIES[id].name}</span>
+              <span className="hidden sm:inline">{t(CATEGORIES[id].name)}</span>
             </button>
           );
         })}
         <span className="flex items-center gap-1 rounded-sm border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
           <span className="h-2 w-2 rounded-full bg-violet-600" />
-          <span className="hidden sm:inline">Booked</span>
+          <span className="hidden sm:inline">{t('Booked')}</span>
         </span>
       </div>
 
@@ -344,14 +346,14 @@ const MapOsm: React.FC<MapOsmProps> = ({
               key={id}
               onClick={() => setMapType(id)}
               aria-pressed={mapType === id}
-              title={label}
+              title={t(label)}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-bold transition-all md:px-3",
                 mapType === id ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
               )}
             >
               <Icon size={14} />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="hidden sm:inline">{t(label)}</span>
             </button>
           ))}
         </div>

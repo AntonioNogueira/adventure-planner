@@ -4,6 +4,7 @@ import { RoutedLeg } from '../lib/routing';
 import { elevationsAlong } from '../lib/elevation';
 import { terrainStats, gradients, gradientColor, roadSummary, averageSpeed } from '../lib/terrain';
 import { roadData, RoadData, SURFACES, ROAD_CLASS_LABELS, SurfaceRun } from '../lib/osmRoads';
+import { useSettings } from '../lib/settings';
 
 interface SegmentDetailsProps {
   label: string;
@@ -28,21 +29,22 @@ function useRoadData(leg: RoutedLeg, travelMode: string) {
 
 /** The surface along the segment, start to finish, drawn on the profile's distance scale. */
 const SurfaceStrip: React.FC<{ runs: SurfaceRun[]; totalKm: number; axis?: boolean }> = ({ runs, totalKm, axis }) => {
+  const { t, toDist, distUnit } = useSettings();
   const end = runs.length ? runs[runs.length - 1].toKm : 0;
   if (!end) return null;
   const h = axis ? 26 : 12;
   const ticks = [0, 0.25, 0.5, 0.75, 1];
   return (
-    <svg viewBox={`0 0 ${CHART_W} ${h}`} className="w-full" role="img" aria-label="Road surface along the segment">
-      <text x={CHART_LEFT - 4} y={9} textAnchor="end" fontSize="8" fill="#475569">Surface</text>
+    <svg viewBox={`0 0 ${CHART_W} ${h}`} className="w-full" role="img" aria-label={t('Road surface along the segment')}>
+      <text x={CHART_LEFT - 4} y={9} textAnchor="end" fontSize="8" fill="#475569">{t('Surface')}</text>
       {runs.map((r, i) => (
         <rect key={i} x={chartX(r.fromKm / end)} y={2} width={Math.max(chartX(r.toKm / end) - chartX(r.fromKm / end), 0.6)} height={9}
           fill={SURFACES[r.group].color}>
-          <title>{`${SURFACES[r.group].label}: km ${Math.round(r.fromKm / end * totalKm)}–${Math.round(r.toKm / end * totalKm)}`}</title>
+          <title>{`${t(SURFACES[r.group].label)}: ${distUnit} ${Math.round(toDist(r.fromKm / end * totalKm))}–${Math.round(toDist(r.toKm / end * totalKm))}`}</title>
         </rect>
       ))}
       {axis && ticks.map(f => (
-        <text key={f} x={chartX(f)} y={h - 4} textAnchor={f === 0 ? 'start' : f === 1 ? 'end' : 'middle'} fontSize="9" fill="#475569">{Math.round(totalKm * f)} km</text>
+        <text key={f} x={chartX(f)} y={h - 4} textAnchor={f === 0 ? 'start' : f === 1 ? 'end' : 'middle'} fontSize="9" fill="#475569">{Math.round(toDist(totalKm * f))} {distUnit}</text>
       ))}
     </svg>
   );
@@ -51,6 +53,7 @@ const SurfaceStrip: React.FC<{ runs: SurfaceRun[]; totalKm: number; axis?: boole
 /** Elevation profile coloured by gradient, with distance and height axes. */
 // `axis: false` leaves the km labels to the surface strip drawn right below.
 const ProfileChart: React.FC<{ elevations: number[]; totalKm: number; axis?: boolean }> = ({ elevations, totalKm, axis = true }) => {
+  const { t, toDist, distUnit, elev } = useSettings();
   const w = CHART_W, left = CHART_LEFT, bottom = axis ? 18 : 2, top = 6, h = 102 + bottom;
   const min = Math.min(...elevations);
   const max = Math.max(...elevations);
@@ -58,9 +61,9 @@ const ProfileChart: React.FC<{ elevations: number[]; totalKm: number; axis?: boo
   const x = (i: number) => chartX(i / (elevations.length - 1));
   const y = (e: number) => top + (1 - (e - min) / range) * (h - top - bottom);
   const grades = gradients(elevations, totalKm);
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => ({ f, km: Math.round(totalKm * f) }));
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => ({ f, km: Math.round(toDist(totalKm * f)) }));
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label={`Elevation profile from ${Math.round(min)} to ${Math.round(max)} m`}>
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label={t('Elevation profile from {min} to {max}', { min: elev(min), max: elev(max) })}>
       {grades.map((g, i) => (
         <polygon
           key={i}
@@ -70,10 +73,10 @@ const ProfileChart: React.FC<{ elevations: number[]; totalKm: number; axis?: boo
         />
       ))}
       <line x1={left} y1={h - bottom} x2={w - 4} y2={h - bottom} stroke="#94a3b8" strokeWidth="0.5" />
-      <text x={left - 4} y={y(max) + 3} textAnchor="end" fontSize="9" fill="#475569">{Math.round(max)} m</text>
-      <text x={left - 4} y={y(min)} textAnchor="end" fontSize="9" fill="#475569">{Math.round(min)} m</text>
+      <text x={left - 4} y={y(max) + 3} textAnchor="end" fontSize="9" fill="#475569">{elev(max)}</text>
+      <text x={left - 4} y={y(min)} textAnchor="end" fontSize="9" fill="#475569">{elev(min)}</text>
       {axis && ticks.map(t => (
-        <text key={t.f} x={left + t.f * (w - left - 4)} y={h - 5} textAnchor={t.f === 0 ? 'start' : t.f === 1 ? 'end' : 'middle'} fontSize="9" fill="#475569">{t.km} km</text>
+        <text key={t.f} x={left + t.f * (w - left - 4)} y={h - 5} textAnchor={t.f === 0 ? 'start' : t.f === 1 ? 'end' : 'middle'} fontSize="9" fill="#475569">{t.km} {distUnit}</text>
       ))}
     </svg>
   );
@@ -88,6 +91,7 @@ const Legend = () => (
 );
 
 const Terrain: React.FC<{ leg: RoutedLeg; travelMode: string }> = ({ leg, travelMode }) => {
+  const { t, elev, dist } = useSettings();
   const road = useRoadData(leg, travelMode);
   const [elevations, setElevations] = useState<number[] | null | undefined>(undefined);
   const km = leg.distanceMeters / 1000;
@@ -97,10 +101,10 @@ const Terrain: React.FC<{ leg: RoutedLeg; travelMode: string }> = ({ leg, travel
     return () => { live = false; };
   }, [leg]);
 
-  if (elevations === undefined) return <p className="flex items-center gap-1.5 text-xs text-slate-500"><Loader2 size={12} className="animate-spin" />Loading terrain…</p>;
+  if (elevations === undefined) return <p className="flex items-center gap-1.5 text-xs text-slate-500"><Loader2 size={12} className="animate-spin" />{t('Loading terrain…')}</p>;
   if (!elevations) return (
     <div className="space-y-1">
-      <p className="text-xs text-slate-500">Elevation data isn't available for this segment.</p>
+      <p className="text-xs text-slate-500">{t("Elevation data isn't available for this segment.")}</p>
       {road && <SurfaceStrip runs={road.surfaceRuns} totalKm={km} axis />}
     </div>
   );
@@ -113,10 +117,10 @@ const Terrain: React.FC<{ leg: RoutedLeg; travelMode: string }> = ({ leg, travel
       </div>
       <Legend />
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-700">
-        <span>↑ {stats.ascent} m · ↓ {stats.descent} m</span>
-        <span>Highest {stats.highest} m</span>
-        <span>Steepest km {stats.steepestPct}%</span>
-        <span>{stats.kmOver6} km above 6%</span>
+        <span>↑ {elev(stats.ascent)} · ↓ {elev(stats.descent)}</span>
+        <span>{t('Highest {h}', { h: elev(stats.highest) })}</span>
+        <span>{t('Steepest km {pct}%', { pct: stats.steepestPct })}</span>
+        <span>{t('{d} above 6%', { d: dist(stats.kmOver6) })}</span>
       </div>
     </div>
   );
@@ -124,15 +128,16 @@ const Terrain: React.FC<{ leg: RoutedLeg; travelMode: string }> = ({ leg, travel
 
 /** A horizontal bar split into coloured parts, with a legend in km. */
 const StackedBar: React.FC<{ parts: { label: string; km: number; color: string }[] }> = ({ parts }) => {
+  const { dist } = useSettings();
   const total = parts.reduce((s, p) => s + p.km, 0) || 1;
   return (
     <div className="space-y-1">
       <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-        {parts.map(p => <div key={p.label} style={{ width: `${(p.km / total) * 100}%`, background: p.color }} title={`${p.label}: ${p.km} km`} />)}
+        {parts.map(p => <div key={p.label} style={{ width: `${(p.km / total) * 100}%`, background: p.color }} title={`${p.label}: ${dist(p.km)}`} />)}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-600">
         {parts.map(p => (
-          <span key={p.label} className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: p.color }} />{p.label} {p.km} km</span>
+          <span key={p.label} className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: p.color }} />{p.label} {dist(p.km)}</span>
         ))}
       </div>
     </div>
@@ -145,9 +150,10 @@ const SPEED_COLORS = ['#1e3a8a', '#2563eb', '#60a5fa', '#93c5fd', '#bfdbfe'];
 // `surfaceInProfile`: the strip is already under the terrain profile, so only the totals are listed here.
 const OsmRoads: React.FC<{ leg: RoutedLeg; travelMode: string; surfaceInProfile?: boolean }> = ({ leg, travelMode, surfaceInProfile }) => {
   const data = useRoadData(leg, travelMode);
+  const { t, dist, speed } = useSettings();
 
-  if (data === undefined) return <p className="flex items-center gap-1.5 text-xs text-slate-500"><Loader2 size={12} className="animate-spin" />Loading road data from OpenStreetMap…</p>;
-  if (!data) return <p className="text-[11px] text-slate-400">OpenStreetMap road data isn't available for this segment right now.</p>;
+  if (data === undefined) return <p className="flex items-center gap-1.5 text-xs text-slate-500"><Loader2 size={12} className="animate-spin" />{t('Loading road data from OpenStreetMap…')}</p>;
+  if (!data) return <p className="text-[11px] text-slate-400">{t("OpenStreetMap road data isn't available for this segment right now.")}</p>;
 
   const limits = data.speedLimits.filter(s => s.limit > 0).slice(0, 5);
   const unknown = data.speedLimits.find(s => s.limit === 0)?.km || 0;
@@ -155,33 +161,34 @@ const OsmRoads: React.FC<{ leg: RoutedLeg; travelMode: string; surfaceInProfile?
     <div className="space-y-2">
       {travelMode === 'DRIVING' && limits.length > 0 && (
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Speed limits</p>
-          <StackedBar parts={limits.map((s, i) => ({ label: `${s.limit} km/h`, km: s.km, color: SPEED_COLORS[i] }))} />
-          {unknown > 0.5 && <p className="text-[10px] text-slate-400">{unknown} km without a mapped limit.</p>}
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('Speed limits')}</p>
+          <StackedBar parts={limits.map((s, i) => ({ label: speed(s.limit), km: s.km, color: SPEED_COLORS[i] }))} />
+          {unknown > 0.5 && <p className="text-[10px] text-slate-400">{t('{d} without a mapped limit.', { d: dist(unknown) })}</p>}
         </div>
       )}
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Surface</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('Surface')}</p>
         {!surfaceInProfile && <SurfaceStrip runs={data.surfaceRuns} totalKm={leg.distanceMeters / 1000} axis />}
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-600">
           {data.surfaces.map(s => (
             <span key={s.group} className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full" style={{ background: SURFACES[s.group].color }} />{SURFACES[s.group].label} {s.km} km
+              <span className="h-2 w-2 rounded-full" style={{ background: SURFACES[s.group].color }} />{t(SURFACES[s.group].label)} {dist(s.km)}
             </span>
           ))}
         </div>
       </div>
       <p className="text-[11px] text-slate-600">
-        <span className="font-semibold">Roads: </span>
-        {data.roadClasses.slice(0, 3).map(r => `${ROAD_CLASS_LABELS[r.roadClass] || r.roadClass} ${r.km} km`).join(' · ')}
+        <span className="font-semibold">{t('Roads:')} </span>
+        {data.roadClasses.slice(0, 3).map(r => `${t(ROAD_CLASS_LABELS[r.roadClass] || r.roadClass)} ${dist(r.km)}`).join(' · ')}
       </p>
-      <p className="text-[10px] text-slate-400">Road data © OpenStreetMap contributors</p>
+      <p className="text-[10px] text-slate-400">{t('Road data © OpenStreetMap contributors')}</p>
     </div>
   );
 };
 
 const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode }) => {
   const [showTerrain, setShowTerrain] = useState(false);
+  const { t, dist, speed: fmtSpeed } = useSettings();
   const motor = travelMode === 'DRIVING';
   const roads = roadSummary(leg.steps);
   const speed = averageSpeed(leg.distanceMeters - roads.ferryKm * 1000, leg.durationSeconds);
@@ -190,21 +197,21 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode 
     <div className="w-[340px] max-w-[80vw] space-y-2 p-1 font-sans">
       <p className="text-sm font-semibold text-slate-900">{label}</p>
       {roads.ferryKm > 0 && (
-        <p className="flex items-center gap-1 text-xs text-sky-800"><Ship size={12} />Includes {roads.ferryKm} km by ferry</p>
+        <p className="flex items-center gap-1 text-xs text-sky-800"><Ship size={12} />{t('Includes {d} by ferry', { d: dist(roads.ferryKm) })}</p>
       )}
 
       {motor ? (
         <>
           <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-700">
-            <span className="flex items-center gap-1"><Gauge size={12} />Average {speed} km/h</span>
-            <span className="flex items-center gap-1"><RouteIcon size={12} />{roads.motorwayPct}% motorway</span>
+            <span className="flex items-center gap-1"><Gauge size={12} />{t('Average {s}', { s: fmtSpeed(speed) })}</span>
+            <span className="flex items-center gap-1"><RouteIcon size={12} />{t('{pct}% motorway', { pct: roads.motorwayPct })}</span>
           </div>
           {roads.roads.length > 0 && (
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Main roads</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{t('Main roads')}</p>
               <ul className="text-xs text-slate-700">
                 {roads.roads.map(r => (
-                  <li key={r.road} className="flex justify-between gap-2"><span>{r.road}</span><span className="text-slate-500">{r.km} km</span></li>
+                  <li key={r.road} className="flex justify-between gap-2"><span>{t(r.road)}</span><span className="text-slate-500">{dist(r.km)}</span></li>
                 ))}
               </ul>
             </div>
@@ -212,7 +219,7 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode 
           <OsmRoads leg={leg} travelMode={travelMode} surfaceInProfile={showTerrain} />
           {showTerrain ? <Terrain leg={leg} travelMode={travelMode} /> : (
             <button onClick={() => setShowTerrain(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline">
-              <Mountain size={12} /> Show terrain profile (off-road / mountain days)
+              <Mountain size={12} /> {t('Show terrain profile (off-road / mountain days)')}
             </button>
           )}
         </>

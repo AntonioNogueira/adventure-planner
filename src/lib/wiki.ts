@@ -18,7 +18,6 @@ interface WikiPage {
   thumbnail?: { source: string };
 }
 
-const API = 'https://en.wikipedia.org/w/api.php';
 const cache = new Map<string, Promise<PlaceHighlight | null>>();
 
 /** The town part of a stop name: "Tavira, Portugal" → "Tavira"; "Near Alcoutim, Portugal" → "Alcoutim". */
@@ -27,7 +26,7 @@ export function townName(location: string) {
 }
 
 /** Prefer the town's own article (with a picture), else the nearest article with a picture and some text. */
-export function pickHighlight(pages: WikiPage[], town: string): PlaceHighlight | null {
+export function pickHighlight(pages: WikiPage[], town: string, lang = 'en'): PlaceHighlight | null {
   const withImage = pages
     .filter(p => p.thumbnail?.source && p.extract?.trim())
     .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
@@ -39,12 +38,18 @@ export function pickHighlight(pages: WikiPage[], town: string): PlaceHighlight |
     title: page.title,
     extract: page.extract!.trim(),
     image: page.thumbnail!.source,
-    url: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+    url: page.fullurl || `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
   };
 }
 
-export function placeHighlight(location: string, at: LatLng): Promise<PlaceHighlight | null> {
-  const key = `${at.lat.toFixed(3)},${at.lng.toFixed(3)}`;
+/** The highlight for a stop, from Wikipedia in the given language (falls back to English). */
+export function placeHighlight(location: string, at: LatLng, lang: 'en' | 'pt' = 'en'): Promise<PlaceHighlight | null> {
+  if (lang === 'en') return fetchHighlight(location, at, 'en');
+  return fetchHighlight(location, at, lang).then(h => h || fetchHighlight(location, at, 'en'));
+}
+
+function fetchHighlight(location: string, at: LatLng, lang: string): Promise<PlaceHighlight | null> {
+  const key = `${lang}:${at.lat.toFixed(3)},${at.lng.toFixed(3)}`;
   if (!cache.has(key)) {
     const params = new URLSearchParams({
       action: 'query', format: 'json', origin: '*',
@@ -52,9 +57,9 @@ export function placeHighlight(location: string, at: LatLng): Promise<PlaceHighl
       prop: 'pageimages|extracts|info', piprop: 'thumbnail', pithumbsize: '480',
       exintro: '1', explaintext: '1', exsentences: '2', exlimit: '15', inprop: 'url',
     });
-    const pending = fetch(`${API}?${params}`)
+    const pending = fetch(`https://${lang}.wikipedia.org/w/api.php?${params}`)
       .then(res => (res.ok ? res.json() : Promise.reject(new Error(`Wikipedia ${res.status}`))))
-      .then(data => pickHighlight(Object.values(data.query?.pages || {}) as WikiPage[], townName(location)))
+      .then(data => pickHighlight(Object.values(data.query?.pages || {}) as WikiPage[], townName(location), lang))
       .catch(err => { console.warn('No Wikipedia highlight:', err); cache.delete(key); return null; });
     cache.set(key, pending);
   }

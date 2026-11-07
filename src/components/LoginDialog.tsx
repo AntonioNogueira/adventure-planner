@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSettings } from '../lib/settings';
 import { X, Mail, Loader2 } from 'lucide-react';
 import {
   GoogleAuthProvider, FacebookAuthProvider, OAuthProvider, AuthProvider as FirebaseProvider,
@@ -44,6 +45,7 @@ type Mode = 'signin' | 'signup' | 'reset';
 
 /** "Log in": social providers and email (log in, create account, reset password). */
 const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
+  const { t } = useSettings();
   const [mode, setMode] = useState<Mode>('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -73,7 +75,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
     if (mode === 'reset') {
       run('email', async () => {
         await sendPasswordResetEmail(auth, email);
-        setNotice(`If there's an account for ${email}, a link to reset the password is on its way.`);
+        setNotice(t("If there's an account for {email}, a link to reset the password is on its way.", { email }));
         setMode('signin');
       });
       return;
@@ -91,7 +93,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
 
   const socials = SOCIAL.filter(s => AUTH_PROVIDERS.includes(s.id));
   const emailEnabled = AUTH_PROVIDERS.includes('email');
-  const title = mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Reset your password' : 'Log in';
+  const title = mode === 'signup' ? t('Create your account') : mode === 'reset' ? t('Reset your password') : t('Log in');
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
@@ -100,9 +102,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-lg font-bold text-emerald-950">{title}</h2>
-            <p className="text-xs text-muted-foreground">Save your expeditions, bookings and share links.</p>
+            <p className="text-xs text-muted-foreground">{t('Save your expeditions, bookings and share links.')}</p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-1.5 hover:bg-slate-100"><X size={18} /></button>
+          <button onClick={onClose} aria-label={t('Close')} className="rounded-full p-1.5 hover:bg-slate-100"><X size={18} /></button>
         </div>
 
         {mode !== 'reset' && socials.length > 0 && (
@@ -111,13 +113,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
               <button key={s.id} onClick={() => social(s.make, s.id)} disabled={busy !== null}
                 className={cn('flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60', s.style)}>
                 {busy === s.id ? <Loader2 size={16} className="animate-spin" /> : s.icon}
-                {s.label}
+                {t(s.label)}
               </button>
             ))}
             {busy && busy !== 'email' && (
               <p role="status" className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
-                Pick your account in the {socials.find(s => s.id === busy)?.label.replace('Continue with ', '')} window that just opened.
-                It may say "continue to …firebaseapp.com": that's the secure sign-in service this app uses.
+                {t('Pick your account in the {provider} window that just opened. It may say "continue to …firebaseapp.com": that\'s the secure sign-in service this app uses.', { provider: socials.find(s => s.id === busy)?.label.replace('Continue with ', '') || '' })}
               </p>
             )}
           </div>
@@ -125,28 +126,28 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
 
         {emailEnabled && mode !== 'reset' && socials.length > 0 && (
           <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground">
-            <span className="h-px flex-1 bg-slate-200" />or with email<span className="h-px flex-1 bg-slate-200" />
+            <span className="h-px flex-1 bg-slate-200" />{t('or with email')}<span className="h-px flex-1 bg-slate-200" />
           </div>
         )}
 
         {emailEnabled && (
           <form onSubmit={submitEmail} className="space-y-2">
             {mode === 'signup' && (
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" autoComplete="name"
+              <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Your name')} autoComplete="name"
                 className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
             )}
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" autoComplete="email"
+            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder={t('Email')} autoComplete="email"
               className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
             {mode !== 'reset' && (
               <input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)}
-                placeholder={mode === 'signup' ? 'Password (at least 6 characters)' : 'Password'}
+                placeholder={mode === 'signup' ? t('Password (at least 6 characters)') : t('Password')}
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
             )}
             <button type="submit" disabled={busy !== null}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60">
               {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-              {mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Log in with email'}
+              {mode === 'signup' ? t('Create account') : mode === 'reset' ? t('Send reset link') : t('Log in with email')}
             </button>
           </form>
         )}
@@ -158,11 +159,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ onClose, onSignedIn }) => {
           <div className="flex flex-wrap justify-between gap-2 text-xs">
             {mode === 'signin' ? (
               <>
-                <button onClick={() => setMode('signup')} className="font-semibold text-emerald-700 hover:underline">Create an account</button>
-                <button onClick={() => setMode('reset')} className="text-muted-foreground hover:underline">Forgot password?</button>
+                <button onClick={() => setMode('signup')} className="font-semibold text-emerald-700 hover:underline">{t('Create an account')}</button>
+                <button onClick={() => setMode('reset')} className="text-muted-foreground hover:underline">{t('Forgot password?')}</button>
               </>
             ) : (
-              <button onClick={() => setMode('signin')} className="font-semibold text-emerald-700 hover:underline">← Back to log in</button>
+              <button onClick={() => setMode('signin')} className="font-semibold text-emerald-700 hover:underline">← {t('Back to log in')}</button>
             )}
           </div>
         )}

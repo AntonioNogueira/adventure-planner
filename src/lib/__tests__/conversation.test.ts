@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { updateSettings } from '../settings';
+
+// The planner's text follows Settings; these tests read it in English with km.
+beforeAll(() => updateSettings({ units: 'metric', currency: 'EUR', language: 'en' }));
 import { applyAnswer, mentionsTravelMode, nextQuestion, summaryText, mergeIntent, PlanSummary, ConversationState } from '../conversation';
 import { TripIntent } from '../../types';
 
