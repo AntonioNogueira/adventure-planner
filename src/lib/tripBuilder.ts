@@ -2,6 +2,7 @@
 // into overnight stops, using the real route from Google Maps instead of AI guesses.
 // Days are split by effort: distance plus climbing, so hilly days come out shorter.
 import { TripIntent } from '../types';
+import { t } from './settings';
 import { overnightTownsNear } from './places';
 import { geocodeAddress } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
@@ -123,7 +124,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
       const towns = await overnightTownsNear(spots, intent.lodging);
       towns.forEach((found, i) => {
         // No named place nearby (empty country): keep the night at the split point anyway.
-        const town = found || { name: `${spots[i].lat.toFixed(3)}, ${spots[i].lng.toFixed(3)}`, position: spots[i] };
+        const town = found || { name: t('Night stop at km {km}', { km: Math.round(segmentKm.slice(0, s).reduce((a, b) => a + b, 0) + splits[i]) }), position: spots[i] };
         const prev = waypoints[waypoints.length - 1];
         // Only the same spot is a duplicate; in sparse areas two nights can share a region's name.
         const sameSpot = prev?.position && town.position ? haversineKm(prev.position, town.position) < 5 : prev?.name === town.name && !town.position;

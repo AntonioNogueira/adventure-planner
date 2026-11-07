@@ -48,9 +48,16 @@ async function osrm(profile: string, locs: Loc[]): Promise<RoutedTrip> {
   const coords = locs.map(l => `${l.at.lng.toFixed(6)},${l.at.lat.toFixed(6)}`).join(';');
   const breaks = locs.map((l, i) => (l.via ? -1 : i)).filter(i => i >= 0).join(';');
   const url = `${OSRM}/${profile}/route/v1/driving/${coords}?overview=false&steps=true&geometries=geojson&waypoints=${breaks}`;
-  const res = await fetch(url);
-  const data = await res.json().catch(() => ({}));
-  if (data.code !== 'Ok' || !data.routes?.length) throw new Error(data.code === 'NoRoute' ? 'ZERO_RESULTS' : `OSRM ${data.code || res.status}`);
+  // The public server is busy at times: one retry before giving up on the whole plan.
+  let res: Response | null = null;
+  let data: any = {};
+  for (const delay of [0, 1500]) {
+    if (delay) await new Promise(r => setTimeout(r, delay));
+    res = await fetch(url).catch(() => null);
+    data = res ? await res.json().catch(() => ({})) : {};
+    if (data.code === 'Ok' && data.routes?.length) break;
+  }
+  if (data.code !== 'Ok' || !data.routes?.length) throw new Error(data.code === 'NoRoute' ? 'ZERO_RESULTS' : `OSRM ${data.code || res?.status || 'unreachable'}`);
   return {
     engine: 'osm',
     legs: data.routes[0].legs.map((leg: any): RoutedLeg => ({

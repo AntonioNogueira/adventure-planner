@@ -993,7 +993,7 @@ const App: React.FC = () => {
           <ViewTabs view={view} onChange={setView} documentCount={documentCount} />
           {view !== 'route' && (
             // Budget and Documents cover the map (which stays loaded underneath).
-            <div className="absolute inset-0 z-[15] overflow-y-auto bg-slate-50 px-4 pb-[24dvh] pt-16 md:px-8 md:pb-8 md:pt-20">
+            <div className="absolute inset-0 z-[17] overflow-y-auto bg-slate-50 px-4 pb-[24dvh] pt-16 md:px-8 md:pb-8 md:pt-20">
               {view === 'budget' ? (
                 <BudgetView
                   routeInfo={routeInfo}
