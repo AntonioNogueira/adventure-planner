@@ -134,6 +134,14 @@ const MapOsm: React.FC<MapOsmProps> = ({
     popupRef.current?.remove();
     popupRef.current = new maplibregl.Popup({ maxWidth: '400px', offset, focusAfterOpen: false })
       .setLngLat([at.lng, at.lat]).setDOMContent(content).addTo(map);
+    // Keep the popup clear of the view tabs at the top of the map.
+    setTimeout(() => {
+      const el = popupRef.current?.getElement();
+      if (!el) return;
+      const gap = el.getBoundingClientRect().top - map.getContainer().getBoundingClientRect().top;
+      const need = window.innerWidth < 768 ? 64 : 84;
+      if (gap < need) map.panBy([0, gap - need], { duration: 300 });
+    }, 80);
     popupRef.current.on('close', () => {
       openStopRef.current = null;
       setActiveSegment(-1);

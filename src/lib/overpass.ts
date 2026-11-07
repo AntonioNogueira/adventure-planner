@@ -25,6 +25,8 @@ async function runQuery(query: string): Promise<OsmElement[]> {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `data=${encodeURIComponent(query)}`,
+      // A stalled request must not hold up planning (callers fall back without Overpass).
+      signal: AbortSignal.timeout(30000),
     });
     if (res.ok) return (await res.json()).elements || [];
     if (res.status !== 429 && res.status !== 504) throw new Error(`Overpass ${res.status}`);

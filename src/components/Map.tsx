@@ -105,6 +105,13 @@ const Map: React.FC<MapProps> = ({
       map.addListener('zoom_changed', toggleLabels);
       toggleLabels();
       infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
+      // Keep popups clear of the view tabs at the top of the map (Google's auto-pan only avoids the edge).
+      infoWindowRef.current.addListener('domready', () => setTimeout(() => {
+        const box = mapRef.current?.querySelector('.gm-style-iw-c')?.getBoundingClientRect();
+        const top = mapRef.current?.getBoundingClientRect().top ?? 0;
+        const need = window.innerWidth < 768 ? 64 : 84;
+        if (box && box.top - top < need) map.panBy(0, box.top - top - need);
+      }, 350));
 
       // Clicking empty map offers to add an overnight stop there (once a route exists).
       map.addListener('click', (e: google.maps.MapMouseEvent) => {

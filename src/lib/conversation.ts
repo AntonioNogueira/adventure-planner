@@ -32,7 +32,7 @@ export interface Question {
   dateInput?: boolean;
 }
 
-const MODE_WORDS = /\b(bike|bikes|biking|bikepack\w*|cycl\w*|bicycle|gravel|mtb|hike|hiking|trek\w*|walk\w*|camino|moto\w*|motorcycle|motorbike|car|drive|driving|road ?trip|bicicleta|bici|btt|ciclismo|pedalar|caminhada|caminhar|a p[ée]|andar|trilho|trilha|mota|carro|conduzir|dirigir|viagem de carro)\b/i;
+const MODE_WORDS = /\b(bike|bikes|biking|bikepack\w*|cycl\w*|bicycle|gravel|mtb|hike|hiking|trek\w*|walk\w*|camino|moto\w*|motorcycle|motorbike|car|drive|driving|road ?trip|bicicleta|bici|btt|cicl\w*|pedal\w*|caminh\w*|a p[ée]|andar|trilh\w*|mota|motociclet\w*|carro|conduzir|dirigir|viagem de carro)\b/i;
 
 /** Did the user say how they travel? If not, the AI guessed and we ask. */
 export function mentionsTravelMode(text: string): boolean {

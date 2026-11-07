@@ -22,7 +22,7 @@ const cache = new Map<string, Promise<PlaceHighlight | null>>();
 
 /** The town part of a stop name: "Tavira, Portugal" → "Tavira"; "Near Alcoutim, Portugal" → "Alcoutim". */
 export function townName(location: string) {
-  return location.split(',')[0].replace(/^Near\s+/i, '').trim();
+  return location.split(',')[0].replace(/^(Near|Perto de)\s+/i, '').trim();
 }
 
 /** Prefer the town's own article (with a picture), else the nearest article with a picture and some text. */

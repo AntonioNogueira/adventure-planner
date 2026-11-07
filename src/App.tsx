@@ -269,15 +269,26 @@ const App: React.FC = () => {
     }
   };
 
+  // The AI can answer before the map has loaded (a slow connection, or a prompt from the welcome
+  // screen): planning waits for the map instead of giving up.
+  const mapReadyRef = useRef(false);
+  const mapWaiters = useRef<(() => void)[]>([]);
+  const whenMapReady = () => mapReadyRef.current ? Promise.resolve(true) : new Promise<boolean>(resolve => {
+    const timer = setTimeout(() => resolve(false), 45000);
+    mapWaiters.current.push(() => { clearTimeout(timer); resolve(true); });
+  });
+
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    mapReadyRef.current = true;
+    mapWaiters.current.splice(0).forEach(done => done());
     setMapReady(true);
   }, []);
 
   // The AI has understood the request; Google Maps does the rest: overnight stops along the real
   // route, the route itself, then Places suggestions for every stop.
   const handlePlanTrip = async (intent: TripIntent, baseOptions: RouteOptions = routeOptions): Promise<PlanSummary | null> => {
-    if (!mapReady) return null;
+    if (!(await whenMapReady())) return null;
     lastIntentRef.current = intent;
     // The plan's own choice about ferries wins (from the request or the planner's ferry question).
     const options = intent.avoidFerries === undefined ? baseOptions : { ...baseOptions, avoidFerries: intent.avoidFerries };
@@ -348,7 +359,7 @@ const App: React.FC = () => {
     const currentTravelMode = overrideTravelMode || travelMode;
     const options = overrideOptions || routeOptions;
 
-    if (!currentOrigin || !currentDestination || !mapReady) {
+    if (!currentOrigin || !currentDestination || !mapReadyRef.current) {
       return null;
     }
 

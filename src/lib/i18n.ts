@@ -173,6 +173,7 @@ export const PT: Record<string, string> = {
   'Open in {site}': 'Abrir no {site}',
   'Booked': 'Reservado',
   'Near {stop}: {place}': 'Perto de {stop}: {place}',
+  'Near {place}': 'Perto de {place}',
   'read more': 'ler mais',
   'Accommodations': 'Alojamento',
   'Restaurants/Cafes': 'Restaurantes/Cafés',

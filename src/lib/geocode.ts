@@ -1,5 +1,6 @@
 // Place names ↔ coordinates, cached. Google Geocoding, or Photon (OpenStreetMap, free) in the open version.
 import { isOsm } from './provider';
+import { t } from './settings';
 import { LatLng } from './geo';
 
 const cache = new Map<string, Promise<LatLng | null>>();
@@ -88,7 +89,7 @@ export async function townAt(position: LatLng): Promise<string | null> {
       const town = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
       if (town) return p.country ? `${town}, ${p.country}` : town;
       const area = p.county || p.state;
-      return area ? `Near ${area}${p.country ? `, ${p.country}` : ''}` : p.name || null;
+      return area ? `${t('Near {place}', { place: area })}${p.country ? `, ${p.country}` : ''}` : p.name || null;
     }
     const { results } = await (await googleGeocoder()).geocode({ location: position });
     if (!results.length) return null;
@@ -100,7 +101,7 @@ export async function townAt(position: LatLng): Promise<string | null> {
     if (town) return country ? `${town}, ${country}` : town;
     // Countryside: label it by the parish/municipality. The stop keeps its exact position for routing.
     const area = part('administrative_area_level_3') || part('administrative_area_level_2') || part('route');
-    return area ? `Near ${area}${country ? `, ${country}` : ''}` : results[0].formatted_address;
+    return area ? `${t('Near {place}', { place: area })}${country ? `, ${country}` : ''}` : results[0].formatted_address;
   } catch (error) {
     console.error('Reverse geocoding failed:', error);
     return null;
