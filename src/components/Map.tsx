@@ -93,7 +93,8 @@ const Map: React.FC<MapProps> = ({
         mapId: 'DEMO_MAP_ID',
         disableDefaultUI: true,
         zoomControl: true,
-        fullscreenControl: true,
+        // Phones are full screen already, and the button would sit under the view tabs.
+        fullscreenControl: window.innerWidth >= 768,
         zoomControlOptions: {
           // Right-centre stays visible above the phone's bottom sheet.
           position: google.maps.ControlPosition.RIGHT_CENTER
@@ -106,12 +107,20 @@ const Map: React.FC<MapProps> = ({
       toggleLabels();
       infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
       // Keep popups clear of the view tabs at the top of the map (Google's auto-pan only avoids the edge).
-      infoWindowRef.current.addListener('domready', () => setTimeout(() => {
+      const clearTabs = () => {
         const box = mapRef.current?.querySelector('.gm-style-iw-c')?.getBoundingClientRect();
         const top = mapRef.current?.getBoundingClientRect().top ?? 0;
         const need = window.innerWidth < 768 ? 64 : 84;
         if (box && box.top - top < need) map.panBy(0, box.top - top - need);
-      }, 350));
+      };
+      let grow: ResizeObserver | null = null;
+      infoWindowRef.current.addListener('domready', () => {
+        setTimeout(clearTabs, 350);
+        // Content that grows later (the terrain profile) is checked again.
+        grow?.disconnect();
+        const content = infoWindowRef.current?.getContent();
+        if (content instanceof HTMLElement) { grow = new ResizeObserver(() => clearTabs()); grow.observe(content); }
+      });
 
       // Clicking empty map offers to add an overnight stop there (once a route exists).
       map.addListener('click', (e: google.maps.MapMouseEvent) => {

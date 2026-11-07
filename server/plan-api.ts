@@ -520,7 +520,12 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
             const { result } = await runTaskResult(env, {
               name: 'coast', prompt: buildCoastPrompt(intent), geminiSchema: coastGeminiSchema, claudeSchema: coastJsonSchema,
             });
-            if (Array.isArray(result.route) && result.route.length) intent.route = result.route;
+            if (Array.isArray(result.route) && result.route.length) {
+              // Coastal towns steer the route; they're nights only if they were nights before (the
+              // traveller asked to stay there). Otherwise each would force a night and shorten the days.
+              const nights = new Set((intent.route || []).filter((r: any) => r.overnight).map((r: any) => String(r.place).toLowerCase()));
+              intent.route = result.route.map((r: any) => ({ place: r.place, overnight: nights.has(String(r.place).toLowerCase()) }));
+            }
           } catch (err) {
             console.warn('[plan-api] coastal towns unavailable, keeping the first answer:', err instanceof Error ? err.message : err);
           }

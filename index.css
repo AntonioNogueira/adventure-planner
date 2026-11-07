@@ -116,9 +116,14 @@
   padding-right: 2px !important;
 }
 
-/* Map popups (OSM version) always sit above the pins, including stop pins (z-index 10). */
+/* Map popups (OSM version) sit above the pins (stop pins are z-index 10) but below the view tabs (20). */
 .maplibregl-popup {
-  z-index: 20;
+  z-index: 15;
+}
+/* Tall cards (day details with terrain) scroll inside instead of running off the map. */
+.maplibregl-popup-content {
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;
 }
 
 /* Technical touches: small capitals labels and figures set in mono. */

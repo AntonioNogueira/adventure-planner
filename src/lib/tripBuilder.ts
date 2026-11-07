@@ -107,22 +107,46 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     ? totalEffort / intent.days
     : intent.dailyKm || DEFAULT_DAILY_KM[intent.travelMode] || 300;
 
+  // With a day count, share the days between the parts so they add up to exactly that many.
+  // A daily distance is a maximum, so each part (between nights the traveller chose) is rounded up.
+  const daysPerSegment = intent.days > 0
+    ? shareDays(segmentEffort, intent.days)
+    : segmentEffort.map(e => Math.max(1, Math.ceil(e / (target * (intent.dailyKm ? 1 : SPLIT_TOLERANCE)))));
+
   const waypoints: OvernightPlan['waypoints'] = [];
   for (let s = 0; s < segments.length; s++) {
-    const days = intent.days > 0
-      ? Math.max(1, Math.round(segmentEffort[s] / target))
-      : Math.max(1, Math.ceil(segmentEffort[s] / (target * (intent.dailyKm ? 1 : SPLIT_TOLERANCE))));
+    const days = daysPerSegment[s];
     if (days > 1) {
       const points = pathWithDistances(segments[s].legs);
       const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);
-      const towns = await overnightTownsNear(splits.map(km => pointAt(points, km)), intent.lodging);
-      towns.forEach(town => {
-        if (town && town.name !== waypoints[waypoints.length - 1]?.name && town.name !== intent.origin && town.name !== intent.destination) {
-          waypoints.push(town);
-        }
+      const spots = splits.map(km => pointAt(points, km));
+      const towns = await overnightTownsNear(spots, intent.lodging);
+      towns.forEach((found, i) => {
+        // No named place nearby (empty country): keep the night at the split point anyway.
+        const town = found || { name: `${spots[i].lat.toFixed(3)}, ${spots[i].lng.toFixed(3)}`, position: spots[i] };
+        const prev = waypoints[waypoints.length - 1];
+        // Only the same spot is a duplicate; in sparse areas two nights can share a region's name.
+        const sameSpot = prev?.position && town.position ? haversineKm(prev.position, town.position) < 5 : prev?.name === town.name && !town.position;
+        if (!sameSpot && town.name !== intent.origin && town.name !== intent.destination) waypoints.push(town);
       });
     }
     if (segments[s].end) waypoints.push({ name: segments[s].end! });
   }
   return { waypoints: waypoints.slice(0, MAX_WAYPOINTS), targetKm: Math.round(target) };
+}
+
+/** Split a whole number of days between parts by their effort (at least one each), largest remainders first. */
+export function shareDays(efforts: number[], days: number): number[] {
+  const total = efforts.reduce((a, b) => a + b, 0) || 1;
+  const want = Math.max(days, efforts.length);
+  const exact = efforts.map(e => (e / total) * want);
+  const out = exact.map(x => Math.max(1, Math.floor(x)));
+  let left = want - out.reduce((a, b) => a + b, 0);
+  const order = exact.map((x, i) => ({ i, frac: x - Math.floor(x) })).sort((a, b) => b.frac - a.frac);
+  for (let k = 0; left > 0; k++, left--) out[order[k % order.length].i]++;
+  for (let k = order.length - 1; left < 0 && k >= 0; k--) {
+    const i = order[k].i;
+    if (out[i] > 1) { out[i]--; left++; }
+  }
+  return out;
 }
