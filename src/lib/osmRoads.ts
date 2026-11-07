@@ -9,11 +9,11 @@ const MAX_PART_KM = 150;
 export type SurfaceGroup = 'paved' | 'rough' | 'gravel' | 'dirt' | 'impassable';
 
 export const SURFACES: Record<SurfaceGroup, { label: string; color: string }> = {
-  paved: { label: 'Asphalt', color: '#64748b' },
-  rough: { label: 'Rough asphalt', color: '#a3a3a3' },
-  gravel: { label: 'Gravel / compacted', color: '#d97706' },
-  dirt: { label: 'Dirt / path', color: '#92400e' },
-  impassable: { label: 'Impassable', color: '#7f1d1d' },
+  paved: { label: 'Asphalt', color: '#7c7261' },
+  rough: { label: 'Rough asphalt', color: '#b3a994' },
+  gravel: { label: 'Gravel / compacted', color: '#c08a3e' },
+  dirt: { label: 'Dirt / path', color: '#7a4a22' },
+  impassable: { label: 'Impassable', color: '#5c1a14' },
 };
 
 const SURFACE_GROUP: Record<string, SurfaceGroup> = {

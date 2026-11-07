@@ -28,8 +28,8 @@ const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="h-6 w-28 shrink-0" aria-label={`Elevation ${Math.round(min)}–${Math.round(max)} m`}>
       <title>{`Elevation ${Math.round(min)}–${Math.round(max)} m`}</title>
-      <polygon points={`0,${h} ${pts.join(' ')} ${w},${h}`} fill="#a7f3d0" />
-      <polyline points={pts.join(' ')} fill="none" stroke="#059669" strokeWidth="1.5" />
+      <polygon points={`0,${h} ${pts.join(' ')} ${w},${h}`} fill="#c9cda7" />
+      <polyline points={pts.join(' ')} fill="none" stroke="#3f5d45" strokeWidth="1.5" />
     </svg>
   );
 };

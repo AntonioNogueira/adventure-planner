@@ -10,10 +10,10 @@ import { osmSuggestions, osmOvernightTowns } from './overpass';
 export type CategoryId = 'stay' | 'food' | 'shop' | 'sights';
 
 export const CATEGORIES: Record<CategoryId, { name: string; glyph: string; color: string }> = {
-  stay: { name: 'Accommodations', glyph: '🛏', color: '#4f46e5' },
-  food: { name: 'Restaurants/Cafes', glyph: '🍴', color: '#ea580c' },
-  shop: { name: 'Bike/Moto Shops', glyph: '🔧', color: '#475569' },
-  sights: { name: 'Points of Interest', glyph: '📷', color: '#0d9488' },
+  stay: { name: 'Accommodations', glyph: '🛏', color: '#3d4f7a' },
+  food: { name: 'Restaurants/Cafes', glyph: '🍴', color: '#b5652a' },
+  shop: { name: 'Bike/Moto Shops', glyph: '🔧', color: '#5f5649' },
+  sights: { name: 'Points of Interest', glyph: '📷', color: '#2f6f6a' },
 };
 
 /** Map an AI or user category name back to one of the four. */

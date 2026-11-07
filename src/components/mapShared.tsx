@@ -23,7 +23,7 @@ export function buildPoints(origin: string | undefined, waypoints: Waypoint[], d
   ];
 }
 
-export const PIN_COLORS: Record<StopKind, string> = { start: '#2563eb', stop: '#059669', end: '#dc2626' };
+export const PIN_COLORS: Record<StopKind, string> = { start: '#2f4a6d', stop: '#3f5d45', end: '#7a1f1a' };
 
 export const refKey = (ref: StopRef) => ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind;
 
@@ -73,15 +73,16 @@ export function stopPinElement(kind: StopKind, badge: string, location: string, 
   const el = document.createElement('div');
   el.title = title;
   el.className = 'stop-pin';
+  // A squared map tag: number box + place name, with a pointer to the spot.
   el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;background:#fff;border:2px solid ${color};border-radius:999px;
-      padding:2px 9px 2px 2px;box-shadow:0 2px 6px rgba(0,0,0,.3);font:600 12px/1 Inter,sans-serif;color:#0f172a;
-      white-space:nowrap;cursor:pointer;">
-      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;
-        background:${color};color:#fff;font-size:11px;">${badge}</span>
+    <div style="display:flex;align-items:center;gap:6px;background:#fffcf4;border:1.5px solid ${color};border-radius:2px;
+      padding:2px 8px 2px 2px;box-shadow:2px 2px 0 rgba(42,38,32,.25);font:600 11px/1 'IBM Plex Mono',ui-monospace,monospace;
+      letter-spacing:.02em;color:#2a2620;white-space:nowrap;cursor:pointer;">
+      <span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:1px;
+        background:${color};color:#fffcf4;font-size:11px;">${badge}</span>
       <span class="stop-pin-label"></span>
     </div>
-    <div style="width:0;height:0;margin:0 auto;border-left:6px solid transparent;border-right:6px solid transparent;
+    <div style="width:0;height:0;margin:0 auto;border-left:5px solid transparent;border-right:5px solid transparent;
       border-top:7px solid ${color};"></div>`;
   // Set as text, not HTML, since the name comes from geocoding results.
   el.querySelector('.stop-pin-label')!.textContent = townName(location);

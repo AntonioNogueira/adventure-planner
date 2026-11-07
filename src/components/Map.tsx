@@ -128,7 +128,7 @@ const Map: React.FC<MapProps> = ({
       infoWindowRef.current.addListener('closeclick', () => {
         openStopRef.current = null;
         // Un-highlight the selected day.
-        segmentLinesRef.current.forEach(line => line.setOptions({ strokeColor: '#059669', strokeWeight: 6, strokeOpacity: 0.85 }));
+        segmentLinesRef.current.forEach(line => line.setOptions({ strokeColor: '#a0462c', strokeWeight: 6, strokeOpacity: 0.85 }));
       });
       onLoad(map);
       setIsReady(true);
@@ -147,7 +147,7 @@ const Map: React.FC<MapProps> = ({
     const map = googleMapRef.current;
     if (!isReady || !map) return;
     segmentLinesRef.current.forEach(line => line.setMap(null));
-    const style = (active: boolean) => ({ strokeColor: active ? '#065f46' : '#059669', strokeWeight: active ? 9 : 6, strokeOpacity: active ? 1 : 0.85 });
+    const style = (active: boolean) => ({ strokeColor: active ? '#6e2a18' : '#a0462c', strokeWeight: active ? 9 : 6, strokeOpacity: active ? 1 : 0.85 });
     segmentLinesRef.current = segments.map((segment, i) => {
       const line = new google.maps.Polyline({ map, path: segment.path, clickable: true, zIndex: 1, ...style(false) });
       line.addListener('click', (e: google.maps.PolyMouseEvent) => {
@@ -275,7 +275,7 @@ const Map: React.FC<MapProps> = ({
             const id = categoryId(item.category || cat.category);
             if (lat == null || lng == null || (!isBooking && hiddenCategories.includes(id))) return;
             const placePin = new PinElement({
-              background: isBooking ? '#7c3aed' : CATEGORIES[id].color,
+              background: isBooking ? '#6d3f63' : CATEGORIES[id].color,
               borderColor: '#ffffff',
               glyphColor: '#ffffff',
               ...({ glyphText: CATEGORIES[id].glyph } as google.maps.marker.PinElementOptions),
@@ -313,8 +313,8 @@ const Map: React.FC<MapProps> = ({
           // On phones the planner sheet covers the lower half: keep the route in the visible top part.
           const phone = window.innerWidth < 768;
           googleMapRef.current.fitBounds(bounds, phone
-            ? { top: 110, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) }
-            : 60);
+            ? { top: 170, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) }
+            : { top: 110, left: 60, right: 60, bottom: 80 });
         }
         lastBoundsKeyRef.current = boundsKey;
         skipFitRef.current = false;
@@ -328,7 +328,7 @@ const Map: React.FC<MapProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="vintage-map relative h-full w-full">
       <div ref={mapRef} className="h-full w-full" />
 
       {mapsError && (
@@ -348,7 +348,7 @@ const Map: React.FC<MapProps> = ({
               aria-pressed={!hidden}
               title={`${hidden ? 'Show' : 'Hide'} ${CATEGORIES[id].name} on the map`}
               className={cn(
-                "flex items-center gap-1 rounded-full border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity",
+                "flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity",
                 hidden && "opacity-50 line-through"
               )}
               style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
@@ -358,7 +358,7 @@ const Map: React.FC<MapProps> = ({
             </button>
           );
         })}
-        <span className="flex items-center gap-1 rounded-full border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
+        <span className="flex items-center gap-1 rounded-sm border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
           <span className="h-2 w-2 rounded-full bg-violet-600" />
           <span className="hidden sm:inline">Booked</span>
         </span>

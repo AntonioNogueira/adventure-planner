@@ -41,10 +41,10 @@ export function terrainStats(elevations: number[], totalKm: number): TerrainStat
 
 /** Colour for a gradient: flat, moderate, steep, very steep. */
 export function gradientColor(pct: number): string {
-  if (pct > 10) return '#dc2626';
-  if (pct > 6) return '#f97316';
-  if (pct > 3) return '#eab308';
-  return '#10b981';
+  if (pct > 10) return '#9b2c22';
+  if (pct > 6) return '#c56a2c';
+  if (pct > 3) return '#c9a227';
+  return '#6f8f5a';
 }
 
 // Road numbers such as A-4, AP-7, N-340, E-15, SS1, D6098, M25, I-95.

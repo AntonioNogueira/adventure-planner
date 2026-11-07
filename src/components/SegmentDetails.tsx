@@ -81,7 +81,7 @@ const ProfileChart: React.FC<{ elevations: number[]; totalKm: number; axis?: boo
 
 const Legend = () => (
   <div className="flex flex-wrap gap-2 text-[10px] text-slate-600">
-    {[['#10b981', '0–3%'], ['#eab308', '3–6%'], ['#f97316', '6–10%'], ['#dc2626', '>10%']].map(([c, l]) => (
+    {[['#6f8f5a', '0–3%'], ['#c9a227', '3–6%'], ['#c56a2c', '6–10%'], ['#9b2c22', '>10%']].map(([c, l]) => (
       <span key={l} className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: c }} />{l}</span>
     ))}
   </div>

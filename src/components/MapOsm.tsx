@@ -58,8 +58,8 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
 ];
 
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
-const ROUTE_COLOR = '#059669';
-const ACTIVE_COLOR = '#065f46';
+const ROUTE_COLOR = '#a0462c';
+const ACTIVE_COLOR = '#6e2a18';
 
 /** A teardrop pin with a label, as a DOM element for MapLibre markers. */
 function pinElement(color: string, text: string, size: number, title: string): HTMLElement {
@@ -87,7 +87,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
   if (source) { source.setData(data); return; }
   const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
   map.addSource('route', { type: 'geojson', data });
-  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#ffffff', 'line-width': 9 } });
+  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#fffcf4', 'line-width': 9 } });
   map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout, paint: { 'line-color': ROUTE_COLOR, 'line-width': 5 } });
   map.addLayer({ id: 'route-active', type: 'line', source: 'route', filter: ['==', ['get', 'index'], active], layout, paint: { 'line-color': ACTIVE_COLOR, 'line-width': 8 } });
 }
@@ -279,7 +279,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
           const lng = isBooking ? item.reservation?.lng : item.lng;
           const id = categoryId(item.category || cat.category);
           if (lat == null || lng == null || (!isBooking && hiddenCategories.includes(id))) return;
-          const placeEl = pinElement(isBooking ? '#7c3aed' : CATEGORIES[id].color, CATEGORIES[id].glyph, isBooking ? 24 : 20, `${isBooking ? 'Booked: ' : ''}${item.name} (${point.label})`);
+          const placeEl = pinElement(isBooking ? '#6d3f63' : CATEGORIES[id].color, CATEGORIES[id].glyph, isBooking ? 24 : 20, `${isBooking ? 'Booked: ' : ''}${item.name} (${point.label})`);
           placeEl.addEventListener('click', (e) => {
             e.stopPropagation();
             showPopup({ lat, lng }, (
@@ -300,7 +300,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       if (!bounds.isEmpty() && boundsKey !== lastBoundsKeyRef.current && !skipFitRef.current) {
         // On phones the planner sheet covers the lower half: keep the route in the visible top part.
         const phone = window.innerWidth < 768;
-        map.fitBounds(bounds, { padding: phone ? { top: 110, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) } : 60, maxZoom: 13, duration: 600 });
+        map.fitBounds(bounds, { padding: phone ? { top: 170, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) } : { top: 110, left: 60, right: 60, bottom: 80 }, maxZoom: 13, duration: 600 });
       }
       lastBoundsKeyRef.current = boundsKey;
       skipFitRef.current = false;
@@ -309,7 +309,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="vintage-map relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" />
 
       {/* Category legend: show or hide suggestion pins */}
@@ -322,7 +322,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
               onClick={() => setHiddenCategories(prev => hidden ? prev.filter(c => c !== id) : [...prev, id])}
               aria-pressed={!hidden}
               title={`${hidden ? 'Show' : 'Hide'} ${CATEGORIES[id].name} on the map`}
-              className={cn("flex items-center gap-1 rounded-full border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity", hidden && "opacity-50 line-through")}
+              className={cn("flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity", hidden && "opacity-50 line-through")}
               style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
             >
               <span>{CATEGORIES[id].glyph}</span>
@@ -330,7 +330,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
             </button>
           );
         })}
-        <span className="flex items-center gap-1 rounded-full border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
+        <span className="flex items-center gap-1 rounded-sm border border-violet-600 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-violet-700 shadow-md">
           <span className="h-2 w-2 rounded-full bg-violet-600" />
           <span className="hidden sm:inline">Booked</span>
         </span>

@@ -196,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="rounded-lg bg-emerald-600 p-1.5 text-white shadow-lg shadow-emerald-900/20">
             <Navigation size={20} />
           </div>
-          <h1 className="truncate text-lg font-bold tracking-tight text-emerald-950">Adventure Planner</h1>
+          <h1 className="truncate text-sm font-semibold uppercase text-emerald-950">Adventure Planner</h1>
         </div>
         <div className="relative flex shrink-0 items-center gap-1">
           <button
@@ -406,7 +406,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => onRouteOptionsChange({ ...routeOptions, [key]: !routeOptions[key] })}
               aria-pressed={routeOptions[key]}
               className={cn(
-                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                "rounded-sm border px-2.5 py-1 font-mono text-[10px] font-medium uppercase transition-colors",
                 routeOptions[key] ? "border-emerald-600 bg-emerald-600 text-white" : "border-emerald-100 text-muted-foreground hover:bg-emerald-50"
               )}
             >

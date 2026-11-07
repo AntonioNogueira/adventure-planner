@@ -17,10 +17,10 @@ describe('gradients / colours', () => {
     expect(gradients([0, 10, 10], 0.2)).toEqual([10, 0]);
   });
   it('colours flat to very steep', () => {
-    expect(gradientColor(1)).toBe('#10b981');
-    expect(gradientColor(5)).toBe('#eab308');
-    expect(gradientColor(8)).toBe('#f97316');
-    expect(gradientColor(12)).toBe('#dc2626');
+    expect(gradientColor(1)).toBe('#6f8f5a');
+    expect(gradientColor(5)).toBe('#c9a227');
+    expect(gradientColor(8)).toBe('#c56a2c');
+    expect(gradientColor(12)).toBe('#9b2c22');
   });
 });
 
