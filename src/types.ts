@@ -1,3 +1,5 @@
+import type { BudgetSettings } from './lib/budget';
+
 export interface RouteStep {
   instruction: string;
   distance: string;
@@ -122,6 +124,8 @@ export interface RouteInfo {
   startDate?: string;
   avoid?: { avoidHighways: boolean; avoidFerries: boolean; avoidTolls: boolean };
   lodging?: 'any' | 'camping' | 'hostel' | 'hotel';
+  /** The traveller's budget averages (Budget tab). */
+  budget?: BudgetSettings;
   /** Anyone with the link can view a shared trip. */
   shared?: boolean;
   userId?: string;

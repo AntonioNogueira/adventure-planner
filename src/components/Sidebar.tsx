@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   MapPin,
   Navigation,
@@ -18,6 +18,8 @@ import {
   Info,
   Paperclip,
   Share2,
+  LogOut,
+  ChevronRight,
 } from 'lucide-react';
 import { RouteInfo, Waypoint, StopRef, TripIntent } from '../types';
 import type { PlanSummary } from './AIAgent';
@@ -56,6 +58,8 @@ interface SidebarProps {
   onLogin: () => void;
   onLogout: () => void;
   hasChanges: boolean;
+  /** The typed route changed since it was last calculated. */
+  needsCalculate: boolean;
   onRemoveItem: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   onAttachFile: (ref: StopRef | null, file: File) => void;
   attachingKey: string | null;
@@ -77,6 +81,8 @@ interface SidebarProps {
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
+  /** The top tab; on phones the sheet drops to its smallest height for Budget and Documents. */
+  view?: 'route' | 'budget' | 'documents';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -101,9 +107,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLogin,
   onLogout,
   hasChanges,
+  needsCalculate,
   expeditionName,
   setExpeditionName,
   initialPrompt,
+  view = 'route',
   onRemoveItem,
   onAttachFile,
   attachingKey,
@@ -125,6 +133,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const reservationInput = useRef<HTMLInputElement>(null);
   const [sheet, setSheet] = useState<SheetHeight>('half');
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
+  // The manual route form is open until there's a route, then folds into a one-line summary.
+  const [formOpen, setFormOpen] = useState(!routeInfo);
+  const [stopsOpen, setStopsOpen] = useState(false);
+  const hasRoute = Boolean(routeInfo);
+  useEffect(() => { setFormOpen(!hasRoute); }, [hasRoute]);
+  useEffect(() => { if (view !== 'route') setSheet('peek'); }, [view]);
   const warningsFor = (key: string) => Object.fromEntries(
     warnings.filter(w => w.key === key).map(w => [`${w.categoryIndex}-${w.itemIndex}`, w.message]));
   const travelModes = [
@@ -175,22 +191,58 @@ const Sidebar: React.FC<SidebarProps> = ({
         <span className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
         <span className="text-[10px] text-muted-foreground">{sheet === 'full' ? 'Tap to show the map' : 'Tap to expand'}</span>
       </button>
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-emerald-600 p-2 text-white shadow-lg shadow-emerald-900/20">
-            <Navigation size={24} />
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="rounded-lg bg-emerald-600 p-1.5 text-white shadow-lg shadow-emerald-900/20">
+            <Navigation size={20} />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-emerald-950">Adventure Planner</h1>
+          <h1 className="truncate text-lg font-bold tracking-tight text-emerald-950">Adventure Planner</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <button 
+        <div className="relative flex shrink-0 items-center gap-1">
+          <button
             onClick={onShowSaved}
-            className="rounded-full p-2 hover:bg-accent text-muted-foreground"
+            className="rounded-full p-2 text-muted-foreground hover:bg-accent"
             title="Saved Expeditions"
             aria-label="Saved Expeditions"
           >
-            <History size={20} />
+            <History size={18} />
           </button>
+          {user ? (
+            <>
+              <button
+                onClick={() => setAccountOpen(o => !o)}
+                className="rounded-full ring-emerald-300 hover:ring-2"
+                title={user.email || 'Account'}
+                aria-label="Account"
+                aria-expanded={accountOpen}
+              >
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="" className="h-8 w-8 rounded-full border border-emerald-200" referrerPolicy="no-referrer" />
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                    {(user.displayName?.[0] || user.email?.[0] || 'U').toUpperCase()}
+                  </span>
+                )}
+              </button>
+              {accountOpen && (
+                <div className="absolute right-0 top-10 z-30 w-56 rounded-lg border bg-white p-3 text-xs shadow-xl">
+                  <p className="truncate font-bold">{user.displayName || 'Explorer'}</p>
+                  <p className="mb-2 truncate text-muted-foreground">{user.email}</p>
+                  <button onClick={() => { setAccountOpen(false); onLogout(); }} className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline">
+                    <LogOut size={12} /> Sign out
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={onLogin}
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-md transition-colors hover:bg-emerald-700"
+              title="Log in to save your expeditions, keep bookings and share trips"
+            >
+              Log in
+            </button>
+          )}
         </div>
       </div>
 
@@ -200,57 +252,41 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      <div className="mb-6 rounded-xl border bg-muted/30 p-4">
-        {user ? (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName} className="h-10 w-10 rounded-full border border-emerald-200" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">
-                  {user.displayName?.[0] || user.email?.[0] || 'U'}
-                </div>
-              )}
-              <div className="flex flex-col">
-                <span className="text-sm font-bold truncate max-w-[120px]">{user.displayName || 'Explorer'}</span>
-                <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{user.email}</span>
-              </div>
-            </div>
-            <button 
-              onClick={onLogout}
-              className="text-xs font-medium text-emerald-600 hover:underline"
-            >
-              Sign Out
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3 text-center">
-            <p className="text-xs text-muted-foreground">Log in to save your expeditions, keep bookings and share trips.</p>
-            <button
-              onClick={onLogin}
-              className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-colors"
-            >
-              Log in
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-6">
+      <div className="mb-4">
         <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} />
       </div>
 
       {aiSummary && (
-        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-900 /30">
+        <button
+          onClick={() => setBriefOpen(o => !o)}
+          className="mb-4 w-full rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-left text-xs text-emerald-900"
+          title={briefOpen ? 'Show less' : 'Show all'}
+        >
           <div className="mb-1 flex items-center gap-1 font-bold uppercase tracking-wider">
             <Sparkles size={12} />
             Adventure Brief
           </div>
-          <p className="italic leading-relaxed opacity-90">{aiSummary}</p>
-        </div>
+          <p className={cn("italic leading-relaxed opacity-90", !briefOpen && "line-clamp-2")}>{aiSummary}</p>
+        </button>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
+        {hasRoute && (
+          <button
+            onClick={() => setFormOpen(o => !o)}
+            aria-expanded={formOpen}
+            className="flex w-full items-center gap-2 rounded-lg border border-emerald-100 bg-white px-3 py-2 text-left text-xs hover:bg-emerald-50"
+          >
+            {formOpen ? <ChevronDown size={14} className="shrink-0 text-emerald-700" /> : <ChevronRight size={14} className="shrink-0 text-emerald-700" />}
+            <span className="font-bold uppercase tracking-wider text-emerald-700">Route</span>
+            <span className="min-w-0 flex-1 truncate text-muted-foreground">
+              {origin.split(',')[0]} → {destination.split(',')[0]} · {waypoints.length} stop{waypoints.length === 1 ? '' : 's'} · {travelModes.find(m => m.id === travelMode)?.label}
+            </span>
+            <span className="shrink-0 font-semibold text-emerald-700">{formOpen ? 'Hide' : 'Edit'}</span>
+          </button>
+        )}
+        {(formOpen || !hasRoute) && (
+        <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-emerald-700">
             Start
@@ -346,14 +382,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                 key={mode.id}
                 onClick={() => setTravelMode(mode.id as any)}
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-md border p-2 transition-all hover:bg-emerald-50",
+                  "flex items-center justify-center gap-1.5 rounded-md border px-1 py-1.5 transition-all hover:bg-emerald-50",
                   isActive ? "border-emerald-600 bg-emerald-600/10 text-emerald-600" : "border-muted text-muted-foreground"
                 )}
                 title={mode.label}
                 aria-pressed={isActive}
               >
-                <Icon size={18} />
-                <span className="mt-1 text-[10px] font-medium leading-none">{mode.label}</span>
+                <Icon size={15} />
+                <span className="text-[10px] font-medium leading-none">{mode.label}</span>
               </button>
             );
           })}
@@ -378,9 +414,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
           ))}
         </div>
+        </div>
+        )}
 
         <div className="flex gap-2">
-          {(!routeInfo || hasChanges) && (
+          {(!routeInfo || needsCalculate) && (
             <button
               onClick={() => onCalculate()}
               disabled={isLoading || !origin || !destination}
@@ -393,14 +431,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {routeInfo && (
           <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-              Expedition Name
-            </label>
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Give your expedition a name"
-                className="flex h-10 flex-1 rounded-md border border-emerald-100 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 "
+                aria-label="Expedition name"
+                className="flex h-10 min-w-0 flex-1 rounded-md border border-emerald-100 bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 "
                 value={expeditionName}
                 onChange={(e) => setExpeditionName(e.target.value)}
               />
@@ -459,7 +495,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {routeInfo && (
-        <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Itinerary
             routeInfo={routeInfo}
             schedule={schedule}
@@ -473,7 +509,15 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700">Expedition Details</h3>
+              <button
+                onClick={() => setStopsOpen(o => !o)}
+                aria-expanded={stopsOpen}
+                className="flex min-w-0 items-center gap-1.5 text-left"
+              >
+                {stopsOpen ? <ChevronDown size={14} className="shrink-0 text-emerald-700" /> : <ChevronRight size={14} className="shrink-0 text-emerald-700" />}
+                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700">Stops &amp; places</h3>
+                <span className="text-[11px] text-muted-foreground">({routeInfo.waypoints.length + 2})</span>
+              </button>
               <input
                 ref={reservationInput}
                 type="file"
@@ -495,6 +539,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {attachingKey === 'any' ? 'Reading…' : 'Add reservation'}
               </button>
             </div>
+            {stopsOpen && (<>
             <p className="text-[11px] text-muted-foreground">Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.</p>
             <StopDetails
               kind="start" badge="S" title="Start" location={routeInfo.origin} interests={routeInfo.originInterests || []}
@@ -529,6 +574,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
               attaching={attachingKey === 'end'}
             />
+            </>)}
           </div>
         </div>
       )}

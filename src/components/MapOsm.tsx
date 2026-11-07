@@ -313,7 +313,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       <div ref={containerRef} className="h-full w-full" />
 
       {/* Category legend: show or hide suggestion pins */}
-      <div className="absolute left-3 top-16 z-10 flex flex-wrap gap-1 md:bottom-8 md:left-6 md:top-auto">
+      <div className="absolute left-3 top-[7.25rem] z-10 flex flex-wrap gap-1 md:bottom-8 md:left-6 md:top-auto">
         {CATEGORY_IDS.map(id => {
           const hidden = hiddenCategories.includes(id);
           return (
@@ -337,7 +337,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       </div>
 
       {/* Map style controls */}
-      <div className="absolute left-3 top-3 z-10 md:left-6 md:top-6">
+      <div className="absolute left-3 top-16 z-10 md:left-6 md:top-6">
         <div className="flex flex-row gap-1 overflow-hidden rounded-xl border border-white/20 bg-white/85 p-1 shadow-xl backdrop-blur-md md:flex-col">
           {MAP_TYPES.map(({ id, label, icon: Icon }) => (
             <button

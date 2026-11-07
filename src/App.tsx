@@ -26,6 +26,10 @@ import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, setDoc, u
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, getRedirectResult, signOut } from 'firebase/auth';
 import LoginDialog from './components/LoginDialog';
+import BudgetView from './components/BudgetView';
+import DocumentsView from './components/DocumentsView';
+import ViewTabs, { AppView } from './components/ViewTabs';
+import { BudgetSettings, defaultBudget } from './lib/budget';
 import { authErrorMessage } from './lib/authErrors';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string | null }> {
@@ -171,6 +175,12 @@ const App: React.FC = () => {
   const [mapReady, setMapReady] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [lodging, setLodging] = useState<LodgingPreference>('any');
+  // Top tabs: the map (Route), the Budget table or the Documents bucket.
+  const [view, setView] = useState<AppView>('route');
+  // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
+  const [budgetSettings, setBudgetSettings] = useState<BudgetSettings | null>(null);
+  // The typed route (start, stops, end, mode) changed since the last calculation.
+  const [routeStale, setRouteStale] = useState(false);
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -393,6 +403,7 @@ const App: React.FC = () => {
         ferryKm: Math.round(leg.steps.filter(st => st.ferry).reduce((sum, st) => sum + st.distanceMeters, 0) / 1000) || undefined,
       }));
 
+      setRouteStale(false);
       setRouteInfo({
         name: expeditionName || `${currentOrigin} to ${currentDestination} Expedition`,
         origin: currentOrigin,
@@ -449,7 +460,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const hasInputs = origin && destination && mapReady;
-    const isInitialLoad = hasInputs && (!routeInfo || routeInfo.distance === '...') && !isLoading && !error;
+    // Only for trips being opened or planned (distance '...'); typed routes wait for "Calculate",
+    // so a half-typed destination or stops still being added don't start a route.
+    const isInitialLoad = hasInputs && routeInfo?.distance === '...' && !isLoading && !error;
 
     if (isInitialLoad) {
       calculateRoute();
@@ -676,6 +689,10 @@ const App: React.FC = () => {
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ]) : {}, [routeInfo]);
 
+  const documentCount = useMemo(() => routeInfo ? [
+    routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
+  ].flat().reduce((n, cat) => n + cat.items.filter(item => item.source === 'reservation').length, 0) : 0, [routeInfo]);
+
   // Map segments: one per riding day, labelled with the day number (rest days included).
   const segments = useMemo(() => (trip?.legs || []).map((leg, i) => {
     const dayNumber = schedule.findIndex(d => d.kind === 'ride' && d.legIndex === i) + 1;
@@ -796,6 +813,7 @@ const App: React.FC = () => {
         startDate: startDate || undefined,
         avoid: routeOptions,
         lodging,
+        budget: budgetSettings || undefined,
         shared: owned ? routeInfo.shared : false,
         createdAt: owned && routeInfo.createdAt ? routeInfo.createdAt : Date.now(),
       }));
@@ -852,6 +870,7 @@ const App: React.FC = () => {
     setStartDate(route.startDate || '');
     setRouteOptions(route.avoid || NO_AVOIDANCES);
     setLodging(route.lodging || 'any');
+    setBudgetSettings(route.budget || null);
     setCurrentTripId(route.id || null);
     setViewingShared(Boolean(options.shared));
     setShareLink(route.shared && route.id ? `${window.location.origin}${window.location.pathname}?trip=${route.id}` : null);
@@ -898,13 +917,15 @@ const App: React.FC = () => {
       <div className="relative h-[100dvh] w-full overflow-hidden bg-background text-foreground md:flex md:flex-row">
         <Sidebar
           origin={origin}
-          setOrigin={(val) => { setOrigin(val); setHasChanges(true); }}
+          setOrigin={(val) => { setOrigin(val); setHasChanges(true); setRouteStale(true); }}
           destination={destination}
-          setDestination={(val) => { setDestination(val); setHasChanges(true); }}
+          setDestination={(val) => { setDestination(val); setHasChanges(true); setRouteStale(true); }}
           waypoints={waypoints}
-          setWaypoints={(val) => { setWaypoints(val); setHasChanges(true); }}
+          setWaypoints={(val) => { setWaypoints(val); setHasChanges(true); setRouteStale(true); }}
           travelMode={travelMode as any}
-          setTravelMode={(val) => { setTravelMode(val); setHasChanges(true); }}
+          setTravelMode={(val) => { setTravelMode(val); setHasChanges(true); setRouteStale(true); }}
+          needsCalculate={routeStale}
+          view={view}
           onCalculate={handleCalculate}
           onSave={handleSave}
           onShowSaved={() => setShowSaved(true)}
@@ -941,6 +962,22 @@ const App: React.FC = () => {
           onFindPlaces={handleFindPlaces}
         />
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
+          <ViewTabs view={view} onChange={setView} documentCount={documentCount} />
+          {view !== 'route' && (
+            // Budget and Documents cover the map (which stays loaded underneath).
+            <div className="absolute inset-0 z-[15] overflow-y-auto bg-slate-50 px-4 pb-[24dvh] pt-16 md:px-8 md:pb-8 md:pt-20">
+              {view === 'budget' ? (
+                <BudgetView
+                  routeInfo={routeInfo}
+                  schedule={schedule}
+                  settings={budgetSettings || defaultBudget(travelMode as string, lodging)}
+                  onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
+                />
+              ) : (
+                <DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} />
+              )}
+            </div>
+          )}
           <Suspense fallback={<div className="h-full w-full bg-slate-100" />}>
           <MapView
             onLoad={handleMapLoad} 
