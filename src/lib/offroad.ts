@@ -1,5 +1,6 @@
 // Off-road routing for beginners, used by both versions (Google and OpenStreetMap):
-//   bike  → BRouter "gravel": gravel and dirt tracks, not technical singletrack
+//   bike  → BRouter "gravel" preferring unpaved ways and avoiding steep climbs: gravel and dirt tracks,
+//           not technical singletrack (measured: Évora → Mértola 64% unpaved vs 25% plain gravel, 0% normal)
 //   moto  → BRouter with our "easy adventure" profile (below): good dirt tracks and quiet roads,
 //           never footpaths, cycleways, closed ways or very rough tracks (grade 4-5, sand, mud)
 //   hike  → Valhalla pedestrian, trails up to difficulty T2 (sac_scale mountain_hiking), preferring tracks
@@ -77,12 +78,15 @@ function adventureProfileId(fresh = false): Promise<string> {
   return motoProfile;
 }
 
+/** Gravel profile switches: more unpaved ways, gentler climbs, away from busy roads. */
+const GRAVEL_EASY = '&profile:prefer_unpaved_paths=1&profile:avoid_steep_inclines=1&profile:avoid_noise=1';
+
 const UNPAVED = /surface=(gravel|fine_gravel|compacted|dirt|ground|unpaved|earth|pebblestone|sand|grass)/;
 
 /** One day through BRouter: path, distance, a time from typical off-road speeds, and ferry/unpaved steps. */
-async function brouterLeg(points: LatLng[], profile: string, travelMode: string): Promise<RoutedLeg> {
+async function brouterLeg(points: LatLng[], profile: string, travelMode: string, params = ''): Promise<RoutedLeg> {
   const lonlats = points.map(p => `${p.lng.toFixed(6)},${p.lat.toFixed(6)}`).join('|');
-  const res = await fetch(`${BROUTER}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson`, { signal: AbortSignal.timeout(45000) });
+  const res = await fetch(`${BROUTER}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson${params}`, { signal: AbortSignal.timeout(45000) });
   const text = await res.text();
   let data: any;
   try { data = JSON.parse(text); } catch { throw new Error(`BRouter: ${text.slice(0, 120)}`); }
@@ -167,7 +171,7 @@ export async function offroadTrip(req: TripRequest): Promise<RoutedTrip> {
 
   const routeDay = async (points: LatLng[]): Promise<RoutedLeg> => {
     if (req.travelMode === 'WALKING') return hikeLeg(points);
-    if (req.travelMode === 'BICYCLING') return brouterLeg(points, 'gravel', req.travelMode);
+    if (req.travelMode === 'BICYCLING') return brouterLeg(points, 'gravel', req.travelMode, GRAVEL_EASY);
     try {
       return await brouterLeg(points, await adventureProfileId(), req.travelMode);
     } catch {
