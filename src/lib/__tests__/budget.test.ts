@@ -21,11 +21,12 @@ const stops: BudgetStop[] = [
 
 describe('defaultBudget', () => {
   it('starts from the travel mode and lodging', () => {
-    expect(defaultBudget('DRIVING', 'camping')).toMatchObject({ stayPerNight: 20, fuelPer100km: 6 });
+    expect(defaultBudget('DRIVING', 'camping')).toMatchObject({ stayPerNight: 20 });
+    expect(defaultBudget('DRIVING').fuelPrice).toBeUndefined();   // estimated from the route
     expect(defaultBudget('BICYCLING', 'hotel')).toMatchObject({ stayPerNight: 75, fuelPer100km: 0, fuelPrice: 0 });
   });
   it('starts from local prices in the chosen currency', () => {
-    expect(defaultBudget('DRIVING', 'hotel', 'BRL')).toMatchObject({ currency: 'BRL', stayPerNight: 250, fuelPrice: 6.2 });
+    expect(defaultBudget('DRIVING', 'hotel', 'BRL')).toMatchObject({ currency: 'BRL', stayPerNight: 250 });
     expect(defaultBudget('DRIVING', 'any', 'USD')).toMatchObject({ currency: 'USD', stayPerNight: 90 });
     expect(defaultBudget('BICYCLING', 'any', 'SEK')).toMatchObject({ currency: 'SEK', stayPerNight: 630, foodPerDay: 350 });
   });
@@ -48,10 +49,18 @@ describe('computeBudget', () => {
     expect(budget.nights).toBe(3);
   });
 
-  it('counts fuel on riding km only (ferries excluded)', () => {
-    expect(budget.rows[0].fuel).toBe(10.5);   // 100 km × 6 L/100 km × 1.75
-    expect(budget.rows[1].fuel).toBe(0);      // rest day
+  it('counts fuel for the whole trip on riding km (ferries excluded)', () => {
+    const b = computeBudget({ ...settings, fuelPer100km: 6, fuelPrice: 1.75 }, schedule, legs, stops);
+    expect(b.fuel).toMatchObject({ km: 200, per100km: 6, price: 1.75, estimatedPrice: false });   // 100 + 50 + 50 km
+    expect(b.totals.fuel).toBe(21);
     expect(budget.rows[3].km).toBe(50);
+  });
+
+  it('estimates consumption and the fuel price from the countries on the route', () => {
+    const pt = legs.map(l => ({ ...l, from: `${l.from}, Portugal`, to: `${l.to}, Portugal` }));
+    const b = computeBudget(settings, schedule, pt, stops);
+    expect(b.fuel).toMatchObject({ per100km: 5.2, price: 1.74, estimatedPrice: true, countries: ['PT'] });
+    expect(computeBudget(settings, schedule, pt, stops, null, { offroad: true }).fuel.per100km).toBe(6);
   });
 
   it('adds food and other every day, plus tolls and extras', () => {
@@ -120,8 +129,9 @@ describe('local prices and tolls', () => {
   it('uses them per day, and estimates tolls from toll km', () => {
     const b = computeBudget({ ...defaultBudget('DRIVING'), tollPerKm: 0.1 }, sched, twoLegs,
       [stops[0], placesStop, stops[3]], [40, 0]);
-    expect(b.rows[0]).toMatchObject({ stayKind: 'places', stay: 25, food: 33, foodFromPlaces: true, tollKm: 40, tolls: 4 });
-    expect(b.rows[1]).toMatchObject({ stayKind: 'none', tolls: 0, foodFromPlaces: false });
+    expect(b.rows[0]).toMatchObject({ stayKind: 'places', stay: 25, food: 33, foodFromPlaces: true });
+    expect(b.rows[1]).toMatchObject({ stayKind: 'none', foodFromPlaces: false });
+    expect(b.tolls).toMatchObject({ km: 40, rate: 0.1, estimatedRate: false });
     expect(b.totals.tolls).toBe(4);
     expect(budgetCsv(b, 'EUR').split('\n')[1]).toContain('average of 2 places');
   });

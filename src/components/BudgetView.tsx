@@ -15,6 +15,8 @@ interface BudgetViewProps {
   onChange: (settings: BudgetSettings) => void;
   /** Each day's path, to measure km on toll roads (moto/car). */
   legPaths: LatLng[][];
+  /** Off-road trip (a little more fuel per km). */
+  offroad?: boolean;
 }
 
 import { CURRENCIES } from '../lib/settings';
@@ -33,7 +35,27 @@ const NumberField: React.FC<{ label: string; value: number; onChange: (v: number
   </label>
 );
 
-const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths }) => {
+/** A number the app can estimate: empty shows the estimate (marked "auto"); typing overrides it. */
+const EstimateField: React.FC<{ label: string; value?: number; estimate: number; onChange: (v: number | undefined) => void; suffix?: string; step?: number; hint?: string; autoLabel: string }> = ({ label, value, estimate, onChange, suffix, step = 1, hint, autoLabel }) => (
+  <label className="flex flex-col gap-1 text-xs" title={hint}>
+    <span className="flex items-center justify-between gap-1 font-semibold text-slate-600">
+      {label}
+      {value === undefined
+        ? <span className="rounded-sm bg-emerald-100 px-1 text-[9px] font-bold uppercase text-emerald-800">{autoLabel}</span>
+        : <button type="button" onClick={(e) => { e.preventDefault(); onChange(undefined); }} className="text-[10px] font-semibold text-emerald-700 hover:underline">↺ {autoLabel}</button>}
+    </span>
+    <span className="flex items-center rounded-md border border-emerald-100 bg-white focus-within:ring-2 focus-within:ring-emerald-500/20">
+      <input
+        type="number" min={0} step={step} value={value ?? ''} placeholder={String(estimate)}
+        onChange={(e) => onChange(e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0))}
+        className="h-9 w-full min-w-0 rounded-md bg-transparent px-2 text-sm outline-none placeholder:text-slate-500"
+      />
+      {suffix && <span className="shrink-0 pr-2 text-[11px] text-slate-400">{suffix}</span>}
+    </span>
+  </label>
+);
+
+const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths, offroad }) => {
   const { t, settings: app, distUnit, toDist, money: fmtMoney, date } = useSettings();
   const imperial = app.units === 'imperial';
   // US units for fuel: mpg and price per gallon (stored as L/100 km and per litre).
@@ -59,8 +81,8 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
   }, [legPaths, motorTrip]);
 
   const budget = useMemo(
-    () => computeBudget(settings, schedule, routeInfo?.legs || [], stops, tollKm || []),
-    [settings, schedule, routeInfo, stops, tollKm],
+    () => computeBudget(settings, schedule, routeInfo?.legs || [], stops, tollKm, { offroad, motor: motorTrip }),
+    [settings, schedule, routeInfo, stops, tollKm, offroad, motorTrip],
   );
 
   if (!routeInfo?.legs?.length) {
@@ -78,6 +100,11 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
   const motor = routeInfo.travelMode === 'DRIVING';
   const foreign = Object.entries(budget.otherCurrencies);
   const days = budget.rows.filter(r => r.kind !== 'before').length;
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  let regionNames: Intl.DisplayNames | null = null;
+  try { regionNames = new Intl.DisplayNames([app.language], { type: 'region' }); } catch { /* old browser */ }
+  const countryNames = budget.fuel.countries.slice(0, 3).map(c => regionNames?.of(c) || c).join(', ');
+  const auto = t('auto');
 
   const rowLabel = (r: { kind: string; label: string; nightAt?: string }) =>
     r.kind === 'before' ? t('Night before departure in {place}', { place: r.nightAt || '' })
@@ -136,12 +163,24 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
           <NumberField label={t('Stay / night')} value={settings.stayPerNight} onChange={v => set({ stayPerNight: v })} suffix={cur} hint={t('Used where a stop has no places to stay found and no booking')} />
           <NumberField label={t('Food / day')} value={settings.foodPerDay} onChange={v => set({ foodPerDay: v })} suffix={cur} />
           {motor && (imperial
-            ? <NumberField label={t('Consumption')} value={settings.fuelPer100km ? Math.round(MPG_FACTOR / settings.fuelPer100km * 10) / 10 : 0} onChange={v => set({ fuelPer100km: v ? MPG_FACTOR / v : 0 })} suffix="mpg" step={0.5} />
-            : <NumberField label={t('Consumption')} value={settings.fuelPer100km} onChange={v => set({ fuelPer100km: v })} suffix="L/100km" step={0.1} />)}
+            ? <EstimateField label={t('Consumption')} autoLabel={auto} suffix="mpg" step={0.5}
+                value={settings.fuelPer100km ? r2(MPG_FACTOR / settings.fuelPer100km) : settings.fuelPer100km === 0 ? 0 : undefined}
+                estimate={r2(MPG_FACTOR / budget.fuel.per100km)} onChange={v => set({ fuelPer100km: v === undefined ? undefined : v ? MPG_FACTOR / v : 0 })}
+                hint={t('A typical touring/adventure motorcycle; a little more off-road')} />
+            : <EstimateField label={t('Consumption')} autoLabel={auto} suffix="L/100km" step={0.1}
+                value={settings.fuelPer100km} estimate={budget.fuel.per100km} onChange={v => set({ fuelPer100km: v })}
+                hint={t('A typical touring/adventure motorcycle; a little more off-road')} />)}
           {motor && (imperial
-            ? <NumberField label={t('Fuel price')} value={Math.round(settings.fuelPrice * L_PER_GAL * 100) / 100} onChange={v => set({ fuelPrice: v / L_PER_GAL })} suffix={`${cur}/gal`} step={0.01} />
-            : <NumberField label={t('Fuel price')} value={settings.fuelPrice} onChange={v => set({ fuelPrice: v })} suffix={`${cur}/L`} step={0.01} />)}
-          {motor && <NumberField label={t('Tolls / km')} value={settings.tollPerKm ?? 0} onChange={v => set({ tollPerKm: v })} suffix={`${cur}/km`} step={0.01} hint={t('Per km on toll roads; toll roads are found from OpenStreetMap')} />}
+            ? <EstimateField label={t('Fuel price')} autoLabel={auto} suffix={`${cur}/gal`} step={0.01}
+                value={settings.fuelPrice === undefined ? undefined : r2(settings.fuelPrice * L_PER_GAL)}
+                estimate={r2(budget.fuel.price * L_PER_GAL)} onChange={v => set({ fuelPrice: v === undefined ? undefined : v / L_PER_GAL })}
+                hint={t('Typical average price in the countries on the route')} />
+            : <EstimateField label={t('Fuel price')} autoLabel={auto} suffix={`${cur}/L`} step={0.01}
+                value={settings.fuelPrice} estimate={budget.fuel.price} onChange={v => set({ fuelPrice: v })}
+                hint={t('Typical average price in the countries on the route')} />)}
+          {motor && <EstimateField label={t('Tolls / km')} autoLabel={auto} suffix={`${cur}/km`} step={0.01}
+            value={settings.tollPerKm} estimate={budget.tolls.rate} onChange={v => set({ tollPerKm: v })}
+            hint={t('Per km on toll roads; toll roads are found from OpenStreetMap')} />}
           <NumberField label={t('Other / day')} value={settings.otherPerDay} onChange={v => set({ otherPerDay: v })} suffix={cur} hint={t('Coffee, entries, parking, tickets…')} />
         </div>
         <label className="mt-3 flex items-center gap-2 text-xs text-slate-600">
@@ -186,8 +225,6 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
               <th className="px-3 py-2">{t('Night')}</th>
               <th className="px-3 py-2 text-right">{t('Stay')}</th>
               <th className="px-3 py-2 text-right">{t('Food')}</th>
-              {motor && <th className="px-3 py-2 text-right">{t('Fuel')}</th>}
-              {motor && <th className="px-3 py-2 text-right">{t('Tolls')}</th>}
               <th className="px-3 py-2 text-right">{t('Other')}</th>
               <th className="px-3 py-2 text-right">{t('Total')}</th>
             </tr>
@@ -211,29 +248,46 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
                   {r.food ? money(r.food) : '—'}
                   {r.foodFromPlaces && <span className="block text-[9px] text-emerald-700">{t('local prices')}</span>}
                 </td>
-                {motor && <td className="px-3 py-2 text-right tabular-nums">{r.fuel ? money(r.fuel) : '—'}</td>}
-                {motor && (
-                  <td className="px-3 py-2 text-right tabular-nums" title={r.tollKm ? t('{d} on toll roads', { d: `${Math.round(toDist(r.tollKm))} ${distUnit}` }) : undefined}>
-                    {r.kind !== 'ride' ? '—' : tollKm === null ? '…' : r.tolls ? money(r.tolls) : '—'}
-                  </td>
-                )}
                 <td className="px-3 py-2 text-right tabular-nums">{r.other ? money(r.other) : '—'}</td>
                 <td className="px-3 py-2 text-right font-semibold tabular-nums">{money(r.total)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot className="border-t-2 text-xs">
-            {(settings.tollsTotal || 0) > 0 && (
-              <tr><td colSpan={motor ? 9 : 7} className="px-3 py-1.5 text-right text-muted-foreground">{t('Tolls')}</td><td className="px-3 py-1.5 text-right tabular-nums">{money(settings.tollsTotal)}</td></tr>
+            {motor && (
+              <tr>
+                <td colSpan={7} className="px-3 py-1.5 text-right text-muted-foreground">
+                  <span className="font-semibold text-slate-700">{t('Fuel')}</span>{' · '}
+                  {t('{d} × {c} × {p}', {
+                    d: `${Math.round(toDist(budget.fuel.km))} ${distUnit}`,
+                    c: imperial ? `${r2(MPG_FACTOR / budget.fuel.per100km)} mpg` : `${budget.fuel.per100km} L/100 km`,
+                    p: imperial ? `${money(budget.fuel.price * L_PER_GAL)}/gal` : `${money(budget.fuel.price)}/L`,
+                  })}
+                  {budget.fuel.estimatedPrice && countryNames && <span className="text-[10px]"> ({t('typical price in {countries}', { countries: countryNames })})</span>}
+                </td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{money(budget.totals.fuel)}</td>
+              </tr>
+            )}
+            {motor && (
+              <tr>
+                <td colSpan={7} className="px-3 py-1.5 text-right text-muted-foreground">
+                  <span className="font-semibold text-slate-700">{t('Tolls')}</span>{' · '}
+                  {tollKm === null
+                    ? t('finding toll roads on the route…')
+                    : t('{d} on toll roads × {r}/km', { d: `${Math.round(toDist(budget.tolls.km))} ${distUnit}`, r: money(budget.tolls.rate) })}
+                  {(settings.tollsTotal || 0) > 0 && <> + {money(settings.tollsTotal)}</>}
+                </td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{tollKm === null ? '…' : money(budget.totals.tolls)}</td>
+              </tr>
             )}
             {budget.bookings.map((b, i) => (
-              <tr key={`b${i}`}><td colSpan={motor ? 9 : 7} className="px-3 py-1.5 text-right text-muted-foreground">{t('Booked:')} {b.name} <span className="text-[10px]">({b.stop.split(',')[0]})</span></td><td className="px-3 py-1.5 text-right tabular-nums">{money(b.amount)}</td></tr>
+              <tr key={`b${i}`}><td colSpan={7} className="px-3 py-1.5 text-right text-muted-foreground">{t('Booked:')} {b.name} <span className="text-[10px]">({b.stop.split(',')[0]})</span></td><td className="px-3 py-1.5 text-right tabular-nums">{money(b.amount)}</td></tr>
             ))}
             {settings.extras.filter(e => e.amount > 0).map((e, i) => (
-              <tr key={i}><td colSpan={motor ? 9 : 7} className="px-3 py-1.5 text-right text-muted-foreground">{e.label || t('One-off cost')}</td><td className="px-3 py-1.5 text-right tabular-nums">{money(e.amount)}</td></tr>
+              <tr key={i}><td colSpan={7} className="px-3 py-1.5 text-right text-muted-foreground">{e.label || t('One-off cost')}</td><td className="px-3 py-1.5 text-right tabular-nums">{money(e.amount)}</td></tr>
             ))}
             <tr className="bg-emerald-50 font-bold text-emerald-950">
-              <td colSpan={motor ? 9 : 7} className="px-3 py-2 text-right">{t('Total')}</td>
+              <td colSpan={7} className="px-3 py-2 text-right">{t('Total')}</td>
               <td className="px-3 py-2 text-right tabular-nums">{money(budget.totals.all)}</td>
             </tr>
           </tfoot>

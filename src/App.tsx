@@ -1054,6 +1054,7 @@ const App: React.FC = () => {
                   settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency)}
                   onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
                   legPaths={legPaths}
+                  offroad={routeOptions.offroad}
                 />
               ) : (
                 <DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} />
