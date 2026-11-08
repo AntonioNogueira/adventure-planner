@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSettings, getSettings, t as tr } from '../lib/settings';
+import { authFetch, checkLimit, LimitError, refreshAccount, openPlans } from '../lib/account';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent } from '../types';
 import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, mentionsTravelMode, mergeIntent } from '../lib/conversation';
@@ -17,12 +18,14 @@ interface AIAgentProps {
 
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
   // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
-  const response = await fetch('/api/plan', {
+  const response = await authFetch('/api/plan', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     // The current plan travels with the request, so the AI changes only what the user asks.
     body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language }),
   });
+  await checkLimit(response);
+  refreshAccount();
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
@@ -129,6 +132,11 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       if (mentionsTravelMode(messageToPlan)) modeMentionedRef.current = true;
       await runPlan(intent);
     } catch (error) {
+      if (error instanceof LimitError) {
+        say({ text: t("You've used today's {n} AI plans on your plan. You can still edit the route by hand, or see the plans for more.", { n: error.limit }) });
+        openPlans('aiPlans');
+        return;
+      }
       console.error('AI Planning failed:', error);
       const reason = error instanceof Error ? error.message : '';
       say({ text: `${t("Sorry, I couldn't plan that route.")} ${reason}`.trim() });

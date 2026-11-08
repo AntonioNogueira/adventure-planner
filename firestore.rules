@@ -6,7 +6,7 @@ service cloud.firestore {
     // ===============================================================
     //
     // Collection: users
-    // Fields: uid, email, displayName, photoURL, createdAt
+    // Fields: uid, email, displayName, photoURL, createdAt, plan (free|explorer|trip_pass|pro), planUntil
     //
     // Collection: trips
     // Fields: userId, name, origin, destination, waypoints, travelMode, distance, duration, createdAt,
@@ -58,10 +58,18 @@ service cloud.firestore {
     // Rules
     // ===============================================================
 
+    // Subscription fields (plan, planUntil) are set by the payment system or by hand in the console,
+    // never by the user: creating them is refused and changing them is refused.
+    function keepsPlan() {
+      return request.resource.data.get('plan', null) == resource.data.get('plan', null)
+          && request.resource.data.get('planUntil', null) == resource.data.get('planUntil', null);
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUser(request.resource.data);
-      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data)
+                    && !('plan' in request.resource.data) && !('planUntil' in request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && keepsPlan();
     }
 
     match /trips/{tripId} {

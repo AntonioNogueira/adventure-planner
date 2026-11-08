@@ -13,7 +13,12 @@ export default defineConfig(({ mode, command }) => {
   // Login options shown in the login dialog: email, google, facebook, apple (each enabled in Firebase).
   const authProviders = (env.AUTH_PROVIDERS || 'email,google').replace(/[^a-z,]/g, '');
   // Tells the page which map stack to use; the Google Maps script is only loaded for 'google'.
-  const providerScripts = `<script>window.__APP_CONFIG__ = { mapProvider: "${mapProvider}", authProviders: "${authProviders}" };</script>`
+  // Checkout links for paid plans (e.g. Stripe Payment Links or Paddle/Lemon Squeezy checkouts); empty = "coming soon".
+  const checkout = Object.fromEntries((['explorer', 'trip_pass', 'pro'] as const)
+    .map(id => [id, (env[`CHECKOUT_URL_${id.toUpperCase()}`] || '').trim()])
+    .filter(([, url]) => /^https:\/\//.test(url)));
+  const appConfig = JSON.stringify({ mapProvider, authProviders, checkout }).replace(/</g, '\\u003c');
+  const providerScripts = `<script>window.__APP_CONFIG__ = ${appConfig};</script>`
     + (mapProvider === 'google'
       ? `\n    <script src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry&key=${mapsKey}&v=weekly&loading=async" async></script>`
       : '');

@@ -31,6 +31,8 @@ import Itinerary from './Itinerary';
 import { ScheduleDay, BookingWarning } from '../lib/schedule';
 import { RouteOptions } from '../lib/routing';
 import { useSettings } from '../lib/settings';
+import { useAccount, openPlans } from '../lib/account';
+import { PLANS } from '../lib/plans';
 
 // Phone bottom-sheet heights (desktop always uses the full-height sidebar).
 type SheetHeight = 'peek' | 'half' | 'full';
@@ -133,6 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onFindPlaces,
 }) => {
   const { t, localizeText } = useSettings();
+  const account = useAccount();
   const reservationInput = useRef<HTMLInputElement>(null);
   const [sheet, setSheet] = useState<SheetHeight>('half');
   const [accountOpen, setAccountOpen] = useState(false);
@@ -230,6 +233,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="absolute right-0 top-10 z-30 w-56 rounded-lg border bg-white p-3 text-xs shadow-xl">
                   <p className="truncate font-bold">{user.displayName || t('Explorer')}</p>
                   <p className="mb-2 truncate text-muted-foreground">{user.email}</p>
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-sm bg-emerald-50 px-2 py-1.5">
+                    <span>
+                      <span className="font-bold uppercase text-emerald-800">{t(PLANS[account.plan].name)}</span>
+                      <span className="block text-[10px] text-muted-foreground">{t('{used} of {limit} AI plans today', { used: account.usage.aiPlans, limit: account.limits.aiPlans })}</span>
+                    </span>
+                    <button onClick={() => { setAccountOpen(false); openPlans(); }} className="shrink-0 font-semibold text-emerald-700 hover:underline">{t('Plans')}</button>
+                  </div>
                   <button onClick={() => { setAccountOpen(false); onLogout(); }} className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline">
                     <LogOut size={12} /> {t('Sign out')}
                   </button>

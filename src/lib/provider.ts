@@ -4,7 +4,7 @@
 export type MapProvider = 'google' | 'osm';
 
 declare global {
-  interface Window { __APP_CONFIG__?: { mapProvider?: string; authProviders?: string } }
+  interface Window { __APP_CONFIG__?: { mapProvider?: string; authProviders?: string; checkout?: Record<string, string> } }
 }
 
 export const MAP_PROVIDER: MapProvider =
@@ -33,3 +33,6 @@ export type AuthProvider = 'email' | 'google' | 'facebook' | 'apple';
 export const AUTH_PROVIDERS: AuthProvider[] = (
   (typeof window !== 'undefined' && window.__APP_CONFIG__?.authProviders) || 'email,google'
 ).split(',').map(s => s.trim()).filter((s): s is AuthProvider => ['email', 'google', 'facebook', 'apple'].includes(s));
+
+/** Checkout links for paid plans, from the server's CHECKOUT_URL_* settings (missing = not on sale yet). */
+export const CHECKOUT_URLS: Record<string, string> = (typeof window !== 'undefined' && window.__APP_CONFIG__?.checkout) || {};

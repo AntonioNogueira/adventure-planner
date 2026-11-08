@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Route as RouteIcon, Wallet, FolderOpen, Settings } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSettings, LANGUAGES, CURRENCIES, Units, Language } from '../lib/settings';
+import { useAccount, openPlans } from '../lib/account';
+import { PLANS } from '../lib/plans';
 
 export type AppView = 'route' | 'budget' | 'documents';
 
@@ -14,6 +16,7 @@ const TABS: { id: AppView; label: string; icon: typeof RouteIcon }[] = [
 /** Distance units, currency and language (defaults come from the browser's locale). */
 const SettingsMenu: React.FC = () => {
   const { settings, update, t } = useSettings();
+  const account = useAccount();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -66,6 +69,10 @@ const SettingsMenu: React.FC = () => {
             </select>
           </label>
           <p className="text-[10px] text-muted-foreground">{t('Set from your browser’s region at first; saved on this device.')}</p>
+          <div className="flex items-center justify-between border-t pt-2">
+            <span><span className="font-semibold text-slate-600">{t('Plan')}:</span> {t(PLANS[account.plan].name)}</span>
+            <button onClick={() => { setOpen(false); openPlans(); }} className="font-semibold text-emerald-700 hover:underline">{t('See plans')}</button>
+          </div>
         </div>
       )}
     </div>

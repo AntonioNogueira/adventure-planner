@@ -112,3 +112,26 @@ gcloud run deploy adventure-planner --source . --region europe-west1 --allow-una
 - Add the new domain to Firebase **Authorized domains** (above).
 - In Google Cloud Console → Credentials, restrict the Maps key to **HTTP referrers** `http://localhost:3000/*` and `https://<your-domain>/*`.
 - AI requests are limited to `AI_REQUESTS_PER_HOUR` (default 60) per visitor so a public link can't use up your Gemini quota.
+
+## Plans and limits (prototype)
+
+Plans and their daily limits are in `src/lib/plans.ts`:
+
+| | Visitor (logged out) | Free | Explorer €4.99/month · €39/year | Trip Pass €7.99 (3 months) | Pro €24/month |
+|---|---|---|---|---|---|
+| Saved trips | – | 3 | unlimited | unlimited | unlimited |
+| AI plans / day | 5 | 10 | 100 | 100 | 400 |
+| Place searches / day | 10 | 20 | 300 | 300 | 1500 |
+| Documents read / day | 2 | 5 | 200 | 200 | 1000 |
+
+- The server checks the caller's Firebase login token and counts AI plans, place searches and document reads per day
+  (in memory, so counts reset when the server restarts). Over a limit, the app shows the **Plans** screen.
+- A user's plan is the `plan` field (`free`, `explorer`, `trip_pass`, `pro`) on their `users/{uid}` document in Firestore,
+  with an optional `planUntil` timestamp (Trip Pass). Set it by hand in the Firebase console for now; the security rules
+  stop users from changing it themselves (publish the updated `firestore.rules`).
+- For testing without Firestore: `PLAN_OVERRIDES=you@example.com=explorer`. Change limits with `PLAN_LIMITS` (JSON).
+- **Upgrade** buttons open `CHECKOUT_URL_EXPLORER` / `_TRIP_PASS` / `_PRO` (e.g. Stripe Payment Links, which get the
+  buyer's email and Firebase uid as `client_reference_id`). Turning a payment into a plan automatically needs a small
+  webhook with Firebase Admin credentials: the next step once a payment account exists.
+- Saved-trip limits are checked in the app; place searches are counted before suggestions load. For hard limits on
+  Google Places costs, the Places calls would move behind the server too.

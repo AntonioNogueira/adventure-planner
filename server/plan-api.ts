@@ -3,10 +3,16 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { ApiError, GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 import Anthropic from '@anthropic-ai/sdk';
+import firebaseConfig from '../firebase-applet-config.json';
+import { verifyIdToken, readPlanRecord, Caller } from './auth';
+import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 
 // Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
 //   POST /api/plan                 understand a trip request (start, finish, mode, days, places to pass)
 //   POST /api/extract-reservation  read a booking PDF/email/image and return its details
+//   GET  /api/me                   the caller's plan, limits and today's usage
+//   POST /api/usage                count place searches ({ kind: 'placeSearches', amount })
+// Plans and limits: src/lib/plans.ts. Signed-in callers send their Firebase ID token.
 // Overnight stops and place suggestions come from Google Maps/Places in the browser, not from the AI.
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
@@ -20,6 +26,41 @@ interface PlanEnv {
   OPENAI_MODEL?: string;
   AI_PROVIDER?: string;
   AI_REQUESTS_PER_HOUR?: string;
+  /** JSON overrides for plan limits, e.g. {"free":{"aiPlans":3}}. */
+  PLAN_LIMITS?: string;
+  /** Grant plans for testing without payments: "you@example.com=explorer,friend@example.com=pro". */
+  PLAN_OVERRIDES?: string;
+}
+
+// ---- Plans: who is calling, their plan and today's usage ----
+
+const planUsage = new UsageCounter();
+
+interface Account { who: string; plan: PlanId; limits: Limits; caller: Caller | null }
+
+async function account(env: PlanEnv, req: IncomingMessage): Promise<Account> {
+  let overrides: Partial<Record<PlanId, Partial<Limits>>> | undefined;
+  try { overrides = env.PLAN_LIMITS ? JSON.parse(env.PLAN_LIMITS) : undefined; } catch { overrides = undefined; }
+  const auth = String(req.headers.authorization || '');
+  const caller = auth.startsWith('Bearer ') ? await verifyIdToken(auth.slice(7), firebaseConfig.projectId) : null;
+  if (!caller) {
+    const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    return { who: `ip:${forwarded || req.socket.remoteAddress || 'unknown'}`, plan: 'anonymous', limits: limitsFor('anonymous', overrides), caller: null };
+  }
+  const granted = caller.email ? parsePlanOverrides(env.PLAN_OVERRIDES).get(caller.email.toLowerCase()) : undefined;
+  const plan = granted || effectivePlan(await readPlanRecord(caller, firebaseConfig.projectId, firebaseConfig.firestoreDatabaseId), true);
+  return { who: `uid:${caller.uid}`, plan, limits: limitsFor(plan, overrides), caller };
+}
+
+function usageOf(a: Account) {
+  return { aiPlans: planUsage.used(a.who, 'aiPlans'), placeSearches: planUsage.used(a.who, 'placeSearches'), documents: planUsage.used(a.who, 'documents') };
+}
+
+/** Count one use, or answer 402 with what ran out (the app shows the plans screen). */
+function allow(res: ServerResponse, a: Account, kind: UsageKind, amount = 1): boolean {
+  if (planUsage.take(a.who, kind, a.limits[kind], amount)) return true;
+  sendJson(res, 402, { error: 'limit', code: 'limit', kind, limit: a.limits[kind], plan: a.plan, signedIn: Boolean(a.caller) });
+  return false;
 }
 
 interface ChatMessage {
@@ -488,8 +529,13 @@ const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    const routes = ['/api/plan', '/api/extract-reservation'];
+    const routes = ['/api/plan', '/api/extract-reservation', '/api/me', '/api/usage'];
     if (!req.url || !routes.includes(req.url)) return next();
+    if (req.url === '/api/me') {
+      if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
+      const a = await account(env, req);
+      return sendJson(res, 200, { plan: a.plan, signedIn: Boolean(a.caller), limits: a.limits, usage: usageOf(a) });
+    }
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     if (overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });
 
@@ -500,7 +546,15 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       return sendJson(res, 400, { error: 'Invalid or too large request body' });
     }
 
+    const acct = await account(env, req);
+    if (req.url === '/api/usage') {
+      const amount = Math.max(1, Math.min(50, Number(body.amount) || 1));
+      if (!allow(res, acct, 'placeSearches', amount)) return;
+      return sendJson(res, 200, { ok: true, usage: usageOf(acct), limits: acct.limits });
+    }
+
     if (req.url === '/api/plan') {
+      if (!allow(res, acct, 'aiPlans')) return;
       const request = String(body.prompt || '').trim().slice(0, 4000);
       const history: ChatMessage[] = Array.isArray(body.history) ? body.history.slice(-10) : [];
       // The plan the map shows now (with choices made via quick replies), so changes build on it.
@@ -543,6 +597,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
     const data = String(body.data || '');
     const stops: string[] = Array.isArray(body.stops) ? body.stops.map(String).slice(0, 30) : [];
     if (!data) return sendJson(res, 400, { error: 'File is required' });
+    if (!allow(res, acct, 'documents')) return;
 
     const isText = mimeType.startsWith('text/') || mimeType === 'message/rfc822' || /\.(eml|txt|html?)$/i.test(fileName);
     if (!isText && !SUPPORTED_BINARY.has(mimeType)) {

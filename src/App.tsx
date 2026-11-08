@@ -32,6 +32,8 @@ import ViewTabs, { AppView } from './components/ViewTabs';
 import { BudgetSettings, defaultBudget } from './lib/budget';
 import { authErrorMessage } from './lib/authErrors';
 import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
+import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, openPlans, getAccount, PlansReason } from './lib/account';
+import PlansDialog from './components/PlansDialog';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -194,6 +196,9 @@ const App: React.FC = () => {
   const [view, setView] = useState<AppView>('route');
   // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
   const [budgetSettings, setBudgetSettings] = useState<BudgetSettings | null>(null);
+  // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
+  const [plansReason, setPlansReason] = useState<PlansReason | undefined>(undefined);
+  useEffect(() => onOpenPlans(reason => setPlansReason(reason)), []);
   // The typed route (start, stops, end, mode) changed since the last calculation.
   const [routeStale, setRouteStale] = useState(false);
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
@@ -229,6 +234,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      // The plan follows the account (Visitor when logged out).
+      refreshAccount();
     });
     return () => unsubscribe();
   }, []);
@@ -535,7 +542,7 @@ const App: React.FC = () => {
     const stops = allStops();
     setAttachingKey(ref ? (ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind) : 'any');
     try {
-      const response = await fetch('/api/extract-reservation', {
+      const response = await authFetch('/api/extract-reservation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -545,6 +552,8 @@ const App: React.FC = () => {
           stops: stops.map(s => `${stopLabel(s.ref)}: ${s.location}`),
         }),
       });
+      await checkLimit(response);
+      refreshAccount();
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || tr('Could not read the file ({status})', { status: response.status }));
       const r = data.reservation;
@@ -598,6 +607,11 @@ const App: React.FC = () => {
         type: 'success',
       });
     } catch (err) {
+      if (err instanceof LimitError) {
+        setToast({ message: tr("You've used today's document reads on your plan."), type: 'error' });
+        openPlans('documents');
+        return;
+      }
       console.error('Reservation import failed:', err);
       setToast({ message: err instanceof Error ? err.message : tr('Could not read that file.'), type: 'error' });
     } finally {
@@ -656,7 +670,14 @@ const App: React.FC = () => {
   };
 
   // Fetch Google Places suggestions for several stops (in the background).
-  const loadSuggestions = (refs: StopRef[], locations: (string | google.maps.LatLngLiteral)[], mode: string, lodgingPref: LodgingPreference) => {
+  const loadSuggestions = async (refs: StopRef[], locations: (string | google.maps.LatLngLiteral)[], mode: string, lodgingPref: LodgingPreference) => {
+    if (!refs.length) return;
+    // Each stop's suggestions count as one place search (the costly part of a trip).
+    if (!(await takePlaceSearches(refs.length))) {
+      setToast({ message: tr("You've used today's place searches on your plan."), type: 'error' });
+      openPlans('placeSearches');
+      return;
+    }
     let failed = false;
     refs.forEach((ref, i) => {
       placeSuggestions(locations[i], mode, lodgingPref)
@@ -828,6 +849,14 @@ const App: React.FC = () => {
   // Save: update the trip if it's yours, otherwise (new or someone's shared trip) save a new copy.
   const handleSave = async () => {
     if (!routeInfo || !user) return;
+    // A new trip (not an update of one of yours) counts against the plan's saved trips.
+    const isNew = !currentTripId || viewingShared;
+    const maxTrips = getAccount().limits.savedTrips;
+    if (isNew && maxTrips !== null && savedRoutes.length >= maxTrips) {
+      setToast({ message: tr("You've saved as many trips as your plan allows."), type: 'error' });
+      openPlans('savedTrips');
+      return;
+    }
     const path = 'trips';
     try {
       const { info, failed } = await uploadAttachments(routeInfo, user.uid);
@@ -1041,6 +1070,15 @@ const App: React.FC = () => {
               setInitialPrompt(prompt);
               setShowWelcome(false);
             }} 
+          />
+        )}
+
+        {plansReason !== undefined && (
+          <PlansDialog
+            reason={plansReason}
+            savedTrips={savedRoutes.length}
+            onClose={() => setPlansReason(undefined)}
+            onLogin={handleLogin}
           />
         )}
 
