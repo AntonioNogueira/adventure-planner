@@ -50,10 +50,13 @@ export interface OvernightPlan {
 async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> {
   const [start, end] = await Promise.all([geocodeAddress(intent.origin), geocodeAddress(intent.destination)]);
   if (!start || !end) return intent.route;
-  const located = await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) })));
+  const located = (await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) }))))
+    // The origin or destination listed again (within 3 km) would only make an empty day.
+    .filter(r => !r.at || (haversineKm(r.at, start) > 3 && haversineKm(r.at, end) > 3));
   const kept: typeof located = [];
   located.forEach((r, i) => {
-    if (r.overnight) { kept.push(r); return; }
+    // A night the traveller asked for stays, unless its location is clearly wrong (a far-off namesake).
+    if (r.overnight && (!r.at || (haversineKm(start, r.at) + haversineKm(r.at, end)) / Math.max(1, haversineKm(start, end)) <= 2.5)) { kept.push(r); return; }
     if (!r.at) return;
     const prev = kept.length ? kept[kept.length - 1].at || start : start;
     const next = located.slice(i + 1).find(n => n.at)?.at || end;
@@ -104,11 +107,9 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     segmentKm[i], profiles[i], kmPer1000m, ferries[i].reduce((sum, [a, b]) => sum + b - a, 0)));
   const totalEffort = segmentEffort.reduce((a, b) => a + b, 0);
 
-  // Days are split on the normal route; off-road routes run ~15% longer and slower, so aim a little shorter.
-  const offroadFactor = options?.offroad ? 0.85 : 1;
   const target = intent.days > 0
     ? totalEffort / intent.days
-    : (intent.dailyKm || DEFAULT_DAILY_KM[intent.travelMode] || 300) * offroadFactor;
+    : intent.dailyKm || DEFAULT_DAILY_KM[intent.travelMode] || 300;
 
   // With a day count, share the days between the parts so they add up to exactly that many.
   // A daily distance is a maximum, so each part (between nights the traveller chose) is rounded up.

@@ -109,6 +109,8 @@ Return the complete plan:
   whole stretch stays on the coast (e.g. Cádiz → Valencia along the coast: Tarifa, Algeciras, Marbella, Málaga, Motril,
   Almería, Cartagena, Alicante, Dénia).
   Every place must lie between the origin and destination in the direction of travel; never add detours.
+  Never list the origin or destination themselves. Use towns or villages, not regions or mountain ranges: for a region
+  (e.g. "through the Alpujarras", "over Serra da Estrela") name one or two towns in it (Trevélez; Torre / Penhas da Saúde).
   Set overnight=true only if the user wants to sleep there.
 - lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any" (or the current plan's value).
 - avoidFerries: true if they want to travel overland / without ferries or boats (or the current plan says so), otherwise false.
@@ -575,6 +577,9 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
           claudeSchema: planJsonSchema,
           allowOpenAI: true,
         });
+        // Places that are just the origin or destination again (the AI sometimes repeats them) make empty days.
+        const town = (p: string) => String(p || '').split(',')[0].trim().toLowerCase();
+        if (Array.isArray(intent.route)) intent.route = intent.route.filter((r: any) => ![town(intent.origin), town(intent.destination)].includes(town(r.place)));
         if (intent.coastFrom && intent.coastTo) {
           try {
             const { result } = await runTaskResult(env, {
@@ -584,7 +589,8 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
               // Coastal towns steer the route; they're nights only if they were nights before (the
               // traveller asked to stay there). Otherwise each would force a night and shorten the days.
               const nights = new Set((intent.route || []).filter((r: any) => r.overnight).map((r: any) => String(r.place).toLowerCase()));
-              intent.route = result.route.map((r: any) => ({ place: r.place, overnight: nights.has(String(r.place).toLowerCase()) }));
+              intent.route = result.route.map((r: any) => ({ place: r.place, overnight: nights.has(String(r.place).toLowerCase()) }))
+                .filter((r: any) => ![town(intent.origin), town(intent.destination)].includes(town(r.place)));
             }
           } catch (err) {
             console.warn('[plan-api] coastal towns unavailable, keeping the first answer:', err instanceof Error ? err.message : err);

@@ -3,7 +3,8 @@
 //           not technical singletrack (measured: Évora → Mértola 64% unpaved vs 25% plain gravel, 0% normal)
 //   moto  → BRouter with our "easy adventure" profile (below): good dirt tracks and quiet roads,
 //           never footpaths, cycleways, closed ways or very rough tracks (grade 4-5, sand, mud)
-//   hike  → Valhalla pedestrian, trails up to difficulty T2 (sac_scale mountain_hiking), preferring tracks
+//   hike  → Valhalla pedestrian, trails up to difficulty T2 (sac_scale mountain_hiking), preferring tracks and
+//           avoiding pavements beside roads (measured Manteigas → Covilhã: 65% trail vs 41% default)
 // Google's directions have no off-road option at all, so these OpenStreetMap engines are used even on the
 // Google map. Each day is routed separately (short requests). brouter.de and valhalla1.openstreetmap.de are
 // free public services (fair use); a busy product should run its own BRouter/Valhalla.
@@ -127,7 +128,7 @@ async function hikeLeg(points: LatLng[]): Promise<RoutedLeg> {
     body: JSON.stringify({
       locations: points.map((p, i) => ({ lat: p.lat, lon: p.lng, type: i === 0 || i === points.length - 1 ? 'break' : 'through' })),
       costing: 'pedestrian',
-      costing_options: { pedestrian: { use_tracks: 1, max_hiking_difficulty: 2, walkway_factor: 0.6, use_hills: 0.5 } },
+      costing_options: { pedestrian: { use_tracks: 1, max_hiking_difficulty: 2, sidewalk_factor: 2, use_hills: 0.5 } },
       units: 'kilometers',
     }),
   });
