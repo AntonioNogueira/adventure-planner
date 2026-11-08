@@ -3,8 +3,9 @@
 //           not technical singletrack (measured: Évora → Mértola 64% unpaved vs 25% plain gravel, 0% normal)
 //   moto  → BRouter with our "easy adventure" profile (below): good dirt tracks and quiet roads,
 //           never footpaths, cycleways, closed ways or very rough tracks (grade 4-5, sand, mud)
-//   hike  → Valhalla pedestrian, trails up to difficulty T2 (sac_scale mountain_hiking), preferring tracks and
-//           avoiding pavements beside roads (measured Manteigas → Covilhã: 65% trail vs 41% default)
+//   hike  → BRouter "hiking-mountain": trails up to difficulty T2 (sac_scale mountain_hiking), preferring T1 and
+//           marked hiking routes (measured Manteigas → Penhas da Saúde → Covilhã: 76% on trails, 5% main roads,
+//           vs 64% / 10% for the normal walking route); Valhalla pedestrian (T2) if BRouter is unavailable
 // Google's directions have no off-road option at all, so these OpenStreetMap engines are used even on the
 // Google map. Each day is routed separately (short requests). brouter.de and valhalla1.openstreetmap.de are
 // free public services (fair use); a busy product should run its own BRouter/Valhalla.
@@ -79,6 +80,9 @@ function adventureProfileId(fresh = false): Promise<string> {
   return motoProfile;
 }
 
+/** Hiking profile switches: nothing harder than T2, T1 preferred, marked hiking routes preferred. */
+const HIKING_EASY = '&profile:SAC_scale_limit=2&profile:SAC_scale_preferred=1&profile:hiking_routes_preference=0.6';
+
 /** Gravel profile switches: more unpaved ways, gentler climbs, away from busy roads. */
 const GRAVEL_EASY = '&profile:prefer_unpaved_paths=1&profile:avoid_steep_inclines=1&profile:avoid_noise=1';
 
@@ -109,11 +113,13 @@ async function brouterLeg(points: LatLng[], profile: string, travelMode: string,
     if (last && last.instruction === kind) { last.distanceMeters += meters; }
     else steps.push({ instruction: kind, distanceMeters: meters, durationSeconds: 0, ferry });
   }
-  const speed = SPEED_KMH[travelMode] || 14;
+  // Walking times come from BRouter's hiking model (it knows the climbs); bikes and motos from typical speeds.
+  const ownTime = travelMode === 'WALKING' ? Number(feature.properties['total-time']) : 0;
+  const speed = ownTime ? km / (ownTime / 3600) : SPEED_KMH[travelMode] || 14;
   steps.forEach(s => { s.durationSeconds = Math.round(s.distanceMeters / 1000 / speed * 3600); });
   return {
     distanceMeters: km * 1000,
-    durationSeconds: Math.round(km / speed * 3600),
+    durationSeconds: Math.round(ownTime || km / speed * 3600),
     path: coords.map(([lng, lat]) => ({ lat, lng })),
     steps,
   };
@@ -171,7 +177,7 @@ export async function offroadTrip(req: TripRequest): Promise<RoutedTrip> {
   if (days.some(d => haversineKm(d[0], d[d.length - 1]) > MAX_LEG_KM)) throw new Error('Too long for one off-road request');
 
   const routeDay = async (points: LatLng[]): Promise<RoutedLeg> => {
-    if (req.travelMode === 'WALKING') return hikeLeg(points);
+    if (req.travelMode === 'WALKING') return brouterLeg(points, 'hiking-mountain', req.travelMode, HIKING_EASY).catch(() => hikeLeg(points));
     if (req.travelMode === 'BICYCLING') return brouterLeg(points, 'gravel', req.travelMode, GRAVEL_EASY);
     try {
       return await brouterLeg(points, await adventureProfileId(), req.travelMode);

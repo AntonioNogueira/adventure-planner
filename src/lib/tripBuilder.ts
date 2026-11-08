@@ -15,7 +15,7 @@ export const DEFAULT_DAILY_KM: Record<string, number> = { BICYCLING: 70, WALKING
 // A distance the user chose is treated as a maximum.
 const SPLIT_TOLERANCE = 1.15;
 // A pass-through place the AI suggests is dropped if it makes that stretch this much longer (straight line).
-const MAX_DETOUR = 1.3;
+const MAX_DETOUR = 1.5; // named pass-through places may add up to 50% (e.g. Évora → Monsaraz → Mértola: 36%)
 // Long trips are routed in chunks; this caps a runaway plan (e.g. a tiny daily distance).
 const MAX_WAYPOINTS = 90;
 
