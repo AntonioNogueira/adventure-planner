@@ -69,6 +69,7 @@ interface SidebarProps {
   schedule: ScheduleDay[];
   startDate: string;
   onStartDateChange: (date: string) => void;
+  onVehicleChange?: (vehicle: string) => void;
   onRestDaysChange: (stopIndex: number, restDays: number) => void;
   onExportGpx: (legIndex: number | null) => void;
   warnings: BookingWarning[];
@@ -121,6 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   schedule,
   startDate,
   onStartDateChange,
+  onVehicleChange,
   onRestDaysChange,
   onExportGpx,
   warnings,
@@ -265,7 +267,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <div className="mb-4">
-        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} />
       </div>
 
       {aiSummary && (

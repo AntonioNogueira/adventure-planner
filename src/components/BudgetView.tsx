@@ -4,6 +4,7 @@ import { RouteInfo } from '../types';
 import { ScheduleDay } from '../lib/schedule';
 import { BudgetSettings, BudgetStop, computeBudget, budgetCsv } from '../lib/budget';
 import { cn } from '../lib/utils';
+import { Vehicle, VEHICLES, VEHICLE_LABELS } from '../lib/fuel';
 import { roadData } from '../lib/osmRoads';
 import { LatLng } from '../lib/geo';
 import { useSettings } from '../lib/settings';
@@ -17,6 +18,9 @@ interface BudgetViewProps {
   legPaths: LatLng[][];
   /** Off-road trip (a little more fuel per km). */
   offroad?: boolean;
+  /** Moto/car trips: what they travel in (fuel and tolls). */
+  vehicle?: Vehicle;
+  onVehicleChange: (vehicle: Vehicle) => void;
 }
 
 import { CURRENCIES } from '../lib/settings';
@@ -55,7 +59,7 @@ const EstimateField: React.FC<{ label: string; value?: number; estimate: number;
   </label>
 );
 
-const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths, offroad }) => {
+const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths, offroad, vehicle, onVehicleChange }) => {
   const { t, settings: app, distUnit, toDist, money: fmtMoney, date } = useSettings();
   const imperial = app.units === 'imperial';
   // US units for fuel: mpg and price per gallon (stored as L/100 km and per litre).
@@ -81,8 +85,8 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
   }, [legPaths, motorTrip]);
 
   const budget = useMemo(
-    () => computeBudget(settings, schedule, routeInfo?.legs || [], stops, tollKm, { offroad, motor: motorTrip }),
-    [settings, schedule, routeInfo, stops, tollKm, offroad, motorTrip],
+    () => computeBudget(settings, schedule, routeInfo?.legs || [], stops, tollKm, { offroad, motor: motorTrip, vehicle }),
+    [settings, schedule, routeInfo, stops, tollKm, offroad, motorTrip, vehicle],
   );
 
   if (!routeInfo?.legs?.length) {
@@ -162,14 +166,23 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <NumberField label={t('Stay / night')} value={settings.stayPerNight} onChange={v => set({ stayPerNight: v })} suffix={cur} hint={t('Used where a stop has no places to stay found and no booking')} />
           <NumberField label={t('Food / day')} value={settings.foodPerDay} onChange={v => set({ foodPerDay: v })} suffix={cur} />
+          {motor && (
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="font-semibold text-slate-600">{t('Vehicle')}</span>
+              <select value={vehicle || 'motorcycle'} onChange={(e) => onVehicleChange(e.target.value as Vehicle)}
+                className="h-9 rounded-md border border-emerald-100 bg-white px-2 text-sm">
+                {VEHICLES.map(v => <option key={v} value={v}>{t(VEHICLE_LABELS[v])}</option>)}
+              </select>
+            </label>
+          )}
           {motor && (imperial
             ? <EstimateField label={t('Consumption')} autoLabel={auto} suffix="mpg" step={0.5}
                 value={settings.fuelPer100km ? r2(MPG_FACTOR / settings.fuelPer100km) : settings.fuelPer100km === 0 ? 0 : undefined}
                 estimate={r2(MPG_FACTOR / budget.fuel.per100km)} onChange={v => set({ fuelPer100km: v === undefined ? undefined : v ? MPG_FACTOR / v : 0 })}
-                hint={t('A typical touring/adventure motorcycle; a little more off-road')} />
+                hint={t('Typical for the vehicle; a little more off-road')} />
             : <EstimateField label={t('Consumption')} autoLabel={auto} suffix="L/100km" step={0.1}
                 value={settings.fuelPer100km} estimate={budget.fuel.per100km} onChange={v => set({ fuelPer100km: v })}
-                hint={t('A typical touring/adventure motorcycle; a little more off-road')} />)}
+                hint={t('Typical for the vehicle; a little more off-road')} />)}
           {motor && (imperial
             ? <EstimateField label={t('Fuel price')} autoLabel={auto} suffix={`${cur}/gal`} step={0.01}
                 value={settings.fuelPrice === undefined ? undefined : r2(settings.fuelPrice * L_PER_GAL)}

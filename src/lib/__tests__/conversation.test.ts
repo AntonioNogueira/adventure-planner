@@ -88,3 +88,22 @@ describe('mergeIntent', () => {
     expect(mergeIntent(settled, { ...intent, travelMode: 'WALKING' }, 'actually I want to hike').travelMode).toBe('WALKING');
   });
 });
+
+describe('vehicle', () => {
+  const moto = { ...intent, travelMode: 'DRIVING', vehicle: '' as const };
+  const plan: PlanSummary = { days: 2, stops: [], targetKm: null, longestKm: 100, totalKm: 200, averageKm: 100, ferryKm: 0 };
+  it('asks what they travel in for moto/car trips, once', () => {
+    const q = nextQuestion(moto, plan, state({ modeMentioned: true }));
+    expect(q?.topic).toBe('vehicle');
+    expect(q?.choices.map(c => c.value)).toEqual(['motorcycle', 'motorcycle_2up', 'car', '4x4', 'campervan']);
+    expect(nextQuestion({ ...moto, vehicle: 'car' }, plan, state({ modeMentioned: true }))?.topic).not.toBe('vehicle');
+    expect(applyAnswer(moto, 'vehicle', 'motorcycle_2up').vehicle).toBe('motorcycle_2up');
+  });
+  it('names the vehicle in the summary', () => {
+    expect(summaryText({ ...moto, vehicle: 'motorcycle_2up' }, plan)).toContain('by motorcycle, two-up');
+  });
+  it('keeps the vehicle when a change doesn\'t mention it', () => {
+    expect(mergeIntent({ ...moto, vehicle: '4x4' }, { ...moto, vehicle: '' }, 'add a stop in Évora').vehicle).toBe('4x4');
+    expect(mergeIntent({ ...moto, vehicle: '4x4' }, { ...moto, vehicle: 'campervan' }, 'actually we take the camper').vehicle).toBe('campervan');
+  });
+});

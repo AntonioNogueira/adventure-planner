@@ -59,8 +59,19 @@ describe('computeBudget', () => {
   it('estimates consumption and the fuel price from the countries on the route', () => {
     const pt = legs.map(l => ({ ...l, from: `${l.from}, Portugal`, to: `${l.to}, Portugal` }));
     const b = computeBudget(settings, schedule, pt, stops);
-    expect(b.fuel).toMatchObject({ per100km: 5.2, price: 1.74, estimatedPrice: true, countries: ['PT'] });
-    expect(computeBudget(settings, schedule, pt, stops, null, { offroad: true }).fuel.per100km).toBe(6);
+    expect(b.fuel).toMatchObject({ per100km: 5, price: 1.74, estimatedPrice: true, countries: ['PT'] });
+    expect(computeBudget(settings, schedule, pt, stops, null, { offroad: true }).fuel.per100km).toBe(5.8);
+  });
+
+  it('follows the vehicle for consumption and tolls', () => {
+    const pt = legs.map(l => ({ ...l, from: `${l.from}, Portugal`, to: `${l.to}, Portugal` }));
+    const per = (vehicle: any, offroad = false) => computeBudget(settings, schedule, pt, stops, [100], { vehicle, offroad }).fuel.per100km;
+    expect([per('motorcycle'), per('motorcycle_2up'), per('car'), per('4x4'), per('campervan')]).toEqual([5, 5.8, 6.8, 9.5, 10.5]);
+    expect(per('4x4', true)).toBe(11);
+    const rate = (vehicle: any) => computeBudget(settings, schedule, pt, stops, [100], { vehicle }).tolls.rate;
+    expect(rate('car')).toBe(0.08);          // Portugal's typical car rate
+    expect(rate('motorcycle')).toBe(0.048);  // motorcycles pay a lower class
+    expect(rate('campervan')).toBe(0.12);
   });
 
   it('adds food and other every day, plus tolls and extras', () => {

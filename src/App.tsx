@@ -30,6 +30,7 @@ import BudgetView from './components/BudgetView';
 import DocumentsView from './components/DocumentsView';
 import ViewTabs, { AppView } from './components/ViewTabs';
 import { BudgetSettings, defaultBudget } from './lib/budget';
+import type { Vehicle } from './lib/fuel';
 import { authErrorMessage } from './lib/authErrors';
 import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
 import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, openPlans, getAccount, PlansReason } from './lib/account';
@@ -201,6 +202,8 @@ const App: React.FC = () => {
   useEffect(() => onOpenPlans(reason => setPlansReason(reason)), []);
   // The typed route (start, stops, end, mode) changed since the last calculation.
   const [routeStale, setRouteStale] = useState(false);
+  // Moto/car trips: the vehicle, for fuel and toll estimates (from the request, a quick reply or the budget).
+  const [vehicle, setVehicle] = useState<Vehicle | undefined>(undefined);
   const passThroughRef = useRef<{ stopsKey: string; via: { name: string; beforeStop: number }[] } | null>(null);
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
@@ -895,6 +898,7 @@ const App: React.FC = () => {
         avoid: routeOptions,
         lodging,
         budget: budgetSettings || undefined,
+        vehicle,
         shared: owned ? routeInfo.shared : false,
         createdAt: owned && routeInfo.createdAt ? routeInfo.createdAt : Date.now(),
       }));
@@ -952,6 +956,7 @@ const App: React.FC = () => {
     setRouteOptions(route.avoid || NO_AVOIDANCES);
     setLodging(route.lodging || 'any');
     setBudgetSettings(route.budget || null);
+    setVehicle(route.vehicle);
     setCurrentTripId(route.id || null);
     setViewingShared(Boolean(options.shared));
     setShareLink(route.shared && route.id ? `${window.location.origin}${window.location.pathname}?trip=${route.id}` : null);
@@ -1029,6 +1034,7 @@ const App: React.FC = () => {
           schedule={schedule}
           startDate={startDate}
           onStartDateChange={handleStartDateChange}
+          onVehicleChange={(v) => { setVehicle((v || undefined) as Vehicle | undefined); setHasChanges(true); }}
           onRestDaysChange={handleRestDaysChange}
           onExportGpx={handleExportGpx}
           warnings={warnings}
@@ -1055,6 +1061,8 @@ const App: React.FC = () => {
                   onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
                   legPaths={legPaths}
                   offroad={routeOptions.offroad}
+                  vehicle={vehicle}
+                  onVehicleChange={(v) => { setVehicle(v); setHasChanges(true); }}
                 />
               ) : (
                 <DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} />

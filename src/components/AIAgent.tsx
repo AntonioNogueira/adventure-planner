@@ -14,6 +14,8 @@ interface AIAgentProps {
   onPlanTrip: (intent: TripIntent) => Promise<PlanSummary | null>;
   startDate: string;
   onStartDateChange: (date: string) => void;
+  /** The vehicle (moto/car trips), from the request or a quick reply: used for fuel and tolls. */
+  onVehicleChange?: (vehicle: string) => void;
 }
 
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
@@ -43,7 +45,8 @@ interface Message {
   answer?: string;
 }
 
-const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange }) => {
+const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange }) => {
+  const lastPlanRef = useRef<PlanSummary | null>(null);
   const { t, locale } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
   const [isPlanning, setIsPlanning] = useState(false);
@@ -91,6 +94,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
 
   // After a plan: a short summary, then the next open question (if any).
   const reportPlan = (intent: TripIntent, plan: PlanSummary, dateSet = Boolean(startDate)) => {
+    lastPlanRef.current = plan;
+    if (intent.vehicle) onVehicleChange?.(intent.vehicle);
     const question = nextQuestion(intent, plan, {
       asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: dateSet,
     });
@@ -153,6 +158,16 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     const intent = intentRef.current;
     if (!intent) return;
 
+    // The vehicle only changes the fuel and toll estimates: no new route needed.
+    if (question.topic === 'vehicle') {
+      const updated = applyAnswer(intent, 'vehicle', value);
+      intentRef.current = updated;
+      onVehicleChange?.(value);
+      const plan = lastPlanRef.current || { days: 0, stops: [], targetKm: null, longestKm: 0, totalKm: 0, averageKm: 0, ferryKm: 0 };
+      const next = nextQuestion(updated, plan, { asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: Boolean(startDate) });
+      say(next ? { text: next.text, question: next } : { text: t('All set! Drag the pins or ask me for any change.') });
+      return;
+    }
     if (question.topic === 'date') {
       if (value) onStartDateChange(value);
       const next = nextQuestion(intent, { days: 0, stops: [], targetKm: null, longestKm: 0, totalKm: 0, averageKm: 0, ferryKm: 0 }, {

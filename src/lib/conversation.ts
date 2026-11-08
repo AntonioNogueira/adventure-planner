@@ -17,7 +17,7 @@ export interface PlanSummary {
   ferry?: { day: number; from: string; to: string; km: number };
 }
 
-export type Topic = 'mode' | 'ferry' | 'distance' | 'lodging' | 'date';
+export type Topic = 'mode' | 'vehicle' | 'ferry' | 'distance' | 'lodging' | 'date';
 
 export interface Choice {
   label: string;
@@ -40,6 +40,9 @@ export function mentionsTravelMode(text: string): boolean {
 }
 
 const MODE_NAMES: Record<string, string> = { BICYCLING: 'by bike', WALKING: 'on foot', DRIVING: 'by moto/car', TRANSIT: 'by public transport' };
+const VEHICLE_NAMES: Record<string, string> = {
+  motorcycle: 'by motorcycle', motorcycle_2up: 'by motorcycle, two-up', car: 'by car', '4x4': 'by 4x4', campervan: 'by campervan',
+};
 const DISTANCE_CHOICES: Record<string, number[]> = { BICYCLING: [50, 70, 90], WALKING: [15, 20, 25], DRIVING: [200, 300, 400] };
 const DISTANCE_CHOICES_MI: Record<string, number[]> = { BICYCLING: [30, 45, 55], WALKING: [10, 12, 15], DRIVING: [125, 185, 250] };
 
@@ -47,10 +50,15 @@ const fmt = () => formatters(getSettings());
 /** A whole distance in the chosen unit: "70 km" / "43 mi". */
 const n = (km: number) => fmt().dist(km, 0);
 
+const modeName = (intent: TripIntent) => {
+  const name = (intent.travelMode === 'DRIVING' && intent.vehicle && VEHICLE_NAMES[intent.vehicle]) || MODE_NAMES[intent.travelMode];
+  return name ? t(name) : '';
+};
+
 /** One or two short lines: where, how long, how far, ferry if any. */
 export function summaryText(intent: TripIntent, plan: PlanSummary): string {
   const lines = [
-    `${intent.origin.split(',')[0]} → ${intent.destination.split(',')[0]} ${MODE_NAMES[intent.travelMode] ? t(MODE_NAMES[intent.travelMode]) : ''}: `
+    `${intent.origin.split(',')[0]} → ${intent.destination.split(',')[0]} ${modeName(intent)}: `
     + `${plan.days === 1 ? t('1 day') : t('{n} days', { n: plan.days })} · ${n(plan.totalKm - plan.ferryKm)} · ${t('about {d}/day', { d: n(plan.averageKm) })}`
     + `${intent.offroad && intent.travelMode !== 'TRANSIT' ? ` · ${t('off-road (easy)')}` : ''}.`,
   ];
@@ -73,6 +81,20 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
       topic: 'mode',
       text: t('How are you travelling?'),
       choices: [{ label: t('Bike'), value: 'BICYCLING' }, { label: t('Hike'), value: 'WALKING' }, { label: t('Moto / car'), value: 'DRIVING' }],
+    };
+  }
+  // Moto/car trips: what they drive (fuel and tolls); doesn't change the route.
+  if (open('vehicle') && intent.travelMode === 'DRIVING' && !intent.vehicle) {
+    return {
+      topic: 'vehicle',
+      text: t('What are you travelling in? I\'ll use it for the fuel and toll estimates.'),
+      choices: [
+        { label: t('Motorcycle'), value: 'motorcycle' },
+        { label: t('Motorcycle, two-up'), value: 'motorcycle_2up' },
+        { label: t('Car'), value: 'car' },
+        { label: t('4x4'), value: '4x4' },
+        { label: t('Campervan'), value: 'campervan' },
+      ],
     };
   }
   if (open('ferry') && plan.ferry && !intent.avoidFerries && intent.travelMode !== 'DRIVING') {
@@ -122,6 +144,7 @@ export function applyAnswer(intent: TripIntent, topic: Topic, value: string): Tr
   switch (topic) {
     // The AI's brief described the guessed mode, so drop it.
     case 'mode': return { ...intent, travelMode: value, summary: value === intent.travelMode ? intent.summary : '' };
+    case 'vehicle': return { ...intent, vehicle: value as TripIntent['vehicle'] };
     case 'ferry': return { ...intent, avoidFerries: value === 'overland' };
     case 'distance': return { ...intent, dailyKm: Number(value), days: 0 };
     case 'lodging': return { ...intent, lodging: value as TripIntent['lodging'] };
@@ -133,6 +156,7 @@ const MENTIONS = {
   distance: /\d+\s*(km|kilomet|quil[oó]met|mi\b|miles|milhas)|\bdays?\b|per day|a day|daily|shorter|longer|faster|slower|\bdias?\b|por dia|mais curt|mais long|mais r[aá]pid|mais devagar/i,
   lodging: /camp|hostel|hotel|guest ?house|b&b|airbnb|bivouac|wild|sleep|accommodation|campismo|acampar|albergue|pousada|alojamento|dormir|hospedagem/i,
   ferry: /ferr(y|ies)|boat|overland|crossing|by sea|by land|barco|balsa|travessia|por terra|por mar/i,
+  vehicle: /moto|motorbike|motorcycle|mota|scooter|pillion|passenger|garupa|pendura|two.?up|2.?up|\bcar\b|carro|4x4|4wd|suv|jeep|land.?cruiser|defender|camper|van|motorhome|autocaravana|caravana|overland/i,
   offroad: /off.?road|gravel|dirt|unpaved|track|trail|paved|asphalt|tarmac|adventure|adv\b|dual.?sport|bikepack|mtb|mountain bike|terra|gravilha|cascalho|estrad[aã]o|trilh|asfalto|alcatr[aã]o|todo.?o.?terreno|aventura/i,
 };
 
@@ -153,5 +177,6 @@ export function mergeIntent(previous: TripIntent | null, next: TripIntent, messa
   if (!MENTIONS.lodging.test(message) && next.lodging === 'any') merged.lodging = previous.lodging;
   if (!MENTIONS.ferry.test(message) && previous.avoidFerries && !next.avoidFerries) merged.avoidFerries = true;
   if (!MENTIONS.offroad.test(message) && previous.offroad !== undefined) merged.offroad = previous.offroad;
+  if (!next.vehicle || !MENTIONS.vehicle.test(message)) merged.vehicle = next.vehicle && MENTIONS.vehicle.test(message) ? next.vehicle : previous.vehicle || next.vehicle;
   return merged;
 }

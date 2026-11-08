@@ -105,6 +105,8 @@ export interface TripIntent {
   avoidFerries?: boolean;
   /** The traveller wants unpaved roads and trails (kept easy). */
   offroad?: boolean;
+  /** Moto/car trips: what they drive or ride (for fuel and tolls); '' if not said. */
+  vehicle?: '' | 'motorcycle' | 'motorcycle_2up' | 'car' | '4x4' | 'campervan';
   /** A stretch the user wants along the coast (the server fills the coastal towns into `route`). */
   coastFrom?: string;
   coastTo?: string;
@@ -132,6 +134,8 @@ export interface RouteInfo {
   startDate?: string;
   avoid?: { avoidHighways: boolean; avoidFerries: boolean; avoidTolls: boolean; offroad?: boolean };
   lodging?: 'any' | 'camping' | 'hostel' | 'hotel';
+  /** Moto/car trips: the vehicle (fuel and toll estimates). */
+  vehicle?: 'motorcycle' | 'motorcycle_2up' | 'car' | '4x4' | 'campervan';
   /** The traveller's budget averages (Budget tab). */
   budget?: BudgetSettings;
   /** Anyone with the link can view a shared trip. */

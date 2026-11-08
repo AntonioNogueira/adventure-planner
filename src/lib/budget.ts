@@ -2,7 +2,7 @@
 // taking the place of the estimate for the nights they cover. Pure functions, unit-tested.
 import { InterestCategory, InterestItem, RouteLeg } from '../types';
 import { ScheduleDay } from './schedule';
-import { estimatedFuelPrice, estimatedTollRate, estimatedConsumption, kmByCountry } from './fuel';
+import { estimatedFuelPrice, estimatedTollRate, estimatedConsumption, kmByCountry, Vehicle, TOLL_FACTOR } from './fuel';
 
 export interface BudgetSettings {
   currency: string;
@@ -171,7 +171,7 @@ export function bookedStay(stop: BudgetStop | undefined) {
 
 export function computeBudget(
   settings: BudgetSettings, schedule: ScheduleDay[], legs: RouteLeg[], stops: BudgetStop[],
-  tollKm: number[] | null = null, opts: { offroad?: boolean; motor?: boolean } = {},
+  tollKm: number[] | null = null, opts: { offroad?: boolean; motor?: boolean; vehicle?: Vehicle } = {},
 ): Budget {
   const byKey = new Map(stops.map(s => [s.key, s]));
   const counted = new Set<string>();
@@ -247,11 +247,11 @@ export function computeBudget(
   const motor = opts.motor ?? true;
   const ridingKm = legs.reduce((a, l) => a + Math.max(0, (l.distanceMeters || 0) / 1000 - (l.ferryKm || 0)), 0);
   const autoPrice = estimatedFuelPrice(legs, currency);
-  const per100km = settings.fuelPer100km ?? (motor ? estimatedConsumption(opts.offroad) : 0);
+  const per100km = settings.fuelPer100km ?? (motor ? estimatedConsumption(opts.offroad, opts.vehicle) : 0);
   const price = settings.fuelPrice ?? (motor ? autoPrice ?? preset(currency).fuelPerLitre : 0);
   const fuelCost = round2(ridingKm * per100km / 100 * price);
   const tolledKm = (tollKm || []).reduce((a, b) => a + b, 0);
-  const rate = settings.tollPerKm ?? (motor ? estimatedTollRate(legs, currency) : 0);
+  const rate = settings.tollPerKm ?? (motor ? Math.round(estimatedTollRate(legs, currency) * TOLL_FACTOR[opts.vehicle || 'motorcycle'] * 1000) / 1000 : 0);
   const tollCost = round2(tolledKm * rate + (settings.tollsTotal || 0));
   const totals = {
     stay: sum(r => r.stay), food: sum(r => r.food), fuel: fuelCost, other: sum(r => r.other),
