@@ -51,7 +51,8 @@ const n = (km: number) => fmt().dist(km, 0);
 export function summaryText(intent: TripIntent, plan: PlanSummary): string {
   const lines = [
     `${intent.origin.split(',')[0]} → ${intent.destination.split(',')[0]} ${MODE_NAMES[intent.travelMode] ? t(MODE_NAMES[intent.travelMode]) : ''}: `
-    + `${plan.days === 1 ? t('1 day') : t('{n} days', { n: plan.days })} · ${n(plan.totalKm - plan.ferryKm)} · ${t('about {d}/day', { d: n(plan.averageKm) })}.`,
+    + `${plan.days === 1 ? t('1 day') : t('{n} days', { n: plan.days })} · ${n(plan.totalKm - plan.ferryKm)} · ${t('about {d}/day', { d: n(plan.averageKm) })}`
+    + `${intent.offroad && intent.travelMode !== 'TRANSIT' ? ` · ${t('off-road (easy)')}` : ''}.`,
   ];
   if (plan.ferry) lines.push(t('Includes a ferry crossing of {d} on day {day} ({from} → {to}).', { d: n(plan.ferry.km), day: plan.ferry.day, from: plan.ferry.from.split(',')[0], to: plan.ferry.to.split(',')[0] }));
   return lines.join('\n');
@@ -132,6 +133,7 @@ const MENTIONS = {
   distance: /\d+\s*(km|kilomet|quil[oó]met|mi\b|miles|milhas)|\bdays?\b|per day|a day|daily|shorter|longer|faster|slower|\bdias?\b|por dia|mais curt|mais long|mais r[aá]pid|mais devagar/i,
   lodging: /camp|hostel|hotel|guest ?house|b&b|airbnb|bivouac|wild|sleep|accommodation|campismo|acampar|albergue|pousada|alojamento|dormir|hospedagem/i,
   ferry: /ferr(y|ies)|boat|overland|crossing|by sea|by land|barco|balsa|travessia|por terra|por mar/i,
+  offroad: /off.?road|gravel|dirt|unpaved|track|trail|paved|asphalt|tarmac|adventure|adv\b|dual.?sport|bikepack|mtb|mountain bike|terra|gravilha|cascalho|estrad[aã]o|trilh|asfalto|alcatr[aã]o|todo.?o.?terreno|aventura/i,
 };
 
 /**
@@ -150,5 +152,6 @@ export function mergeIntent(previous: TripIntent | null, next: TripIntent, messa
   }
   if (!MENTIONS.lodging.test(message) && next.lodging === 'any') merged.lodging = previous.lodging;
   if (!MENTIONS.ferry.test(message) && previous.avoidFerries && !next.avoidFerries) merged.avoidFerries = true;
+  if (!MENTIONS.offroad.test(message) && previous.offroad !== undefined) merged.offroad = previous.offroad;
   return merged;
 }

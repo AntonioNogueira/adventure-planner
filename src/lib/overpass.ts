@@ -94,8 +94,15 @@ export function toItem(e: OsmElement, category: CategoryId): InterestItem | null
     lat: at.lat,
     lng: at.lng,
     category,
+    ...(category === 'stay' ? { stayKind: OSM_STAY_KINDS[tags.tourism || ''] || 'hotel' } : {}),
   };
 }
+
+const OSM_STAY_KINDS: Record<string, InterestItem['stayKind']> = {
+  camp_site: 'camping', caravan_site: 'camping', alpine_hut: 'hostel', wilderness_hut: 'camping',
+  hostel: 'hostel', guest_house: 'guesthouse', apartment: 'guesthouse', chalet: 'guesthouse',
+  hotel: 'hotel', motel: 'hotel',
+};
 
 const NAMES: Record<CategoryId, string> = {
   stay: 'Accommodations', food: 'Restaurants/Cafes', shop: 'Bike/Moto Shops', sights: 'Points of Interest',

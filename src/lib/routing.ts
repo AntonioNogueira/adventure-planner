@@ -1,4 +1,5 @@
 import { isOsm } from './provider';
+import { offroadTrip, OFFROAD_MODES } from './offroad';
 import { osmTrip } from './osrm';
 
 // One routing entry point for the app. It tries Google's Routes API (the successor of the
@@ -9,9 +10,14 @@ export interface RouteOptions {
   avoidHighways: boolean;
   avoidFerries: boolean;
   avoidTolls: boolean;
+  /** Prefer unpaved tracks and trails, kept easy (bike, hike, moto): see offroad.ts. */
+  offroad?: boolean;
 }
 
-export const NO_AVOIDANCES: RouteOptions = { avoidHighways: false, avoidFerries: false, avoidTolls: false };
+export const NO_AVOIDANCES: RouteOptions = { avoidHighways: false, avoidFerries: false, avoidTolls: false, offroad: false };
+
+/** Only the avoid options, as Google's services expect them. */
+const avoidOnly = (o?: RouteOptions) => o && { avoidHighways: o.avoidHighways, avoidFerries: o.avoidFerries, avoidTolls: o.avoidTolls };
 
 export type RoutePlace = string | google.maps.LatLngLiteral;
 
@@ -35,6 +41,8 @@ export interface RoutedLeg {
 export interface RoutedTrip {
   legs: RoutedLeg[];
   engine: 'routes' | 'directions' | 'osm';
+  /** Off-road was asked for but this route is the normal one. */
+  offroadUnavailable?: boolean;
 }
 
 export interface TripRequest {
@@ -67,7 +75,7 @@ async function viaRoutesApi(req: TripRequest): Promise<RoutedTrip> {
     destination: req.destination,
     intermediates: req.stops.map(s => ({ location: s.location, via: Boolean(s.via) })),
     travelMode: req.travelMode as google.maps.TravelModeString,
-    routeModifiers: req.options,
+    routeModifiers: avoidOnly(req.options),
     fields: ['legs'],
   });
   const legs = routes?.[0]?.legs;
@@ -120,7 +128,7 @@ async function viaDirections(req: TripRequest): Promise<RoutedTrip> {
 async function computeOnce(req: TripRequest): Promise<RoutedTrip> {
   if (isOsm) return osmTrip(req);
   // The Routes API only avoids highways/ferries/tolls for driving; the Directions service does it for every mode.
-  const needsDirections = req.travelMode !== 'DRIVING' && req.options && Object.values(req.options).some(Boolean);
+  const needsDirections = req.travelMode !== 'DRIVING' && req.options && Object.values(avoidOnly(req.options)!).some(Boolean);
   if (routesApiUsable && !needsDirections) {
     try {
       return await viaRoutesApi(req);
@@ -138,6 +146,16 @@ async function computeOnce(req: TripRequest): Promise<RoutedTrip> {
 
 /** Route a trip of any length: more than 23 stops are routed in consecutive chunks (Google only). */
 export async function computeTrip(req: TripRequest): Promise<RoutedTrip> {
+  if (req.options?.offroad && OFFROAD_MODES.has(req.travelMode)) {
+    try {
+      return await offroadTrip(req);
+    } catch (err) {
+      // Very long days (before the trip is split into days) or a busy engine: the normal route.
+      console.warn('Off-road route unavailable; using the normal route.', err);
+      const trip = await computeTrip({ ...req, options: { ...req.options, offroad: false } });
+      return { ...trip, offroadUnavailable: true };
+    }
+  }
   if (isOsm || req.stops.length <= MAX_INTERMEDIATES) return computeOnce(req);
   const points = [req.origin, ...req.stops.map(s => s.location), req.destination];
   const legs: RoutedLeg[] = [];

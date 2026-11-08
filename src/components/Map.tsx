@@ -30,14 +30,26 @@ interface MapProps {
   attachingKey?: string | null;
 }
 
-type MapType = 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
+// Topo: a survey-map look (contours, hill shading, forests) from OpenTopoMap tiles drawn over Google's
+// terrain map; Satellite and Hybrid are Google's own imagery.
+type MapType = 'topo' | 'satellite' | 'hybrid';
 
 const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
-  { id: 'roadmap', label: 'Map', icon: MapIcon },
+  { id: 'topo', label: 'Topo', icon: Mountain },
   { id: 'satellite', label: 'Satellite', icon: Globe },
   { id: 'hybrid', label: 'Hybrid', icon: Layers },
-  { id: 'terrain', label: 'Terrain', icon: Mountain },
 ];
+
+const topoTiles = () => new google.maps.ImageMapType({
+  getTileUrl: (c, z) => {
+    const n = 2 ** z;
+    return `https://tile.opentopomap.org/${z}/${((c.x % n) + n) % n}/${c.y}.png`;
+  },
+  tileSize: new google.maps.Size(256, 256),
+  maxZoom: 17,
+  name: 'Topo',
+  alt: 'OpenTopoMap',
+});
 
 
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
@@ -52,7 +64,7 @@ const Map: React.FC<MapProps> = ({
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const infoRootRef = useRef<Root | null>(null);
-  const [mapType, setMapType] = useState<MapType>('roadmap');
+  const [mapType, setMapType] = useState<MapType>('topo');
   // Callbacks change every render; keep the latest in a ref so markers don't need rebuilding for them.
   const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile });
   callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile };
@@ -88,7 +100,7 @@ const Map: React.FC<MapProps> = ({
       const map = new GoogleMap(mapRef.current!, {
         center: { lat: 48.8566, lng: 2.3522 }, // Paris
         zoom: 5,
-        mapTypeId: 'roadmap',
+        mapTypeId: 'terrain',
         // A map ID is required for Advanced Markers; styling is managed in Cloud Console for map IDs.
         mapId: 'DEMO_MAP_ID',
         disableDefaultUI: true,
@@ -157,8 +169,12 @@ const Map: React.FC<MapProps> = ({
   }, [onLoad]);
 
   useEffect(() => {
-    googleMapRef.current?.setMapTypeId(mapType);
-  }, [mapType]);
+    const map = googleMapRef.current;
+    if (!map) return;
+    map.setMapTypeId(mapType === 'topo' ? 'terrain' : mapType);
+    map.overlayMapTypes.clear();
+    if (mapType === 'topo') map.overlayMapTypes.push(topoTiles());
+  }, [mapType, isReady]);
 
   // One line per day. Clicking a line highlights it and opens its details.
   useEffect(() => {
@@ -346,7 +362,7 @@ const Map: React.FC<MapProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units]);
 
   return (
-    <div className="vintage-map relative h-full w-full">
+    <div className={cn("vintage-map relative h-full w-full", mapType !== 'topo' && "vintage-imagery")}>
       <div ref={mapRef} className="h-full w-full" />
 
       {mapsError && (
@@ -381,6 +397,12 @@ const Map: React.FC<MapProps> = ({
           <span className="hidden sm:inline">{t('Booked')}</span>
         </span>
       </div>
+
+      {mapType === 'topo' && (
+        <div className="pointer-events-auto absolute bottom-6 right-2 z-10 rounded-sm bg-white/80 px-1.5 py-0.5 text-[10px] text-slate-600">
+          Topo © <a href="https://opentopomap.org" target="_blank" rel="noopener noreferrer" className="underline">OpenTopoMap</a> (CC-BY-SA) · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">OpenStreetMap</a> · SRTM
+        </div>
+      )}
 
       {/* Map Type Controls */}
       <div className="absolute left-3 top-16 z-10 md:left-6 md:top-6">

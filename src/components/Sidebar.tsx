@@ -412,6 +412,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             ['avoidHighways', 'Avoid highways'],
             ['avoidFerries', 'Avoid ferries'],
             ['avoidTolls', 'Avoid tolls'],
+            ...(travelMode !== 'TRANSIT' ? [['offroad', 'Off-road (easy)']] as const : []),
           ] as const).map(([key, label]) => (
             <button
               key={key}

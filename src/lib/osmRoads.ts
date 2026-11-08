@@ -21,7 +21,7 @@ const SURFACE_GROUP: Record<string, SurfaceGroup> = {
   compacted: 'gravel', gravel: 'gravel', dirt: 'dirt', path: 'dirt', impassable: 'impassable',
 };
 
-export interface Edge { length?: number; speed_limit?: number; surface?: string; road_class?: string }
+export interface Edge { length?: number; speed_limit?: number; surface?: string; road_class?: string; toll?: boolean }
 
 export interface RoadData {
   /** km by speed limit (km/h); 0 = no limit known in OSM. */
@@ -30,6 +30,8 @@ export interface RoadData {
   roadClasses: { roadClass: string; km: number }[];
   /** Surface in route order: each run covers fromKm–toKm from the segment's start. */
   surfaceRuns: SurfaceRun[];
+  /** km on toll roads (OSM toll=yes). */
+  tollKm: number;
   totalKm: number;
 }
 
@@ -61,9 +63,11 @@ export function summariseEdges(edges: Edge[]): RoadData {
   const surfaces = new Map<SurfaceGroup, number>();
   const classes = new Map<string, number>();
   let total = 0;
+  let toll = 0;
   for (const e of edges) {
     const km = e.length || 0;
     total += km;
+    if (e.toll) toll += km;
     add(speeds, e.speed_limit && e.speed_limit < 200 ? e.speed_limit : 0, km);
     add(surfaces, SURFACE_GROUP[e.surface || ''] || 'paved', km);
     add(classes, e.road_class || 'other', km);
@@ -73,6 +77,7 @@ export function summariseEdges(edges: Edge[]): RoadData {
     surfaces: sorted(surfaces).map(([group, km]) => ({ group, km: round1(km) })),
     roadClasses: sorted(classes).map(([roadClass, km]) => ({ roadClass, km: round1(km) })),
     surfaceRuns: surfaceRuns(edges),
+    tollKm: round1(toll),
     totalKm: round1(total),
   };
 }
@@ -122,7 +127,7 @@ async function fetchRoadData(path: LatLng[], travelMode: string): Promise<RoadDa
           shape: downsample(part, 1500).map(p => ({ lat: p.lat, lon: p.lng })),
           costing: COSTING[travelMode] || 'auto',
           shape_match: 'walk_or_snap',
-          filters: { attributes: ['edge.length', 'edge.speed_limit', 'edge.surface', 'edge.road_class'], action: 'include' },
+          filters: { attributes: ['edge.length', 'edge.speed_limit', 'edge.surface', 'edge.road_class', 'edge.toll'], action: 'include' },
         }),
       });
       if (!res.ok) throw new Error(`Valhalla ${res.status}`);

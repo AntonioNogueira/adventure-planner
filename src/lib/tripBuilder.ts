@@ -104,9 +104,11 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     segmentKm[i], profiles[i], kmPer1000m, ferries[i].reduce((sum, [a, b]) => sum + b - a, 0)));
   const totalEffort = segmentEffort.reduce((a, b) => a + b, 0);
 
+  // Days are split on the normal route; off-road routes run ~15% longer and slower, so aim a little shorter.
+  const offroadFactor = options?.offroad ? 0.85 : 1;
   const target = intent.days > 0
     ? totalEffort / intent.days
-    : intent.dailyKm || DEFAULT_DAILY_KM[intent.travelMode] || 300;
+    : (intent.dailyKm || DEFAULT_DAILY_KM[intent.travelMode] || 300) * offroadFactor;
 
   // With a day count, share the days between the parts so they add up to exactly that many.
   // A daily distance is a maximum, so each part (between nights the traveller chose) is rounded up.

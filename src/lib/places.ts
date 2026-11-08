@@ -27,7 +27,20 @@ export function categoryId(name: string): CategoryId {
 
 export type LodgingPreference = 'any' | 'camping' | 'hostel' | 'hotel';
 
-const FIELDS = ['id', 'displayName', 'location', 'formattedAddress', 'googleMapsURI', 'primaryTypeDisplayName'];
+const FIELDS = ['id', 'displayName', 'location', 'formattedAddress', 'googleMapsURI', 'primaryTypeDisplayName', 'primaryType'];
+// Price level and range (for the budget) are only asked for places to stay and eat.
+const PRICE_FIELDS = [...FIELDS, 'priceLevel', 'priceRange'];
+
+const STAY_KINDS: Record<string, InterestItem['stayKind']> = {
+  campground: 'camping', rv_park: 'camping', camping_cabin: 'camping',
+  hostel: 'hostel',
+  guest_house: 'guesthouse', bed_and_breakfast: 'guesthouse', inn: 'guesthouse', farmstay: 'guesthouse', cottage: 'guesthouse',
+  hotel: 'hotel', motel: 'hotel', resort_hotel: 'hotel', extended_stay_hotel: 'hotel', lodging: 'hotel',
+};
+const PRICE_LEVELS: Record<string, number> = {
+  INEXPENSIVE: 1, MODERATE: 2, EXPENSIVE: 3, VERY_EXPENSIVE: 4,
+  PRICE_LEVEL_INEXPENSIVE: 1, PRICE_LEVEL_MODERATE: 2, PRICE_LEVEL_EXPENSIVE: 3, PRICE_LEVEL_VERY_EXPENSIVE: 4,
+};
 
 async function placesLib() {
   return await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
@@ -47,6 +60,11 @@ function toItem(place: google.maps.places.Place, category: CategoryId): Interest
   if (!place.displayName || !place.location) return null;
   const type = place.primaryTypeDisplayName;
   const address = place.formattedAddress?.split(',').slice(0, 2).join(',');
+  const anyPlace = place as google.maps.places.Place & { priceRange?: { startPrice?: { units?: number; currencyCode?: string }; endPrice?: { units?: number } } };
+  const level = PRICE_LEVELS[String(place.priceLevel || '')];
+  const range = anyPlace.priceRange?.startPrice?.units != null
+    ? { min: Number(anyPlace.priceRange.startPrice.units), max: Number(anyPlace.priceRange.endPrice?.units ?? anyPlace.priceRange.startPrice.units), currency: anyPlace.priceRange.startPrice.currencyCode || '' }
+    : undefined;
   return {
     name: place.displayName,
     description: [type, address].filter(Boolean).join(' · '),
@@ -56,6 +74,9 @@ function toItem(place: google.maps.places.Place, category: CategoryId): Interest
     lat: place.location.lat(),
     lng: place.location.lng(),
     category,
+    ...(category === 'stay' ? { stayKind: STAY_KINDS[place.primaryType || ''] || 'hotel' } : {}),
+    ...(level ? { priceLevel: level } : {}),
+    ...(range ? { priceRange: range } : {}),
   };
 }
 
@@ -92,7 +113,7 @@ async function searchCategory(
       ({ places } = await Place.searchNearby({
         // Match the main type for food and sights (a hotel with a restaurant isn't a restaurant suggestion).
         ...(category === 'stay' ? { includedTypes } : { includedPrimaryTypes: includedTypes }),
-        fields: FIELDS,
+        fields: category === 'stay' || category === 'food' ? PRICE_FIELDS : FIELDS,
         locationRestriction: { center, radius },
         maxResultCount: count,
         rankPreference: SearchNearbyRankPreference.POPULARITY,

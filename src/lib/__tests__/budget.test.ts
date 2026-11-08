@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { budgetCsv, computeBudget, defaultBudget, BudgetStop } from '../budget';
+import { budgetCsv, computeBudget, defaultBudget, BudgetStop, stayFromPlaces, foodFromPlaces } from '../budget';
 import { buildSchedule } from '../schedule';
 import { RouteLeg } from '../../types';
 
@@ -89,3 +89,40 @@ describe('computeBudget', () => {
 });
 
 function round(n: number) { return Math.round(n * 100) / 100; }
+
+describe('local prices and tolls', () => {
+  const sched = buildSchedule(2, [0], undefined);
+  const twoLegs: RouteLeg[] = [legs[0], legs[1]];
+  const placesStop: BudgetStop = { key: 'stop-0', label: 'Alcoutim', interests: [
+    { category: 'Accommodations', items: [
+      { name: 'Camping A', source: 'places', category: 'stay', stayKind: 'camping' },
+      { name: 'Hostel B', source: 'places', category: 'stay', stayKind: 'hostel' },
+    ] },
+    { category: 'Restaurants/Cafes', items: [
+      { name: 'Tasca', source: 'places', category: 'food', priceLevel: 1 },
+      { name: 'Fancy', source: 'places', category: 'food', priceLevel: 3 },
+    ] },
+  ] };
+
+  it('prices a night from the places to stay at the stop', () => {
+    expect(stayFromPlaces(placesStop, 'EUR')).toEqual({ amount: 25, count: 2 });   // camping 20, hostel 30
+    expect(stayFromPlaces({ ...placesStop, interests: [] }, 'EUR')).toBeNull();
+    const priced: BudgetStop = { ...placesStop, interests: [{ category: 'Accommodations', items: [
+      { name: 'Hotel', source: 'places', stayKind: 'hotel', priceRange: { min: 60, max: 100, currency: 'EUR' } }] }] };
+    expect(stayFromPlaces(priced, 'EUR')?.amount).toBe(80);
+  });
+
+  it('scales food by the restaurants\' price level', () => {
+    expect(foodFromPlaces(placesStop, 30)).toBe(33);   // (0.7 + 1.5) / 2 × 30
+    expect(foodFromPlaces({ ...placesStop, interests: [] }, 30)).toBeNull();
+  });
+
+  it('uses them per day, and estimates tolls from toll km', () => {
+    const b = computeBudget({ ...defaultBudget('DRIVING'), tollPerKm: 0.1 }, sched, twoLegs,
+      [stops[0], placesStop, stops[3]], [40, 0]);
+    expect(b.rows[0]).toMatchObject({ stayKind: 'places', stay: 25, food: 33, foodFromPlaces: true, tollKm: 40, tolls: 4 });
+    expect(b.rows[1]).toMatchObject({ stayKind: 'none', tolls: 0, foodFromPlaces: false });
+    expect(b.totals.tolls).toBe(4);
+    expect(budgetCsv(b, 'EUR').split('\n')[1]).toContain('average of 2 places');
+  });
+});

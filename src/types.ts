@@ -40,6 +40,12 @@ export interface InterestItem {
   lng?: number;
   /** 'stay' | 'food' | 'shop' | 'sights', for the map icon. */
   category?: string;
+  /** Kind of place to stay, for budget estimates. */
+  stayKind?: 'camping' | 'hostel' | 'guesthouse' | 'hotel';
+  /** Google price level 1 (inexpensive) to 4 (very expensive), for food estimates. */
+  priceLevel?: number;
+  /** A typical price range from Google, when known. */
+  priceRange?: { min: number; max: number; currency: string };
 }
 
 export type StopKind = 'start' | 'stop' | 'end';
@@ -97,6 +103,8 @@ export interface TripIntent {
   lodging: 'any' | 'camping' | 'hostel' | 'hotel';
   /** The user asked for no ferries ("overland", "no boats"). */
   avoidFerries?: boolean;
+  /** The traveller wants unpaved roads and trails (kept easy). */
+  offroad?: boolean;
   /** A stretch the user wants along the coast (the server fills the coastal towns into `route`). */
   coastFrom?: string;
   coastTo?: string;
@@ -122,7 +130,7 @@ export interface RouteInfo {
   createdAt?: number;
   /** First riding day, YYYY-MM-DD. */
   startDate?: string;
-  avoid?: { avoidHighways: boolean; avoidFerries: boolean; avoidTolls: boolean };
+  avoid?: { avoidHighways: boolean; avoidFerries: boolean; avoidTolls: boolean; offroad?: boolean };
   lodging?: 'any' | 'camping' | 'hostel' | 'hotel';
   /** The traveller's budget averages (Budget tab). */
   budget?: BudgetSettings;

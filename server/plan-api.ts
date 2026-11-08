@@ -81,7 +81,7 @@ function buildPrompt(request: string, history: ChatMessage[], current?: unknown,
 ${JSON.stringify(current, null, 2)}
 
 The user is refining this plan unless they clearly ask for a different trip.
-- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries and the existing route places.
+- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries, offroad and the existing route places.
 - A request about part of the trip (e.g. "Cádiz to Valencia along the coast instead of inland") changes only that part:
   keep the overall origin and destination, and add or replace route places for that stretch.
 - "Keep the plan but …" always means: start from the current plan and apply only the change.`
@@ -112,13 +112,16 @@ Return the complete plan:
   Set overnight=true only if the user wants to sleep there.
 - lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any" (or the current plan's value).
 - avoidFerries: true if they want to travel overland / without ferries or boats (or the current plan says so), otherwise false.
+- offroad: true if they want unpaved roads: off-road, gravel, dirt roads, tracks, trails, bikepacking, mountain biking,
+  adventure/ADV/dual-sport motorcycling, or hiking on trails (or the current plan says so). False for plain road trips,
+  touring on roads, or when they ask for paved roads only.
 - coastFrom, coastTo: if the user wants the trip (or part of it) along the coast, the start and end of that coastal stretch
   (the whole trip: origin and destination). Otherwise empty strings. The app fills in the coastal towns itself.
 - summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.${LANGUAGE_NAMES[language || ''] ? `
 - Write the summary in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'coastFrom', 'coastTo', 'summary'];
+const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'coastFrom', 'coastTo', 'summary'];
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -137,6 +140,7 @@ const responseSchema = {
     },
     lodging: { type: Type.STRING, enum: ['any', 'camping', 'hostel', 'hotel'] },
     avoidFerries: { type: Type.BOOLEAN },
+    offroad: { type: Type.BOOLEAN },
     coastFrom: { type: Type.STRING },
     coastTo: { type: Type.STRING },
     summary: { type: Type.STRING },
@@ -155,6 +159,7 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "route": [{ "place": string, "overnight": boolean }],
   "lodging": "any" | "camping" | "hostel" | "hotel",
   "avoidFerries": boolean,
+  "offroad": boolean,
   "coastFrom": string,
   "coastTo": string,
   "summary": string
@@ -180,6 +185,7 @@ const planJsonSchema = {
     },
     lodging: { type: 'string', enum: ['any', 'camping', 'hostel', 'hotel'] },
     avoidFerries: { type: 'boolean' },
+    offroad: { type: 'boolean' },
     coastFrom: { type: 'string' },
     coastTo: { type: 'string' },
     summary: { type: 'string' },
@@ -370,7 +376,7 @@ export function describeIntent(intent: any) {
   const via = (intent.route || []).map((r: any) => `${r.place}${r.overnight ? ' (night)' : ''}`).join(' → ');
   return `${intent.origin} → ${via ? via + ' → ' : ''}${intent.destination} · ${intent.travelMode}`
     + `${intent.days ? ` · ${intent.days} days` : ''}${intent.dailyKm ? ` · ${intent.dailyKm} km/day` : ''} · lodging ${intent.lodging}`
-    + `${intent.avoidFerries ? ' · no ferries' : ''}`;
+    + `${intent.avoidFerries ? ' · no ferries' : ''}${intent.offroad ? ' · off-road' : ''}`;
 }
 
 class NoProvider extends Error {}

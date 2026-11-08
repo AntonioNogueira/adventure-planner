@@ -298,7 +298,12 @@ const App: React.FC = () => {
     if (!(await whenMapReady())) return null;
     lastIntentRef.current = intent;
     // The plan's own choice about ferries wins (from the request or the planner's ferry question).
-    const options = intent.avoidFerries === undefined ? baseOptions : { ...baseOptions, avoidFerries: intent.avoidFerries };
+    const options = {
+      ...baseOptions,
+      ...(intent.avoidFerries === undefined ? {} : { avoidFerries: intent.avoidFerries }),
+      // Off-road follows the request (no off-road for public transport).
+      ...(intent.offroad === undefined ? {} : { offroad: intent.offroad && intent.travelMode !== 'TRANSIT' }),
+    };
     setRouteOptions(options);
     const { waypoints: stops, targetKm } = await planOvernightStops(intent, options);
     const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
@@ -405,6 +410,7 @@ const App: React.FC = () => {
 
       tripRef.current = trip;
       setTrip(trip);
+      if (trip.offroadUnavailable) notice = `${notice ? notice + ' ' : ''}${tr("Off-road routing wasn't available for this route, so the normal route is shown.")}`;
       const ferry = ferryKm(trip);
       if (ferry >= 10) {
         const tip = currentTravelMode === 'DRIVING' || options.avoidFerries ? '' : ` ${tr('Turn on "Avoid ferries" to travel the whole way overland.')}`;
@@ -738,6 +744,9 @@ const App: React.FC = () => {
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ]) : {}, [routeInfo]);
 
+  // Each day's path, for the budget's toll estimate.
+  const legPaths = useMemo(() => (trip?.legs || []).map(leg => leg.path), [trip]);
+
   const documentCount = useMemo(() => routeInfo ? [
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ].flat().reduce((n, cat) => n + cat.items.filter(item => item.source === 'reservation').length, 0) : 0, [routeInfo]);
@@ -775,7 +784,7 @@ const App: React.FC = () => {
       .flat().some(c => c.items.some(i => i.source === 'reservation'));
     const intent = lastIntentRef.current;
     if (intent && !hasBookings && intent.origin === origin && intent.destination === destination) {
-      handlePlanTrip({ ...intent, avoidFerries: options.avoidFerries }, options);
+      handlePlanTrip({ ...intent, avoidFerries: options.avoidFerries, offroad: options.offroad }, options);
     } else {
       calculateRoute(undefined, undefined, undefined, undefined, undefined, options);
     }
@@ -1029,6 +1038,7 @@ const App: React.FC = () => {
                   schedule={schedule}
                   settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency)}
                   onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
+                  legPaths={legPaths}
                 />
               ) : (
                 <DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} />

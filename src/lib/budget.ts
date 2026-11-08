@@ -1,6 +1,6 @@
 // Trip budget: a day-by-day estimate from average costs, with booked accommodation prices
 // taking the place of the estimate for the nights they cover. Pure functions, unit-tested.
-import { InterestCategory, RouteLeg } from '../types';
+import { InterestCategory, InterestItem, RouteLeg } from '../types';
 import { ScheduleDay } from './schedule';
 
 export interface BudgetSettings {
@@ -11,8 +11,10 @@ export interface BudgetSettings {
   fuelPer100km: number;
   /** Price per litre. */
   fuelPrice: number;
-  /** Tolls for the whole trip (an estimate the traveller enters). */
+  /** Older saved budgets: a toll total the traveller entered (added as is). */
   tollsTotal: number;
+  /** Toll per km driven on toll roads (the toll km come from OpenStreetMap road data). */
+  tollPerKm?: number;
   otherPerDay: number;
   /** Count a night at the finish (you sleep there before going home). */
   includeFinishNight: boolean;
@@ -22,14 +24,14 @@ export interface BudgetSettings {
 
 export type Lodging = 'any' | 'camping' | 'hostel' | 'hotel';
 
-interface Preset { stay: Record<Lodging, number>; food: number; fuelPerLitre: number; other: number }
+interface Preset { stay: Record<Lodging, number>; food: number; fuelPerLitre: number; other: number; tollPerKm: number }
 
 /** Typical starting costs per currency (the traveller edits them). */
 const PRESETS: Record<string, Preset> = {
-  EUR: { stay: { camping: 20, hostel: 30, hotel: 75, any: 55 }, food: 30, fuelPerLitre: 1.75, other: 10 },
-  GBP: { stay: { camping: 20, hostel: 30, hotel: 80, any: 60 }, food: 30, fuelPerLitre: 1.45, other: 10 },
-  USD: { stay: { camping: 30, hostel: 40, hotel: 120, any: 90 }, food: 40, fuelPerLitre: 0.95, other: 15 },
-  BRL: { stay: { camping: 60, hostel: 90, hotel: 250, any: 180 }, food: 90, fuelPerLitre: 6.2, other: 30 },
+  EUR: { stay: { camping: 20, hostel: 30, hotel: 75, any: 55 }, food: 30, fuelPerLitre: 1.75, other: 10, tollPerKm: 0.07 },
+  GBP: { stay: { camping: 20, hostel: 30, hotel: 80, any: 60 }, food: 30, fuelPerLitre: 1.45, other: 10, tollPerKm: 0.05 },
+  USD: { stay: { camping: 30, hostel: 40, hotel: 120, any: 90 }, food: 40, fuelPerLitre: 0.95, other: 15, tollPerKm: 0.05 },
+  BRL: { stay: { camping: 60, hostel: 90, hotel: 250, any: 180 }, food: 90, fuelPerLitre: 6.2, other: 30, tollPerKm: 0.15 },
 };
 /** Other currencies: the euro figures at a rough exchange rate, rounded. */
 const PER_EURO: Record<string, number> = { CHF: 1, SEK: 11.5, NOK: 11.7, DKK: 7.5, PLN: 4.3, CZK: 25, CAD: 1.5, AUD: 1.65, JPY: 160 };
@@ -42,6 +44,7 @@ function preset(currency: string): Preset {
   return {
     stay: { camping: r(e.stay.camping), hostel: r(e.stay.hostel), hotel: r(e.stay.hotel), any: r(e.stay.any) },
     food: r(e.food), fuelPerLitre: Math.round(e.fuelPerLitre * rate * 100) / 100, other: r(e.other),
+    tollPerKm: Math.round(e.tollPerKm * rate * 100) / 100,
   };
 }
 
@@ -56,6 +59,7 @@ export function defaultBudget(travelMode: string, lodging: Lodging = 'any', curr
     fuelPer100km: motor ? 6 : 0,
     fuelPrice: motor ? p.fuelPerLitre : 0,
     tollsTotal: 0,
+    tollPerKm: motor ? p.tollPerKm : 0,
     otherPerDay: travelMode === 'TRANSIT' ? p.other * 2 : p.other,
     includeFinishNight: false,
     extras: [],
@@ -79,11 +83,16 @@ export interface BudgetRow {
   /** Where the night is spent, if any. */
   nightAt?: string;
   stay: number;
-  /** 'estimate' | 'booked' (price from a reservation) | 'covered' (booking counted on an earlier night) | 'none' */
-  stayKind: 'estimate' | 'booked' | 'covered' | 'none';
+  /** 'places' (from the places to stay at that stop) | 'estimate' (your average) | 'booked' (a reservation's price)
+   *  | 'covered' (booking counted on an earlier night) | 'none' */
+  stayKind: 'places' | 'estimate' | 'booked' | 'covered' | 'none';
   stayNote?: string;
   food: number;
+  /** Food priced from the restaurants at the stop (their price level). */
+  foodFromPlaces?: boolean;
   fuel: number;
+  tolls: number;
+  tollKm: number;
   other: number;
   total: number;
 }
@@ -119,6 +128,32 @@ export function otherBookings(stops: BudgetStop[]) {
   return out;
 }
 
+const KIND_PRICE: Record<NonNullable<InterestItem['stayKind']>, Lodging> = { camping: 'camping', hostel: 'hostel', guesthouse: 'any', hotel: 'hotel' };
+const LEVEL_FACTOR = [1, 0.7, 1, 1.5, 2.2];
+
+/** A night's price from the places to stay suggested at a stop (their kind, or a price range), or null. */
+export function stayFromPlaces(stop: BudgetStop | undefined, currency: string): { amount: number; count: number } | null {
+  const p = preset(currency);
+  const prices: number[] = [];
+  stop?.interests.forEach(cat => cat.items.forEach(item => {
+    if (item.source === 'reservation' || !isStay(cat, item.category)) return;
+    if (item.priceRange && item.priceRange.currency.toUpperCase() === currency) prices.push((item.priceRange.min + item.priceRange.max) / 2);
+    else if (item.stayKind) prices.push(p.stay[KIND_PRICE[item.stayKind]]);
+  }));
+  return prices.length ? { amount: round2(prices.reduce((a, b) => a + b, 0) / prices.length), count: prices.length } : null;
+}
+
+/** A day's food from the restaurants' price level at a stop (scaling your average), or null. */
+export function foodFromPlaces(stop: BudgetStop | undefined, foodPerDay: number): number | null {
+  const levels: number[] = [];
+  stop?.interests.forEach(cat => cat.items.forEach(item => {
+    if (item.source !== 'reservation' && item.priceLevel && (item.category === 'food' || /restaurant|cafe|food/i.test(cat.category))) levels.push(item.priceLevel);
+  }));
+  if (!levels.length) return null;
+  const factor = levels.reduce((sum, l) => sum + LEVEL_FACTOR[Math.max(1, Math.min(4, Math.round(l)))], 0) / levels.length;
+  return round2(foodPerDay * factor);
+}
+
 /** Booked accommodation at a stop: total price per currency and the names. */
 export function bookedStay(stop: BudgetStop | undefined) {
   const prices: Record<string, number> = {};
@@ -133,7 +168,7 @@ export function bookedStay(stop: BudgetStop | undefined) {
   return { prices, names };
 }
 
-export function computeBudget(settings: BudgetSettings, schedule: ScheduleDay[], legs: RouteLeg[], stops: BudgetStop[]): Budget {
+export function computeBudget(settings: BudgetSettings, schedule: ScheduleDay[], legs: RouteLeg[], stops: BudgetStop[], tollKm: number[] = []): Budget {
   const byKey = new Map(stops.map(s => [s.key, s]));
   const counted = new Set<string>();
   const otherCurrencies: Record<string, number> = {};
@@ -142,7 +177,12 @@ export function computeBudget(settings: BudgetSettings, schedule: ScheduleDay[],
 
   const nightCost = (key: string): Pick<BudgetRow, 'stay' | 'stayKind' | 'stayNote'> => {
     const { prices, names } = bookedStay(byKey.get(key));
-    if (!names.length) return { stay: settings.stayPerNight, stayKind: 'estimate' };
+    if (!names.length) {
+      const fromPlaces = stayFromPlaces(byKey.get(key), currency);
+      return fromPlaces
+        ? { stay: fromPlaces.amount, stayKind: 'places', stayNote: `${fromPlaces.count}` }
+        : { stay: settings.stayPerNight, stayKind: 'estimate' };
+    }
     if (counted.has(key)) return { stay: 0, stayKind: 'covered', stayNote: `Included in ${names.join(', ')}` };
     counted.add(key);
     let stay = 0;
@@ -161,13 +201,17 @@ export function computeBudget(settings: BudgetSettings, schedule: ScheduleDay[],
     rows.push({
       day: 0, date: schedule[0]?.date ? addDay(schedule[0].date, -1) : undefined, kind: 'before',
       label: `Night before departure in ${byKey.get('start')!.label}`, km: 0, nightAt: byKey.get('start')!.label,
-      ...night, food: 0, fuel: 0, other: 0, total: night.stay,
+      ...night, food: 0, fuel: 0, tolls: 0, tollKm: 0, other: 0, total: night.stay,
     });
   }
   rows.push(...schedule.map((d, n) => {
-    let label = '', km = 0, fuel = 0, nightKey: string | undefined;
+    let label = '', km = 0, fuel = 0, tolls = 0, tolled = 0, nightKey: string | undefined, foodKey: string | undefined;
     if (d.kind === 'ride') {
       const i = d.legIndex!;
+      tolled = tollKm[i] || 0;
+      tolls = tolled * (settings.tollPerKm || 0);
+      // Dinner where the day ends.
+      foodKey = i < lastRide ? `stop-${i}` : 'end';
       const leg = legs[i];
       label = leg ? `${leg.from} → ${leg.to}` : `Day ${n + 1}`;
       km = Math.max(0, (leg?.distanceMeters || 0) / 1000 - (leg?.ferryKm || 0));
@@ -177,15 +221,17 @@ export function computeBudget(settings: BudgetSettings, schedule: ScheduleDay[],
     } else {
       label = `Rest day in ${byKey.get(`stop-${d.stopIndex}`)?.label || `stop ${d.stopIndex! + 1}`}`;
       nightKey = `stop-${d.stopIndex}`;
+      foodKey = nightKey;
     }
     const night = nightKey ? nightCost(nightKey) : { stay: 0, stayKind: 'none' as const };
-    const food = settings.foodPerDay;
+    const placesFood = foodKey ? foodFromPlaces(byKey.get(foodKey), settings.foodPerDay) : null;
+    const food = placesFood ?? settings.foodPerDay;
     const other = settings.otherPerDay;
     return {
       day: n + 1, date: d.date, kind: d.kind, label, km: Math.round(km),
       nightAt: nightKey ? byKey.get(nightKey)?.label : undefined,
-      ...night, food, fuel: round2(fuel), other,
-      total: round2(night.stay + food + fuel + other),
+      ...night, food, foodFromPlaces: placesFood !== null, fuel: round2(fuel), tolls: round2(tolls), tollKm: Math.round(tolled), other,
+      total: round2(night.stay + food + fuel + tolls + other),
     };
   }));
 
@@ -198,7 +244,7 @@ export function computeBudget(settings: BudgetSettings, schedule: ScheduleDay[],
   }
   const totals = {
     stay: sum(r => r.stay), food: sum(r => r.food), fuel: sum(r => r.fuel), other: sum(r => r.other),
-    tolls: round2(settings.tollsTotal || 0), extras, bookings: round2(bookings.reduce((s, b) => s + b.amount, 0)), all: 0,
+    tolls: round2(sum(r => r.tolls) + (settings.tollsTotal || 0)), extras, bookings: round2(bookings.reduce((s, b) => s + b.amount, 0)), all: 0,
   };
   totals.all = round2(totals.stay + totals.food + totals.fuel + totals.other + totals.tolls + totals.extras + totals.bookings);
   const days = rows.filter(r => r.kind !== 'before').length;
@@ -218,11 +264,12 @@ export function budgetCsv(budget: Budget, currency: string): string {
     const s = String(v ?? '');
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const lines = [['Day', 'Date', 'Route', 'km', 'Night at', `Stay (${currency})`, 'Stay note', `Food (${currency})`, `Fuel (${currency})`, `Other (${currency})`, `Total (${currency})`]];
-  budget.rows.forEach(r => lines.push([r.kind === 'before' ? 'Before' : r.day, r.date, r.label, r.km, r.nightAt, r.stay, r.stayNote, r.food, r.fuel, r.other, r.total].map(String)));
-  lines.push(['', '', 'Tolls', '', '', '', '', '', '', '', String(budget.totals.tolls)]);
-  budget.bookings.forEach(b => lines.push(['', '', `Booked: ${b.name}`, '', b.stop, '', '', '', '', '', String(b.amount)]));
-  lines.push(['', '', 'Extras', '', '', '', '', '', '', '', String(budget.totals.extras)]);
-  lines.push(['', '', 'Total', '', '', '', '', '', '', '', String(budget.totals.all)]);
+  const lines = [['Day', 'Date', 'Route', 'km', 'Night at', `Stay (${currency})`, 'Stay source', `Food (${currency})`, `Fuel (${currency})`, 'Toll km', `Tolls (${currency})`, `Other (${currency})`, `Total (${currency})`]];
+  const source = (r: BudgetRow) => r.stayKind === 'places' ? `average of ${r.stayNote} places` : r.stayKind === 'estimate' ? 'your average' : r.stayNote || r.stayKind;
+  budget.rows.forEach(r => lines.push([r.kind === 'before' ? 'Before' : r.day, r.date, r.label, r.km, r.nightAt, r.stay, source(r), r.food, r.fuel, r.tollKm, r.tolls, r.other, r.total].map(v => String(v ?? ''))));
+  const blank = (label: string, value: number) => ['', '', label, '', '', '', '', '', '', '', '', '', String(value)];
+  budget.bookings.forEach(b => lines.push([...blank(`Booked: ${b.name} (${b.stop})`, b.amount)]));
+  lines.push(blank('Extras', budget.totals.extras));
+  lines.push(blank('Total', budget.totals.all));
   return lines.map(l => l.map(esc).join(',')).join('\n');
 }

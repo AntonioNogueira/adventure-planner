@@ -33,7 +33,8 @@ interface MapOsmProps {
   attachingKey?: string | null;
 }
 
-type MapType = 'map' | 'light' | 'topo' | 'satellite';
+// Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
+type MapType = 'topo' | 'satellite' | 'hybrid';
 
 const OSM = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const raster = (tiles: string[], attribution: string, maxzoom: number): StyleSpecification => ({
@@ -42,20 +43,38 @@ const raster = (tiles: string[], attribution: string, maxzoom: number): StyleSpe
   layers: [{ id: 'base', type: 'raster', source: 'base' }],
 });
 
-const STYLES: Record<MapType, string | StyleSpecification> = {
-  map: 'https://tiles.openfreemap.org/styles/liberty',
-  light: 'https://tiles.openfreemap.org/styles/positron',
+const SATELLITE_TILES = ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg'];
+const SATELLITE_CREDIT = '<a href="https://s2maps.eu">Sentinel-2 cloudless</a> by EOX (CC BY-NC-SA 4.0), contains Copernicus data';
+
+const STYLES: Record<Exclude<MapType, 'hybrid'>, string | StyleSpecification> = {
   topo: raster(['https://tile.opentopomap.org/{z}/{x}/{y}.png'], `${OSM}, SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`, 17),
-  satellite: raster(
-    ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg'],
-    '<a href="https://s2maps.eu">Sentinel-2 cloudless</a> by EOX (CC BY-NC-SA 4.0), contains Copernicus data', 15),
+  satellite: raster(SATELLITE_TILES, SATELLITE_CREDIT, 15),
 };
 
+/** Satellite with OpenFreeMap's roads, borders and place names on top (vector layers of its "liberty" style). */
+let hybridStyle: Promise<StyleSpecification> | null = null;
+function getHybridStyle(): Promise<StyleSpecification> {
+  hybridStyle ??= fetch('https://tiles.openfreemap.org/styles/liberty')
+    .then(r => r.json())
+    .then((style: StyleSpecification) => ({
+      ...style,
+      sources: { ...style.sources, satellite: { type: 'raster', tiles: SATELLITE_TILES, tileSize: 256, attribution: SATELLITE_CREDIT, maxzoom: 15 } },
+      layers: [
+        { id: 'satellite', type: 'raster', source: 'satellite' },
+        ...style.layers.filter(l => l.type === 'symbol'
+          || ('source-layer' in l && ['transportation', 'boundary'].includes(String(l['source-layer'])) && l.type === 'line')),
+      ],
+    }) as StyleSpecification)
+    .catch(err => { hybridStyle = null; throw err; });
+  return hybridStyle;
+}
+
+const styleFor = async (type: MapType) => (type === 'hybrid' ? getHybridStyle() : STYLES[type]);
+
 const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
-  { id: 'map', label: 'Map', icon: MapIcon },
-  { id: 'light', label: 'Light', icon: Layers },
   { id: 'topo', label: 'Topo', icon: Mountain },
   { id: 'satellite', label: 'Satellite', icon: Globe },
+  { id: 'hybrid', label: 'Hybrid', icon: Layers },
 ];
 
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
@@ -110,7 +129,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
   segmentsRef.current = segments;
   const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode });
   callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode };
-  const [mapType, setMapType] = useState<MapType>('map');
+  const [mapType, setMapType] = useState<MapType>('topo');
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
   const { t, settings } = useSettings();
@@ -164,7 +183,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
     if (!containerRef.current) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: STYLES.map,
+      style: STYLES.topo,
       center: [2.35, 48.86],
       zoom: 4,
       attributionControl: { compact: true },
@@ -216,7 +235,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
 
   // Switching style replaces all layers; the route is re-added on 'style.load'.
   useEffect(() => {
-    if (mapRef.current && isReady) mapRef.current.setStyle(STYLES[mapType]);
+    if (mapRef.current && isReady) styleFor(mapType).then(style => mapRef.current?.setStyle(style)).catch(err => console.warn('Map style unavailable', err));
   }, [mapType]);
 
   // Route: one feature per day, a white casing under the green line, and a darker highlight for the selected day.
@@ -324,7 +343,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units]);
 
   return (
-    <div className="vintage-map relative h-full w-full">
+    <div className={cn("vintage-map relative h-full w-full", mapType !== 'topo' && "vintage-imagery")}>
       <div ref={containerRef} className="h-full w-full" />
 
       {/* Category legend: show or hide suggestion pins */}
