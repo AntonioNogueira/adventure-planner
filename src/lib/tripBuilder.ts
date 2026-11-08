@@ -41,6 +41,8 @@ export interface OvernightPlan {
   waypoints: { name: string; position?: google.maps.LatLngLiteral }[];
   /** The daily (flat-equivalent) distance the split aimed for, in km. */
   targetKm: number | null;
+  /** Places to pass through (not sleep at), each before the overnight stop with this index (= waypoints.length: before the finish). */
+  passThrough: { name: string; beforeStop: number }[];
 }
 
 /**
@@ -74,7 +76,7 @@ async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> 
 export async function planOvernightStops(original: TripIntent, options?: RouteOptions): Promise<OvernightPlan> {
   const intent = { ...original, route: await withoutDetours(original) };
   const overnightOnly = intent.route.filter(r => r.overnight).map(r => r.place);
-  if (intent.travelMode === 'TRANSIT') return { waypoints: overnightOnly.map(name => ({ name })), targetKm: null };
+  if (intent.travelMode === 'TRANSIT') return { waypoints: overnightOnly.map(name => ({ name })), targetKm: null, passThrough: [] };
 
   const request = (travelMode: string) => computeTrip({
     origin: intent.origin,
@@ -87,15 +89,17 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
   const { legs } = await request(intent.travelMode).catch(() => request('DRIVING'));
 
   // Group legs into segments that end at an overnight place (or the finish).
-  const segments: { legs: RoutedLeg[]; end: string | null }[] = [];
+  const segments: { legs: RoutedLeg[]; end: string | null; vias: string[] }[] = [];
   let current: RoutedLeg[] = [];
+  let vias: string[] = [];
   legs.forEach((leg, i) => {
     current.push(leg);
     const via = intent.route[i];
     if (!via || via.overnight) {
-      segments.push({ legs: current, end: via ? via.place : null });
+      segments.push({ legs: current, end: via ? via.place : null, vias });
       current = [];
-    }
+      vias = [];
+    } else vias.push(via.place);
   });
 
   const kmPer1000m = EFFORT_KM_PER_1000M[intent.travelMode] ?? 0;
@@ -118,14 +122,25 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     : segmentEffort.map(e => Math.max(1, Math.ceil(e / (target * (intent.dailyKm ? 1 : SPLIT_TOLERANCE)))));
 
   const waypoints: OvernightPlan['waypoints'] = [];
+  const passThrough: OvernightPlan['passThrough'] = [];
   for (let s = 0; s < segments.length; s++) {
     const days = daysPerSegment[s];
+    // Pass-through places sit at the end of each leg of the segment but the last.
+    const viaKm = segments[s].legs.slice(0, -1).map((_, k) => segments[s].legs.slice(0, k + 1).reduce((sum, l) => sum + l.distanceMeters, 0) / 1000);
+    let nextVia = 0;
+    const addViasBefore = (km: number) => {
+      while (nextVia < segments[s].vias.length && viaKm[nextVia] < km) {
+        passThrough.push({ name: segments[s].vias[nextVia], beforeStop: waypoints.length });
+        nextVia++;
+      }
+    };
     if (days > 1) {
       const points = pathWithDistances(segments[s].legs);
       const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);
       const spots = splits.map(km => pointAt(points, km));
       const towns = await overnightTownsNear(spots, intent.lodging);
       towns.forEach((found, i) => {
+        addViasBefore(splits[i]);
         // No named place nearby (empty country): keep the night at the split point anyway.
         const town = found || { name: t('Night stop at km {km}', { km: Math.round(segmentKm.slice(0, s).reduce((a, b) => a + b, 0) + splits[i]) }), position: spots[i] };
         const prev = waypoints[waypoints.length - 1];
@@ -134,9 +149,11 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
         if (!sameSpot && town.name !== intent.origin && town.name !== intent.destination) waypoints.push(town);
       });
     }
+    addViasBefore(Infinity);
     if (segments[s].end) waypoints.push({ name: segments[s].end! });
   }
-  return { waypoints: waypoints.slice(0, MAX_WAYPOINTS), targetKm: Math.round(target) };
+  const kept = waypoints.slice(0, MAX_WAYPOINTS);
+  return { waypoints: kept, targetKm: Math.round(target), passThrough: passThrough.filter(p => p.beforeStop <= kept.length) };
 }
 
 /** Split a whole number of days between parts by their effort (at least one each), largest remainders first. */

@@ -8,7 +8,7 @@ import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
 import { planOvernightStops } from './lib/tripBuilder';
-import { computeTrip, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES } from './lib/routing';
+import { computeTrip, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES, RoutePlace } from './lib/routing';
 import { elevationsAlong, climbStats } from './lib/elevation';
 import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
@@ -201,6 +201,7 @@ const App: React.FC = () => {
   useEffect(() => onOpenPlans(reason => setPlansReason(reason)), []);
   // The typed route (start, stops, end, mode) changed since the last calculation.
   const [routeStale, setRouteStale] = useState(false);
+  const passThroughRef = useRef<{ stopsKey: string; via: { name: string; beforeStop: number }[] } | null>(null);
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -305,8 +306,10 @@ const App: React.FC = () => {
       ...(intent.offroad === undefined ? {} : { offroad: intent.offroad && intent.travelMode !== 'TRANSIT' }),
     };
     setRouteOptions(options);
-    const { waypoints: stops, targetKm } = await planOvernightStops(intent, options);
+    const { waypoints: stops, targetKm, passThrough } = await planOvernightStops(intent, options);
     const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
+    // Named places to pass through (e.g. "via Monsaraz") shape the route while the stops stay as planned.
+    passThroughRef.current = { stopsKey: mappedWaypoints.map(w => w.location).join('|'), via: passThrough };
 
     setOrigin(intent.origin);
     setDestination(intent.destination);
@@ -379,10 +382,22 @@ const App: React.FC = () => {
     setError(null);
 
     const stops = currentWaypoints.filter(wp => wp.location.trim() !== '');
+    // Pass-through places from the plan, threaded between the stops (only while the stops are unchanged).
+    const pass = passThroughRef.current;
+    const usePass = pass && pass.stopsKey === stops.map(w => w.location).join('|') ? pass.via : [];
+    const routeStops = (exact: boolean) => {
+      const out: { location: RoutePlace; via: boolean }[] = [];
+      stops.forEach((wp, k) => {
+        usePass.filter(p => p.beforeStop === k).forEach(p => out.push({ location: p.name, via: true }));
+        out.push({ location: (exact && wp.position) || wp.location, via: !wp.stopover });
+      });
+      usePass.filter(p => p.beforeStop >= stops.length).forEach(p => out.push({ location: p.name, via: true }));
+      return out;
+    };
     const request = (mode: string, exact = true) => computeTrip({
       origin: currentOrigin,
       destination: currentDestination,
-      stops: stops.map(wp => ({ location: (exact && wp.position) || wp.location, via: !wp.stopover })),
+      stops: routeStops(exact),
       travelMode: mode,
       options,
     });
