@@ -51,7 +51,25 @@ partner or sold, and so personal email stays separate.
 5. Places calls through the server, so limits can't be bypassed.
 6. Terms of service, privacy policy (GDPR), cookie notice, VAT invoices.
 
-## 5. Other ideas
+## 5. Affiliate links (monetise the place popups, all plans)
+
+Affiliate links fit better than ads: the popups already have a named place, its town and the trip's nights.
+
+| Type | Programmes | Typical earnings | Where in the app |
+|---|---|---|---|
+| Accommodation | Booking.com Affiliate Partner Program, Expedia Group (Hotels.com), Agoda; Hostelworld (hostels); Pitchup, ACSI (campsites) | ~4–6% of the booking (≈ €3 on a €70 night) | "Check prices" on places to stay and booked stops, with the schedule's dates |
+| Aggregators | Travelpayouts (many brands, one account), Stay22 (auto-affiliates accommodation links) | same commissions, less setup | quickest start |
+| Activities | GetYourGuide, Viator | ~8% | points of interest ("Tickets & tours") |
+| Rentals / gear | DiscoverCars, Rentalcars; motorcycle rental networks; outdoor / moto gear shops | varies | shops category, trip start |
+| Display ads | Google AdSense | very low at small traffic | not recommended (clutter; Google Maps Platform rules limit ads on/over the map) |
+
+- Needs: a public site with content for approval (own domain helps), a disclosure line ("we may earn a commission"),
+  and cookie consent (GDPR) for tracking.
+- Conversion is typically 2–5% of clicks: meaningful only with volume.
+- Build plan: links generated from place name + town + nights, affiliate IDs in server settings (BOOKING_AID,
+  GETYOURGUIDE_PARTNER_ID, …); without IDs the links still work, just without commission.
+
+## 6. Other ideas
 
 - Partnerships: campsites / hostels (affiliate booking links), bike and moto rental, local guides.
 - Pro features: several riders per trip, shared editing, branded PDF itineraries, GPX packs for groups.
