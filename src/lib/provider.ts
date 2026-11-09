@@ -7,7 +7,7 @@ declare global {
     authProviders?: string;
     checkout?: Record<string, string>;
     affiliates?: { booking?: string; getyourguide?: string; hostels?: string; campsites?: string; rentals?: string };
-    services?: { overpass?: string | string[]; photon?: string; osrm?: string; valhalla?: string; brouter?: string };
+    services?: { overpass?: string | string[]; photon?: string; nominatim?: string; osrm?: string; valhalla?: string; brouter?: string };
   } }
 }
 

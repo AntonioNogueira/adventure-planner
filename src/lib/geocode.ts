@@ -1,4 +1,5 @@
-// Place names ↔ coordinates, cached, from Photon (OpenStreetMap). The server's PHOTON_URL setting picks the server.
+// Place names ↔ coordinates, cached, from Photon (OpenStreetMap), with Nominatim as the backup when Photon is
+// busy or unreachable (free public servers drop requests now and then). PHOTON_URL / NOMINATIM_URL pick the servers.
 import { SERVICES } from './services';
 import { t } from './settings';
 import { searchTown } from './affiliate';
@@ -44,26 +45,80 @@ const SETTLEMENT = new Set(['city', 'town', 'village', 'hamlet', 'municipality',
 
 class LookupFailed extends Error {}
 
+// ---- Nominatim (backup): one request at a time, at most about one a second (its usage policy) ----
+
+export interface NominatimPlace {
+  lat: string; lon: string; category?: string; type?: string; addresstype?: string; name?: string;
+  address?: Record<string, string | undefined>;
+}
+
+let nominatimQueue: Promise<unknown> = Promise.resolve();
+let lastNominatim = 0;
+export function nominatim<T>(path: string): Promise<T> {
+  const run = async () => {
+    const wait = lastNominatim + 1100 - Date.now();
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    lastNominatim = Date.now();
+    const res = await fetch(`${SERVICES.nominatim}${path}${path.includes('?') ? '&' : '?'}format=jsonv2&accept-language=en`, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`Nominatim ${res.status}`);
+    return res.json() as Promise<T>;
+  };
+  const next = nominatimQueue.then(run, run);
+  nominatimQueue = next.catch(() => undefined);
+  return next;
+}
+
+const NOMINATIM_SETTLEMENT = new Set(['city', 'town', 'village', 'hamlet', 'municipality', 'suburb', 'locality', 'administrative']);
+
+/** The best Nominatim result for a town search: a settlement first. */
+export function pickNominatim(results: NominatimPlace[]): LatLng | null {
+  const best = results.find(r => r.category === 'place' && NOMINATIM_SETTLEMENT.has(r.type || ''))
+    || results.find(r => NOMINATIM_SETTLEMENT.has(r.addresstype || ''))
+    || results[0];
+  return best ? { lat: Number(best.lat), lng: Number(best.lon) } : null;
+}
+
 async function lookup(address: string): Promise<LatLng | null> {
+  let photonError: unknown = null;
   try {
     const features = await photon(`/api/?q=${encodeURIComponent(address)}&limit=5`);
     // Prefer a town or city over a street that happens to share the name.
     const best = features.find(f => f.properties.osm_key === 'place' && SETTLEMENT.has(f.properties.osm_value || ''))
       || features.find(f => f.properties.type === 'city')
       || features[0];
-    return best ? { lat: best.geometry.coordinates[1], lng: best.geometry.coordinates[0] } : null;
-  } catch (error: any) {
-    console.error(`Geocoding failed for ${address}:`, error);
+    if (best) return { lat: best.geometry.coordinates[1], lng: best.geometry.coordinates[0] };
+  } catch (error) {
+    photonError = error;
+  }
+  // Photon failed or found nothing: ask Nominatim.
+  try {
+    return pickNominatim(await nominatim<NominatimPlace[]>(`/search?q=${encodeURIComponent(address)}&limit=5`));
+  } catch (error) {
+    console.error(`Geocoding failed for ${address}:`, photonError || error, error);
     throw new LookupFailed(String(error));
   }
+}
+
+/** "Covilhã, Portugal" from a Nominatim reverse lookup (town, or "Near <area>" in the countryside). */
+export function nominatimTown(r: NominatimPlace | null): string | null {
+  const a = r?.address;
+  if (!a) return null;
+  const raw = a.city || a.town || a.village || a.hamlet || a.municipality;
+  const town = raw && searchTown(raw);
+  if (town) return a.country ? `${town}, ${a.country}` : town;
+  const area = a.county || a.state_district || a.state;
+  return area ? `${t('Near {place}', { place: area })}${a.country ? `, ${a.country}` : ''}` : null;
 }
 
 export function geocodeAddress(address: string): Promise<LatLng | null> {
   const key = address.trim().toLowerCase();
   if (key.length < 3 || PLACEHOLDERS.includes(key)) return Promise.resolve(null);
   if (!cache.has(key)) {
-    // Remember answers (including "not found"), but not service failures, so they can be retried.
-    const pending = lookup(address).catch(() => { cache.delete(key); return null; });
+    // Remember answers (including "not found"), but not service failures: those are retried once after a pause
+    // (busy free servers usually answer the second time), then forgotten so a later attempt asks again.
+    const pending = lookup(address)
+      .catch(() => new Promise<LatLng | null>(resolve => setTimeout(() => lookup(address).then(resolve, () => resolve(null)), 1500)))
+      .then(at => { if (!at) cache.delete(key); return at; });
     cache.set(key, pending);
   }
   return cache.get(key)!;
@@ -72,7 +127,12 @@ export function geocodeAddress(address: string): Promise<LatLng | null> {
 /** A readable name for a position: "Tavira, Portugal", or "Near <area>, <country>" in the countryside. */
 export async function townAt(position: LatLng): Promise<string | null> {
   try {
-    const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`);
+    const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`).catch(async err => {
+      // Photon unavailable: Nominatim names the place instead.
+      const name = nominatimTown(await nominatim<NominatimPlace>(`/reverse?lat=${position.lat}&lon=${position.lng}&zoom=14`).catch(() => null));
+      if (name) throw new NamedBy(name);
+      throw err;
+    });
     if (!f) return null;
     const p = f.properties;
     const raw = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
@@ -82,10 +142,14 @@ export async function townAt(position: LatLng): Promise<string | null> {
     const area = p.county || p.state;
     return area ? `${t('Near {place}', { place: area })}${p.country ? `, ${p.country}` : ''}` : p.name || null;
   } catch (error) {
+    if (error instanceof NamedBy) return error.name;
     console.error('Reverse geocoding failed:', error);
     return null;
   }
 }
+
+/** Carries a name found by the backup service out of the Photon branch. */
+class NamedBy extends Error { constructor(public name: string) { super(name); } }
 
 /** A name plus a nearby routable spot (the nearest address, so never in a river or the sea). */
 export async function placeAt(position: LatLng): Promise<{ name: string; position: LatLng } | null> {

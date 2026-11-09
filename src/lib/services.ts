@@ -6,6 +6,8 @@ export interface Services {
   overpass: string[];
   /** Photon: place names ↔ coordinates, and the places fallback when no Overpass server answers. */
   photon: string;
+  /** Nominatim: the backup for place names when Photon fails (about one request a second). */
+  nominatim: string;
   /** OSRM base URL with routed-car / routed-bike / routed-foot profiles. */
   osrm: string;
   /** Valhalla base URL (route, trace_route, trace_attributes, height). */
@@ -17,6 +19,7 @@ export interface Services {
 export const PUBLIC_SERVICES: Services = {
   overpass: ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'],
   photon: 'https://photon.komoot.io',
+  nominatim: 'https://nominatim.openstreetmap.org',
   osrm: 'https://routing.openstreetmap.de',
   valhalla: 'https://valhalla1.openstreetmap.de',
   brouter: 'https://brouter.de/brouter',
@@ -34,7 +37,7 @@ export function resolveServices(config?: Partial<Record<keyof Services, string |
   const list = (Array.isArray(overpass) ? overpass : (overpass || '').split(',')).map(s => s.trim()).filter(Boolean).map(trim);
   return {
     overpass: list.length ? list : PUBLIC_SERVICES.overpass,
-    photon: one('photon'), osrm: one('osrm'), valhalla: one('valhalla'), brouter: one('brouter'),
+    photon: one('photon'), nominatim: one('nominatim'), osrm: one('osrm'), valhalla: one('valhalla'), brouter: one('brouter'),
   };
 }
 

@@ -37,6 +37,8 @@ services:
         sync: false
       - key: PHOTON_URL
         sync: false
+      - key: NOMINATIM_URL
+        sync: false
       - key: OSRM_URL
         sync: false
       - key: VALHALLA_URL

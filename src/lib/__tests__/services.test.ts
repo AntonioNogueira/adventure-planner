@@ -31,3 +31,22 @@ describe('places from Photon (fallback)', () => {
     expect(photonElement({ ...hotel, properties: { ...hotel.properties, name: undefined } })).toBeNull();
   });
 });
+
+import { pickNominatim, nominatimTown } from '../geocode';
+import { updateSettings } from '../settings';
+
+describe('Nominatim (backup place names)', () => {
+  it('prefers the town over a station or street of the same name', () => {
+    expect(pickNominatim([
+      { lat: '40.27', lon: '-7.50', category: 'railway', type: 'station' },
+      { lat: '40.2810', lon: '-7.5045', category: 'place', type: 'city' },
+    ])).toEqual({ lat: 40.281, lng: -7.5045 });
+    expect(pickNominatim([])).toBeNull();
+  });
+  it('names a position by its town, or the area in the countryside', () => {
+    updateSettings({ language: 'en' });
+    expect(nominatimTown({ lat: '0', lon: '0', address: { town: 'Covilhã', country: 'Portugal' } })).toBe('Covilhã, Portugal');
+    expect(nominatimTown({ lat: '0', lon: '0', address: { county: 'Covilhã', country: 'Portugal' } })).toBe('Near Covilhã, Portugal');
+    expect(nominatimTown(null)).toBeNull();
+  });
+});
