@@ -106,7 +106,13 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   };
 
   const runPlan = async (intent: TripIntent) => {
-    const plan = await onPlanTrip(intent);
+    // Never spin forever: if the map services are this slow, say so (the plan may still finish and draw).
+    const TOO_LONG = Symbol('too long');
+    const plan = await Promise.race([onPlanTrip(intent), new Promise<typeof TOO_LONG>(r => setTimeout(() => r(TOO_LONG), 120_000))]);
+    if (plan === TOO_LONG) {
+      say({ text: t('The map services are very slow right now, so this is taking longer than usual. The route will appear when they answer; or try again in a minute.') });
+      return;
+    }
     if (!plan) {
       say({ text: t("I understood {from} → {to}, but the map couldn't draw that route. Try more specific place names.", { from: intent.origin, to: intent.destination }) });
       return;

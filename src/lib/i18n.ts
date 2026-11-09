@@ -482,6 +482,7 @@ export const PT: Record<string, string> = {
   'then “Add to Home Screen”.': 'e depois em “Adicionar ao ecrã principal”.',
   'Full screen, its own icon, opens without a connection. Free, no app store.': 'Ecrã inteiro, ícone próprio, abre sem ligação. Grátis, sem loja de apps.',
   'Voice': 'Voz',
+  'The map services are very slow right now, so this is taking longer than usual. The route will appear when they answer; or try again in a minute.': 'Os serviços de mapa estão muito lentos neste momento, por isso está a demorar mais do que o habitual. A rota aparece quando responderem; ou tente de novo daqui a um minuto.',
   'You are here': 'Está aqui',
   'Spoken turn-by-turn directions': 'Indicações faladas, curva a curva',
   'Voice guidance on.': 'Indicações por voz ligadas.',
@@ -773,4 +774,5 @@ export const PT_BR: Record<string, string> = {
   '1 kilometre': '1 quilômetro',
   '{n} kilometres': '{n} quilômetros',
   'You are here': 'Você está aqui',
+  'The map services are very slow right now, so this is taking longer than usual. The route will appear when they answer; or try again in a minute.': 'Os serviços de mapa estão muito lentos agora, por isso está demorando mais que o normal. A rota aparece quando eles responderem; ou tente de novo em um minuto.',
 };

@@ -122,6 +122,7 @@ async function fetchRoadData(path: LatLng[], travelMode: string): Promise<RoadDa
     const edges: Edge[] = [];
     for (const part of parts) {
       const res = await fetch(VALHALLA, {
+        signal: AbortSignal.timeout(30000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

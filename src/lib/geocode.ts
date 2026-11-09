@@ -28,7 +28,7 @@ export async function photon(path: string): Promise<PhotonFeature[]> {
       if (delay) await new Promise(r => setTimeout(r, delay));
       try {
         // English names, to match the AI's place names ("Spain", not "España").
-        const res = await fetch(`${SERVICES.photon}${path}${path.includes('?') ? '&' : '?'}lang=en`);
+        const res = await fetch(`${SERVICES.photon}${path}${path.includes('?') ? '&' : '?'}lang=en`, { signal: AbortSignal.timeout(8000) });
         if (res.ok) return (await res.json()).features || [];
         lastError = new Error(`Photon ${res.status}`);
         if (res.status !== 429 && res.status < 500) break;

@@ -54,7 +54,7 @@ async function osrm(profile: string, locs: Loc[]): Promise<RoutedTrip> {
   let data: any = {};
   for (const delay of [0, 1500]) {
     if (delay) await new Promise(r => setTimeout(r, delay));
-    res = await fetch(url).catch(() => null);
+    res = await fetch(url, { signal: AbortSignal.timeout(25000) }).catch(() => null);
     data = res ? await res.json().catch(() => ({})) : {};
     if (data.code === 'Ok' && data.routes?.length) break;
   }
@@ -93,6 +93,7 @@ export function decodePolyline6(encoded: string): LatLng[] {
 
 async function valhallaCar(locs: Loc[], req: TripRequest): Promise<RoutedTrip> {
   const res = await fetch(VALHALLA, {
+    signal: AbortSignal.timeout(30000),
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

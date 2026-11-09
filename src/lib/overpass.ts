@@ -25,10 +25,13 @@ let preferred = 0;
 let skipUntil = 0;
 const SKIP_MS = 2 * 60_000;
 
-async function runQuery(query: string, servers = SERVICES.overpass): Promise<OsmElement[]> {
+async function runQuery(query: string, budgetMs = 31000, servers = SERVICES.overpass): Promise<OsmElement[]> {
+  const deadline = Date.now() + budgetMs;
   if (Date.now() < skipUntil) throw new Error('Overpass servers unavailable (skipping for now)');
   let lastError: unknown = new Error('No Overpass server configured');
   for (let k = 0; k < servers.length; k++) {
+    const left = deadline - Date.now();
+    if (left < 1500) break;
     const i = (preferred + k) % servers.length;
     try {
       const res = await fetch(servers[i], {
@@ -36,7 +39,7 @@ async function runQuery(query: string, servers = SERVICES.overpass): Promise<Osm
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `data=${encodeURIComponent(query)}`,
         // A stalled server must not hold up planning: move on to the next one.
-        signal: AbortSignal.timeout(k === servers.length - 1 ? 15000 : 8000),
+        signal: AbortSignal.timeout(Math.min(left, k === servers.length - 1 ? 15000 : 8000)),
       });
       if (res.ok) {
         const elements = (await res.json()).elements || [];
@@ -52,8 +55,9 @@ async function runQuery(query: string, servers = SERVICES.overpass): Promise<Osm
   throw lastError;
 }
 
-export function overpass(query: string): Promise<OsmElement[]> {
-  const next = queue.then(() => runQuery(query));
+/** An Overpass query (queued); `budgetMs` caps the total wait across servers before the caller falls back. */
+export function overpass(query: string, budgetMs?: number): Promise<OsmElement[]> {
+  const next = queue.then(() => runQuery(query, budgetMs));
   queue = next.catch(() => undefined);
   return next;
 }
@@ -180,7 +184,8 @@ export async function osmOvernightTowns(points: LatLng[], lodging: LodgingPrefer
   let elements: OsmElement[] = [];
   try {
     const clauses = points.map(p => `nwr["tourism"~"${LODGING[lodging]}"](around:15000,${p.lat.toFixed(5)},${p.lng.toFixed(5)});`).join('\n');
-    elements = await overpass(`[out:json][timeout:60];(${clauses});out center tags;`);
+    // Planning waits for this: at most 10 s on Overpass, then Photon.
+    elements = await overpass(`[out:json][timeout:25];(${clauses});out center tags;`, 10000);
   } catch (err) {
     console.warn('No Overpass server answered; overnight places from Photon instead.', err);
     elements = await photonOvernight(points, lodging);

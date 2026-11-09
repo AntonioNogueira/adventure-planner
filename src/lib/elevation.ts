@@ -74,6 +74,7 @@ export async function elevationsAlong(path: LatLng[], samples: number): Promise<
   try {
     // Valhalla's elevation service (free): heights at evenly spaced points.
     const res = await fetch(`${SERVICES.valhalla}/height`, {
+        signal: AbortSignal.timeout(15000),
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ shape: evenlySpaced(path, samples).map(p => ({ lat: p.lat, lon: p.lng })), range: false }),

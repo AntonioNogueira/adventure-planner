@@ -98,7 +98,7 @@ const PAGE_PROPS = {
 };
 
 async function wikiQuery(lang: string, params: Record<string, string>): Promise<WikiPage[]> {
-  const res = await fetch(`https://${lang}.wikipedia.org/w/api.php?${new URLSearchParams({ action: 'query', format: 'json', origin: '*', ...params })}`);
+  const res = await fetch(`https://${lang}.wikipedia.org/w/api.php?${new URLSearchParams({ action: 'query', format: 'json', origin: '*', ...params })}`, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error(`Wikipedia ${res.status}`);
   return Object.values((await res.json()).query?.pages || {}) as WikiPage[];
 }

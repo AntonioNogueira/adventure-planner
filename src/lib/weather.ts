@@ -61,7 +61,7 @@ async function fetchForecast(lat: number, lng: number, date: string): Promise<We
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}`
       + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max'
       + `&timezone=auto&start_date=${date}&end_date=${date}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) return { status: 'unavailable' };
     const data = await res.json();
     const d = data.daily;

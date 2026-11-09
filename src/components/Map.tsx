@@ -60,7 +60,7 @@ const STYLES: Record<Exclude<MapType, 'hybrid'>, string | StyleSpecification> = 
 /** Satellite with OpenFreeMap's roads, borders and place names on top (vector layers of its "liberty" style). */
 let hybridStyle: Promise<StyleSpecification> | null = null;
 function getHybridStyle(): Promise<StyleSpecification> {
-  hybridStyle ??= fetch('https://tiles.openfreemap.org/styles/liberty')
+  hybridStyle ??= fetch('https://tiles.openfreemap.org/styles/liberty', { signal: AbortSignal.timeout(15000) })
     .then(r => r.json())
     .then((style: StyleSpecification) => ({
       ...style,

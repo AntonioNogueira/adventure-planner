@@ -120,6 +120,7 @@ async function fetchTurns(path: LatLng[], opts: { travelMode: string; offroad?: 
   for (let p = 0; p < parts.length; p++) {
     const part = parts[p];
     const res = await fetch(TRACE, {
+      signal: AbortSignal.timeout(30000),
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -150,6 +151,7 @@ async function fetchTurns(path: LatLng[], opts: { travelMode: string; offroad?: 
 export async function rejoinTurns(from: LatLng, to: LatLng, opts: { travelMode: string; offroad?: boolean; language: Language; units: Units }): Promise<{ path: LatLng[]; turns: Turn[] } | null> {
   try {
     const res = await fetch(ROUTE, {
+      signal: AbortSignal.timeout(20000),
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
