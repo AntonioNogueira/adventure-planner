@@ -85,6 +85,8 @@ interface SidebarProps {
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
+  /** Nights at each stop, for the booking links' dates. */
+  stays?: Map<string, { checkIn: string; checkOut: string }>;
   /** The top tab; on phones the sheet drops to its smallest height for Budget and Documents. */
   view?: 'route' | 'budget' | 'documents';
 }
@@ -116,6 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   setExpeditionName,
   initialPrompt,
   view = 'route',
+  stays,
   onRemoveItem,
   onAttachFile,
   attachingKey,
@@ -561,6 +564,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'start' }, c, i)}
               warnings={warningsFor('start')}
               onFindPlaces={() => onFindPlaces({ kind: 'start' })}
+              nights={stays?.get('start')}
               onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
               attaching={attachingKey === 'start'}
             />
@@ -577,6 +581,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onRemoveItem={(c, j) => onRemoveItem({ kind: 'stop', index: i }, c, j)}
                 warnings={warningsFor(`stop-${i}`)}
                 onFindPlaces={() => onFindPlaces({ kind: 'stop', index: i })}
+                nights={stays?.get(`stop-${i}`)}
                 onAttachFile={(file) => onAttachFile({ kind: 'stop', index: i }, file)}
                 attaching={attachingKey === `stop-${i}`}
               />
@@ -586,6 +591,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'end' }, c, i)}
               warnings={warningsFor('end')}
               onFindPlaces={() => onFindPlaces({ kind: 'end' })}
+              nights={stays?.get('end')}
               onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
               attaching={attachingKey === 'end'}
             />

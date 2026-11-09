@@ -4,6 +4,8 @@ import { InterestCategory, StopKind } from '../types';
 import { cn } from '../lib/utils';
 import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
 import { useSettings } from '../lib/settings';
+import { bookingUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
+import { townName } from '../lib/wiki';
 import { mapSearchUrl } from '../lib/provider';
 
 export type { StopKind } from '../types';
@@ -79,13 +81,15 @@ interface StopDetailsProps {
   onRemoveStop?: () => void;
   /** Booking date problems, keyed "categoryIndex-itemIndex". */
   warnings?: Record<string, string>;
+  /** Nights spent at this stop (dates for the "Check prices" links). */
+  nights?: Nights;
 }
 
 const mapsLink = (query: string, at?: { lat: number; lng: number }) => mapSearchUrl(query, at);
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
-  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces,
+  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces, nights,
 }) => {
   const t = THEMES[kind];
   const { t: tr } = useSettings();
@@ -183,9 +187,19 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                             </div>
                           </div>
                         ) : (
-                          !compact && item.description && (
-                            <span className="line-clamp-2 text-[11px] text-muted-foreground">{item.description}</span>
-                          )
+                          <>
+                            {!compact && item.description && (
+                              <span className="line-clamp-2 text-[11px] text-muted-foreground">{item.description}</span>
+                            )}
+                            {offerFor(item.category || cat.category, item.source) === 'stay' && (
+                              <a href={bookingUrl(item.name, townName(location), nights)} target="_blank" rel="noopener noreferrer sponsored"
+                                className="text-[10px] font-semibold text-violet-700 hover:underline">{tr('Check prices')} ↗</a>
+                            )}
+                            {offerFor(item.category || cat.category, item.source) === 'tours' && (
+                              <a href={toursUrl(item.name, townName(location))} target="_blank" rel="noopener noreferrer sponsored"
+                                className="text-[10px] font-semibold text-violet-700 hover:underline">{tr('Tickets & tours')} ↗</a>
+                            )}
+                          </>
                         )}
                         {onRemoveItem && (
                           <button
@@ -207,6 +221,9 @@ const StopDetails: React.FC<StopDetailsProps> = ({
         </div>
       ) : (
         !onFindPlaces && <p className="py-1 text-xs italic text-muted-foreground">{tr('No recommendations for this stop yet.')}</p>
+      )}
+      {interests.some(c => c.items.some(i => offerFor(i.category || c.category, i.source))) && (
+        <p className="mt-1 text-[9px] text-muted-foreground">{tr('We may earn a commission when you book through these links.')}</p>
       )}
 
       {onFindPlaces && !hasSuggestions && (

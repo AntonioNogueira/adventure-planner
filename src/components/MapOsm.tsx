@@ -14,6 +14,7 @@ import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
 import { useSettings, t as tr } from '../lib/settings';
+import type { Nights } from '../lib/affiliate';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapOsmProps {
@@ -31,6 +32,8 @@ interface MapOsmProps {
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (ref: StopRef, file: File) => void;
   attachingKey?: string | null;
+  /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
+  stays?: Map<string, Nights>;
 }
 
 // Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
@@ -114,7 +117,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
 
 const MapOsm: React.FC<MapOsmProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
-  onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey,
+  onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -264,6 +267,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
         const key = refKey(point.ref);
         showPopup(at, (
             <StopPopup
+              nights={stays?.get(refKey(point.ref))}
               at={at}
               compact
               kind={point.kind}
@@ -321,6 +325,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
                 item={item}
                 categoryId={id}
                 point={point}
+                nights={stays?.get(refKey(point.ref))}
                 onRemove={() => { popupRef.current?.remove(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
               />
             ), placeEl.offsetHeight || (isBooking ? 30 : 25));
@@ -340,7 +345,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       skipFitRef.current = false;
     })();
     return () => { cancelled = true; };
-  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units]);
+  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units, stays]);
 
   return (
     <div className={cn("vintage-map relative h-full w-full", mapType !== 'topo' && "vintage-imagery")}>

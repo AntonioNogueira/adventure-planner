@@ -22,6 +22,11 @@ services:
         sync: false
       - key: CHECKOUT_URL_EXPLORER
         sync: false
+      # Affiliate ids for the booking links in place popups (optional).
+      - key: BOOKING_AID
+        sync: false
+      - key: GETYOURGUIDE_PARTNER_ID
+        sync: false
 
   # Adventure Planner Open: the same code with OpenStreetMap services (no Google Maps key).
   - type: web

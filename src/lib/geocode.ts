@@ -1,6 +1,7 @@
 // Place names ↔ coordinates, cached. Google Geocoding, or Photon (OpenStreetMap, free) in the open version.
 import { isOsm } from './provider';
 import { t } from './settings';
+import { searchTown } from './affiliate';
 import { LatLng } from './geo';
 
 const cache = new Map<string, Promise<LatLng | null>>();
@@ -86,7 +87,9 @@ export async function townAt(position: LatLng): Promise<string | null> {
       const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`);
       if (!f) return null;
       const p = f.properties;
-      const town = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
+      const raw = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
+      // Administrative names ("União das freguesias de X e Y") are shortened to the town.
+      const town = raw && searchTown(raw);
       if (town) return p.country ? `${town}, ${p.country}` : town;
       const area = p.county || p.state;
       return area ? `${t('Near {place}', { place: area })}${p.country ? `, ${p.country}` : ''}` : p.name || null;
@@ -97,10 +100,12 @@ export async function townAt(position: LatLng): Promise<string | null> {
       .flatMap(r => r.address_components)
       .find(c => c.types.includes(type))?.long_name;
     const country = part('country');
-    const town = part('locality') || part('postal_town');
+    const rawTown = part('locality') || part('postal_town');
+    const town = rawTown && searchTown(rawTown);
     if (town) return country ? `${town}, ${country}` : town;
     // Countryside: label it by the parish/municipality. The stop keeps its exact position for routing.
-    const area = part('administrative_area_level_3') || part('administrative_area_level_2') || part('route');
+    const rawArea = part('administrative_area_level_3') || part('administrative_area_level_2') || part('route');
+    const area = rawArea && searchTown(rawArea);
     return area ? `${t('Near {place}', { place: area })}${country ? `, ${country}` : ''}` : results[0].formatted_address;
   } catch (error) {
     console.error('Reverse geocoding failed:', error);

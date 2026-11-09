@@ -748,9 +748,11 @@ const App: React.FC = () => {
     [routeInfo, startDate],
   );
 
+  // Nights at each stop (when the trip has a start date): booking checks and the booking links' dates.
+  const stays = useMemo(() => staysByStop(schedule, routeInfo?.waypoints.length || 0), [schedule, routeInfo?.waypoints.length]);
+
   const warnings = useMemo(() => {
     if (!routeInfo) return [];
-    const stays = staysByStop(schedule, routeInfo.waypoints.length);
     return bookingWarnings([
       { key: 'start', label: routeInfo.origin, interests: routeInfo.originInterests || [] },
       ...routeInfo.waypoints.map((wp, i) => ({ key: `stop-${i}`, label: wp.location, interests: wp.interests || [] })),
@@ -1030,6 +1032,7 @@ const App: React.FC = () => {
           initialPrompt={initialPrompt}
           onRemoveItem={handleRemoveItem}
           onAttachFile={handleAttachFile}
+          stays={stays}
           attachingKey={attachingKey}
           schedule={schedule}
           startDate={startDate}
@@ -1085,6 +1088,7 @@ const App: React.FC = () => {
             onRemoveItem={handleRemoveItem}
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}
+            stays={stays}
           />
           </Suspense>
         </main>

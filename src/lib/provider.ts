@@ -4,7 +4,7 @@
 export type MapProvider = 'google' | 'osm';
 
 declare global {
-  interface Window { __APP_CONFIG__?: { mapProvider?: string; authProviders?: string; checkout?: Record<string, string> } }
+  interface Window { __APP_CONFIG__?: { mapProvider?: string; authProviders?: string; checkout?: Record<string, string>; affiliates?: { booking?: string; getyourguide?: string } } }
 }
 
 export const MAP_PROVIDER: MapProvider =

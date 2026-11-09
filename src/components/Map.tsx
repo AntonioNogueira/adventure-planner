@@ -8,6 +8,7 @@ import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import SegmentDetails from './SegmentDetails';
 import { useSettings, t as tr } from '../lib/settings';
+import type { Nights } from '../lib/affiliate';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapProps {
@@ -28,6 +29,8 @@ interface MapProps {
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   onAttachFile?: (ref: StopRef, file: File) => void;
   attachingKey?: string | null;
+  /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
+  stays?: Map<string, Nights>;
 }
 
 // Topo: a survey-map look (contours, hill shading, forests) from OpenTopoMap tiles drawn over Google's
@@ -56,7 +59,7 @@ const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 
 
 const Map: React.FC<MapProps> = ({
-  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey,
+  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays,
 }) => {
   const segmentLinesRef = useRef<google.maps.Polyline[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -243,6 +246,7 @@ const Map: React.FC<MapProps> = ({
           infoRootRef.current = createRoot(content);
           infoRootRef.current.render(
               <StopPopup
+                nights={stays?.get(refKey(point.ref))}
                 at={at}
                 compact
                 kind={point.kind}
@@ -332,6 +336,7 @@ const Map: React.FC<MapProps> = ({
                   item={item}
                   categoryId={id}
                   point={point}
+                  nights={stays?.get(refKey(point.ref))}
                   onRemove={() => { infoWindowRef.current?.close(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
                 />
               );
@@ -359,7 +364,7 @@ const Map: React.FC<MapProps> = ({
 
     updateMarkers();
     return () => { cancelled = true; };
-  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units]);
+  }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units, stays]);
 
   return (
     <div className={cn("vintage-map relative h-full w-full", mapType !== 'topo' && "vintage-imagery")}>

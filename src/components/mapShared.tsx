@@ -1,5 +1,6 @@
 // Pieces shared by the Google map (Map.tsx) and the OpenStreetMap map (MapOsm.tsx).
 import { useSettings, t as tr } from '../lib/settings';
+import { bookingUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
 import React, { useEffect, useState } from 'react';
 import StopDetails from './StopDetails';
 import { placeHighlight, PlaceHighlight, townName } from '../lib/wiki';
@@ -33,12 +34,15 @@ interface PlacePopupProps {
   categoryId: CategoryId;
   point: MapPoint;
   onRemove: () => void;
+  /** Nights at the stop: dates for "Check prices". */
+  nights?: Nights;
 }
 
 /** The card for a suggestion or booking pin. */
-export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point, onRemove }) => {
-  const { t } = useSettings();
+export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point, onRemove, nights }) => {
+  const { t, date } = useSettings();
   const isBooking = item.source === 'reservation';
+  const offer = offerFor(item.category || categoryId, item.source);
   const cat = CATEGORIES[categoryId];
   const r = item.reservation;
   const at = isBooking ? (r?.lat != null && r?.lng != null ? { lat: r.lat, lng: r.lng } : undefined)
@@ -62,6 +66,17 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
         )}
         <button className="font-semibold text-red-600 hover:underline" onClick={onRemove}>{t('Remove')}</button>
       </div>
+      {offer && (
+        <div className="space-y-0.5 border-t pt-1.5">
+          <a href={offer === 'stay' ? bookingUrl(item.name, townName(point.location), nights) : toursUrl(item.name, townName(point.location))}
+            target="_blank" rel="noopener noreferrer sponsored"
+            className="block rounded-sm bg-violet-600 px-2 py-1.5 text-center font-semibold text-white hover:bg-violet-700">
+            {offer === 'stay' ? t('Check prices') : t('Tickets & tours')}
+            {offer === 'stay' && nights && <span className="font-normal"> · {date(nights.checkIn)} → {date(nights.checkOut)}</span>}
+          </a>
+          <p className="text-[9px] text-slate-400">{t('We may earn a commission when you book through these links.')}</p>
+        </div>
+      )}
     </div>
   );
 };

@@ -17,7 +17,11 @@ export default defineConfig(({ mode, command }) => {
   const checkout = Object.fromEntries((['explorer', 'trip_pass', 'pro'] as const)
     .map(id => [id, (env[`CHECKOUT_URL_${id.toUpperCase()}`] || '').trim()])
     .filter(([, url]) => /^https:\/\//.test(url)));
-  const appConfig = JSON.stringify({ mapProvider, authProviders, checkout }).replace(/</g, '\\u003c');
+  // Affiliate IDs for the booking links in place popups (empty = links without commission).
+  const affiliates = Object.fromEntries(([['booking', 'BOOKING_AID'], ['getyourguide', 'GETYOURGUIDE_PARTNER_ID']] as const)
+    .map(([key, name]) => [key, (env[name] || '').replace(/[^\w-]/g, '')])
+    .filter(([, id]) => id));
+  const appConfig = JSON.stringify({ mapProvider, authProviders, checkout, affiliates }).replace(/</g, '\\u003c');
   const providerScripts = `<script>window.__APP_CONFIG__ = ${appConfig};</script>`
     + (mapProvider === 'google'
       ? `\n    <script src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry&key=${mapsKey}&v=weekly&loading=async" async></script>`

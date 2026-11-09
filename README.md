@@ -113,6 +113,13 @@ gcloud run deploy adventure-planner --source . --region europe-west1 --allow-una
 - In Google Cloud Console → Credentials, restrict the Maps key to **HTTP referrers** `http://localhost:3000/*` and `https://<your-domain>/*`.
 - AI requests are limited to `AI_REQUESTS_PER_HOUR` (default 60) per visitor so a public link can't use up your Gemini quota.
 
+## Booking links (affiliate)
+
+Places to stay get **Check prices** (Booking.com, searching for that place and town, with the nights at that stop
+when the trip has a start date); points of interest get **Tickets & tours** (GetYourGuide). Set `BOOKING_AID` and
+`GETYOURGUIDE_PARTNER_ID` once the affiliate accounts are approved; without them the links work without commission.
+The popups show a one-line disclosure. Links are built in `src/lib/affiliate.ts`.
+
 ## Plans and limits (prototype)
 
 Plans and their daily limits are in `src/lib/plans.ts`:
