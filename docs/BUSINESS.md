@@ -97,7 +97,28 @@ Affiliate links fit better than ads: the popups already have a named place, its 
 - Email on the domain: Cloudflare Email Routing (free forwarding to a Gmail, send-as from Gmail) to start;
   Zoho Mail (free plan for a few users) or Google Workspace (~€7/user/month) when you need real mailboxes.
 
-## 8. Other ideas
+## 8. Earning legally in Portugal: self-employed first, company later
+
+General orientation, not legal/tax advice: thresholds and rates change; confirm with a certified accountant
+(contabilista certificado) or the Finanças.
+
+- **Prototype, no income:** nothing to register yet.
+- **When applying to affiliate programmes or charging:** open activity as *trabalhador independente* on the Portal das
+  Finanças (free, minutes; choose an activity code such as web portals/software). Invoice from the first euro
+  (faturas / recibos verdes).
+  - VAT: exemption possible below a yearly turnover threshold (≈ €15,000; check the current value).
+    Affiliate commissions from foreign companies (Booking.com NL, GetYourGuide DE) are B2B services: declare them;
+    EU reverse-charge rules apply.
+  - Subscriptions to consumers across the EU: use a merchant of record (Paddle, Lemon Squeezy) so they handle VAT in
+    each country and you invoice them only.
+  - Social security: usually exempt the first 12 months, then a share of income. Income tax: category B in the annual
+    IRS return, usually the simplified regime.
+  - Affiliate programmes ask for NIF, address, IBAN, sometimes a VAT number: having activity open helps approval.
+- **Unipessoal Lda later** (~€360 via Empresa na Hora; accountant mandatory, ~€100–200/month): separates personal
+  assets, can lower tax at higher profit. Typical switch around €30–40k/year profit, or with partners/investors.
+- One consultation with an accountant when opening activity is usually enough to set the activity code and VAT.
+
+## 9. Other ideas
 
 - Partnerships: campsites / hostels (affiliate booking links), bike and moto rental, local guides.
 - Pro features: several riders per trip, shared editing, branded PDF itineraries, GPX packs for groups.
