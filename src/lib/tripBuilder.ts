@@ -3,10 +3,11 @@
 // Days are split by effort: distance plus climbing, so hilly days come out shorter.
 import { TripIntent } from '../types';
 import { t } from './settings';
-import { overnightTownsNear } from './places';
+import { lodgingNear, settlementAt } from './overpass';
+import { progressOn } from './ride';
 import { geocodeAddress } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
-import { haversineKm, pathWithDistances, pointAt, LatLng } from './geo';
+import { haversineKm, pathWithDistances, pointAt, LatLng, downsample } from './geo';
 import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange } from './elevation';
 
 /** Typical comfortable day, used when the user gives neither days nor a daily distance. */
@@ -34,6 +35,35 @@ function ferryRanges(legs: RoutedLeg[]): KmRange[] {
     }
   }
   return ranges;
+}
+
+export interface NightCandidate { at: LatLng; /** km along the stretch */ along: number; /** km off the route */ off: number }
+
+const SLOW = new Set(['BICYCLING', 'WALKING']);
+
+/**
+ * The place to sleep for each planned night of a stretch: near the planned end of the day (±20% of a day for bike
+ * and hike, ±35% for moto/car), never less than 60% (50%) of a day after the previous night, and close to the route.
+ * Null where nothing fits: the night stays at the planned point.
+ */
+export function pickNights(splits: number[], stretchKm: number, candidates: NightCandidate[], travelMode: string): (NightCandidate | null)[] {
+  const days = splits.length + 1;
+  const dayKm = stretchKm / days;
+  const slow = SLOW.has(travelMode);
+  const tol = (slow ? 0.2 : 0.35) * dayKm;
+  const minGap = (slow ? 0.6 : 0.5) * dayKm;
+  const maxOff = slow ? Math.min(5, 1 + 0.1 * dayKm) : 10;
+  let prev = 0;
+  return splits.map(target => {
+    const lo = Math.max(prev + minGap, target - tol);
+    const hi = Math.min(target + tol, stretchKm - minGap);
+    const best = candidates
+      .filter(c => c.along >= lo && c.along <= hi && c.off <= maxOff)
+      // Distance from the planned end, plus the detour to reach it (there and back).
+      .sort((a, b) => (Math.abs(a.along - target) + 2 * a.off) - (Math.abs(b.along - target) + 2 * b.off))[0] || null;
+    prev = best ? best.along : target;
+    return best;
+  });
 }
 
 export interface OvernightPlan {
@@ -138,7 +168,22 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
       const points = pathWithDistances(segments[s].legs);
       const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);
       const spots = splits.map(km => pointAt(points, km));
-      const towns = await overnightTownsNear(spots, intent.lodging);
+      // Places to stay around each planned day end, measured along the route; then the best one per night.
+      const dayKm = segmentKm[s] / days;
+      const radius = SLOW.has(intent.travelMode) ? Math.min(12, Math.max(3, dayKm * 0.3)) : 15;
+      const short = downsample(points, 1500);
+      const path = short.map(p => p.at), cum = short.map(p => p.km);
+      const candidates = (await lodgingNear(spots, intent.lodging, radius)).map(sp => {
+        const pr = progressOn(path, sp.at, cum);
+        return { at: sp.at, along: pr.alongKm, off: pr.offRouteKm };
+      });
+      const nights = pickNights(splits, segmentKm[s], candidates, intent.travelMode);
+      // Named after the village or town (not the whole municipality); the night keeps its exact spot.
+      const towns = await Promise.all(nights.map(async (night, i) => {
+        const at = night?.at || spots[i];
+        const name = await settlementAt(at);
+        return name ? { name, position: at } : null;
+      }));
       towns.forEach((found, i) => {
         addViasBefore(splits[i]);
         // No named place nearby (empty country): keep the night at the split point anyway.

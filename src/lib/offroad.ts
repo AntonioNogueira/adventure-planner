@@ -8,9 +8,9 @@
 //           vs 64% / 10% for the normal walking route); Valhalla pedestrian (T2) if BRouter is unavailable
 // Each day is routed separately (short requests). The defaults, brouter.de and valhalla1.openstreetmap.de, are
 // free public services (fair use); BROUTER_URL / VALHALLA_URL point the app at its own or paid servers.
-import { LatLng, haversineKm } from './geo';
+import { LatLng, haversineKm, pathWithDistances, pointAt } from './geo';
 import { geocodeAddress } from './geocode';
-import { decodePolyline6 } from './osrm';
+import { decodePolyline6, osmTrip } from './osrm';
 import type { RoutedLeg, RoutedStep, RoutedTrip, TripRequest } from './routing';
 import { SERVICES } from './services';
 
@@ -21,6 +21,8 @@ export const OFFROAD_MODES = new Set(['BICYCLING', 'WALKING', 'DRIVING']);
 
 /** Longest single day the public engines are asked for (straight line); longer ones use the normal route. */
 const MAX_LEG_KM = 220;
+/** Long stretches are routed off-road in pieces of about this length. */
+const PIECE_KM = 120;
 
 /** Average moving speeds off-road, for the day's time (the engines' own estimates assume other vehicles). */
 const SPEED_KMH: Record<string, number> = { BICYCLING: 14, DRIVING: 32 };
@@ -154,6 +156,16 @@ async function hikeLeg(points: LatLng[]): Promise<RoutedLeg> {
   };
 }
 
+/** Pieces routed one after another, joined into one leg. */
+export function joinLegs(parts: RoutedLeg[]): RoutedLeg {
+  return {
+    distanceMeters: parts.reduce((a, p) => a + p.distanceMeters, 0),
+    durationSeconds: parts.reduce((a, p) => a + p.durationSeconds, 0),
+    path: parts.flatMap((p, i) => (i ? p.path.slice(1) : p.path)),
+    steps: parts.flatMap(p => p.steps),
+  };
+}
+
 /** Days as point lists: each from one stop to the next, with any pass-through points between. */
 export function legPoints(points: { at: LatLng; via: boolean }[]): LatLng[][] {
   const legs: LatLng[][] = [];
@@ -174,9 +186,8 @@ export async function offroadTrip(req: TripRequest): Promise<RoutedTrip> {
     return { at, via };
   }));
   const days = legPoints(located);
-  if (days.some(d => haversineKm(d[0], d[d.length - 1]) > MAX_LEG_KM)) throw new Error('Too long for one off-road request');
 
-  const routeDay = async (points: LatLng[]): Promise<RoutedLeg> => {
+  const routePiece = async (points: LatLng[]): Promise<RoutedLeg> => {
     if (req.travelMode === 'WALKING') return brouterLeg(points, 'hiking-mountain', req.travelMode, HIKING_EASY).catch(() => hikeLeg(points));
     if (req.travelMode === 'BICYCLING') return brouterLeg(points, 'gravel', req.travelMode, GRAVEL_EASY);
     try {
@@ -184,6 +195,19 @@ export async function offroadTrip(req: TripRequest): Promise<RoutedTrip> {
     } catch {
       return brouterLeg(points, await adventureProfileId(true), req.travelMode);
     }
+  };
+  // A stretch longer than one request (planning a whole trip before it's split into days): follow the normal
+  // route, cut it into pieces of about 120 km, route each piece off-road and join them into one leg.
+  const routeDay = async (points: LatLng[]): Promise<RoutedLeg> => {
+    if (haversineKm(points[0], points[points.length - 1]) <= MAX_LEG_KM) return routePiece(points);
+    const normal = await osmTrip({ origin: points[0], destination: points[points.length - 1], stops: points.slice(1, -1).map(location => ({ location, via: true })), travelMode: req.travelMode });
+    const along = pathWithDistances(normal.legs);
+    const total = along[along.length - 1]?.km || 0;
+    const pieces = Math.max(2, Math.ceil(total / PIECE_KM));
+    const cuts = [points[0], ...Array.from({ length: pieces - 1 }, (_, k) => pointAt(along, (total * (k + 1)) / pieces)), points[points.length - 1]];
+    const parts: RoutedLeg[] = [];
+    for (let k = 1; k < cuts.length; k++) parts.push(await routePiece([cuts[k - 1], cuts[k]]));
+    return joinLegs(parts);
   };
   const legs: RoutedLeg[] = new Array(days.length);
   let next = 0;

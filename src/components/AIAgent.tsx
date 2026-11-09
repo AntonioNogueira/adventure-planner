@@ -99,6 +99,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     const question = nextQuestion(intent, plan, {
       asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: dateSet,
     });
+    // Asked once: if the traveller types something else instead of answering, don't ask it again.
+    if (question) askedRef.current.add(question.topic);
     say({
       text: question ? `${summaryText(intent, plan)}\n\n${question.text}` : `${summaryText(intent, plan)}\n\n${t('All set! Drag the pins or ask me for any change.')}`,
       question: question || undefined,

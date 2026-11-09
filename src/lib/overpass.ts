@@ -268,3 +268,40 @@ async function photonOvernight(points: LatLng[], lodging: LodgingPreference): Pr
   const found = await Promise.allSettled(points.map(p => photonNear(p, 15, PHOTON_LODGING[lodging], 3)));
   return found.flatMap(r => (r.status === 'fulfilled' ? r.value : []));
 }
+
+// ---- Places to stay near a route (for choosing nights) ----
+
+export interface LodgingSpot { at: LatLng; name?: string }
+
+/** Every place to stay within `radiusKm` of each point (one Overpass request, else Photon), for picking nights. */
+export async function lodgingNear(points: LatLng[], lodging: LodgingPreference, radiusKm: number): Promise<LodgingSpot[]> {
+  if (!points.length) return [];
+  const r = Math.round(radiusKm * 1000);
+  let elements: OsmElement[] = [];
+  try {
+    const clauses = points.map(p => `nwr["tourism"~"${LODGING[lodging]}"](around:${r},${p.lat.toFixed(5)},${p.lng.toFixed(5)});`).join('\n');
+    // Planning waits for this: at most 10 s on Overpass, then Photon.
+    elements = await overpass(`[out:json][timeout:25];(${clauses});out center tags;`, 10000);
+  } catch (err) {
+    console.warn('No Overpass server answered; places to stay from Photon instead.', err);
+    const found = await Promise.allSettled(points.map(p => photonNear(p, radiusKm, PHOTON_LODGING[lodging], 20)));
+    elements = found.flatMap(f => (f.status === 'fulfilled' ? f.value : []));
+  }
+  const spots: { at: LatLng | null; name?: string }[] = elements.map(e => ({ at: position(e), name: e.tags?.name }));
+  return spots.filter((x): x is LodgingSpot => x.at !== null);
+}
+
+/** The village or town a spot belongs to ("Grândola, Portugal"), not its whole municipality: a town or village within
+ *  7 km first, a hamlet within 3 km if there's none; falls back to townAt. */
+export async function settlementAt(at: LatLng): Promise<string | null> {
+  const nearest = async (kinds: string[], km: number) => {
+    const tags = kinds.map(k => `osm_tag=${encodeURIComponent(`place:${k}`)}`).join('&');
+    const [f] = await photon(`/reverse?lat=${at.lat}&lon=${at.lng}&radius=${km}&limit=1&${tags}`);
+    return f?.properties.name ? (f.properties.country ? `${f.properties.name}, ${f.properties.country}` : f.properties.name) : null;
+  };
+  try {
+    return (await nearest(['city', 'town', 'village'], 7)) || (await nearest(['hamlet'], 3)) || townAt(at);
+  } catch {
+    return townAt(at);
+  }
+}

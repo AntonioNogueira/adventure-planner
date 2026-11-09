@@ -29,14 +29,20 @@ describe('nextQuestion', () => {
     expect(nextQuestion(intent, ferryPlan, state({ modeMentioned: false }))?.topic).toBe('mode');
   });
 
-  it('then asks ferry, distance, lodging and date, skipping what is answered', () => {
+  it('then asks distance, lodging, a long ferry and date, skipping what is answered', () => {
     const asked = new Set<any>();
     const topics: string[] = [];
     for (let q = nextQuestion(intent, ferryPlan, state({ asked })); q; q = nextQuestion(intent, ferryPlan, state({ asked }))) {
       topics.push(q.topic);
       asked.add(q.topic);
     }
-    expect(topics).toEqual(['ferry', 'distance', 'lodging', 'date']);
+    expect(topics).toEqual(['distance', 'lodging', 'ferry', 'date']);
+  });
+
+  it('takes a short river ferry without asking (often the only way across by bike)', () => {
+    const river = { ...ferryPlan, ferryKm: 13, ferry: { day: 1, from: 'Lisbon, Portugal', to: 'Palmela, Portugal', km: 13 } };
+    const asked = new Set<any>(['distance', 'lodging']);
+    expect(nextQuestion(intent, river, state({ asked }))?.topic).toBe('date');
   });
 
   it('does not ask what the request already said', () => {

@@ -17,6 +17,9 @@ export interface PlanSummary {
   ferry?: { day: number; from: string; to: string; km: number };
 }
 
+/** Ferries at least this long get a question (take it or go overland); shorter ones are simply taken. */
+export const LONG_FERRY_KM = 20;
+
 export type Topic = 'mode' | 'vehicle' | 'ferry' | 'distance' | 'lodging' | 'date';
 
 export interface Choice {
@@ -97,13 +100,6 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
       ],
     };
   }
-  if (open('ferry') && plan.ferry && !intent.avoidFerries && intent.travelMode !== 'DRIVING') {
-    return {
-      topic: 'ferry',
-      text: intent.travelMode === 'WALKING' ? t('Take the ferry, or walk the whole way overland? Overland is longer but avoids the crossing.') : t('Take the ferry, or ride the whole way overland? Overland is longer but avoids the crossing.'),
-      choices: [{ label: t('Take the ferry'), value: 'ferry' }, { label: t('Go overland'), value: 'overland' }],
-    };
-  }
   if (open('distance') && !intent.dailyKm && !intent.days && DISTANCE_CHOICES[intent.travelMode]) {
     const imperial = getSettings().units === 'imperial';
     return {
@@ -126,6 +122,15 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
         { label: t('Hotels'), value: 'hotel' },
         { label: t('Anything'), value: 'any' },
       ],
+    };
+  }
+  // Only a long crossing (a sea or lake ferry) is worth a question. A short river ferry is usually the only way
+  // across by bike or on foot (the big bridges are motorways), so it's taken and just mentioned in the summary.
+  if (open('ferry') && plan.ferry && plan.ferry.km >= LONG_FERRY_KM && !intent.avoidFerries && intent.travelMode !== 'DRIVING') {
+    return {
+      topic: 'ferry',
+      text: intent.travelMode === 'WALKING' ? t('Take the ferry, or walk the whole way overland? Overland is longer but avoids the crossing.') : t('Take the ferry, or ride the whole way overland? Overland is longer but avoids the crossing.'),
+      choices: [{ label: t('Take the ferry'), value: 'ferry' }, { label: t('Go overland'), value: 'overland' }],
     };
   }
   if (open('date') && !state.hasStartDate) {
