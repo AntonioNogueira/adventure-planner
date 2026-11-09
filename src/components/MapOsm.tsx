@@ -14,7 +14,7 @@ import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
 import { useSettings, t as tr } from '../lib/settings';
-import type { Nights } from '../lib/affiliate';
+import { rentalUrl, type Nights } from '../lib/affiliate';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
 
 interface MapOsmProps {
@@ -268,6 +268,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
         showPopup(at, (
             <StopPopup
               nights={stays?.get(refKey(point.ref))}
+              rentalLink={point.kind === 'start' && travelMode === 'DRIVING' ? rentalUrl(point.location, stays?.get('start')?.checkOut, stays?.get('end')?.checkIn) : null}
               at={at}
               compact
               kind={point.kind}

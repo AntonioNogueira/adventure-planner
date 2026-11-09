@@ -27,6 +27,12 @@ services:
         sync: false
       - key: GETYOURGUIDE_PARTNER_ID
         sync: false
+      - key: AFFILIATE_HOSTELS_URL
+        sync: false
+      - key: AFFILIATE_CAMPSITES_URL
+        sync: false
+      - key: AFFILIATE_RENTALS_URL
+        sync: false
 
   # Adventure Planner Open: the same code with OpenStreetMap services (no Google Maps key).
   - type: web

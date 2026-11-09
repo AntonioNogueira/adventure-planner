@@ -120,6 +120,13 @@ when the trip has a start date); points of interest get **Tickets & tours** (Get
 `GETYOURGUIDE_PARTNER_ID` once the affiliate accounts are approved; without them the links work without commission.
 The popups show a one-line disclosure. Links are built in `src/lib/affiliate.ts`.
 
+- Hostels and campsites use Booking.com filtered by property type, or a partner's own link template:
+  `AFFILIATE_HOSTELS_URL`, `AFFILIATE_CAMPSITES_URL` (placeholders `{q}`, `{name}`, `{town}`, `{checkin}`, `{checkout}`).
+- Moto/car trips get **Rent a vehicle here** at the start when `AFFILIATE_RENTALS_URL` is set.
+- **Consent:** a first-visit banner (and *Settings → Privacy and cookies*) explains what's stored and asks about
+  partner tracking. Partner ids and templates are only used after the visitor accepts; otherwise the links work
+  without them.
+
 ## Plans and limits (prototype)
 
 Plans and their daily limits are in `src/lib/plans.ts`:

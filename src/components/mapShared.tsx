@@ -1,6 +1,6 @@
 // Pieces shared by the Google map (Map.tsx) and the OpenStreetMap map (MapOsm.tsx).
 import { useSettings, t as tr } from '../lib/settings';
-import { bookingUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
+import { stayUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
 import React, { useEffect, useState } from 'react';
 import StopDetails from './StopDetails';
 import { placeHighlight, PlaceHighlight, townName } from '../lib/wiki';
@@ -68,7 +68,7 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
       </div>
       {offer && (
         <div className="space-y-0.5 border-t pt-1.5">
-          <a href={offer === 'stay' ? bookingUrl(item.name, townName(point.location), nights) : toursUrl(item.name, townName(point.location))}
+          <a href={offer === 'stay' ? stayUrl(item, townName(point.location), nights) : toursUrl(item.name, townName(point.location))}
             target="_blank" rel="noopener noreferrer sponsored"
             className="block rounded-sm bg-violet-600 px-2 py-1.5 text-center font-semibold text-white hover:bg-violet-700">
             {offer === 'stay' ? t('Check prices') : t('Tickets & tours')}

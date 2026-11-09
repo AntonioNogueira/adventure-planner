@@ -18,9 +18,13 @@ export default defineConfig(({ mode, command }) => {
     .map(id => [id, (env[`CHECKOUT_URL_${id.toUpperCase()}`] || '').trim()])
     .filter(([, url]) => /^https:\/\//.test(url)));
   // Affiliate IDs for the booking links in place popups (empty = links without commission).
-  const affiliates = Object.fromEntries(([['booking', 'BOOKING_AID'], ['getyourguide', 'GETYOURGUIDE_PARTNER_ID']] as const)
-    .map(([key, name]) => [key, (env[name] || '').replace(/[^\w-]/g, '')])
-    .filter(([, id]) => id));
+  const ids = ([['booking', 'BOOKING_AID'], ['getyourguide', 'GETYOURGUIDE_PARTNER_ID']] as const)
+    .map(([key, name]) => [key, (env[name] || '').replace(/[^\w-]/g, '')]);
+  // Partner link templates (https only) with {q} {name} {town} {checkin} {checkout}.
+  const templates = ([['hostels', 'AFFILIATE_HOSTELS_URL'], ['campsites', 'AFFILIATE_CAMPSITES_URL'], ['rentals', 'AFFILIATE_RENTALS_URL']] as const)
+    .map(([key, name]) => [key, (env[name] || '').trim()])
+    .map(([key, url]) => [key, /^https:\/\/[^\s"<>]+$/.test(url) ? url : '']);
+  const affiliates = Object.fromEntries([...ids, ...templates].filter(([, v]) => v));
   const appConfig = JSON.stringify({ mapProvider, authProviders, checkout, affiliates }).replace(/</g, '\\u003c');
   const providerScripts = `<script>window.__APP_CONFIG__ = ${appConfig};</script>`
     + (mapProvider === 'google'

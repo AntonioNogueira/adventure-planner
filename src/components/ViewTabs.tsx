@@ -4,6 +4,7 @@ import { cn } from '../lib/utils';
 import { useSettings, LANGUAGES, CURRENCIES, Units, Language } from '../lib/settings';
 import { useAccount, openPlans } from '../lib/account';
 import { PLANS } from '../lib/plans';
+import { openPrivacy } from './ConsentBanner';
 
 export type AppView = 'route' | 'budget' | 'documents';
 
@@ -73,6 +74,7 @@ const SettingsMenu: React.FC = () => {
             <span><span className="font-semibold text-slate-600">{t('Plan')}:</span> {t(PLANS[account.plan].name)}</span>
             <button onClick={() => { setOpen(false); openPlans(); }} className="font-semibold text-emerald-700 hover:underline">{t('See plans')}</button>
           </div>
+          <button onClick={() => { setOpen(false); openPrivacy(); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Privacy and cookies')}</button>
         </div>
       )}
     </div>

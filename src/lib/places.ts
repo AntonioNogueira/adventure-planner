@@ -6,6 +6,7 @@ import { geocodeAddress, placeAt } from './geocode';
 import { isOsm } from './provider';
 import { LatLng } from './geo';
 import { osmSuggestions, osmOvernightTowns } from './overpass';
+import { searchTown } from './affiliate';
 
 export type CategoryId = 'stay' | 'food' | 'shop' | 'sights';
 
@@ -169,7 +170,7 @@ async function overnightTownNear(point: LatLng, lodging: LodgingPreference): Pro
       const part = (type: string) => place.addressComponents?.find(c => c.types.includes(type))?.longText;
       const town = part('locality') || part('postal_town') || part('administrative_area_level_3');
       const country = part('country');
-      if (town && country && place.location) return { name: `${town}, ${country}`, position: place.location.toJSON() };
+      if (town && country && place.location) return { name: `${searchTown(town)}, ${country}`, position: place.location.toJSON() };
     }
   } catch (err) {
     console.warn('Overnight search fell back to reverse geocoding', err);

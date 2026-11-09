@@ -35,6 +35,8 @@ import { authErrorMessage } from './lib/authErrors';
 import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
 import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, openPlans, getAccount, PlansReason } from './lib/account';
 import PlansDialog from './components/PlansDialog';
+import ConsentBanner from './components/ConsentBanner';
+import { onConsentChange } from './lib/affiliate';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string | null }> {
   constructor(props: { children: React.ReactNode }) {
@@ -200,6 +202,9 @@ const App: React.FC = () => {
   // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
   const [plansReason, setPlansReason] = useState<PlansReason | undefined>(undefined);
   useEffect(() => onOpenPlans(reason => setPlansReason(reason)), []);
+  // Booking links change with the privacy choice (partner ids only after it's accepted).
+  const [, setConsentVersion] = useState(0);
+  useEffect(() => onConsentChange(() => setConsentVersion(v => v + 1)), []);
   // The typed route (start, stops, end, mode) changed since the last calculation.
   const [routeStale, setRouteStale] = useState(false);
   // Moto/car trips: the vehicle, for fuel and toll estimates (from the request, a quick reply or the budget).
@@ -1110,6 +1115,8 @@ const App: React.FC = () => {
             }} 
           />
         )}
+
+        <ConsentBanner />
 
         {plansReason !== undefined && (
           <PlansDialog

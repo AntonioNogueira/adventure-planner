@@ -32,6 +32,7 @@ import { ScheduleDay, BookingWarning } from '../lib/schedule';
 import { RouteOptions } from '../lib/routing';
 import { useSettings } from '../lib/settings';
 import { useAccount, openPlans } from '../lib/account';
+import { rentalUrl } from '../lib/affiliate';
 import { PLANS } from '../lib/plans';
 
 // Phone bottom-sheet heights (desktop always uses the full-height sidebar).
@@ -565,6 +566,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               warnings={warningsFor('start')}
               onFindPlaces={() => onFindPlaces({ kind: 'start' })}
               nights={stays?.get('start')}
+              rentalLink={travelMode === 'DRIVING' ? rentalUrl(routeInfo.origin, stays?.get('start')?.checkOut, stays?.get('end')?.checkIn) : null}
               onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
               attaching={attachingKey === 'start'}
             />
