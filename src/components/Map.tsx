@@ -180,17 +180,30 @@ const MapView: React.FC<MapProps> = ({
     popupRef.current?.remove();
     popupRef.current = new maplibregl.Popup({ maxWidth: '400px', offset, focusAfterOpen: false })
       .setLngLat([at.lng, at.lat]).setDOMContent(content).addTo(map);
-    // Keep the popup clear of the view tabs at the top of the map, also when its content grows.
+    // Keep the whole popup in view as its content loads and grows: clear of the view tabs at the top, the screen
+    // edges at the sides and, on phones, the planner sheet at the bottom. Too tall to fit: its top stays in view.
     const popup = popupRef.current;
-    const clearTabs = () => {
+    const keepInView = () => {
       const el = popup.getElement();
       if (!el || popupRef.current !== popup) return;
-      const gap = el.getBoundingClientRect().top - map.getContainer().getBoundingClientRect().top;
-      const need = window.innerWidth < 768 ? 64 : 84;
-      if (gap < need) map.panBy([0, gap - need], { duration: 300 });
+      const box = el.getBoundingClientRect();
+      const area = map.getContainer().getBoundingClientRect();
+      const phone = window.innerWidth < 768;
+      const sheetTop = phone ? document.querySelector('aside')?.getBoundingClientRect().top ?? area.bottom : area.bottom;
+      const top = area.top + (phone ? 64 : 84), bottom = Math.min(area.bottom, sheetTop) - 8;
+      const left = area.left + 8, right = area.right - 8;
+      // A popup taller than the free space scrolls inside itself instead of hiding behind the sheet.
+      const body = el.querySelector<HTMLElement>('.maplibregl-popup-content');
+      if (body) {
+        const room = Math.max(160, Math.floor(bottom - top));
+        if (body.style.maxHeight !== `${room}px`) { body.style.maxHeight = `${room}px`; body.style.overflowY = 'auto'; }
+      }
+      const dx = box.left < left ? box.left - left : box.right > right ? Math.min(box.right - right, box.left - left) : 0;
+      const dy = box.top < top ? box.top - top : box.bottom > bottom ? Math.min(box.bottom - bottom, box.top - top) : 0;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) map.panBy([dx, dy], { duration: 300 });
     };
-    setTimeout(clearTabs, 80);
-    const grow = new ResizeObserver(() => clearTabs());
+    setTimeout(keepInView, 80);
+    const grow = new ResizeObserver(() => keepInView());
     grow.observe(content);
     popup.on('close', () => grow.disconnect());
     popupRef.current.on('close', () => {
