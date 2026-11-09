@@ -157,6 +157,37 @@ export function parseLinkHtml(html: string, url: string, finalUrl = url): LinkIn
   };
 }
 
+// ---- Google Maps links: everything needed is in the address (the page itself is blocked or a cookie wall) ----
+
+const GOOGLE_HOST = /(^|\.)google\.[a-z.]+$/i;
+
+/** A full Google Maps address (not a short link): www.google.<tld>/maps/…, maps.google.<tld>/… */
+export function isGoogleMapsUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    return GOOGLE_HOST.test(u.hostname) && (u.pathname.startsWith('/maps') || u.hostname.startsWith('maps.'));
+  } catch { return false; }
+}
+
+/** Google's cookie page ("Before you continue") keeps the address it was going to in `continue`. */
+export function pastConsent(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    return /^consent\.google\./i.test(u.hostname) ? u.searchParams.get('continue') : null;
+  } catch { return null; }
+}
+
+/** The place in a Google Maps address: its name (/maps/place/<name>/, or the search text) and position. */
+export function googleMapsPlace(raw: string): { name?: string; position?: { lat: number; lng: number } } {
+  let u: URL;
+  try { u = new URL(raw); } catch { return {}; }
+  const named = u.pathname.match(/\/maps\/(?:place|search)\/([^/@]+)/);
+  let name = named ? decodeURIComponent(named[1].replace(/\+/g, ' ')).trim() : '';
+  const q = u.searchParams.get('q') || u.searchParams.get('query') || '';
+  if (!name && q && !/^\s*-?\d+\.\d+\s*,\s*-?\d+\.\d+\s*$/.test(q)) name = q.trim();
+  return { name: name || undefined, position: coordsFromUrl(raw) };
+}
+
 /** Fetch a public link (following up to 4 redirects, each checked) and read it. Never throws. */
 export async function readLink(url: string): Promise<LinkInfo> {
   const fromUrl = (u: string): LinkInfo => ({ url, finalUrl: u, site: (() => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return 'link'; } })(),
@@ -164,6 +195,16 @@ export async function readLink(url: string): Promise<LinkInfo> {
   let current = url;
   try {
     for (let hop = 0; hop < 5; hop++) {
+      // Google's cookie page: go where it was going. A full Google Maps address: read it, don't open it.
+      const resumed = pastConsent(current);
+      if (resumed) { current = resumed; continue; }
+      if (isGoogleMapsUrl(current)) {
+        const place = googleMapsPlace(current);
+        if (place.name || place.position) {
+          return { url, finalUrl: current, site: 'Google Maps', title: place.name, position: place.position,
+            text: place.name ? `A place on Google Maps: ${place.name}` : 'A point on Google Maps' };
+        }
+      }
       if (!(await isPublicUrl(current))) return fromUrl(current);
       const res = await fetch(current, {
         redirect: 'manual',

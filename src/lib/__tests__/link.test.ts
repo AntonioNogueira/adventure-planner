@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { coordsFromUrl, datesFromUrl, parseLinkHtml, isPublicUrl, isLocalUrl, linkAsText } from '../../../server/link';
+import { coordsFromUrl, datesFromUrl, parseLinkHtml, isPublicUrl, isLocalUrl, linkAsText, googleMapsPlace, isGoogleMapsUrl, pastConsent, readLink } from '../../../server/link';
+import { afterEach, vi } from 'vitest';
+
+// Address lookups don't run in tests: every host name resolves to a public address.
+vi.mock('node:dns/promises', () => ({ lookup: async () => [{ address: '142.250.180.14', family: 4 }] }));
 
 describe('reading shared links', () => {
   it('finds coordinates in map links', () => {
@@ -38,5 +42,32 @@ describe('reading shared links', () => {
     expect(isLocalUrl('http://10.0.0.5/admin')).toBe(true);
     expect(isLocalUrl('http://localhost:3000')).toBe(true);
     expect(isLocalUrl('https://www.booking.com/hotel/pt/x.html')).toBe(false);
+  });
+});
+
+describe('Google Maps links', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const long = 'https://www.google.com/maps/place/Hotel+Ba%C3%ADa/@38.6964,-9.4227,17z/data=!3m1!4b1!4m9!3m8!1s0xd1ec5:0x1!5m2!4m1!1i2!8m2!3d38.6963!4d-9.4205!16s%2Fg%2F1';
+  it('reads the place name and its pin from the address', () => {
+    expect(isGoogleMapsUrl(long)).toBe(true);
+    expect(isGoogleMapsUrl('https://maps.app.goo.gl/AbC123')).toBe(false);
+    expect(googleMapsPlace(long)).toEqual({ name: 'Hotel Baía', position: { lat: 38.6963, lng: -9.4205 } });
+    expect(googleMapsPlace('https://www.google.com/maps/search/?api=1&query=Tasca+do+Chico+Lisboa')).toEqual({ name: 'Tasca do Chico Lisboa', position: undefined });
+    expect(googleMapsPlace('https://maps.google.com/?q=37.1272,-7.65')).toEqual({ name: undefined, position: { lat: 37.1272, lng: -7.65 } });
+  });
+  it('gets past Google\'s cookie page', () => {
+    expect(pastConsent(`https://consent.google.com/m?continue=${encodeURIComponent(long)}&gl=PT`)).toBe(long);
+    expect(pastConsent(long)).toBeNull();
+  });
+  it('follows a short share link to the full address without opening Google\'s page', async () => {
+    const opened: string[] = [];
+    vi.stubGlobal('fetch', async (u: string) => {
+      opened.push(u);
+      if (u.startsWith('https://maps.app.goo.gl/')) return new Response(null, { status: 302, headers: { location: `https://consent.google.com/m?continue=${encodeURIComponent(long)}` } });
+      throw new Error(`should not open ${u}`);
+    });
+    const info = await readLink('https://maps.app.goo.gl/AbC123');
+    expect(info).toMatchObject({ site: 'Google Maps', title: 'Hotel Baía', position: { lat: 38.6963, lng: -9.4205 } });
+    expect(opened).toEqual(['https://maps.app.goo.gl/AbC123']);
   });
 });
