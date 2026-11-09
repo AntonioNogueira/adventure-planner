@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { progressOn, viaPoints, googleMapsUrl, wazeUrl, arrivalAt, cumulativeKm } from '../ride';
+import { splitAt, bearingDeg, progressOn, viaPoints, googleMapsUrl, wazeUrl, arrivalAt, cumulativeKm } from '../ride';
 
 // A straight north–south path: 0.1° of latitude ≈ 11.1 km per step, 4 steps ≈ 44.5 km.
 const path = [0, 1, 2, 3, 4].map(i => ({ lat: 38 + i * 0.1, lng: -8 }));
@@ -43,5 +43,21 @@ describe('navigation links', () => {
     const now = new Date('2026-06-12T10:00:00Z');
     expect(arrivalAt(30, 60, now)?.toISOString()).toBe('2026-06-12T10:30:00.000Z');
     expect(arrivalAt(30, 0, now)).toBeNull();
+  });
+});
+
+describe('route done and ahead', () => {
+  it('cuts the day where you are', () => {
+    const { done, ahead } = splitAt(path, 16.7);
+    expect(done.length).toBe(3);
+    expect(done[2].lat).toBeCloseTo(38.15, 2);
+    expect(ahead[0]).toEqual(done[2]);
+    expect(ahead[ahead.length - 1]).toEqual(path[4]);
+    expect(splitAt(path, 0).done).toEqual([]);
+    expect(splitAt(path, 999).ahead).toEqual([]);
+  });
+  it('knows which way you are heading', () => {
+    expect(bearingDeg({ lat: 38, lng: -8 }, { lat: 38.1, lng: -8 })).toBeCloseTo(0, 0);
+    expect(bearingDeg({ lat: 38, lng: -8 }, { lat: 38, lng: -7.9 })).toBeCloseTo(90, 0);
   });
 });

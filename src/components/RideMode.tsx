@@ -6,7 +6,8 @@ import {
 import { RouteInfo } from '../types';
 import { ScheduleDay } from '../lib/schedule';
 import { LatLng } from '../lib/geo';
-import { cumulativeKm, progressOn, googleMapsUrl, wazeUrl, arrivalAt } from '../lib/ride';
+import { cumulativeKm, progressOn, googleMapsUrl, wazeUrl, arrivalAt, bearingDeg } from '../lib/ride';
+import { haversineKm } from '../lib/geo';
 import { useSettings } from '../lib/settings';
 import { Turn, TurnKind, dayTurns, rejoinTurns, nextAnnouncement, nextTurn, speak, canSpeak } from '../lib/voice';
 import { cn } from '../lib/utils';
@@ -23,7 +24,8 @@ interface RideModeProps {
   dayIndex: number;
   onDayChange: (index: number) => void;
   position?: LatLng;
-  onPosition: (p: LatLng | undefined) => void;
+  /** The live position and the direction of travel (degrees from north) when known. */
+  onPosition: (p: LatLng | undefined, heading?: number) => void;
   follow: boolean;
   onFollowChange: (follow: boolean) => void;
   /** The way back to the route while off it (drawn on the map). */
@@ -52,6 +54,9 @@ const RideMode: React.FC<RideModeProps> = ({
   const [kmh, setKmh] = useState(0);
   const [awake, setAwake] = useState(false);
   const last = useRef<{ p: LatLng; t: number } | null>(null);
+  // Direction of travel: from the GPS when moving, else from the last ~10 m moved.
+  const headingFrom = useRef<LatLng | null>(null);
+  const heading = useRef<number | undefined>(undefined);
   // Voice turn-by-turn: on/off (remembered), the day's turns, what's been said, and a detour back to the route.
   const [voice, setVoice] = useState(readVoice);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -78,7 +83,11 @@ const RideMode: React.FC<RideModeProps> = ({
         // A jump (first fix after a tunnel, a GPS glitch) isn't a speed: ignore anything no vehicle does.
         if (!Number.isNaN(v) && v <= 250) setKmh(k => Math.round(k ? k * 0.6 + v * 0.4 : v));
         last.current = { p, t: pos.timestamp };
-        onPosition(p);
+        const gpsHeading = pos.coords.heading;
+        if (gpsHeading != null && !Number.isNaN(gpsHeading) && (pos.coords.speed || 0) > 1) heading.current = gpsHeading;
+        else if (!headingFrom.current) headingFrom.current = p;
+        else if (haversineKm(headingFrom.current, p) > 0.01) { heading.current = bearingDeg(headingFrom.current, p); headingFrom.current = p; }
+        onPosition(p, heading.current);
       },
       err => setGps(err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable'),
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
@@ -185,7 +194,7 @@ const RideMode: React.FC<RideModeProps> = ({
 
   return (
     <div role="region" aria-label={t('Ride')}
-      className="absolute inset-x-2 bottom-2 z-[25] space-y-2 rounded-xl border bg-card p-3 shadow-2xl md:bottom-6 md:left-auto md:right-6 md:w-[26rem]">
+      className="absolute inset-x-2 bottom-2 z-[25] space-y-2 rounded-xl border bg-card p-3 shadow-2xl md:bottom-6 md:left-auto md:right-6 md:w-[29rem]">
       <div className="flex items-center gap-1">
         <button onClick={() => onDayChange(Math.max(0, dayIndex - 1))} disabled={dayIndex === 0} aria-label={t('Previous day')}
           className="rounded p-1 hover:bg-slate-100 disabled:opacity-30"><ChevronLeft size={18} /></button>

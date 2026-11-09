@@ -137,3 +137,33 @@ export const StopPopup: React.FC<StopPopupProps> = ({ at, ...details }) => {
     </div>
   );
 };
+
+// ---- Ride mode on the map ----
+
+/** Navigation colours: the part still to ride, its white edge, and the part already ridden. */
+export const RIDE_COLORS = { ahead: '#1a5fd0', casing: '#ffffff', done: '#8e8a82' };
+
+/** The rider: a blue disc with a white ring; with a heading, an arrow pointing the way you're going. */
+export function positionMarker(): HTMLElement {
+  const el = document.createElement('div');
+  el.title = tr('You are here');
+  el.style.cssText = 'width:30px;height:30px;';
+  el.innerHTML = `<svg viewBox="0 0 30 30" width="30" height="30" style="display:block;transition:transform .4s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))">
+    <circle cx="15" cy="15" r="11" fill="${RIDE_COLORS.ahead}" stroke="#fff" stroke-width="3"/>
+    <path class="arrow" d="M15 7.5 L20.5 20 L15 17 L9.5 20 Z" fill="#fff" style="display:none"/>
+    <circle class="dot" cx="15" cy="15" r="3.2" fill="#fff"/>
+  </svg>`;
+  return el;
+}
+
+/** Point the rider's arrow (degrees from north), or show a plain dot when the heading isn't known. */
+export function setMarkerHeading(el: HTMLElement, heading?: number) {
+  const svg = el.querySelector('svg') as SVGElement | null;
+  const arrow = el.querySelector('.arrow') as SVGElement | null;
+  const dot = el.querySelector('.dot') as SVGElement | null;
+  if (!svg || !arrow || !dot) return;
+  const known = heading != null && !Number.isNaN(heading);
+  arrow.style.display = known ? '' : 'none';
+  dot.style.display = known ? 'none' : '';
+  svg.style.transform = known ? `rotate(${heading}deg)` : '';
+}

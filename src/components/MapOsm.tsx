@@ -15,7 +15,8 @@ import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
 import { useSettings, t as tr } from '../lib/settings';
 import { rentalUrl, type Nights } from '../lib/affiliate';
-import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
+import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS } from './mapShared';
+import { progressOn, splitAt } from '../lib/ride';
 
 interface MapOsmProps {
   onLoad: (map: unknown) => void;
@@ -35,7 +36,7 @@ interface MapOsmProps {
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
   /** Ride mode: the day being ridden, the rider's position and whether the map follows it. */
-  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
+  ride?: { dayIndex: number; position?: { lat: number; lng: number }; heading?: number; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
 }
 
 // Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
@@ -82,17 +83,30 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'hybrid', label: 'Hybrid', icon: Layers },
 ];
 
-// The rider's position in ride mode: a blue dot with a white ring.
-function positionDot(): HTMLElement {
-  const el = document.createElement('div');
-  el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px rgba(37,99,235,.35),0 1px 4px rgba(0,0,0,.4);';
-  el.title = 'You are here';
-  return el;
-}
-
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 const ROUTE_COLOR = '#a0462c';
 const ACTIVE_COLOR = '#6e2a18';
+
+interface RideLines { done: LatLng[]; ahead: LatLng[]; on: boolean }
+
+/** Ride mode lines: the other days faded, the day's done part grey, the part ahead blue with a white edge. */
+function drawRideLines(map: maplibregl.Map, lines: RideLines) {
+  if (map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-opacity', lines.on ? 0.35 : 1);
+  if (map.getLayer('route-casing')) map.setPaintProperty('route-casing', 'line-opacity', lines.on ? 0.35 : 1);
+  const feature = (part: string, path: LatLng[]) => ({ type: 'Feature' as const, properties: { part }, geometry: { type: 'LineString' as const, coordinates: path.map(p => [p.lng, p.lat]) } });
+  const data: FeatureCollection<LineString> = { type: 'FeatureCollection', features: lines.on ? [
+    ...(lines.done.length > 1 ? [feature('done', lines.done)] : []),
+    ...(lines.ahead.length > 1 ? [feature('ahead', lines.ahead)] : []),
+  ] : [] };
+  const source = map.getSource('ride-lines') as maplibregl.GeoJSONSource | undefined;
+  if (source) { source.setData(data); return; }
+  map.addSource('ride-lines', { type: 'geojson', data });
+  const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
+  const before = map.getLayer('ride-detour') ? 'ride-detour' : undefined;
+  map.addLayer({ id: 'ride-done', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'done'], layout, paint: { 'line-color': RIDE_COLORS.done, 'line-width': 7 } }, before);
+  map.addLayer({ id: 'ride-ahead-casing', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.casing, 'line-width': 12 } }, before);
+  map.addLayer({ id: 'ride-ahead', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.ahead, 'line-width': 7 } }, before);
+}
 
 /** A teardrop pin with a label, as a DOM element for MapLibre markers. */
 function pinElement(color: string, text: string, size: number, title: string): HTMLElement {
@@ -194,16 +208,23 @@ const MapOsm: React.FC<MapOsmProps> = ({
   // Ride mode: highlight the day, show it whole when it changes, then follow the rider if asked.
   const rideMarkerRef = useRef<maplibregl.Marker | null>(null);
   const rideDayRef = useRef<number | null>(null);
+  const rideLinesRef = useRef<RideLines>({ done: [], ahead: [], on: false });
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !isReady) return;
+    // In ride mode every day is faded; the day being ridden is drawn on top: ahead in blue, done in grey.
+    const dayPath = ride ? segments[ride.dayIndex]?.path || [] : [];
+    const progress = ride?.position && dayPath.length > 1 ? progressOn(dayPath, ride.position) : null;
+    const parts = progress && progress.offRouteKm < 5 ? splitAt(dayPath, progress.alongKm) : { done: [], ahead: dayPath };
+    rideLinesRef.current = { ...parts, on: Boolean(ride) };
+    try { drawRideLines(map, rideLinesRef.current); } catch { /* style loading */ }
     if (!ride) {
       rideMarkerRef.current?.remove();
       rideMarkerRef.current = null;
       rideDayRef.current = null;
       return;
     }
-    setActiveSegment(ride.dayIndex);
+    setActiveSegment(-1);
     const day = segments[ride.dayIndex];
     if (day && rideDayRef.current !== ride.dayIndex) {
       rideDayRef.current = ride.dayIndex;
@@ -214,11 +235,12 @@ const MapOsm: React.FC<MapOsmProps> = ({
       }
     }
     if (ride.position) {
-      if (!rideMarkerRef.current) rideMarkerRef.current = new maplibregl.Marker({ element: positionDot() }).setLngLat([ride.position.lng, ride.position.lat]).addTo(map);
+      if (!rideMarkerRef.current) rideMarkerRef.current = new maplibregl.Marker({ element: positionMarker() }).setLngLat([ride.position.lng, ride.position.lat]).addTo(map);
       else rideMarkerRef.current.setLngLat([ride.position.lng, ride.position.lat]);
+      setMarkerHeading(rideMarkerRef.current.getElement(), ride.heading);
       if (ride.follow) map.easeTo({ center: [ride.position.lng, ride.position.lat], zoom: Math.max(map.getZoom(), 14), duration: 500 });
     }
-  }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.follow, Boolean(ride), segments, isReady]);
+  }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.heading, ride?.follow, Boolean(ride), segments, isReady]);
 
   // Ride mode: the way back to the route when off it (dashed blue).
   const detour = ride?.detour;
@@ -231,7 +253,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       if (source) source.setData(data);
       else {
         map.addSource('ride-detour', { type: 'geojson', data });
-        map.addLayer({ id: 'ride-detour', type: 'line', source: 'ride-detour', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#1d4ed8', 'line-width': 5, 'line-dasharray': [1, 1.6] } });
+        map.addLayer({ id: 'ride-detour', type: 'line', source: 'ride-detour', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#7c3aed', 'line-width': 5, 'line-dasharray': [1, 1.6] } });
       }
     };
     try { draw(); } catch { /* style loading */ }
@@ -254,7 +276,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
     mapRef.current = map;
 
     // A new style (Map/Light/Topo/Satellite) starts without our layers: draw the route again.
-    map.on('style.load', () => drawRoute(map, segmentsRef.current, activeSegmentRef.current));
+    map.on('style.load', () => { drawRoute(map, segmentsRef.current, activeSegmentRef.current); drawRideLines(map, rideLinesRef.current); });
     map.on('load', () => { setIsReady(true); onLoad(map); });
     // Stop names show from regional zoom in; zoomed out, only the numbers.
     const toggleLabels = () => containerRef.current?.parentElement?.classList.toggle('stop-labels-hidden', map.getZoom() < 6);
@@ -407,7 +429,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units, stays]);
 
   return (
-    <div className={cn("vintage-map relative h-full w-full", mapType !== 'topo' && "vintage-imagery")}>
+    <div className={cn("relative h-full w-full", !ride && "vintage-map", !ride && mapType !== 'topo' && "vintage-imagery")}>
       <div ref={containerRef} className="h-full w-full" />
 
       {/* Category legend: show or hide suggestion pins */}

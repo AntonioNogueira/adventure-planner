@@ -48,6 +48,27 @@ export function progressOn(path: LatLng[], position: LatLng, cum = cumulativeKm(
   };
 }
 
+/** A path cut at `alongKm`: the part already ridden and the part ahead (both include the cut point). */
+export function splitAt(path: LatLng[], alongKm: number, cum = cumulativeKm(path)): { done: LatLng[]; ahead: LatLng[] } {
+  if (path.length < 2 || alongKm <= 0) return { done: [], ahead: path };
+  const total = cum[cum.length - 1];
+  if (alongKm >= total) return { done: path, ahead: [] };
+  let i = 1;
+  while (i < cum.length - 1 && cum[i] < alongKm) i++;
+  const span = cum[i] - cum[i - 1];
+  const f = span ? (alongKm - cum[i - 1]) / span : 0;
+  const cut = { lat: path[i - 1].lat + (path[i].lat - path[i - 1].lat) * f, lng: path[i - 1].lng + (path[i].lng - path[i - 1].lng) * f };
+  return { done: [...path.slice(0, i), cut], ahead: [cut, ...path.slice(i)] };
+}
+
+/** Compass bearing from a to b, in degrees (0 = north, 90 = east). */
+export function bearingDeg(a: LatLng, b: LatLng): number {
+  const r = Math.PI / 180;
+  const y = Math.sin((b.lng - a.lng) * r) * Math.cos(b.lat * r);
+  const x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lng - a.lng) * r);
+  return ((Math.atan2(y, x) / r) + 360) % 360;
+}
+
 /** Up to `count` points spread along a path (not its ends), to keep a navigation app on our route. */
 export function viaPoints(path: LatLng[], count: number): LatLng[] {
   if (path.length < 3 || count <= 0) return [];

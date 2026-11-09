@@ -202,6 +202,7 @@ const App: React.FC = () => {
   const [rideDay, setRideDay] = useState(0);
   const [ridePos, setRidePos] = useState<{ lat: number; lng: number } | undefined>(undefined);
   const [rideFollow, setRideFollow] = useState(true);
+  const [rideHeading, setRideHeading] = useState<number | undefined>(undefined);
   const [rideDetour, setRideDetour] = useState<{ lat: number; lng: number }[] | undefined>(undefined);
   // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
   const [budgetSettings, setBudgetSettings] = useState<BudgetSettings | null>(null);
@@ -1084,7 +1085,7 @@ const App: React.FC = () => {
               dayIndex={Math.min(rideDay, Math.max(0, legPaths.length - 1))}
               onDayChange={setRideDay}
               position={ridePos}
-              onPosition={setRidePos}
+              onPosition={(p, h) => { setRidePos(p); setRideHeading(h); }}
               follow={rideFollow}
               onFollowChange={setRideFollow}
               onDetour={setRideDetour}
@@ -1128,7 +1129,7 @@ const App: React.FC = () => {
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}
             stays={stays}
-            ride={view === 'ride' ? { dayIndex: Math.min(rideDay, Math.max(0, legPaths.length - 1)), position: ridePos, follow: rideFollow, detour: rideDetour } : null}
+            ride={view === 'ride' ? { dayIndex: Math.min(rideDay, Math.max(0, legPaths.length - 1)), position: ridePos, heading: rideHeading, follow: rideFollow, detour: rideDetour } : null}
           />
           </Suspense>
         </main>

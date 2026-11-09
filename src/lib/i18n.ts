@@ -482,6 +482,7 @@ export const PT: Record<string, string> = {
   'then “Add to Home Screen”.': 'e depois em “Adicionar ao ecrã principal”.',
   'Full screen, its own icon, opens without a connection. Free, no app store.': 'Ecrã inteiro, ícone próprio, abre sem ligação. Grátis, sem loja de apps.',
   'Voice': 'Voz',
+  'You are here': 'Está aqui',
   'Spoken turn-by-turn directions': 'Indicações faladas, curva a curva',
   'Voice guidance on.': 'Indicações por voz ligadas.',
   "You're off the route. Finding the way back.": 'Saiu da rota. A procurar o caminho de volta.',
@@ -772,4 +773,5 @@ export const PT_BR: Record<string, string> = {
   'In {d},': 'Em {d},',
   '1 kilometre': '1 quilômetro',
   '{n} kilometres': '{n} quilômetros',
+  'You are here': 'Você está aqui',
 };

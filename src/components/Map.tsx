@@ -9,7 +9,8 @@ import { RoutedLeg } from '../lib/routing';
 import SegmentDetails from './SegmentDetails';
 import { useSettings, t as tr } from '../lib/settings';
 import { rentalUrl, type Nights } from '../lib/affiliate';
-import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey } from './mapShared';
+import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS } from './mapShared';
+import { progressOn, splitAt } from '../lib/ride';
 
 interface MapProps {
   onLoad: (map: google.maps.Map) => void;
@@ -32,7 +33,7 @@ interface MapProps {
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
   /** Ride mode: the day being ridden, the rider's position and whether the map follows it. */
-  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
+  ride?: { dayIndex: number; position?: { lat: number; lng: number }; heading?: number; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
 }
 
 // Topo: a survey-map look (contours, hill shading, forests) from OpenTopoMap tiles drawn over Google's
@@ -44,14 +45,6 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'satellite', label: 'Satellite', icon: Globe },
   { id: 'hybrid', label: 'Hybrid', icon: Layers },
 ];
-
-// The rider's position in ride mode: a blue dot with a white ring.
-function positionDot(): HTMLElement {
-  const el = document.createElement('div');
-  el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px rgba(37,99,235,.35),0 1px 4px rgba(0,0,0,.4);';
-  el.title = 'You are here';
-  return el;
-}
 
 const topoTiles = () => new google.maps.ImageMapType({
   getTileUrl: (c, z) => {
@@ -220,16 +213,28 @@ const Map: React.FC<MapProps> = ({
   // Ride mode: highlight the day, show it whole when it changes, then follow the rider if asked.
   const rideMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const rideDayRef = useRef<number | null>(null);
+  const rideLinesRef = useRef<google.maps.Polyline[]>([]);
   useEffect(() => {
     const map = googleMapRef.current;
     if (!isReady || !map) return;
-    const style = (active: boolean) => ({ strokeColor: active ? '#6e2a18' : '#a0462c', strokeWeight: active ? 9 : 6, strokeOpacity: active ? 1 : (ride ? 0.45 : 0.85) });
-    segmentLinesRef.current.forEach((line, j) => line.setOptions(style(Boolean(ride) && j === ride!.dayIndex)));
+    // In ride mode every day is faded; the day being ridden is drawn on top: ahead in blue, done in grey.
+    segmentLinesRef.current.forEach(line => line.setOptions({ strokeColor: '#a0462c', strokeWeight: 6, strokeOpacity: ride ? 0.35 : 0.85 }));
+    rideLinesRef.current.forEach(l => l.setMap(null));
+    rideLinesRef.current = [];
     if (!ride) {
       rideMarkerRef.current && (rideMarkerRef.current.map = null);
       rideMarkerRef.current = null;
       rideDayRef.current = null;
       return;
+    }
+    const dayPath = segments[ride.dayIndex]?.path || [];
+    if (dayPath.length > 1) {
+      const progress = ride.position ? progressOn(dayPath, ride.position) : null;
+      const { done, ahead } = progress && progress.offRouteKm < 5 ? splitAt(dayPath, progress.alongKm) : { done: [], ahead: dayPath };
+      const line = (path: google.maps.LatLngLiteral[], color: string, weight: number, zIndex: number) =>
+        new google.maps.Polyline({ map, path, strokeColor: color, strokeWeight: weight, strokeOpacity: 1, zIndex, clickable: false });
+      if (done.length > 1) rideLinesRef.current.push(line(done, RIDE_COLORS.done, 7, 30));
+      if (ahead.length > 1) rideLinesRef.current.push(line(ahead, RIDE_COLORS.casing, 12, 31), line(ahead, RIDE_COLORS.ahead, 7, 32));
     }
     const day = segments[ride.dayIndex];
     if (day && rideDayRef.current !== ride.dayIndex) {
@@ -241,13 +246,14 @@ const Map: React.FC<MapProps> = ({
     if (ride.position) {
       (async () => {
         const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
-        if (!rideMarkerRef.current) rideMarkerRef.current = new AdvancedMarkerElement({ map, content: positionDot(), zIndex: 50 });
+        if (!rideMarkerRef.current) rideMarkerRef.current = new AdvancedMarkerElement({ map, content: positionMarker(), zIndex: 50 });
         rideMarkerRef.current.position = ride.position;
+        setMarkerHeading(rideMarkerRef.current.content as HTMLElement, ride.heading);
         rideMarkerRef.current.map = map;
       })();
       if (ride.follow) { map.panTo(ride.position); if ((map.getZoom() || 0) < 13) map.setZoom(14); }
     }
-  }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.follow, Boolean(ride), segments, isReady]);
+  }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.heading, ride?.follow, Boolean(ride), segments, isReady]);
 
   // Ride mode: the way back to the route when off it (dashed blue).
   const detourLineRef = useRef<google.maps.Polyline | null>(null);
@@ -260,7 +266,7 @@ const Map: React.FC<MapProps> = ({
     if (!detour?.length) return;
     detourLineRef.current = new google.maps.Polyline({
       map, path: detour, zIndex: 40, strokeOpacity: 0,
-      icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: '#1d4ed8', strokeWeight: 5, scale: 3 }, offset: '0', repeat: '14px' }],
+      icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: '#7c3aed', strokeWeight: 5, scale: 3 }, offset: '0', repeat: '14px' }],
     });
   }, [detour, isReady]);
 
@@ -425,7 +431,7 @@ const Map: React.FC<MapProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units, stays]);
 
   return (
-    <div className={cn("vintage-map relative h-full w-full", mapType !== 'topo' && "vintage-imagery")}>
+    <div className={cn("relative h-full w-full", !ride && "vintage-map", !ride && mapType !== 'topo' && "vintage-imagery")}>
       <div ref={mapRef} className="h-full w-full" />
 
       {mapsError && (
