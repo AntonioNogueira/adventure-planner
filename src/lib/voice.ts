@@ -1,5 +1,5 @@
 // Voice turn-by-turn for ride mode.
-// Turns come from Valhalla (FOSSGIS public server): `trace_route` matches the day's path (whatever made it: Google,
+// Turns come from Valhalla (VALHALLA_URL; by default the FOSSGIS public server): `trace_route` matches the day's path (whatever made it: Google,
 // OSRM, BRouter) to OpenStreetMap roads and returns the manoeuvres with spoken sentences in the user's language.
 // If that fails (no connection, unmatched track), turns are worked out from the path's own bends.
 // The browser's speech synthesis reads them out (works on iPhone and Android while the app is open).
@@ -8,6 +8,7 @@ import { splitPath } from './osmRoads';
 import { decodePolyline6 } from './osrm';
 import { cumulativeKm } from './ride';
 import { Language, Units, t } from './settings';
+import { SERVICES } from './services';
 
 export type TurnKind = 'left' | 'right' | 'slight-left' | 'slight-right' | 'sharp-left' | 'sharp-right'
   | 'straight' | 'uturn' | 'roundabout' | 'arrive' | 'ferry' | 'keep-left' | 'keep-right';
@@ -27,8 +28,8 @@ export interface Turn {
   quiet?: boolean;
 }
 
-const TRACE = 'https://valhalla1.openstreetmap.de/trace_route';
-const ROUTE = 'https://valhalla1.openstreetmap.de/route';
+const TRACE = `${SERVICES.valhalla}/trace_route`;
+const ROUTE = `${SERVICES.valhalla}/route`;
 const MAX_PART_KM = 150;
 
 const VALHALLA_LANG: Record<Language, string> = { en: 'en-GB', 'pt-PT': 'pt-PT', 'pt-BR': 'pt-BR' };

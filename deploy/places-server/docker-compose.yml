@@ -1,0 +1,41 @@
+# Adventure Planner place server: an Overpass API with OpenStreetMap data for your region, behind HTTPS.
+# On a small rented Linux server with Docker:  DOMAIN=places.example.com docker compose up -d
+# Then set OVERPASS_URL=https://places.example.com/api/interpreter in the app's settings (Render → Environment).
+services:
+  overpass:
+    image: wiktorn/overpass-api:latest
+    restart: unless-stopped
+    environment:
+      OVERPASS_MODE: init
+      OVERPASS_META: "no"
+      # The region to load (Geofabrik extract) and its daily updates. Europe needs ~250 GB disk and 16 GB RAM;
+      # a country (e.g. europe/portugal or europe/spain) fits on a 4–8 GB server.
+      OVERPASS_PLANET_URL: ${OVERPASS_PLANET_URL:-https://download.geofabrik.de/europe-latest.osm.pbf}
+      OVERPASS_DIFF_URL: ${OVERPASS_DIFF_URL:-https://download.geofabrik.de/europe-updates/}
+      OVERPASS_COMPRESSION: gz
+      OVERPASS_USE_AREAS: "false"
+      OVERPASS_UPDATE_SLEEP: 3600
+      OVERPASS_SPACE: 10737418240
+      OVERPASS_MAX_TIMEOUT: 60
+    volumes:
+      - overpass-db:/db
+    expose:
+      - "80"
+
+  https:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [overpass]
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN to the server's name, e.g. places.example.com}
+      APP_ORIGIN: ${APP_ORIGIN:-*}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+
+volumes:
+  overpass-db:
+  caddy-data:

@@ -14,7 +14,7 @@ export const PrivacyDialog: React.FC<{ onClose: () => void }> = ({ onClose }) =>
   const rows: [string, string][] = [
     [t('On this device'), t('Your settings (language, units, currency), this privacy choice, and the login session.')],
     [t('In your account'), t('Saved trips, budgets and booking files (Firebase, Google Cloud in the EU/US). Only you can see them unless you share a trip.')],
-    [t('Map and route services'), t('Google Maps or OpenStreetMap services, BRouter and Valhalla (routes), Wikipedia (place photos), Open-Meteo (weather). They receive the places on your route.')],
+    [t('Map and route services'), t('OpenStreetMap services (map, places, place names), OSRM, BRouter and Valhalla (routes), Wikipedia (place photos), Open-Meteo (weather). They receive the places on your route. "Open in Google Maps" links send the place name to Google only when you tap them.')],
     [t('AI planner'), t('What you type in the planner is sent to the AI service (Gemini, Claude or OpenAI) to understand the trip.')],
     [t('Booking links'), t('"Check prices", "Tickets & tours" and rentals open partner sites. If you accept, the links carry our partner id so the partner can pay us a commission; their own cookies then apply on their site.')],
   ];

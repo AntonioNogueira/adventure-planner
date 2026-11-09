@@ -2,30 +2,34 @@
 
 Plan your next adventure with AI. Map it. Save it.
 
-Describe a trip ("Cádiz to Silves, bikepacking, about 60 km per day") and the planner builds a day-by-day route on Google Maps:
+Describe a trip ("Cádiz to Silves, bikepacking, about 60 km per day") and the planner builds a day-by-day route on an OpenStreetMap topo map:
 
 - **Overnight stops** from the real route, split by effort (distance plus climbing), each at a town with somewhere to sleep
-- **Real places** to stay, eat, fix the bike and visit at every stop (Google Places), each with its own map pin
+- **Real places** to stay, eat, fix the bike and visit at every stop (OpenStreetMap), each with its own map pin;
+  places to stay link to **Booking.com** ("Check prices & reviews", with your affiliate id) and every place opens in Google Maps
 - **Itinerary** with dates, rest days, climbing and elevation profile per day, and a weather forecast per day
 - **GPX export** of the whole trip or a single day for Garmin, Wahoo, Komoot…
 - **Bookings**: attach a confirmation PDF, email or screenshot; it's read, filed under the right stop, priced, and checked against your dates
 - **Editing**: drag stops, click the map to add one, avoid highways/ferries/tolls, remove suggestions
 - **Save and share**: sign in with Google to save trips (with their booking files) and share a read-only link
 
-## Two versions: Google or OpenStreetMap ("Adventure Planner Open")
+## Map and data services
 
-One codebase, two map stacks, chosen with `MAP_PROVIDER` in `.env.local` (or on the host):
+One version, built on OpenStreetMap. Google is used for sign-in, the Gemini AI planner and the
+"open in Google Maps / Waze" links (plain links, so Google's map-content rules don't apply).
 
-| | `MAP_PROVIDER=google` (default) | `MAP_PROVIDER=osm` – Adventure Planner Open |
+| | Service | Setting |
 |---|---|---|
-| Map | Google Maps | [MapLibre](https://maplibre.org) + [OpenFreeMap](https://openfreemap.org) (Map / Light), [OpenTopoMap](https://opentopomap.org), [EOX Sentinel-2](https://s2maps.eu) satellite (non-commercial) |
-| Routing | Routes API / Directions | [OSRM](https://routing.openstreetmap.de) (car, bike, foot); [Valhalla](https://valhalla1.openstreetmap.de) for car routes avoiding highways/tolls/ferries |
-| Elevation | Elevation API | Valhalla `/height` |
-| Place search | Geocoding API | [Photon](https://photon.komoot.io) |
-| Suggestions | Places API (New) | [Overpass](https://overpass-api.de) (OpenStreetMap data) |
-| Keys | Google Maps key | none (Gemini key still needed for the AI) |
+| Map | [MapLibre](https://maplibre.org) + [OpenTopoMap](https://opentopomap.org) (topo), [EOX Sentinel-2](https://s2maps.eu) satellite and hybrid (non-commercial), [OpenFreeMap](https://openfreemap.org) labels | – |
+| Road routes | [OSRM](https://routing.openstreetmap.de) (car, bike, foot); [Valhalla](https://valhalla1.openstreetmap.de) when avoiding highways, tolls or ferries | `OSRM_URL`, `VALHALLA_URL` |
+| Off-road routes | [BRouter](https://brouter.de) (gravel, hiking, adventure-moto profiles) | `BROUTER_URL` |
+| Elevation, surfaces, voice directions | Valhalla (`/height`, `/trace_attributes`, `/trace_route`) | `VALHALLA_URL` |
+| Place names | [Photon](https://photon.komoot.io) | `PHOTON_URL` |
+| Places near stops | [Overpass](https://overpass-api.de), several servers tried in order; Photon if none answers | `OVERPASS_URL` |
 
-The OSM services are free public servers with fair-use limits: fine for personal use and testing; for many users, self-host them (all have Docker images) or use an OSM-based provider. Everything else (AI planner, itinerary, bookings, GPX, weather, saving and sharing) is the same in both.
+The defaults are free public servers with fair-use limits: fine for testing, but busy or refusing at times
+(measured in `docs/BUSINESS.md`, section 10). For real traffic, set the addresses to your own or paid servers:
+`deploy/places-server` runs your own Overpass for places with one command.
 
 ## Run locally
 
@@ -35,8 +39,7 @@ The OSM services are free public servers with fair-use limits: fine for personal
    ```bash
    npm install
    ```
-2. Copy `.env.example` to `.env.local` and fill in your keys (set `MAP_PROVIDER=osm` for the open version, which needs no Maps key):
-   - `VITE_GOOGLE_MAPS_API_KEY`: needs the **Maps JavaScript**, **Directions**, **Geocoding**, **Elevation** and **Places API (New)** APIs enabled (and allowed in the key's API restrictions). Optionally enable the **Routes API** too: the app uses it when available and falls back to Directions otherwise.
+2. Copy `.env.example` to `.env.local` and fill in your keys (no map key is needed):
    - `GEMINI_API_KEY`: the free way to run the AI planner. Create a key at https://aistudio.google.com/apikey in a project **without billing** so it uses the free tier (default model `gemini-flash-lite-latest`, falling back to `gemini-flash-latest` when busy).
    - Optional: `ANTHROPIC_API_KEY` to use Claude instead (paid API, default model `claude-opus-5-5`; a Claude.ai subscription does not include API access) or `OPENAI_API_KEY`. Providers are tried in the order Claude, Gemini, OpenAI, skipping any without a key.
 3. Start the dev server:
@@ -52,12 +55,13 @@ The OSM services are free public servers with fair-use limits: fine for personal
 | Part | Where | Notes |
 |---|---|---|
 | UI | `src/` (React 19 + Tailwind 4) | Responsive: sidebar on desktop, map above the planner on phones |
-| Map, routes, geocoding | `src/components/Map.tsx`, `src/App.tsx` | Google Maps JS API, loaded in `index.html` |
+| Map | `src/components/Map.tsx`, `src/components/mapShared.tsx` | MapLibre; topo, satellite and hybrid; ride mode drawing |
+| Service addresses | `src/lib/services.ts`, `vite.config.ts` | From the server's settings (`OVERPASS_URL`…), defaults to the public servers |
 | AI planner | `server/plan-api.ts` → `POST /api/plan` | The AI (Gemini, Claude or OpenAI) only reads the request: start, finish, mode, days or daily distance, places to pass, lodging type. Runs on the server so AI keys never reach the browser |
-| Overnight stops | `src/lib/tripBuilder.ts` | Google Maps calculates the real route and splits it into days at the daily distance; each night is placed at the nearest accommodation (Places). Detours suggested by the AI are dropped |
-| Suggestions | `src/lib/places.ts` | Google Places: 3 places to stay, eat, fix the bike and visit near every stop, each with its own map pin (🛏 🍴 🔧 📷) that can be hidden from the legend |
+| Overnight stops | `src/lib/tripBuilder.ts` | The real route is split into days at the daily distance; each night is placed at the nearest accommodation. Detours suggested by the AI are dropped |
+| Suggestions | `src/lib/places.ts`, `src/lib/overpass.ts` | OpenStreetMap: 3 places to stay, eat, fix the bike and visit near every stop, each with its own map pin (🛏 🍴 🔧 📷) that can be hidden from the legend |
 | Editing stops | `src/components/StopDetails.tsx`, `src/App.tsx` | Drag pins to move a stop (snaps to the nearest town, recalculates the route and refreshes suggestions); remove suggestions; attach booking PDFs, `.eml` emails or screenshots, which the AI reads and files under the matching stop (`POST /api/extract-reservation`) |
-| Routing | `src/lib/routing.ts` | Routes API when enabled, Directions service otherwise; avoid highways/ferries/tolls |
+| Routing | `src/lib/routing.ts`, `src/lib/osrm.ts`, `src/lib/offroad.ts` | OSRM / Valhalla on roads (avoid highways, ferries, tolls), BRouter off-road |
 | Elevation and effort | `src/lib/elevation.ts` | Climbing per day and profile; days are split by distance + climbing (10 km per 1000 m by bike) |
 | Itinerary | `src/components/Itinerary.tsx`, `src/lib/schedule.ts`, `src/lib/weather.ts` | Dates, rest days, Open-Meteo forecast per day, booking costs and date checks |
 | Segment details | `src/components/SegmentDetails.tsx`, `src/lib/terrain.ts`, `src/lib/osmRoads.ts` | Click a day on the map: gradient-coloured terrain profile (bike/hike), main roads and average speed (moto/car), and speed limits, surface and road types from OpenStreetMap via the public [Valhalla](https://valhalla1.openstreetmap.de) service (fair use) |
@@ -79,7 +83,6 @@ Every AI call prints a line in the terminal running `npm run dev`, plus a runnin
 ## API keys and security
 
 - `.env.local` is git-ignored. Never commit real keys.
-- The Google Maps key is visible in the browser by design. In Google Cloud Console, restrict it by **HTTP referrer** (for example `http://localhost:3000/*` and your production domain) and to the Maps APIs only.
 - The Firebase web config in `firebase-applet-config.json` is public by design. Firestore access is controlled by `firestore.rules`.
 - Anthropic, Gemini and OpenAI keys are only read by the server (`server/plan-api.ts`).
 - Booking files are uploaded to Firebase Storage (`users/<uid>/attachments`) when a signed-in user saves a trip.
@@ -99,18 +102,18 @@ The app runs as one Node service: `npm run build`, then `npx vite preview` serve
 
 **Render (free tier, simplest):**
 1. On [render.com](https://render.com), sign in with GitHub → **New → Blueprint** → choose this repository (it uses `render.yaml`).
-2. Enter `VITE_GOOGLE_MAPS_API_KEY` and `GEMINI_API_KEY` when asked, then deploy.
+2. Enter `GEMINI_API_KEY` when asked (the other values are optional), then deploy.
 3. Free services sleep after inactivity; the first visit after a while takes ~30 s to wake up.
 
 **Google Cloud Run (Docker):**
 ```bash
 gcloud run deploy adventure-planner --source . --region europe-west1 --allow-unauthenticated \
-  --set-env-vars VITE_GOOGLE_MAPS_API_KEY=...,GEMINI_API_KEY=...
+  --set-env-vars GEMINI_API_KEY=...
 ```
 
 **After deploying:**
 - Add the new domain to Firebase **Authorized domains** (above).
-- In Google Cloud Console → Credentials, restrict the Maps key to **HTTP referrers** `http://localhost:3000/*` and `https://<your-domain>/*`.
+- For real traffic, set `OVERPASS_URL` (and the other service addresses) to your own or paid servers: see `deploy/places-server`.
 - AI requests are limited to `AI_REQUESTS_PER_HOUR` (default 60) per visitor so a public link can't use up your Gemini quota.
 
 ## Phone app (installable, no app store) and Ride mode
@@ -122,7 +125,7 @@ No App Store or Play Store account or fee is needed.
 - **iPhone (Safari):** open the site → Share → *Add to Home Screen*.
 - **Android (Chrome):** the app offers *Install the app on this device* (Settings menu and Ride tab), or browser menu → *Install app*.
 
-**Ride** (fourth tab) is the day being ridden, drawn like a navigation map (ridden part grey, part ahead blue, other days faded, an arrow for your direction): live GPS position and follow-me (in the OpenStreetMap version the map turns to face the way you ride, with more road ahead; the compass button or turning Follow off puts north back up; the Google version stays north up, as turning needs a vector map ID set up in Google Cloud), km left and arrival time to tonight's
+**Ride** (fourth tab) is the day being ridden, drawn like a navigation map (ridden part grey, part ahead blue, other days faded, an arrow for your direction): live GPS position and follow-me (the map turns to face the way you ride, with more road ahead; the compass button or turning Follow off puts north back up), km left and arrival time to tonight's
 stop, an off-route warning, the screen kept on (Wake Lock), and one tap to open the rest of the day in Google Maps
 (with via points to keep it on our route) or Waze, or to download the day's GPX for OsmAnd, Garmin, Kurviger or Calimoto.
 **Voice turn-by-turn** (the *Voice* button in Ride; `src/lib/voice.ts`): the day's path is matched to OpenStreetMap
@@ -130,7 +133,7 @@ roads by Valhalla `trace_route` (valhalla1.openstreetmap.de), which returns the 
 English, PT-PT or PT-BR (street names, exits, roundabouts). The phone's own speech voices read them: an early warning
 ("In 500 metres, turn right onto N2", earlier at higher speed), then the turn itself. Off the route it says so,
 asks Valhalla for the way back (at most every 30 s) and draws it dashed on the map. Without a connection, turns
-come from the path's bends ("Turn right"). The same works for Google, OSRM and BRouter (off-road) routes.
+come from the path's bends ("Turn right"). The same works for road (OSRM/Valhalla) and off-road (BRouter) routes.
 
 Limits of a web app: GPS and voice work while the app is open with the screen on (not in the background or with
 the phone locked on iPhone; the first tap on *Voice* unlocks speech there). No lane guidance or traffic. The service worker never caches `/api`, maps or tiles.
@@ -169,5 +172,4 @@ Plans and their daily limits are in `src/lib/plans.ts`:
 - **Upgrade** buttons open `CHECKOUT_URL_EXPLORER` / `_TRIP_PASS` / `_PRO` (e.g. Stripe Payment Links, which get the
   buyer's email and Firebase uid as `client_reference_id`). Turning a payment into a plan automatically needs a small
   webhook with Firebase Admin credentials: the next step once a payment account exists.
-- Saved-trip limits are checked in the app; place searches are counted before suggestions load. For hard limits on
-  Google Places costs, the Places calls would move behind the server too.
+- Saved-trip limits are checked in the app; place searches are counted before suggestions load.

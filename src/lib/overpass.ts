@@ -1,10 +1,11 @@
-// OpenStreetMap places via the public Overpass API (free, fair use: requests are queued one at a time).
+// OpenStreetMap places. Overpass first (full details: website, stars, opening hours), trying each server in
+// OVERPASS_URL in turn; if none answers, Photon (names, kinds and positions only), so places never go missing.
+// The free public servers are fair use and often busy or refuse cloud traffic: production sets its own.
 import { InterestCategory, InterestItem } from '../types';
 import { LatLng, haversineKm } from './geo';
-import { townAt, placeAt } from './geocode';
+import { townAt, placeAt, photon, PhotonFeature } from './geocode';
+import { SERVICES } from './services';
 import type { CategoryId, LodgingPreference } from './places';
-
-const OVERPASS = 'https://overpass-api.de/api/interpreter';
 
 export interface OsmElement {
   type: 'node' | 'way' | 'relation';
@@ -18,20 +19,37 @@ export interface OsmElement {
 // Overpass allows only a couple of parallel requests per visitor, so queue them.
 let queue: Promise<unknown> = Promise.resolve();
 
-async function runQuery(query: string): Promise<OsmElement[]> {
-  for (const delay of [0, 2500]) {
-    if (delay) await new Promise(r => setTimeout(r, delay));
-    const res = await fetch(OVERPASS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `data=${encodeURIComponent(query)}`,
-      // A stalled request must not hold up planning (callers fall back without Overpass).
-      signal: AbortSignal.timeout(30000),
-    });
-    if (res.ok) return (await res.json()).elements || [];
-    if (res.status !== 429 && res.status !== 504) throw new Error(`Overpass ${res.status}`);
+// The server that answered last is tried first next time. When none answers, Overpass is skipped for a while
+// (callers use Photon), so a visitor doesn't wait on dead servers for every stop.
+let preferred = 0;
+let skipUntil = 0;
+const SKIP_MS = 2 * 60_000;
+
+async function runQuery(query: string, servers = SERVICES.overpass): Promise<OsmElement[]> {
+  if (Date.now() < skipUntil) throw new Error('Overpass servers unavailable (skipping for now)');
+  let lastError: unknown = new Error('No Overpass server configured');
+  for (let k = 0; k < servers.length; k++) {
+    const i = (preferred + k) % servers.length;
+    try {
+      const res = await fetch(servers[i], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `data=${encodeURIComponent(query)}`,
+        // A stalled server must not hold up planning: move on to the next one.
+        signal: AbortSignal.timeout(k === servers.length - 1 ? 15000 : 8000),
+      });
+      if (res.ok) {
+        const elements = (await res.json()).elements || [];
+        preferred = i;
+        return elements;
+      }
+      lastError = new Error(`Overpass ${res.status} (${new URL(servers[i]).host})`);
+    } catch (err) {
+      lastError = err; // refused, unreachable or too slow: next server
+    }
   }
-  throw new Error('Overpass is busy; try again in a minute');
+  skipUntil = Date.now() + SKIP_MS;
+  throw lastError;
 }
 
 export function overpass(query: string): Promise<OsmElement[]> {
@@ -90,7 +108,8 @@ export function toItem(e: OsmElement, category: CategoryId): InterestItem | null
     description: [TYPE_LABELS[kind] || kind.replace(/_/g, ' '), where].filter(Boolean).join(' · '),
     source: 'places',
     placeId: `osm:${e.type}/${e.id}`,
-    url: tags.website || tags['contact:website'] || `https://www.openstreetmap.org/${e.type}/${e.id}`,
+    // Its own website when OpenStreetMap has one; otherwise the popup links to Google Maps (reviews, photos).
+    url: tags.website || tags['contact:website'] || undefined,
     lat: at.lat,
     lng: at.lng,
     category,
@@ -131,7 +150,13 @@ async function fetchSuggestions(center: LatLng, travelMode: string, lodging: Lod
     nwr["tourism"~"^(attraction|viewpoint|museum)$"]["name"]${around(r * 2)};
     nwr["historic"~"^(castle|monument|fort|ruins)$"]["name"]${around(r * 2)};
   );out center tags 400;`;
-  const elements = await overpass(query);
+  let elements: OsmElement[];
+  try {
+    elements = await overpass(query);
+  } catch (err) {
+    console.warn('No Overpass server answered; places from Photon instead.', err);
+    return photonSuggestions(center, travelMode, lodging, count);
+  }
   const byCategory: Record<CategoryId, { e: OsmElement; score: number; km: number }[]> = { stay: [], food: [], shop: [], sights: [] };
   for (const e of elements) {
     const category = e.tags && classify(e.tags);
@@ -157,7 +182,8 @@ export async function osmOvernightTowns(points: LatLng[], lodging: LodgingPrefer
     const clauses = points.map(p => `nwr["tourism"~"${LODGING[lodging]}"](around:15000,${p.lat.toFixed(5)},${p.lng.toFixed(5)});`).join('\n');
     elements = await overpass(`[out:json][timeout:60];(${clauses});out center tags;`);
   } catch (err) {
-    console.warn('Overnight search fell back to reverse geocoding', err);
+    console.warn('No Overpass server answered; overnight places from Photon instead.', err);
+    elements = await photonOvernight(points, lodging);
   }
   const located = elements.map(e => ({ e, at: position(e) })).filter((x): x is { e: OsmElement; at: LatLng } => x.at !== null);
   return Promise.all(points.map(async point => {
@@ -169,4 +195,71 @@ export async function osmOvernightTowns(points: LatLng[], lodging: LodgingPrefer
     const name = await townAt(nearest.at);
     return name ? { name, position: nearest.at } : placeAt(point);
   }));
+}
+
+// ---- Fallback: the same categories from Photon (names, kinds, positions; no website or stars) ----
+
+const PHOTON_TAGS: Record<CategoryId, string[]> = {
+  stay: [],  // from LODGING, below
+  food: ['amenity:restaurant', 'amenity:cafe'],
+  shop: [],  // by travel mode, below
+  sights: ['tourism:attraction', 'tourism:viewpoint', 'tourism:museum', 'historic:castle', 'historic:monument', 'historic:fort', 'historic:ruins'],
+};
+const PHOTON_LODGING: Record<LodgingPreference, string[]> = {
+  any: ['hotel', 'hostel', 'guest_house', 'motel', 'camp_site', 'alpine_hut', 'chalet', 'apartment'].map(v => `tourism:${v}`),
+  camping: ['tourism:camp_site', 'tourism:caravan_site'],
+  hostel: ['tourism:hostel'],
+  hotel: ['tourism:hotel', 'tourism:guest_house', 'tourism:motel'],
+};
+const PHOTON_SHOP: Record<string, string[]> = {
+  BICYCLING: ['shop:bicycle'], DRIVING: ['shop:motorcycle', 'shop:motorcycle_repair'], WALKING: ['shop:outdoor', 'shop:sports'],
+};
+const OSM_TYPE: Record<string, OsmElement['type']> = { N: 'node', W: 'way', R: 'relation' };
+
+/** A Photon feature as an Overpass-like element, so the same ranking and item code applies. */
+export function photonElement(f: PhotonFeature): OsmElement | null {
+  const p = f.properties;
+  if (!p.osm_key || !p.osm_value || !p.name) return null;
+  return {
+    type: OSM_TYPE[p.osm_type || 'N'] || 'node',
+    id: Number(p.osm_id) || 0,
+    lat: f.geometry.coordinates[1],
+    lon: f.geometry.coordinates[0],
+    tags: {
+      name: p.name, [p.osm_key]: p.osm_value,
+      ...(p.street ? { 'addr:street': p.street } : {}),
+      ...(p.city ? { 'addr:city': p.city } : {}),
+    },
+  };
+}
+
+async function photonNear(center: LatLng, radiusKm: number, tags: string[], limit: number): Promise<OsmElement[]> {
+  const q = tags.map(t => `osm_tag=${encodeURIComponent(t)}`).join('&');
+  const features = await photon(`/reverse?lat=${center.lat}&lon=${center.lng}&radius=${Math.min(radiusKm, 30)}&limit=${limit}&${q}`);
+  return features.map(photonElement).filter((e): e is OsmElement => e !== null);
+}
+
+async function photonSuggestions(center: LatLng, travelMode: string, lodging: LodgingPreference, count: number): Promise<InterestCategory[]> {
+  const km = travelMode === 'DRIVING' ? 8 : 4;
+  const plan: [CategoryId, string[], number][] = [
+    ['stay', PHOTON_LODGING[lodging], km], ['food', PHOTON_TAGS.food, km],
+    ['shop', PHOTON_SHOP[travelMode] || PHOTON_SHOP.BICYCLING, km * 4], ['sights', PHOTON_TAGS.sights, km * 2],
+  ];
+  const found = await Promise.allSettled(plan.map(([, tags, r]) => photonNear(center, r, tags, Math.max(count * 4, 12))));
+  if (found.every(r => r.status === 'rejected')) throw (found[0] as PromiseRejectedResult).reason;
+  return plan.map(([category], i) => ({
+    category: NAMES[category],
+    items: (found[i].status === 'fulfilled' ? found[i].value : [])
+      .map(e => ({ e, km: haversineKm(center, position(e)!) }))
+      .sort((a, b) => a.km - b.km)
+      .map(({ e }) => toItem(e, category))
+      .filter((x): x is InterestItem => x !== null)
+      .slice(0, count),
+  }));
+}
+
+/** The nearest place to stay within 15 km of each point, from Photon. */
+async function photonOvernight(points: LatLng[], lodging: LodgingPreference): Promise<OsmElement[]> {
+  const found = await Promise.allSettled(points.map(p => photonNear(p, 15, PHOTON_LODGING[lodging], 3)));
+  return found.flatMap(r => (r.status === 'fulfilled' ? r.value : []));
 }

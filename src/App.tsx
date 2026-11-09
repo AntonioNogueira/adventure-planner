@@ -1,9 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
-import GoogleMapView from './components/Map';
-import { isOsm } from './lib/provider';
-// The open version's map (MapLibre) is loaded only when used.
-const OsmMapView = lazy(() => import('./components/MapOsm'));
-const MapView: React.ComponentType<React.ComponentProps<typeof GoogleMapView>> = isOsm ? (OsmMapView as any) : GoogleMapView;
+// The map (MapLibre, OpenStreetMap) is loaded after the first paint.
+const MapView = lazy(() => import('./components/Map'));
 import Sidebar from './components/Sidebar';
 import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
@@ -16,7 +13,7 @@ import { downsample } from './lib/geo';
 import { placeSuggestions, LodgingPreference } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt } from './lib/geocode';
-import { bestInsertIndex, haversineKm } from './lib/geo';
+import { bestInsertIndex, haversineKm, LatLng } from './lib/geo';
 import { mergeSuggestions, keepReservations } from './lib/suggestions';
 import { storeAttachment, readAsBase64, fileMimeType, attachmentFile } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
@@ -172,9 +169,7 @@ const App: React.FC = () => {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
-  const [travelMode, setTravelMode] = useState<google.maps.TravelMode>(
-    'DRIVING' as google.maps.TravelMode
-  );
+  const [travelMode, setTravelMode] = useState<string>('DRIVING');
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -234,7 +229,7 @@ const App: React.FC = () => {
     }
   }, [origin, destination]);
 
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<unknown>(null);
   // The last calculated route (paths per day), used for drawing, elevation and GPX export.
   const tripRef = useRef<RoutedTrip | null>(null);
   // What the AI understood for the current plan, to re-plan when route options change.
@@ -301,14 +296,14 @@ const App: React.FC = () => {
     mapWaiters.current.push(() => { clearTimeout(timer); resolve(true); });
   });
 
-  const handleMapLoad = useCallback((map: google.maps.Map) => {
+  const handleMapLoad = useCallback((map: unknown) => {
     mapRef.current = map;
     mapReadyRef.current = true;
     mapWaiters.current.splice(0).forEach(done => done());
     setMapReady(true);
   }, []);
 
-  // The AI has understood the request; Google Maps does the rest: overnight stops along the real
+  // The AI has understood the request; the map services do the rest: overnight stops along the real
   // route, the route itself, then Places suggestions for every stop.
   const handlePlanTrip = async (intent: TripIntent, baseOptions: RouteOptions = routeOptions): Promise<PlanSummary | null> => {
     if (!(await whenMapReady())) return null;
@@ -329,9 +324,9 @@ const App: React.FC = () => {
     setOrigin(intent.origin);
     setDestination(intent.destination);
     setWaypoints(mappedWaypoints);
-    setTravelMode(intent.travelMode as google.maps.TravelMode);
+    setTravelMode(intent.travelMode);
     setLodging(intent.lodging);
-    setTravelMode(intent.travelMode as google.maps.TravelMode);
+    setTravelMode(intent.travelMode);
     setAiSummary(intent.summary || null);
     const newName = expeditionName && !isAutoName(expeditionName) ? expeditionName : autoName(intent.origin, intent.destination);
     setExpeditionName(newName);
@@ -544,7 +539,7 @@ const App: React.FC = () => {
 
   const stopLabel = (ref: StopRef) => ref.kind === 'start' ? tr('Start') : ref.kind === 'end' ? tr('Finish') : tr('Stop {n}', { n: ref.index! + 1 });
 
-  const allStops = (): { ref: StopRef; location: string; position?: google.maps.LatLngLiteral }[] => [
+  const allStops = (): { ref: StopRef; location: string; position?: LatLng }[] => [
     { ref: { kind: 'start' }, location: origin },
     ...waypoints.map((wp, index) => ({ ref: { kind: 'stop' as const, index }, location: wp.location, position: wp.position })),
     { ref: { kind: 'end' }, location: destination },
@@ -657,7 +652,7 @@ const App: React.FC = () => {
 
   // A pin was dragged: name the place, recalculate the route and refresh suggestions.
   // Reservations stay attached to the stop; AI suggestions for the old place are replaced.
-  const handleMoveStop = async (ref: StopRef, position: google.maps.LatLngLiteral) => {
+  const handleMoveStop = async (ref: StopRef, position: LatLng) => {
     const town = await townAt(position);
     if (!town) {
       setToast({ message: tr('Could not find a town there. Try dropping the pin closer to one.'), type: 'error' });
@@ -683,12 +678,12 @@ const App: React.FC = () => {
   };
 
   // A click on the map: add an overnight stop where it adds the least distance, then re-route.
-  const handleAddStop = async (position: google.maps.LatLngLiteral) => {
+  const handleAddStop = async (position: LatLng) => {
     const name = await townAt(position);
     if (!name) return;
     const points = await Promise.all(allStops().map(async s => s.position || await geocodeAddress(s.location)));
     if (points.some(p => !p)) return;
-    const insertAt = bestInsertIndex(points as google.maps.LatLngLiteral[], position);
+    const insertAt = bestInsertIndex(points as LatLng[], position);
     const newWaypoints = [...waypoints];
     newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests: [] });
     setWaypoints(newWaypoints);
@@ -706,7 +701,7 @@ const App: React.FC = () => {
   };
 
   // Fetch Google Places suggestions for several stops (in the background).
-  const loadSuggestions = async (refs: StopRef[], locations: (string | google.maps.LatLngLiteral)[], mode: string, lodgingPref: LodgingPreference) => {
+  const loadSuggestions = async (refs: StopRef[], locations: (string | LatLng)[], mode: string, lodgingPref: LodgingPreference) => {
     if (!refs.length) return;
     // Each stop's suggestions count as one place search (the costly part of a trip).
     if (!(await takePlaceSearches(refs.length))) {
@@ -723,9 +718,7 @@ const App: React.FC = () => {
           if (!failed) {
             failed = true;
             setToast({
-              message: isOsm
-                ? tr('Could not load place suggestions from OpenStreetMap (Overpass may be busy). Try "Find places nearby" again in a minute.')
-                : tr('Could not load place suggestions. Check that "Places API (New)" is enabled for your Maps key.'),
+              message: tr('Could not load place suggestions from OpenStreetMap (the place servers may be busy). Try "Find places nearby" again in a minute.'),
               type: 'error',
             });
           }

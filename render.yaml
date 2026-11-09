@@ -11,8 +11,6 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
-      - key: VITE_GOOGLE_MAPS_API_KEY
-        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: AI_REQUESTS_PER_HOUR
@@ -33,26 +31,15 @@ services:
         sync: false
       - key: AFFILIATE_RENTALS_URL
         sync: false
-
-  # Adventure Planner Open: the same code with OpenStreetMap services (no Google Maps key).
-  - type: web
-    name: adventure-planner-open
-    runtime: node
-    plan: free
-    buildCommand: npm ci && npm run build
-    startCommand: npx vite preview
-    healthCheckPath: /
-    envVars:
-      - key: NODE_VERSION
-        value: "22"
-      - key: MAP_PROVIDER
-        value: osm
-      - key: GEMINI_API_KEY
+      # OpenStreetMap servers (optional): your own or paid ones; empty = the free public servers.
+      # OVERPASS_URL takes several, comma-separated, tried in order (see deploy/places-server).
+      - key: OVERPASS_URL
         sync: false
-      - key: AI_REQUESTS_PER_HOUR
-        value: "60"
-      # Plans: grant test plans by email; checkout links for the Upgrade buttons (optional).
-      - key: PLAN_OVERRIDES
+      - key: PHOTON_URL
         sync: false
-      - key: CHECKOUT_URL_EXPLORER
+      - key: OSRM_URL
+        sync: false
+      - key: VALHALLA_URL
+        sync: false
+      - key: BROUTER_URL
         sync: false

@@ -90,7 +90,7 @@ export interface RouteLeg {
   profile?: number[];
 }
 
-/** What the AI understood from the chat; the app turns it into a route with Google Maps. */
+/** What the AI understood from the chat; the app turns it into a real route. */
 export interface TripIntent {
   origin: string;
   destination: string;

@@ -1,6 +1,6 @@
-// Elevation along routes (Google Elevation API, same Maps key) and climbing statistics.
+// Elevation along routes (Valhalla's height service, VALHALLA_URL) and climbing statistics.
 import { LatLng, downsample, evenlySpaced } from './geo';
-import { isOsm } from './provider';
+import { SERVICES } from './services';
 
 /** Flat-equivalent km added per 1000 m of climbing, per travel mode (hiking follows Naismith's rule). */
 export const EFFORT_KM_PER_1000M: Record<string, number> = { BICYCLING: 10, WALKING: 8, DRIVING: 0, TRANSIT: 0 };
@@ -65,32 +65,24 @@ export function effortKm(totalKm: number, elevations: number[] | null, kmPer1000
 
 const cache = new Map<string, number[] | null>();
 
-/** `samples` evenly spaced elevations (m) along a path, or null if the Elevation API fails. */
+/** `samples` evenly spaced elevations (m) along a path, or null if the elevation service fails. */
 export async function elevationsAlong(path: LatLng[], samples: number): Promise<number[] | null> {
   if (path.length < 2) return null;
   const short = downsample(path, 200);
   const key = `${samples}|${short.length}|${short[0].lat},${short[0].lng}|${short[short.length - 1].lat},${short[short.length - 1].lng}`;
   if (cache.has(key)) return cache.get(key)!;
   try {
-    if (isOsm) {
-      // Valhalla's elevation service (free): heights at evenly spaced points.
-      const res = await fetch('https://valhalla1.openstreetmap.de/height', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shape: evenlySpaced(path, samples).map(p => ({ lat: p.lat, lon: p.lng })), range: false }),
-      });
-      const data = await res.json();
-      if (!Array.isArray(data.height)) throw new Error(data.error || 'no heights');
-      const heights = data.height.map((h: number | null) => Math.max(0, h ?? 0));
-      cache.set(key, heights);
-      return heights;
-    }
-    const { ElevationService } = await google.maps.importLibrary('elevation') as google.maps.ElevationLibrary;
-    const { results } = await new ElevationService().getElevationAlongPath({ path: short, samples });
-    // Over water the API returns the sea floor (thousands of metres below zero): treat it as sea level.
-    const elevations = results.map(r => Math.max(0, r.elevation));
-    cache.set(key, elevations);
-    return elevations;
+    // Valhalla's elevation service (free): heights at evenly spaced points.
+    const res = await fetch(`${SERVICES.valhalla}/height`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shape: evenlySpaced(path, samples).map(p => ({ lat: p.lat, lon: p.lng })), range: false }),
+    });
+    const data = await res.json();
+    if (!Array.isArray(data.height)) throw new Error(data.error || 'no heights');
+    const heights = data.height.map((h: number | null) => Math.max(0, h ?? 0));
+    cache.set(key, heights);
+    return heights;
   } catch (err) {
     console.warn('Elevation lookup failed; planning by distance only.', err);
     cache.set(key, null);

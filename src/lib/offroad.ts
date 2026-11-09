@@ -1,4 +1,4 @@
-// Off-road routing for beginners, used by both versions (Google and OpenStreetMap):
+// Off-road routing for beginners:
 //   bike  → BRouter "gravel" preferring unpaved ways and avoiding steep climbs: gravel and dirt tracks,
 //           not technical singletrack (measured: Évora → Mértola 64% unpaved vs 25% plain gravel, 0% normal)
 //   moto  → BRouter with our "easy adventure" profile (below): good dirt tracks and quiet roads,
@@ -6,16 +6,16 @@
 //   hike  → BRouter "hiking-mountain": trails up to difficulty T2 (sac_scale mountain_hiking), preferring T1 and
 //           marked hiking routes (measured Manteigas → Penhas da Saúde → Covilhã: 76% on trails, 5% main roads,
 //           vs 64% / 10% for the normal walking route); Valhalla pedestrian (T2) if BRouter is unavailable
-// Google's directions have no off-road option at all, so these OpenStreetMap engines are used even on the
-// Google map. Each day is routed separately (short requests). brouter.de and valhalla1.openstreetmap.de are
-// free public services (fair use); a busy product should run its own BRouter/Valhalla.
+// Each day is routed separately (short requests). The defaults, brouter.de and valhalla1.openstreetmap.de, are
+// free public services (fair use); BROUTER_URL / VALHALLA_URL point the app at its own or paid servers.
 import { LatLng, haversineKm } from './geo';
 import { geocodeAddress } from './geocode';
 import { decodePolyline6 } from './osrm';
 import type { RoutedLeg, RoutedStep, RoutedTrip, TripRequest } from './routing';
+import { SERVICES } from './services';
 
-const BROUTER = 'https://brouter.de/brouter';
-const VALHALLA = 'https://valhalla1.openstreetmap.de/route';
+const BROUTER = SERVICES.brouter;
+const VALHALLA = `${SERVICES.valhalla}/route`;
 
 export const OFFROAD_MODES = new Set(['BICYCLING', 'WALKING', 'DRIVING']);
 

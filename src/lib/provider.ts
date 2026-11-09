@@ -1,28 +1,23 @@
-// Which map stack the app uses, chosen by the server's MAP_PROVIDER setting:
-//   'google' – Google Maps, Directions/Routes, Places, Geocoding, Elevation (needs a Maps key)
-//   'osm'    – "Adventure Planner Open": MapLibre + OpenFreeMap, OSRM, Valhalla, Photon, Overpass (no keys)
-export type MapProvider = 'google' | 'osm';
+// App settings injected by the server (vite.config.ts), and links out to other map sites.
+// The app runs on OpenStreetMap services only; Google is used for login, the AI planner and the
+// "open in Google Maps" links (plain links, so Google's map-content rules don't apply).
 
 declare global {
-  interface Window { __APP_CONFIG__?: { mapProvider?: string; authProviders?: string; checkout?: Record<string, string>; affiliates?: { booking?: string; getyourguide?: string; hostels?: string; campsites?: string; rentals?: string } } }
+  interface Window { __APP_CONFIG__?: {
+    authProviders?: string;
+    checkout?: Record<string, string>;
+    affiliates?: { booking?: string; getyourguide?: string; hostels?: string; campsites?: string; rentals?: string };
+    services?: { overpass?: string | string[]; photon?: string; osrm?: string; valhalla?: string; brouter?: string };
+  } }
 }
 
-export const MAP_PROVIDER: MapProvider =
-  typeof window !== 'undefined' && window.__APP_CONFIG__?.mapProvider === 'osm' ? 'osm' : 'google';
-
-export const isOsm = MAP_PROVIDER === 'osm';
-
-/** A link to look a place up on the provider's own map site. */
-export function mapSearchUrl(query: string, at?: { lat: number; lng: number }) {
-  if (isOsm) {
-    return at
-      ? `https://www.openstreetmap.org/?mlat=${at.lat.toFixed(5)}&mlon=${at.lng.toFixed(5)}#map=17/${at.lat.toFixed(5)}/${at.lng.toFixed(5)}`
-      : `https://www.openstreetmap.org/search?query=${encodeURIComponent(query)}`;
-  }
+/** A link to a place on Google Maps (reviews, photos, opening hours). Search links take text only, so callers
+ *  pass the name with its town; the position is accepted for callers' convenience but not needed. */
+export function mapSearchUrl(query: string, _at?: { lat: number; lng: number }) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
-export const mapSiteName = isOsm ? 'OpenStreetMap' : 'Google Maps';
+export const mapSiteName = 'Google Maps';
 
 export type AuthProvider = 'email' | 'google' | 'facebook' | 'apple';
 

@@ -1,8 +1,9 @@
 // Speed limits, road surface and road types along a route, from OpenStreetMap data,
 // via the free Valhalla service run by FOSSGIS (fair use; self-host Valhalla for heavy traffic).
 import { LatLng, haversineKm, downsample } from './geo';
+import { SERVICES } from './services';
 
-const VALHALLA = 'https://valhalla1.openstreetmap.de/trace_attributes';
+const VALHALLA = `${SERVICES.valhalla}/trace_attributes`;
 // The public service rejects traces longer than ~200 km, so long days are sent in parts.
 const MAX_PART_KM = 150;
 

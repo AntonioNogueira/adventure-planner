@@ -1,0 +1,11 @@
+# HTTPS (certificates are automatic) in front of Overpass, open to the app's pages only.
+{$DOMAIN} {
+	header Access-Control-Allow-Origin {$APP_ORIGIN}
+	header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	@preflight method OPTIONS
+	respond @preflight 204
+	reverse_proxy overpass:80 {
+		# Overpass sends its own CORS header; keep only ours (two copies make browsers refuse the answer).
+		header_down -Access-Control-Allow-Origin
+	}
+}

@@ -4,9 +4,10 @@
 import { LatLng, haversineKm } from './geo';
 import { geocodeAddress } from './geocode';
 import type { RoutedLeg, RoutedStep, RoutedTrip, TripRequest } from './routing';
+import { SERVICES } from './services';
 
-const OSRM = 'https://routing.openstreetmap.de';
-const VALHALLA = 'https://valhalla1.openstreetmap.de/route';
+const OSRM = SERVICES.osrm;
+const VALHALLA = `${SERVICES.valhalla}/route`;
 const PROFILE: Record<string, string> = { DRIVING: 'routed-car', BICYCLING: 'routed-bike', WALKING: 'routed-foot' };
 // Long bike/foot routes are guided through points this far apart on the car route.
 const GUIDE_SPACING_KM = 80;

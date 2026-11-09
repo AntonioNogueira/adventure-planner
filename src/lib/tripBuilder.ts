@@ -1,12 +1,12 @@
 // Turns what the AI understood (start, finish, mode, days or daily distance, places to pass)
-// into overnight stops, using the real route from Google Maps instead of AI guesses.
+// into overnight stops, using the real route instead of AI guesses.
 // Days are split by effort: distance plus climbing, so hilly days come out shorter.
 import { TripIntent } from '../types';
 import { t } from './settings';
 import { overnightTownsNear } from './places';
 import { geocodeAddress } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
-import { haversineKm, pathWithDistances, pointAt } from './geo';
+import { haversineKm, pathWithDistances, pointAt, LatLng } from './geo';
 import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange } from './elevation';
 
 /** Typical comfortable day, used when the user gives neither days nor a daily distance. */
@@ -38,7 +38,7 @@ function ferryRanges(legs: RoutedLeg[]): KmRange[] {
 
 export interface OvernightPlan {
   /** Overnight stops in order (not including start and finish); split stops carry an exact position. */
-  waypoints: { name: string; position?: google.maps.LatLngLiteral }[];
+  waypoints: { name: string; position?: LatLng }[];
   /** The daily (flat-equivalent) distance the split aimed for, in km. */
   targetKm: number | null;
   /** Places to pass through (not sleep at), each before the overnight stop with this index (= waypoints.length: before the finish). */

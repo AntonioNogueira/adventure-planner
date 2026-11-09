@@ -1,30 +1,33 @@
+// The open version's map: MapLibre GL with OpenFreeMap vector tiles (free, no key), plus
+// OpenTopoMap and EOX Sentinel-2 imagery. Same features as the Google map in Map.tsx.
 import React, { useEffect, useRef, useState } from 'react';
-import { Waypoint, RouteInfo, StopRef } from '../types';
-import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
+import maplibregl, { StyleSpecification } from 'maplibre-gl';
+import type { FeatureCollection, LineString } from 'geojson';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
+import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
+import { Waypoint, RouteInfo, StopRef } from '../types';
 import { cn } from '../lib/utils';
+import SegmentDetails from './SegmentDetails';
 import { geocodeAddress } from '../lib/geocode';
 import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
-import SegmentDetails from './SegmentDetails';
+import { LatLng } from '../lib/geo';
 import { useSettings, t as tr } from '../lib/settings';
 import { rentalUrl, type Nights } from '../lib/affiliate';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS } from './mapShared';
 import { progressOn, splitAt } from '../lib/ride';
 
 interface MapProps {
-  onLoad: (map: google.maps.Map) => void;
-  /** The route, one clickable segment per day; clicking opens its terrain/road details. */
-  segments?: { path: google.maps.LatLngLiteral[]; label: string; leg: RoutedLeg }[];
+  onLoad: (map: unknown) => void;
+  segments?: { path: LatLng[]; label: string; leg: RoutedLeg }[];
   travelMode?: string;
   waypoints?: Waypoint[];
   origin?: string;
   destination?: string;
   routeInfo?: RouteInfo | null;
-  /** Editing callbacks, shared with the sidebar. */
-  onMoveStop?: (ref: StopRef, position: google.maps.LatLngLiteral) => void;
-  /** Click on the map → "Add overnight stop here". */
-  onAddStop?: (position: google.maps.LatLngLiteral) => void;
+  onMoveStop?: (ref: StopRef, position: LatLng) => void;
+  onAddStop?: (position: LatLng) => void;
   onRemoveStop?: (index: number) => void;
   onFindPlaces?: (ref: StopRef) => void;
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
@@ -36,9 +39,43 @@ interface MapProps {
   ride?: { dayIndex: number; position?: { lat: number; lng: number }; heading?: number; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
 }
 
-// Topo: a survey-map look (contours, hill shading, forests) from OpenTopoMap tiles drawn over Google's
-// terrain map; Satellite and Hybrid are Google's own imagery.
+// Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
 type MapType = 'topo' | 'satellite' | 'hybrid';
+
+const OSM = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+const raster = (tiles: string[], attribution: string, maxzoom: number): StyleSpecification => ({
+  version: 8,
+  sources: { base: { type: 'raster', tiles, tileSize: 256, attribution, maxzoom } },
+  layers: [{ id: 'base', type: 'raster', source: 'base' }],
+});
+
+const SATELLITE_TILES = ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg'];
+const SATELLITE_CREDIT = '<a href="https://s2maps.eu">Sentinel-2 cloudless</a> by EOX (CC BY-NC-SA 4.0), contains Copernicus data';
+
+const STYLES: Record<Exclude<MapType, 'hybrid'>, string | StyleSpecification> = {
+  topo: raster(['https://tile.opentopomap.org/{z}/{x}/{y}.png'], `${OSM}, SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`, 17),
+  satellite: raster(SATELLITE_TILES, SATELLITE_CREDIT, 15),
+};
+
+/** Satellite with OpenFreeMap's roads, borders and place names on top (vector layers of its "liberty" style). */
+let hybridStyle: Promise<StyleSpecification> | null = null;
+function getHybridStyle(): Promise<StyleSpecification> {
+  hybridStyle ??= fetch('https://tiles.openfreemap.org/styles/liberty')
+    .then(r => r.json())
+    .then((style: StyleSpecification) => ({
+      ...style,
+      sources: { ...style.sources, satellite: { type: 'raster', tiles: SATELLITE_TILES, tileSize: 256, attribution: SATELLITE_CREDIT, maxzoom: 15 } },
+      layers: [
+        { id: 'satellite', type: 'raster', source: 'satellite' },
+        ...style.layers.filter(l => l.type === 'symbol'
+          || ('source-layer' in l && ['transportation', 'boundary'].includes(String(l['source-layer'])) && l.type === 'line')),
+      ],
+    }) as StyleSpecification)
+    .catch(err => { hybridStyle = null; throw err; });
+  return hybridStyle;
+}
+
+const styleFor = async (type: MapType) => (type === 'hybrid' ? getHybridStyle() : STYLES[type]);
 
 const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'topo', label: 'Topo', icon: Mountain },
@@ -46,417 +83,369 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'hybrid', label: 'Hybrid', icon: Layers },
 ];
 
-const topoTiles = () => new google.maps.ImageMapType({
-  getTileUrl: (c, z) => {
-    const n = 2 ** z;
-    return `https://tile.opentopomap.org/${z}/${((c.x % n) + n) % n}/${c.y}.png`;
-  },
-  tileSize: new google.maps.Size(256, 256),
-  maxZoom: 17,
-  name: 'Topo',
-  alt: 'OpenTopoMap',
-});
-
-
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
+const ROUTE_COLOR = '#a0462c';
+const ACTIVE_COLOR = '#6e2a18';
 
+interface RideLines { done: LatLng[]; ahead: LatLng[]; on: boolean }
 
-const Map: React.FC<MapProps> = ({
-  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays, ride,
+/** Ride mode lines: the other days faded, the day's done part grey, the part ahead blue with a white edge. */
+function drawRideLines(map: maplibregl.Map, lines: RideLines) {
+  if (map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-opacity', lines.on ? 0.35 : 1);
+  if (map.getLayer('route-casing')) map.setPaintProperty('route-casing', 'line-opacity', lines.on ? 0.35 : 1);
+  const feature = (part: string, path: LatLng[]) => ({ type: 'Feature' as const, properties: { part }, geometry: { type: 'LineString' as const, coordinates: path.map(p => [p.lng, p.lat]) } });
+  const data: FeatureCollection<LineString> = { type: 'FeatureCollection', features: lines.on ? [
+    ...(lines.done.length > 1 ? [feature('done', lines.done)] : []),
+    ...(lines.ahead.length > 1 ? [feature('ahead', lines.ahead)] : []),
+  ] : [] };
+  const source = map.getSource('ride-lines') as maplibregl.GeoJSONSource | undefined;
+  if (source) { source.setData(data); return; }
+  map.addSource('ride-lines', { type: 'geojson', data });
+  const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
+  const before = map.getLayer('ride-detour') ? 'ride-detour' : undefined;
+  map.addLayer({ id: 'ride-done', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'done'], layout, paint: { 'line-color': RIDE_COLORS.done, 'line-width': 7 } }, before);
+  map.addLayer({ id: 'ride-ahead-casing', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.casing, 'line-width': 12 } }, before);
+  map.addLayer({ id: 'ride-ahead', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.ahead, 'line-width': 7 } }, before);
+}
+
+/** A teardrop pin with a label, as a DOM element for MapLibre markers. */
+function pinElement(color: string, text: string, size: number, title: string): HTMLElement {
+  const el = document.createElement('div');
+  el.title = title;
+  el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;`;
+  el.innerHTML = `
+    <div style="width:${size}px;height:${size}px;background:${color};border:2px solid #fff;border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">
+      <span style="transform:rotate(45deg);color:#fff;font:600 ${Math.round(size * 0.45)}px/1 Inter,sans-serif;">${text}</span>
+    </div>`;
+  return el;
+}
+
+function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: number) {
+  const data: FeatureCollection<LineString, { index: number }> = {
+    type: 'FeatureCollection',
+    features: segments.map((s, index) => ({
+      type: 'Feature',
+      properties: { index },
+      geometry: { type: 'LineString', coordinates: s.path.map(p => [p.lng, p.lat]) },
+    })),
+  };
+  const source = map.getSource('route') as maplibregl.GeoJSONSource | undefined;
+  if (source) { source.setData(data); return; }
+  const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
+  map.addSource('route', { type: 'geojson', data });
+  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#fffcf4', 'line-width': 9 } });
+  map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout, paint: { 'line-color': ROUTE_COLOR, 'line-width': 5 } });
+  map.addLayer({ id: 'route-active', type: 'line', source: 'route', filter: ['==', ['get', 'index'], active], layout, paint: { 'line-color': ACTIVE_COLOR, 'line-width': 8 } });
+}
+
+const MapView: React.FC<MapProps> = ({
+  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
+  onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays, ride,
 }) => {
-  const segmentLinesRef = useRef<google.maps.Polyline[]>([]);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const googleMapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
-  const infoRootRef = useRef<Root | null>(null);
-  const [mapType, setMapType] = useState<MapType>('topo');
-  // Callbacks change every render; keep the latest in a ref so markers don't need rebuilding for them.
-  const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile });
-  callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile };
-  // The stop whose popup is open, so it can be re-rendered after edits instead of closing.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const popupRootRef = useRef<Root | null>(null);
   const openStopRef = useRef<string | null>(null);
-  // Only re-zoom when the set of places changes, and not right after the user dragged a pin.
   const lastBoundsKeyRef = useRef('');
   const skipFitRef = useRef(false);
-  // Suggestion pins per category can be hidden from the legend; bookings are always shown.
+  const activeSegmentRef = useRef(-1);
+  const segmentsRef = useRef(segments);
+  segmentsRef.current = segments;
+  const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode });
+  callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode };
+  const [mapType, setMapType] = useState<MapType>('topo');
+  const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
   const { t, settings } = useSettings();
-  const [mapsError, setMapsError] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
-    let attempts = 0;
-    let timer: ReturnType<typeof setTimeout>;
-
-    const initMap = async () => {
-      if (googleMapRef.current) return;
-      if (!window.google?.maps?.importLibrary) {
-        // Give the Maps script ~10s to load before showing a helpful error.
-        if (++attempts > 100) {
-          setMapsError('Google Maps failed to load. Check VITE_GOOGLE_MAPS_API_KEY in .env.local and that the Maps JavaScript API is enabled.');
-          return;
-        }
-        timer = setTimeout(initMap, 100);
-        return;
-      }
-
-      const { Map: GoogleMap, InfoWindow } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
-      const map = new GoogleMap(mapRef.current!, {
-        center: { lat: 48.8566, lng: 2.3522 }, // Paris
-        zoom: 5,
-        mapTypeId: 'terrain',
-        // A map ID is required for Advanced Markers; styling is managed in Cloud Console for map IDs.
-        mapId: 'DEMO_MAP_ID',
-        disableDefaultUI: true,
-        zoomControl: true,
-        // Phones are full screen already, and the button would sit under the view tabs.
-        fullscreenControl: window.innerWidth >= 768,
-        zoomControlOptions: {
-          // Right-centre stays visible above the phone's bottom sheet.
-          position: google.maps.ControlPosition.RIGHT_CENTER
-        }
-      });
-      googleMapRef.current = map;
-      // Stop names show from regional zoom in; zoomed out, only the numbers.
-      const toggleLabels = () => mapRef.current?.classList.toggle('stop-labels-hidden', (map.getZoom() || 0) < 7);
-      map.addListener('zoom_changed', toggleLabels);
-      toggleLabels();
-      infoWindowRef.current = new InfoWindow({ maxWidth: 400 });
-      // Keep popups clear of the view tabs at the top of the map (Google's auto-pan only avoids the edge).
-      const clearTabs = () => {
-        const box = mapRef.current?.querySelector('.gm-style-iw-c')?.getBoundingClientRect();
-        const top = mapRef.current?.getBoundingClientRect().top ?? 0;
-        const need = window.innerWidth < 768 ? 64 : 84;
-        if (box && box.top - top < need) map.panBy(0, box.top - top - need);
-      };
-      let grow: ResizeObserver | null = null;
-      infoWindowRef.current.addListener('domready', () => {
-        setTimeout(clearTabs, 350);
-        // Content that grows later (the terrain profile) is checked again.
-        grow?.disconnect();
-        const content = infoWindowRef.current?.getContent();
-        if (content instanceof HTMLElement) { grow = new ResizeObserver(() => clearTabs()); grow.observe(content); }
-      });
-
-      // Clicking empty map offers to add an overnight stop there (once a route exists).
-      map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        if (!e.latLng || !callbacksRef.current.onAddStop) return;
-        const position = e.latLng.toJSON();
-        const content = document.createElement('div');
-        infoRootRef.current?.unmount();
-        infoRootRef.current = createRoot(content);
-        infoRootRef.current.render(
-          <button
-            className="rounded-md bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-700"
-            onClick={() => { infoWindowRef.current?.close(); callbacksRef.current.onAddStop?.(position); }}
-          >
-            + {tr('Add overnight stop here')}
-          </button>
-        );
-        infoWindowRef.current?.setOptions({ pixelOffset: new google.maps.Size(0, 0) });
-        infoWindowRef.current?.setContent(content);
-        infoWindowRef.current?.setPosition(position);
-        infoWindowRef.current?.open({ map });
-        openStopRef.current = null;
-      });
-      infoWindowRef.current.addListener('closeclick', () => {
-        openStopRef.current = null;
-        // Un-highlight the selected day.
-        segmentLinesRef.current.forEach(line => line.setOptions({ strokeColor: '#a0462c', strokeWeight: 6, strokeOpacity: 0.85 }));
-      });
-      onLoad(map);
-      setIsReady(true);
+  // One popup, re-used for stops, places, segments and "add stop here".
+  // `offset` is the height of the pin the popup belongs to: above the pin it is lifted by that much,
+  // below it (near the top of the map) it starts at the pin's tip.
+  const showPopup = (at: LatLng, node: React.ReactNode, pinHeight = 0) => {
+    const h = pinHeight ? pinHeight + 4 : 12;
+    const offset: maplibregl.Offset = {
+      top: [0, pinHeight ? 4 : 12], 'top-left': [0, pinHeight ? 4 : 12], 'top-right': [0, pinHeight ? 4 : 12],
+      bottom: [0, -h], 'bottom-left': [0, -h], 'bottom-right': [0, -h],
+      left: [12, -h / 2], right: [-12, -h / 2], center: [0, 0],
     };
-
-    initMap();
-    return () => clearTimeout(timer);
-  }, [onLoad]);
-
-  useEffect(() => {
-    const map = googleMapRef.current;
+    const map = mapRef.current;
     if (!map) return;
-    map.setMapTypeId(mapType === 'topo' ? 'terrain' : mapType);
-    map.overlayMapTypes.clear();
-    if (mapType === 'topo') map.overlayMapTypes.push(topoTiles());
-  }, [mapType, isReady]);
-
-  // One line per day. Clicking a line highlights it and opens its details.
-  useEffect(() => {
-    const map = googleMapRef.current;
-    if (!isReady || !map) return;
-    segmentLinesRef.current.forEach(line => line.setMap(null));
-    const style = (active: boolean) => ({ strokeColor: active ? '#6e2a18' : '#a0462c', strokeWeight: active ? 9 : 6, strokeOpacity: active ? 1 : 0.85 });
-    segmentLinesRef.current = segments.map((segment, i) => {
-      const line = new google.maps.Polyline({ map, path: segment.path, clickable: true, zIndex: 1, ...style(false) });
-      line.addListener('click', (e: google.maps.PolyMouseEvent) => {
-        segmentLinesRef.current.forEach((other, j) => other.setOptions(style(j === i)));
-        const content = document.createElement('div');
-        infoRootRef.current?.unmount();
-        infoRootRef.current = createRoot(content);
-        infoRootRef.current.render(<SegmentDetails label={segment.label} leg={segment.leg} travelMode={travelMode} />);
-        infoWindowRef.current?.setOptions({ pixelOffset: new google.maps.Size(0, 0) });
-        infoWindowRef.current?.setContent(content);
-        infoWindowRef.current?.setPosition(e.latLng || segment.path[Math.floor(segment.path.length / 2)]);
-        infoWindowRef.current?.open({ map });
-        openStopRef.current = null;
-      });
-      line.addListener('mouseover', () => line.setOptions({ strokeWeight: 9 }));
-      line.addListener('mouseout', () => line.setOptions({ strokeWeight: line.get('strokeColor') === '#065f46' ? 9 : 6 }));
-      return line;
+    const content = document.createElement('div');
+    popupRootRef.current?.unmount();
+    popupRootRef.current = createRoot(content);
+    popupRootRef.current.render(node);
+    popupRef.current?.remove();
+    popupRef.current = new maplibregl.Popup({ maxWidth: '400px', offset, focusAfterOpen: false })
+      .setLngLat([at.lng, at.lat]).setDOMContent(content).addTo(map);
+    // Keep the popup clear of the view tabs at the top of the map, also when its content grows.
+    const popup = popupRef.current;
+    const clearTabs = () => {
+      const el = popup.getElement();
+      if (!el || popupRef.current !== popup) return;
+      const gap = el.getBoundingClientRect().top - map.getContainer().getBoundingClientRect().top;
+      const need = window.innerWidth < 768 ? 64 : 84;
+      if (gap < need) map.panBy([0, gap - need], { duration: 300 });
+    };
+    setTimeout(clearTabs, 80);
+    const grow = new ResizeObserver(() => clearTabs());
+    grow.observe(content);
+    popup.on('close', () => grow.disconnect());
+    popupRef.current.on('close', () => {
+      openStopRef.current = null;
+      setActiveSegment(-1);
     });
-    // Development only: lets browser tests click a day line (they're drawn on a canvas).
-    if (import.meta.env.DEV) (window as any).__segmentLines = segmentLinesRef.current;
-  }, [segments, isReady, travelMode]);
+  };
+
+  const setActiveSegment = (index: number) => {
+    activeSegmentRef.current = index;
+    const map = mapRef.current;
+    if (map?.getLayer('route-active')) map.setFilter('route-active', ['==', ['get', 'index'], index]);
+  };
 
   // Ride mode: highlight the day, show it whole when it changes, then follow the rider if asked.
-  const rideMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const rideMarkerRef = useRef<maplibregl.Marker | null>(null);
   const rideDayRef = useRef<number | null>(null);
-  const rideLinesRef = useRef<google.maps.Polyline[]>([]);
+  const rideLinesRef = useRef<RideLines>({ done: [], ahead: [], on: false });
   useEffect(() => {
-    const map = googleMapRef.current;
-    if (!isReady || !map) return;
+    const map = mapRef.current;
+    if (!map || !isReady) return;
     // In ride mode every day is faded; the day being ridden is drawn on top: ahead in blue, done in grey.
-    segmentLinesRef.current.forEach(line => line.setOptions({ strokeColor: '#a0462c', strokeWeight: 6, strokeOpacity: ride ? 0.35 : 0.85 }));
-    rideLinesRef.current.forEach(l => l.setMap(null));
-    rideLinesRef.current = [];
+    const dayPath = ride ? segments[ride.dayIndex]?.path || [] : [];
+    const progress = ride?.position && dayPath.length > 1 ? progressOn(dayPath, ride.position) : null;
+    const parts = progress && progress.offRouteKm < 5 ? splitAt(dayPath, progress.alongKm) : { done: [], ahead: dayPath };
+    rideLinesRef.current = { ...parts, on: Boolean(ride) };
+    try { drawRideLines(map, rideLinesRef.current); } catch { /* style loading */ }
     if (!ride) {
-      rideMarkerRef.current && (rideMarkerRef.current.map = null);
+      rideMarkerRef.current?.remove();
       rideMarkerRef.current = null;
-      if (rideDayRef.current !== null) map.setHeading(0);
+      if (rideDayRef.current !== null) map.easeTo({ bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 });
       rideDayRef.current = null;
       return;
     }
-    const dayPath = segments[ride.dayIndex]?.path || [];
-    if (dayPath.length > 1) {
-      const progress = ride.position ? progressOn(dayPath, ride.position) : null;
-      const { done, ahead } = progress && progress.offRouteKm < 5 ? splitAt(dayPath, progress.alongKm) : { done: [], ahead: dayPath };
-      const line = (path: google.maps.LatLngLiteral[], color: string, weight: number, zIndex: number) =>
-        new google.maps.Polyline({ map, path, strokeColor: color, strokeWeight: weight, strokeOpacity: 1, zIndex, clickable: false });
-      if (done.length > 1) rideLinesRef.current.push(line(done, RIDE_COLORS.done, 7, 30));
-      if (ahead.length > 1) rideLinesRef.current.push(line(ahead, RIDE_COLORS.casing, 12, 31), line(ahead, RIDE_COLORS.ahead, 7, 32));
-    }
+    setActiveSegment(-1);
     const day = segments[ride.dayIndex];
     if (day && rideDayRef.current !== ride.dayIndex) {
       rideDayRef.current = ride.dayIndex;
-      const bounds = new google.maps.LatLngBounds();
-      day.path.forEach(p => bounds.extend(p));
-      if (!ride.follow || !ride.position) map.setHeading(0);
-      if (!ride.follow || !ride.position) map.fitBounds(bounds, window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 });
+      const bounds = new maplibregl.LngLatBounds();
+      day.path.forEach(p => bounds.extend([p.lng, p.lat]));
+      if (!ride.follow || !ride.position) {
+        map.fitBounds(bounds, { bearing: 0, padding: window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 }, duration: 600 });
+      }
     }
-    // Following: on a vector map (a map ID styled as vector in Google Cloud) the map faces the way you're going,
-    // with you low on the screen; on the raster map it stays north up with you in the centre.
-    if (ride.position && ride.follow && map.getRenderingType() !== google.maps.RenderingType.VECTOR) {
-      map.moveCamera({ center: ride.position, zoom: Math.max(map.getZoom() || 0, 15) });
-    } else if (ride.position && ride.follow) {
-      const zoom = Math.max(map.getZoom() || 0, 15);
-      const heading = ride.heading ?? map.getHeading() ?? 0;
-      // Put the rider ~30% below the centre: aim the camera that far ahead along the heading.
-      const metresPerPx = (156543.03392 * Math.cos((ride.position.lat * Math.PI) / 180)) / 2 ** zoom;
-      const ahead = (map.getDiv().clientHeight * 0.15 * metresPerPx) / 111_320;
-      const r = (heading * Math.PI) / 180;
-      const center = { lat: ride.position.lat + ahead * Math.cos(r), lng: ride.position.lng + (ahead * Math.sin(r)) / Math.cos((ride.position.lat * Math.PI) / 180) };
-      map.moveCamera({ center, zoom, heading });
-    } else if (!ride.follow && (map.getHeading() || 0) !== 0) map.setHeading(0);
     if (ride.position) {
-      (async () => {
-        const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
-        if (!rideMarkerRef.current) rideMarkerRef.current = new AdvancedMarkerElement({ map, content: positionMarker(), zIndex: 50 });
-        rideMarkerRef.current.position = ride.position;
-        setMarkerHeading(rideMarkerRef.current.content as HTMLElement, ride.heading == null ? undefined : ride.heading - (map.getHeading() || 0));
-        rideMarkerRef.current.map = map;
-      })();
+      // The arrow turns with the map (so it points up when the map faces the direction of travel).
+      if (!rideMarkerRef.current) rideMarkerRef.current = new maplibregl.Marker({ element: positionMarker(), rotationAlignment: 'map' }).setLngLat([ride.position.lng, ride.position.lat]).addTo(map);
+      else rideMarkerRef.current.setLngLat([ride.position.lng, ride.position.lat]);
+      rideMarkerRef.current.setRotation(ride.heading ?? 0);
+      setMarkerHeading(rideMarkerRef.current.getElement(), ride.heading == null ? undefined : 0);
+      // Following: the map faces the way you're going, with you low on the screen to show more of the road ahead.
+      if (ride.follow) {
+        map.easeTo({
+          center: [ride.position.lng, ride.position.lat], zoom: Math.max(map.getZoom(), 15),
+          bearing: ride.heading ?? map.getBearing(), padding: { top: Math.round(map.getContainer().clientHeight * 0.22), bottom: 0, left: 0, right: 0 },
+          duration: 700,
+        });
+      }
     }
+    // Not following: back to north up.
+    if (!ride.follow && map.getBearing() !== 0) map.easeTo({ bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 500 });
   }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.heading, ride?.follow, Boolean(ride), segments, isReady]);
 
   // Ride mode: the way back to the route when off it (dashed blue).
-  const detourLineRef = useRef<google.maps.Polyline | null>(null);
   const detour = ride?.detour;
   useEffect(() => {
-    const map = googleMapRef.current;
-    if (!isReady || !map) return;
-    detourLineRef.current?.setMap(null);
-    detourLineRef.current = null;
-    if (!detour?.length) return;
-    detourLineRef.current = new google.maps.Polyline({
-      map, path: detour, zIndex: 40, strokeOpacity: 0,
-      icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: '#7c3aed', strokeWeight: 5, scale: 3 }, offset: '0', repeat: '14px' }],
-    });
-  }, [detour, isReady]);
-
-  useEffect(() => {
-    if (!isReady || !googleMapRef.current) return;
-    let cancelled = false;
-
-    // Opens the popup just above a pin. Uses the stop's position and the pin's height rather than
-    // anchoring to the marker: a marker that was just re-created has no measured height yet, so an
-    // anchored popup would open too low and the pin would cover its tail.
-    const openAbove = (content: HTMLElement, position: google.maps.LatLngLiteral, pin: HTMLElement, fallbackHeight: number) => {
-      const iw = infoWindowRef.current;
-      if (!iw) return;
-      const height = pin.offsetHeight || fallbackHeight;
-      iw.setOptions({ pixelOffset: new google.maps.Size(0, -height - 2) });
-      iw.setContent(content);
-      iw.setPosition(position);
-      iw.open({ map: googleMapRef.current });
-    };
-
-    const updateMarkers = async () => {
-      try {
-        const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
-
-        type Point = MapPoint;
-        const allPoints = buildPoints(origin, waypoints, destination, routeInfo);
-
-        const locations = await Promise.all(allPoints.map(p =>
-          p.position ? Promise.resolve(p.position) : geocodeAddress(p.location)));
-        if (cancelled) return;
-
-        markersRef.current.forEach(marker => { marker.map = null; });
-        markersRef.current = [];
-        const bounds = new google.maps.LatLngBounds();
-
-        const openPopup = (point: Point, anchor: google.maps.marker.AdvancedMarkerElement, at: google.maps.LatLngLiteral) => {
-          const key = refKey(point.ref);
-          const content = document.createElement('div');
-          infoRootRef.current?.unmount();
-          infoRootRef.current = createRoot(content);
-          infoRootRef.current.render(
-              <StopPopup
-                nights={stays?.get(refKey(point.ref))}
-                rentalLink={point.kind === 'start' && travelMode === 'DRIVING' ? rentalUrl(point.location, stays?.get('start')?.checkOut, stays?.get('end')?.checkIn) : null}
-                at={at}
-                compact
-                kind={point.kind}
-                badge={point.badge}
-                title={point.label}
-                location={point.location}
-                interests={point.interests}
-                distanceFromPrev={point.distanceFromPrev}
-                distanceToNext={point.distanceToNext}
-                onRemoveItem={(c, i) => callbacksRef.current.onRemoveItem?.(point.ref, c, i)}
-                onAttachFile={(file) => callbacksRef.current.onAttachFile?.(point.ref, file)}
-                onFindPlaces={() => callbacksRef.current.onFindPlaces?.(point.ref)}
-                onRemoveStop={point.ref.kind === 'stop' && callbacksRef.current.onRemoveStop
-                  ? () => { infoWindowRef.current?.close(); openStopRef.current = null; callbacksRef.current.onRemoveStop?.(point.ref.index!); }
-                  : undefined}
-                attaching={attachingKey === key}
-              />
-          );
-          openAbove(content, at, anchor.content as HTMLElement, 38);
-          openStopRef.current = key;
-        };
-
-        allPoints.forEach((point, idx) => {
-          const position = locations[idx];
-          if (!position) return;
-          bounds.extend(position);
-
-          const pin = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (${tr('drag to move')})`);
-
-          const marker = new AdvancedMarkerElement({
-            position,
-            map: googleMapRef.current,
-            title: `${point.label}: ${point.location} (${tr('drag to move')})`,
-            content: pin,
-            gmpClickable: true,
-            gmpDraggable: Boolean(callbacksRef.current.onMoveStop),
-            // Above suggestion and booking pins, which often sit in the same town.
-            zIndex: 10,
-          });
-
-          marker.addEventListener('gmp-click', () => openPopup(point, marker, position));
-          marker.addListener('dragstart', () => { infoWindowRef.current?.close(); openStopRef.current = null; });
-          marker.addListener('dragend', () => {
-            const pos = marker.position as google.maps.LatLng | google.maps.LatLngLiteral | null;
-            if (!pos) return;
-            const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
-            const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
-            skipFitRef.current = true;
-            infoWindowRef.current?.close();
-            openStopRef.current = null;
-            callbacksRef.current.onMoveStop?.(point.ref, { lat, lng });
-          });
-          markersRef.current.push(marker);
-
-          // Keep an open popup open (with fresh content) after edits.
-          if (openStopRef.current === refKey(point.ref)) openPopup(point, marker, position);
-
-          // A small pin for every suggestion and booking with a known position, iconed by category.
-          // Bookings are violet; suggestions use their category colour.
-          point.interests.forEach((cat, catIdx) => cat.items.forEach((item, itemIdx) => {
-            const isBooking = item.source === 'reservation';
-            const lat = isBooking ? item.reservation?.lat : item.lat;
-            const lng = isBooking ? item.reservation?.lng : item.lng;
-            const id = categoryId(item.category || cat.category);
-            if (lat == null || lng == null || (!isBooking && hiddenCategories.includes(id))) return;
-            const placePin = new PinElement({
-              background: isBooking ? '#6d3f63' : CATEGORIES[id].color,
-              borderColor: '#ffffff',
-              glyphColor: '#ffffff',
-              ...({ glyphText: CATEGORIES[id].glyph } as google.maps.marker.PinElementOptions),
-              scale: isBooking ? 0.8 : 0.65,
-            });
-            const placeMarker = new AdvancedMarkerElement({
-              position: { lat, lng },
-              map: googleMapRef.current,
-              title: `${isBooking ? `${tr('Booked:')} ` : ''}${item.name} (${point.label})`,
-              content: placePin,
-              gmpClickable: true,
-              zIndex: isBooking ? 2 : 1,
-            });
-            placeMarker.addEventListener('gmp-click', () => {
-              const content = document.createElement('div');
-              infoRootRef.current?.unmount();
-              infoRootRef.current = createRoot(content);
-              infoRootRef.current.render(
-                <PlacePopup
-                  item={item}
-                  categoryId={id}
-                  point={point}
-                  nights={stays?.get(refKey(point.ref))}
-                  onRemove={() => { infoWindowRef.current?.close(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
-                />
-              );
-              openAbove(content, { lat, lng }, placePin.element ?? (placePin as unknown as HTMLElement), isBooking ? 32 : 26);
-              openStopRef.current = null;
-            });
-            markersRef.current.push(placeMarker);
-          }));
-        });
-
-        const boundsKey = allPoints.map(p => p.location).join('|');
-        if (!bounds.isEmpty() && googleMapRef.current && boundsKey !== lastBoundsKeyRef.current && !skipFitRef.current) {
-          // On phones the planner sheet covers the lower half: keep the route in the visible top part.
-          const phone = window.innerWidth < 768;
-          googleMapRef.current.fitBounds(bounds, phone
-            ? { top: 170, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) }
-            : { top: 110, left: 60, right: 60, bottom: 80 });
-        }
-        lastBoundsKeyRef.current = boundsKey;
-        skipFitRef.current = false;
-      } catch (err) {
-        console.error("Error updating markers:", err);
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    const draw = () => {
+      const data = { type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates: (detour || []).map(p => [p.lng, p.lat]) } };
+      const source = map.getSource('ride-detour') as maplibregl.GeoJSONSource | undefined;
+      if (source) source.setData(data);
+      else {
+        map.addSource('ride-detour', { type: 'geojson', data });
+        map.addLayer({ id: 'ride-detour', type: 'line', source: 'ride-detour', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#7c3aed', 'line-width': 5, 'line-dasharray': [1, 1.6] } });
       }
     };
+    try { draw(); } catch { /* style loading */ }
+    map.on('style.load', draw);
+    return () => { map.off('style.load', draw); };
+  }, [detour, isReady]);
 
-    updateMarkers();
+  // Create the map once.
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: STYLES.topo,
+      center: [2.35, 48.86],
+      zoom: 4,
+      attributionControl: { compact: true },
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: true, visualizePitch: false }), 'top-right');
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+    mapRef.current = map;
+
+    // A new style (Map/Light/Topo/Satellite) starts without our layers: draw the route again.
+    map.on('style.load', () => { drawRoute(map, segmentsRef.current, activeSegmentRef.current); drawRideLines(map, rideLinesRef.current); });
+    map.on('load', () => { setIsReady(true); onLoad(map); });
+    // Stop names show from regional zoom in; zoomed out, only the numbers.
+    const toggleLabels = () => containerRef.current?.parentElement?.classList.toggle('stop-labels-hidden', map.getZoom() < 6);
+    map.on('zoom', toggleLabels);
+    toggleLabels();
+
+    // Hovering a day line shows a pointer; clicking it opens its details; clicking elsewhere offers a new stop.
+    map.on('mousemove', (e) => {
+      const hit = map.getLayer('route-line') && map.queryRenderedFeatures(e.point, { layers: ['route-line'] }).length > 0;
+      map.getCanvas().style.cursor = hit ? 'pointer' : '';
+    });
+    map.on('click', (e) => {
+      const hit = map.getLayer('route-line') ? map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['route-line'] }) : [];
+      const at = { lat: e.lngLat.lat, lng: e.lngLat.lng };
+      if (hit.length) {
+        const index = hit[0].properties?.index as number;
+        const segment = segmentsRef.current[index];
+        if (!segment) return;
+        showPopup(at, <SegmentDetails label={segment.label} leg={segment.leg} travelMode={callbacksRef.current.travelMode} />);
+        setActiveSegment(index);
+        openStopRef.current = null;
+        return;
+      }
+      if (!callbacksRef.current.onAddStop) return;
+      showPopup(at, (
+        <button
+          className="rounded-md bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-700"
+          onClick={() => { popupRef.current?.remove(); callbacksRef.current.onAddStop?.(at); }}
+        >
+          + {tr('Add overnight stop here')}
+        </button>
+      ), 0);
+      openStopRef.current = null;
+    });
+    // Development only: lets browser tests reach the map.
+    if (import.meta.env.DEV) (window as any).__osmMap = map;
+    return () => { map.remove(); mapRef.current = null; };
+  }, []);
+
+  // Switching style replaces all layers; the route is re-added on 'style.load'.
+  useEffect(() => {
+    if (mapRef.current && isReady) styleFor(mapType).then(style => mapRef.current?.setStyle(style)).catch(err => console.warn('Map style unavailable', err));
+  }, [mapType]);
+
+  // Route: one feature per day, a white casing under the green line, and a darker highlight for the selected day.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    // While a new style is still loading, 'style.load' will draw the route instead.
+    try { drawRoute(map, segments, activeSegmentRef.current); } catch { /* style loading */ }
+  }, [segments, isReady]);
+
+  // Pins for stops, suggestions and bookings.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    let cancelled = false;
+
+    (async () => {
+      const allPoints = buildPoints(origin, waypoints, destination, routeInfo);
+      const locations = await Promise.all(allPoints.map(p => (p.position ? Promise.resolve(p.position) : geocodeAddress(p.location))));
+      if (cancelled) return;
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+      const bounds = new maplibregl.LngLatBounds();
+
+      const openStop = (point: MapPoint, at: LatLng) => {
+        const key = refKey(point.ref);
+        showPopup(at, (
+            <StopPopup
+              nights={stays?.get(refKey(point.ref))}
+              rentalLink={point.kind === 'start' && travelMode === 'DRIVING' ? rentalUrl(point.location, stays?.get('start')?.checkOut, stays?.get('end')?.checkIn) : null}
+              at={at}
+              compact
+              kind={point.kind}
+              badge={point.badge}
+              title={point.label}
+              location={point.location}
+              interests={point.interests}
+              distanceFromPrev={point.distanceFromPrev}
+              distanceToNext={point.distanceToNext}
+              onRemoveItem={(c, i) => callbacksRef.current.onRemoveItem?.(point.ref, c, i)}
+              onAttachFile={(file) => callbacksRef.current.onAttachFile?.(point.ref, file)}
+              attaching={attachingKey === key}
+              onFindPlaces={() => callbacksRef.current.onFindPlaces?.(point.ref)}
+              onRemoveStop={point.ref.kind === 'stop' && callbacksRef.current.onRemoveStop
+                ? () => { popupRef.current?.remove(); callbacksRef.current.onRemoveStop?.(point.ref.index!); }
+                : undefined}
+            />
+        ), pinHeight(point));
+        openStopRef.current = key;
+      };
+      const pinElements = new Map<string, HTMLElement>();
+      const pinHeight = (point: MapPoint) => pinElements.get(refKey(point.ref))?.offsetHeight || 38;
+
+      allPoints.forEach((point, idx) => {
+        const at = locations[idx];
+        if (!at) return;
+        bounds.extend([at.lng, at.lat]);
+        const el = stopPinElement(point.kind, point.badge, point.location, `${point.label}: ${point.location} (${tr('drag to move')})`);
+        el.style.zIndex = '10';
+        pinElements.set(refKey(point.ref), el);
+        el.addEventListener('click', (e) => { e.stopPropagation(); openStop(point, at); });
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', draggable: Boolean(callbacksRef.current.onMoveStop) })
+          .setLngLat([at.lng, at.lat]).addTo(map);
+        marker.on('dragend', () => {
+          const p = marker.getLngLat();
+          skipFitRef.current = true;
+          popupRef.current?.remove();
+          callbacksRef.current.onMoveStop?.(point.ref, { lat: p.lat, lng: p.lng });
+        });
+        markersRef.current.push(marker);
+        // Keep an open stop card open (with fresh content) after edits.
+        if (openStopRef.current === refKey(point.ref)) openStop(point, at);
+
+        point.interests.forEach((cat, catIdx) => cat.items.forEach((item, itemIdx) => {
+          const isBooking = item.source === 'reservation';
+          const lat = isBooking ? item.reservation?.lat : item.lat;
+          const lng = isBooking ? item.reservation?.lng : item.lng;
+          const id = categoryId(item.category || cat.category);
+          if (lat == null || lng == null || (!isBooking && hiddenCategories.includes(id))) return;
+          const placeEl = pinElement(isBooking ? '#6d3f63' : CATEGORIES[id].color, CATEGORIES[id].glyph, isBooking ? 24 : 20, `${isBooking ? `${tr('Booked:')} ` : ''}${item.name} (${point.label})`);
+          placeEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showPopup({ lat, lng }, (
+              <PlacePopup
+                item={item}
+                categoryId={id}
+                point={point}
+                nights={stays?.get(refKey(point.ref))}
+                onRemove={() => { popupRef.current?.remove(); callbacksRef.current.onRemoveItem?.(point.ref, catIdx, itemIdx); }}
+              />
+            ), placeEl.offsetHeight || (isBooking ? 30 : 25));
+            openStopRef.current = null;
+          });
+          markersRef.current.push(new maplibregl.Marker({ element: placeEl, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map));
+        }));
+      });
+
+      const boundsKey = allPoints.map(p => p.location).join('|');
+      if (!bounds.isEmpty() && boundsKey !== lastBoundsKeyRef.current && !skipFitRef.current) {
+        // On phones the planner sheet covers the lower half: keep the route in the visible top part.
+        const phone = window.innerWidth < 768;
+        map.fitBounds(bounds, { padding: phone ? { top: 170, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.55) } : { top: 110, left: 60, right: 60, bottom: 80 }, maxZoom: 13, duration: 600 });
+      }
+      lastBoundsKeyRef.current = boundsKey;
+      skipFitRef.current = false;
+    })();
     return () => { cancelled = true; };
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units, stays]);
 
   return (
     <div className={cn("relative h-full w-full", !ride && "vintage-map", !ride && mapType !== 'topo' && "vintage-imagery")}>
-      <div ref={mapRef} className="h-full w-full" />
-
-      {mapsError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-50 p-6 text-center">
-          <p className="max-w-sm text-sm text-muted-foreground">{mapsError}</p>
-        </div>
-      )}
+      <div ref={containerRef} className="h-full w-full" />
 
       {/* Category legend: show or hide suggestion pins */}
-      <div className="absolute left-3 top-[7.25rem] z-10 flex flex-wrap gap-1 md:bottom-6 md:left-6 md:top-auto">
+      <div className="absolute left-3 top-[7.25rem] z-10 flex flex-wrap gap-1 md:bottom-8 md:left-6 md:top-auto">
         {CATEGORY_IDS.map(id => {
           const hidden = hiddenCategories.includes(id);
           return (
@@ -465,10 +454,7 @@ const Map: React.FC<MapProps> = ({
               onClick={() => setHiddenCategories(prev => hidden ? prev.filter(c => c !== id) : [...prev, id])}
               aria-pressed={!hidden}
               title={hidden ? t('Show {name} on the map', { name: t(CATEGORIES[id].name) }) : t('Hide {name} on the map', { name: t(CATEGORIES[id].name) })}
-              className={cn(
-                "flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity",
-                hidden && "opacity-50 line-through"
-              )}
+              className={cn("flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity", hidden && "opacity-50 line-through")}
               style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
             >
               <span>{CATEGORIES[id].glyph}</span>
@@ -482,13 +468,7 @@ const Map: React.FC<MapProps> = ({
         </span>
       </div>
 
-      {mapType === 'topo' && (
-        <div className="pointer-events-auto absolute bottom-6 right-2 z-10 rounded-sm bg-white/80 px-1.5 py-0.5 text-[10px] text-slate-600">
-          Topo © <a href="https://opentopomap.org" target="_blank" rel="noopener noreferrer" className="underline">OpenTopoMap</a> (CC-BY-SA) · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">OpenStreetMap</a> · SRTM
-        </div>
-      )}
-
-      {/* Map Type Controls */}
+      {/* Map style controls */}
       <div className="absolute left-3 top-16 z-10 md:left-6 md:top-6">
         <div className="flex flex-row gap-1 overflow-hidden rounded-xl border border-white/20 bg-white/85 p-1 shadow-xl backdrop-blur-md md:flex-col">
           {MAP_TYPES.map(({ id, label, icon: Icon }) => (
@@ -499,9 +479,7 @@ const Map: React.FC<MapProps> = ({
               title={t(label)}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-bold transition-all md:px-3",
-                mapType === id
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20"
-                  : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
+                mapType === id ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
               )}
             >
               <Icon size={14} />
@@ -514,4 +492,4 @@ const Map: React.FC<MapProps> = ({
   );
 };
 
-export default Map;
+export default MapView;

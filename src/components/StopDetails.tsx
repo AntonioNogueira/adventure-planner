@@ -195,7 +195,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                             )}
                             {offerFor(item.category || cat.category, item.source) === 'stay' && (
                               <a href={stayUrl(item, townName(location), nights)} target="_blank" rel="noopener noreferrer sponsored"
-                                className="text-[10px] font-semibold text-violet-700 hover:underline">{tr('Check prices')} ↗</a>
+                                className="text-[10px] font-semibold text-violet-700 hover:underline">{tr('Check prices & reviews')} ↗</a>
                             )}
                             {offerFor(item.category || cat.category, item.source) === 'tours' && (
                               <a href={toursUrl(item.name, townName(location))} target="_blank" rel="noopener noreferrer sponsored"

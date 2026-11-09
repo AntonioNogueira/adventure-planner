@@ -1,4 +1,4 @@
-// Pieces shared by the Google map (Map.tsx) and the OpenStreetMap map (MapOsm.tsx).
+// Map pieces: place and stop popups, stop pins, and the rider's position marker.
 import { useSettings, t as tr } from '../lib/settings';
 import { stayUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
 import React, { useEffect, useState } from 'react';
@@ -62,7 +62,7 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
       <div className="flex gap-3 pt-1">
         <a href={link} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">{linkLabel}</a>
         {at && !isBooking && item.url && linkLabel === t('Website') && (
-          <a href={mapSearchUrl(item.name, at)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">{t('Map')}</a>
+          <a href={mapSearchUrl(`${item.name} ${point.location}`, at)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">{mapSiteName}</a>
         )}
         <button className="font-semibold text-red-600 hover:underline" onClick={onRemove}>{t('Remove')}</button>
       </div>
@@ -71,7 +71,7 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
           <a href={offer === 'stay' ? stayUrl(item, townName(point.location), nights) : toursUrl(item.name, townName(point.location))}
             target="_blank" rel="noopener noreferrer sponsored"
             className="block rounded-sm bg-violet-600 px-2 py-1.5 text-center font-semibold text-white hover:bg-violet-700">
-            {offer === 'stay' ? t('Check prices') : t('Tickets & tours')}
+            {offer === 'stay' ? t('Check prices & reviews') : t('Tickets & tours')}
             {offer === 'stay' && nights && <span className="font-normal"> · {date(nights.checkIn)} → {date(nights.checkOut)}</span>}
           </a>
           <p className="text-[9px] text-slate-400">{t('We may earn a commission when you book through these links.')}</p>

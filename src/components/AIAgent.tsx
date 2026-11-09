@@ -10,7 +10,7 @@ export type { PlanSummary } from '../lib/conversation';
 
 interface AIAgentProps {
   initialPrompt?: string;
-  /** Builds the trip with Google Maps from what the AI understood; null if the route failed. */
+  /** Builds the trip with the map services from what the AI understood; null if the route failed. */
   onPlanTrip: (intent: TripIntent) => Promise<PlanSummary | null>;
   startDate: string;
   onStartDateChange: (date: string) => void;
@@ -150,7 +150,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     }
   };
 
-  // A quick reply: refine the plan directly with Google Maps (no AI call needed).
+  // A quick reply: refine the plan directly with the map services (no AI call needed).
   const handleAnswer = async (index: number, question: Question, label: string, value: string) => {
     setMessages(prev => [...prev.map((m, i) => i === index ? { ...m, answer: label } : m), { role: 'user', text: label }]);
     askedRef.current.add(question.topic);

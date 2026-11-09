@@ -31,12 +31,12 @@ partner or sold, and so personal email stays separate.
 
 - Market check: Komoot ~€60/year, Ride with GPS ~€8–10/month, Calimoto ~€50/year, Kurviger Tourer+ ~€30/year,
   Wanderlog ~€40–60/year. €30/month only works for businesses (guides, tour operators).
-- "Unlimited" = fair use with soft caps, to protect against Google Places costs.
-- Free could run on OpenStreetMap data (the Open version) and paid plans add Google Places.
+- "Unlimited" = fair use with soft caps (AI and place-server load).
+- Decided (Nov 2026): one version on OpenStreetMap data for everyone; no Google Places (section 10).
 
 ## 3. Costs to watch
 
-- **Google Places** is the main cost: ~€0.03 per search; a trip with 5 stops × 4 categories ≈ 20 searches ≈ €0.30–0.60.
+- *(Before Nov 2026, Google version)* **Google Places** was the main cost: ~€0.03 per search; a trip with 5 stops × 4 categories ≈ 20 searches ≈ €0.30–0.60.
   Asking for price level/range (used by the budget) moves food and stay searches to the "Enterprise" SKU (~10% more).
 - Routes / geocoding / elevation: ~€0.005 per request after the monthly free allowance.
 - Gemini Flash-Lite (paid tier): a fraction of a cent per plan.
@@ -145,3 +145,6 @@ General orientation, not legal/tax advice: thresholds and rates change; confirm 
 - Google's place data may only be shown on a Google map, so a single OpenStreetMap version can't use it.
   Ratings later: a place-data service allowed on any map (e.g. Foursquare) for paid plans only.
 - Decision suggested: one OpenStreetMap version on own/paid servers; Booking.com "Check prices" for reviews and commission.
+- **Done (Nov 2026):** the Google map version was removed. The app runs on OpenStreetMap only, with server addresses
+  in settings (`OVERPASS_URL`, `PHOTON_URL`, `OSRM_URL`, `VALHALLA_URL`, `BROUTER_URL`) and `deploy/places-server` to
+  run an own Overpass (~€8–15/month for one country, €40–60 for Europe). Next: rent the server and set `OVERPASS_URL`.

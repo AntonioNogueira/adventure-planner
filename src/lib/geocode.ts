@@ -1,19 +1,13 @@
-// Place names ↔ coordinates, cached. Google Geocoding, or Photon (OpenStreetMap, free) in the open version.
-import { isOsm } from './provider';
+// Place names ↔ coordinates, cached, from Photon (OpenStreetMap). The server's PHOTON_URL setting picks the server.
+import { SERVICES } from './services';
 import { t } from './settings';
 import { searchTown } from './affiliate';
 import { LatLng } from './geo';
 
 const cache = new Map<string, Promise<LatLng | null>>();
 const PLACEHOLDERS = ['apt', 'home', 'my location', 'office', 'work'];
-const PHOTON = 'https://photon.komoot.io';
 
-async function googleGeocoder() {
-  const { Geocoder } = await google.maps.importLibrary("geocoding") as google.maps.GeocodingLibrary;
-  return new Geocoder();
-}
-
-interface PhotonFeature {
+export interface PhotonFeature {
   geometry: { coordinates: [number, number] };
   properties: Record<string, string | undefined>;
 }
@@ -27,14 +21,14 @@ async function slot<T>(run: () => Promise<T>): Promise<T> {
   try { return await run(); } finally { active--; waiting.shift()?.(); }
 }
 
-async function photon(path: string): Promise<PhotonFeature[]> {
+export async function photon(path: string): Promise<PhotonFeature[]> {
   return slot(async () => {
     let lastError: unknown;
     for (const delay of [0, 600, 1800]) {
       if (delay) await new Promise(r => setTimeout(r, delay));
       try {
         // English names, to match the AI's place names ("Spain", not "España").
-        const res = await fetch(`${PHOTON}${path}${path.includes('?') ? '&' : '?'}lang=en`);
+        const res = await fetch(`${SERVICES.photon}${path}${path.includes('?') ? '&' : '?'}lang=en`);
         if (res.ok) return (await res.json()).features || [];
         lastError = new Error(`Photon ${res.status}`);
         if (res.status !== 429 && res.status < 500) break;
@@ -52,18 +46,13 @@ class LookupFailed extends Error {}
 
 async function lookup(address: string): Promise<LatLng | null> {
   try {
-    if (isOsm) {
-      const features = await photon(`/api/?q=${encodeURIComponent(address)}&limit=5`);
-      // Prefer a town or city over a street that happens to share the name.
-      const best = features.find(f => f.properties.osm_key === 'place' && SETTLEMENT.has(f.properties.osm_value || ''))
-        || features.find(f => f.properties.type === 'city')
-        || features[0];
-      return best ? { lat: best.geometry.coordinates[1], lng: best.geometry.coordinates[0] } : null;
-    }
-    const { results } = await (await googleGeocoder()).geocode({ address });
-    return results?.[0]?.geometry.location.toJSON() ?? null;
+    const features = await photon(`/api/?q=${encodeURIComponent(address)}&limit=5`);
+    // Prefer a town or city over a street that happens to share the name.
+    const best = features.find(f => f.properties.osm_key === 'place' && SETTLEMENT.has(f.properties.osm_value || ''))
+      || features.find(f => f.properties.type === 'city')
+      || features[0];
+    return best ? { lat: best.geometry.coordinates[1], lng: best.geometry.coordinates[0] } : null;
   } catch (error: any) {
-    if (error?.code === 'ZERO_RESULTS') return null;
     console.error(`Geocoding failed for ${address}:`, error);
     throw new LookupFailed(String(error));
   }
@@ -83,30 +72,15 @@ export function geocodeAddress(address: string): Promise<LatLng | null> {
 /** A readable name for a position: "Tavira, Portugal", or "Near <area>, <country>" in the countryside. */
 export async function townAt(position: LatLng): Promise<string | null> {
   try {
-    if (isOsm) {
-      const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`);
-      if (!f) return null;
-      const p = f.properties;
-      const raw = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
-      // Administrative names ("União das freguesias de X e Y") are shortened to the town.
-      const town = raw && searchTown(raw);
-      if (town) return p.country ? `${town}, ${p.country}` : town;
-      const area = p.county || p.state;
-      return area ? `${t('Near {place}', { place: area })}${p.country ? `, ${p.country}` : ''}` : p.name || null;
-    }
-    const { results } = await (await googleGeocoder()).geocode({ location: position });
-    if (!results.length) return null;
-    const part = (type: string) => results
-      .flatMap(r => r.address_components)
-      .find(c => c.types.includes(type))?.long_name;
-    const country = part('country');
-    const rawTown = part('locality') || part('postal_town');
-    const town = rawTown && searchTown(rawTown);
-    if (town) return country ? `${town}, ${country}` : town;
-    // Countryside: label it by the parish/municipality. The stop keeps its exact position for routing.
-    const rawArea = part('administrative_area_level_3') || part('administrative_area_level_2') || part('route');
-    const area = rawArea && searchTown(rawArea);
-    return area ? `${t('Near {place}', { place: area })}${country ? `, ${country}` : ''}` : results[0].formatted_address;
+    const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`);
+    if (!f) return null;
+    const p = f.properties;
+    const raw = p.osm_key === 'place' && SETTLEMENT.has(p.osm_value || '') ? p.name : p.city || p.locality || p.district;
+    // Administrative names ("União das freguesias de X e Y") are shortened to the town.
+    const town = raw && searchTown(raw);
+    if (town) return p.country ? `${town}, ${p.country}` : town;
+    const area = p.county || p.state;
+    return area ? `${t('Near {place}', { place: area })}${p.country ? `, ${p.country}` : ''}` : p.name || null;
   } catch (error) {
     console.error('Reverse geocoding failed:', error);
     return null;
@@ -118,15 +92,10 @@ export async function placeAt(position: LatLng): Promise<{ name: string; positio
   try {
     const name = await townAt(position);
     if (!name) return null;
-    if (isOsm) {
-      // The nearest street is a routable spot.
-      const [street] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1&layer=street`).catch(() => []);
-      const at = street ? { lat: street.geometry.coordinates[1], lng: street.geometry.coordinates[0] } : position;
-      return { name, position: at };
-    }
-    const { results } = await (await googleGeocoder()).geocode({ location: position });
-    const onLand = results.find(r => r.types.includes('street_address') || r.types.includes('route') || r.types.includes('premise'));
-    return { name, position: (onLand || results[0])?.geometry.location.toJSON() || position };
+    // The nearest street is a routable spot.
+    const [street] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1&layer=street`).catch(() => []);
+    const at = street ? { lat: street.geometry.coordinates[1], lng: street.geometry.coordinates[0] } : position;
+    return { name, position: at };
   } catch (error) {
     console.error('Reverse geocoding failed:', error);
     return null;
