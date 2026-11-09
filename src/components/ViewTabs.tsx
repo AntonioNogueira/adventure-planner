@@ -1,17 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Route as RouteIcon, Wallet, FolderOpen, Settings } from 'lucide-react';
+import { Route as RouteIcon, Wallet, FolderOpen, Settings, Navigation } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSettings, LANGUAGES, CURRENCIES, Units, Language } from '../lib/settings';
 import { useAccount, openPlans } from '../lib/account';
 import { PLANS } from '../lib/plans';
 import { openPrivacy } from './ConsentBanner';
+import InstallHint from './InstallHint';
 
-export type AppView = 'route' | 'budget' | 'documents';
+export type AppView = 'route' | 'budget' | 'documents' | 'ride';
 
 const TABS: { id: AppView; label: string; icon: typeof RouteIcon }[] = [
   { id: 'route', label: 'Route', icon: RouteIcon },
   { id: 'budget', label: 'Budget', icon: Wallet },
   { id: 'documents', label: 'Documents', icon: FolderOpen },
+  { id: 'ride', label: 'Ride', icon: Navigation },
 ];
 
 /** Distance units, currency and language (defaults come from the browser's locale). */
@@ -75,13 +77,14 @@ const SettingsMenu: React.FC = () => {
             <button onClick={() => { setOpen(false); openPlans(); }} className="font-semibold text-emerald-700 hover:underline">{t('See plans')}</button>
           </div>
           <button onClick={() => { setOpen(false); openPrivacy(); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Privacy and cookies')}</button>
+          <InstallHint compact />
         </div>
       )}
     </div>
   );
 };
 
-/** The switch above the map: Route (the map), Budget and Documents, then Settings. */
+/** The switch above the map: Route (the map), Budget, Documents and Ride, then Settings. */
 const ViewTabs: React.FC<{ view: AppView; onChange: (view: AppView) => void; documentCount: number }> = ({ view, onChange, documentCount }) => {
   const { t } = useSettings();
   return (
@@ -93,6 +96,7 @@ const ViewTabs: React.FC<{ view: AppView; onChange: (view: AppView) => void; doc
         <button
           key={id}
           onClick={() => onChange(id)}
+          aria-label={t(label)}
           aria-pressed={view === id}
           className={cn(
             'flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold transition-all sm:px-3',
@@ -100,7 +104,7 @@ const ViewTabs: React.FC<{ view: AppView; onChange: (view: AppView) => void; doc
           )}
         >
           <Icon size={14} />
-          {t(label)}
+          <span className={cn(view !== id && 'hidden min-[420px]:inline')}>{t(label)}</span>
           {id === 'documents' && documentCount > 0 && (
             <span className={cn('rounded-full px-1.5 text-[10px]', view === id ? 'bg-white/25' : 'bg-violet-100 text-violet-700')}>{documentCount}</span>
           )}

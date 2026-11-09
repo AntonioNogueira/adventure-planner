@@ -31,6 +31,8 @@ interface MapProps {
   attachingKey?: string | null;
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
+  /** Ride mode: the day being ridden, the rider's position and whether the map follows it. */
+  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean } | null;
 }
 
 // Topo: a survey-map look (contours, hill shading, forests) from OpenTopoMap tiles drawn over Google's
@@ -42,6 +44,14 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'satellite', label: 'Satellite', icon: Globe },
   { id: 'hybrid', label: 'Hybrid', icon: Layers },
 ];
+
+// The rider's position in ride mode: a blue dot with a white ring.
+function positionDot(): HTMLElement {
+  const el = document.createElement('div');
+  el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px rgba(37,99,235,.35),0 1px 4px rgba(0,0,0,.4);';
+  el.title = 'You are here';
+  return el;
+}
 
 const topoTiles = () => new google.maps.ImageMapType({
   getTileUrl: (c, z) => {
@@ -59,7 +69,7 @@ const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 
 
 const Map: React.FC<MapProps> = ({
-  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays,
+  onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo, onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays, ride,
 }) => {
   const segmentLinesRef = useRef<google.maps.Polyline[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -206,6 +216,38 @@ const Map: React.FC<MapProps> = ({
     // Development only: lets browser tests click a day line (they're drawn on a canvas).
     if (import.meta.env.DEV) (window as any).__segmentLines = segmentLinesRef.current;
   }, [segments, isReady, travelMode]);
+
+  // Ride mode: highlight the day, show it whole when it changes, then follow the rider if asked.
+  const rideMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const rideDayRef = useRef<number | null>(null);
+  useEffect(() => {
+    const map = googleMapRef.current;
+    if (!isReady || !map) return;
+    const style = (active: boolean) => ({ strokeColor: active ? '#6e2a18' : '#a0462c', strokeWeight: active ? 9 : 6, strokeOpacity: active ? 1 : (ride ? 0.45 : 0.85) });
+    segmentLinesRef.current.forEach((line, j) => line.setOptions(style(Boolean(ride) && j === ride!.dayIndex)));
+    if (!ride) {
+      rideMarkerRef.current && (rideMarkerRef.current.map = null);
+      rideMarkerRef.current = null;
+      rideDayRef.current = null;
+      return;
+    }
+    const day = segments[ride.dayIndex];
+    if (day && rideDayRef.current !== ride.dayIndex) {
+      rideDayRef.current = ride.dayIndex;
+      const bounds = new google.maps.LatLngBounds();
+      day.path.forEach(p => bounds.extend(p));
+      if (!ride.follow || !ride.position) map.fitBounds(bounds, window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 });
+    }
+    if (ride.position) {
+      (async () => {
+        const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
+        if (!rideMarkerRef.current) rideMarkerRef.current = new AdvancedMarkerElement({ map, content: positionDot(), zIndex: 50 });
+        rideMarkerRef.current.position = ride.position;
+        rideMarkerRef.current.map = map;
+      })();
+      if (ride.follow) { map.panTo(ride.position); if ((map.getZoom() || 0) < 13) map.setZoom(14); }
+    }
+  }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.follow, Boolean(ride), segments, isReady]);
 
   useEffect(() => {
     if (!isReady || !googleMapRef.current) return;

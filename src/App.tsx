@@ -29,6 +29,7 @@ import LoginDialog from './components/LoginDialog';
 import BudgetView from './components/BudgetView';
 import DocumentsView from './components/DocumentsView';
 import ViewTabs, { AppView } from './components/ViewTabs';
+import RideMode from './components/RideMode';
 import { BudgetSettings, defaultBudget } from './lib/budget';
 import type { Vehicle } from './lib/fuel';
 import { authErrorMessage } from './lib/authErrors';
@@ -197,6 +198,10 @@ const App: React.FC = () => {
   }, [appSettings.currency]);
   // Top tabs: the map (Route), the Budget table or the Documents bucket.
   const [view, setView] = useState<AppView>('route');
+  // Ride mode: the day being ridden, the live position and whether the map follows it.
+  const [rideDay, setRideDay] = useState(0);
+  const [ridePos, setRidePos] = useState<{ lat: number; lng: number } | undefined>(undefined);
+  const [rideFollow, setRideFollow] = useState(true);
   // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
   const [budgetSettings, setBudgetSettings] = useState<BudgetSettings | null>(null);
   // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
@@ -772,6 +777,16 @@ const App: React.FC = () => {
   // Each day's path, for the budget's toll estimate.
   const legPaths = useMemo(() => (trip?.legs || []).map(leg => leg.path), [trip]);
 
+  // Opening Ride starts on today's day of the trip (when it has dates), else where it was.
+  const openView = (next: AppView) => {
+    if (next === 'ride' && view !== 'ride') {
+      const today = new Date().toISOString().slice(0, 10);
+      const day = schedule.find(d => d.kind === 'ride' && d.date && d.date >= today);
+      if (day?.legIndex != null) setRideDay(day.legIndex);
+    }
+    setView(next);
+  };
+
   const documentCount = useMemo(() => routeInfo ? [
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ].flat().reduce((n, cat) => n + cat.items.filter(item => item.source === 'reservation').length, 0) : 0, [routeInfo]);
@@ -1057,8 +1072,24 @@ const App: React.FC = () => {
           onFindPlaces={handleFindPlaces}
         />
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
-          <ViewTabs view={view} onChange={setView} documentCount={documentCount} />
-          {view !== 'route' && (
+          <ViewTabs view={view} onChange={openView} documentCount={documentCount} />
+          {view === 'ride' && (
+            <RideMode
+              routeInfo={routeInfo}
+              paths={legPaths}
+              schedule={schedule}
+              travelMode={travelMode as string}
+              dayIndex={Math.min(rideDay, Math.max(0, legPaths.length - 1))}
+              onDayChange={setRideDay}
+              position={ridePos}
+              onPosition={setRidePos}
+              follow={rideFollow}
+              onFollowChange={setRideFollow}
+              onExportGpx={handleExportGpx}
+              onClose={() => setView('route')}
+            />
+          )}
+          {(view === 'budget' || view === 'documents') && (
             // Budget and Documents cover the map (which stays loaded underneath).
             <div className="absolute inset-0 z-[17] overflow-y-auto bg-slate-50 px-4 pb-[24dvh] pt-16 md:px-8 md:pb-8 md:pt-20">
               {view === 'budget' ? (
@@ -1094,6 +1125,7 @@ const App: React.FC = () => {
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}
             stays={stays}
+            ride={view === 'ride' ? { dayIndex: Math.min(rideDay, Math.max(0, legPaths.length - 1)), position: ridePos, follow: rideFollow } : null}
           />
           </Suspense>
         </main>

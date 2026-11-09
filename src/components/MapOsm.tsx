@@ -34,6 +34,8 @@ interface MapOsmProps {
   attachingKey?: string | null;
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
+  /** Ride mode: the day being ridden, the rider's position and whether the map follows it. */
+  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean } | null;
 }
 
 // Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
@@ -80,6 +82,14 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
   { id: 'hybrid', label: 'Hybrid', icon: Layers },
 ];
 
+// The rider's position in ride mode: a blue dot with a white ring.
+function positionDot(): HTMLElement {
+  const el = document.createElement('div');
+  el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 2px rgba(37,99,235,.35),0 1px 4px rgba(0,0,0,.4);';
+  el.title = 'You are here';
+  return el;
+}
+
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 const ROUTE_COLOR = '#a0462c';
 const ACTIVE_COLOR = '#6e2a18';
@@ -117,7 +127,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
 
 const MapOsm: React.FC<MapOsmProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
-  onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays,
+  onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays, ride,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -180,6 +190,35 @@ const MapOsm: React.FC<MapOsmProps> = ({
     const map = mapRef.current;
     if (map?.getLayer('route-active')) map.setFilter('route-active', ['==', ['get', 'index'], index]);
   };
+
+  // Ride mode: highlight the day, show it whole when it changes, then follow the rider if asked.
+  const rideMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const rideDayRef = useRef<number | null>(null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    if (!ride) {
+      rideMarkerRef.current?.remove();
+      rideMarkerRef.current = null;
+      rideDayRef.current = null;
+      return;
+    }
+    setActiveSegment(ride.dayIndex);
+    const day = segments[ride.dayIndex];
+    if (day && rideDayRef.current !== ride.dayIndex) {
+      rideDayRef.current = ride.dayIndex;
+      const bounds = new maplibregl.LngLatBounds();
+      day.path.forEach(p => bounds.extend([p.lng, p.lat]));
+      if (!ride.follow || !ride.position) {
+        map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 }, duration: 600 });
+      }
+    }
+    if (ride.position) {
+      if (!rideMarkerRef.current) rideMarkerRef.current = new maplibregl.Marker({ element: positionDot() }).setLngLat([ride.position.lng, ride.position.lat]).addTo(map);
+      else rideMarkerRef.current.setLngLat([ride.position.lng, ride.position.lat]);
+      if (ride.follow) map.easeTo({ center: [ride.position.lng, ride.position.lat], zoom: Math.max(map.getZoom(), 14), duration: 500 });
+    }
+  }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.follow, Boolean(ride), segments, isReady]);
 
   // Create the map once.
   useEffect(() => {

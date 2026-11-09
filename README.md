@@ -113,6 +113,21 @@ gcloud run deploy adventure-planner --source . --region europe-west1 --allow-una
 - In Google Cloud Console → Credentials, restrict the Maps key to **HTTP referrers** `http://localhost:3000/*` and `https://<your-domain>/*`.
 - AI requests are limited to `AI_REQUESTS_PER_HOUR` (default 60) per visitor so a public link can't use up your Gemini quota.
 
+## Phone app (installable, no app store) and Ride mode
+
+The site is a Progressive Web App: phones can install it with its own icon, full screen, and it opens without a
+connection (`public/manifest.webmanifest`, `public/sw.js`, registered in production only by `src/lib/install.ts`).
+No App Store or Play Store account or fee is needed.
+
+- **iPhone (Safari):** open the site → Share → *Add to Home Screen*.
+- **Android (Chrome):** the app offers *Install the app on this device* (Settings menu and Ride tab), or browser menu → *Install app*.
+
+**Ride** (fourth tab) is the day being ridden: live GPS position and follow-me, km left and arrival time to tonight's
+stop, an off-route warning, the screen kept on (Wake Lock), and one tap to open the rest of the day in Google Maps
+(with via points to keep it on our route) or Waze, or to download the day's GPX for OsmAnd, Garmin, Kurviger or Calimoto.
+Limits of a web app: GPS works while the app is open with the screen on (not in the background on iPhone);
+turn-by-turn voice comes from the navigation app it hands over to. The service worker never caches `/api`, maps or tiles.
+
 ## Booking links (affiliate)
 
 Places to stay get **Check prices** (Booking.com, searching for that place and town, with the nights at that stop

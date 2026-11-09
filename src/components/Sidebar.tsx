@@ -89,7 +89,7 @@ interface SidebarProps {
   /** Nights at each stop, for the booking links' dates. */
   stays?: Map<string, { checkIn: string; checkOut: string }>;
   /** The top tab; on phones the sheet drops to its smallest height for Budget and Documents. */
-  view?: 'route' | 'budget' | 'documents';
+  view?: 'route' | 'budget' | 'documents' | 'ride';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
