@@ -118,8 +118,8 @@ export function arrivalAt(remainingKm: number, kmh: number, now = new Date()): D
   return new Date(now.getTime() + (remainingKm / kmh) * 3600_000);
 }
 
-export interface RideTarget { key: string; name: string; glyph: string; at: LatLng }
-export interface RideTargetGroup { label: string; items: RideTarget[] }
+export interface RideTarget { key: string; name: string; glyph: string; at: LatLng; booked?: boolean; stay?: boolean }
+export interface RideTargetGroup { label: string; items: RideTarget[]; /** 0 = start, 1… = stops, last = finish. */ stop: number }
 
 /**
  * Places on the trip you can "Go to" in ride mode, grouped by stop: the stop itself, then its booked and saved places
@@ -140,16 +140,32 @@ export function rideTargets(route: Pick<RouteInfo, 'origin' | 'destination' | 'w
         const r = item.reservation;
         const at = item.lat != null && item.lng != null ? { lat: item.lat, lng: item.lng }
           : r?.lat != null && r?.lng != null ? { lat: r.lat, lng: r.lng } : null;
-        return at && { key: `p-${s}-${c}-${k}`, name: item.name, glyph: item.source === 'reservation' ? '✅' : CATEGORIES[categoryId(cat.category)].glyph, at, booked: item.source === 'reservation' };
+        const id = categoryId(cat.category);
+        return at && { key: `p-${s}-${c}-${k}`, name: item.name, glyph: item.source === 'reservation' ? '✅' : CATEGORIES[id].glyph, at, booked: item.source === 'reservation', stay: id === 'stay' };
       })
-      .filter((x): x is RideTarget & { booked: boolean } => Boolean(x))
+      .filter((x): x is RideTarget & { booked: boolean; stay: boolean } => Boolean(x))
       .sort((a, b) => Number(b.booked) - Number(a.booked));
     // The same place can be saved twice (or mapped twice in OpenStreetMap): list it once.
     const seen = new Set<string>();
-    for (const { booked: _b, ...x } of places) {
-      const id = `${x.name.toLowerCase()}|${x.at.lat.toFixed(3)}|${x.at.lng.toFixed(3)}`;
+    for (const x of places) {
+      const id = x.name.trim().toLowerCase();
       if (!seen.has(id)) { seen.add(id); items.push(x); }
     }
-    return { label: stop.label.split(',')[0], items };
+    return { label: stop.label.split(',')[0], items, stop: s };
   }).filter(g => g.items.length);
+}
+
+/** Tonight's place to stay (where day `dayIndex` ends): a booking first, else a saved place to stay. */
+export function tonightStay(groups: RideTargetGroup[], dayIndex: number): RideTarget | undefined {
+  const tonight = groups.find(g => g.stop === dayIndex + 1);
+  return tonight?.items.find(x => x.stay && x.booked) || tonight?.items.find(x => x.stay);
+}
+
+/** Places within `maxKm` of where you are, nearest first (each once), with their distance. */
+export function nearYou(groups: RideTargetGroup[], position: LatLng, maxKm = 15, limit = 8): (RideTarget & { km: number })[] {
+  return groups.flatMap(g => g.items)
+    .map(x => ({ ...x, km: haversineKm(position, x.at) }))
+    .filter(x => x.km <= maxKm)
+    .sort((a, b) => a.km - b.km)
+    .slice(0, limit);
 }

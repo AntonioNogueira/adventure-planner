@@ -482,6 +482,11 @@ export const PT: Record<string, string> = {
   'then “Add to Home Screen”.': 'e depois em “Adicionar ao ecrã principal”.',
   'Full screen, its own icon, opens without a connection. Free, no app store.': 'Ecrã inteiro, ícone próprio, abre sem ligação. Grátis, sem loja de apps.',
   'Voice': 'Voz',
+  "Go to tonight's stay: {place}": 'Ir para o alojamento desta noite: {place}',
+  'Tonight: {place}': 'Esta noite: {place}',
+  'Go to…': 'Ir para…',
+  'Near you': 'Perto de si',
+  'Tonight · {place}': 'Esta noite · {place}',
   'Add a link (Booking, Google Maps, a post…)': 'Adicionar uma ligação (Booking, Google Maps, uma publicação…)',
   'Paste a link…': 'Cole uma ligação…',
   'Add': 'Adicionar',
@@ -796,4 +801,5 @@ export const PT_BR: Record<string, string> = {
   'Paste a link…': 'Cole um link…',
   'Could not read that link ({status})': 'Não foi possível ler esse link ({status})',
   'Could not read that link.': 'Não foi possível ler esse link.',
+  'Near you': 'Perto de você',
 };

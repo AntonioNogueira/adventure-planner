@@ -6,7 +6,7 @@ import {
 import { RouteInfo } from '../types';
 import { ScheduleDay } from '../lib/schedule';
 import { LatLng } from '../lib/geo';
-import { cumulativeKm, progressOn, googleMapsUrl, wazeUrl, arrivalAt, bearingDeg, rideTargets, RideTarget } from '../lib/ride';
+import { cumulativeKm, progressOn, googleMapsUrl, wazeUrl, arrivalAt, bearingDeg, rideTargets, RideTarget, tonightStay, nearYou } from '../lib/ride';
 import { haversineKm } from '../lib/geo';
 import { useSettings } from '../lib/settings';
 import { Turn, TurnKind, dayTurns, rejoinTurns, routeTo, nextAnnouncement, nextTurn, speak, canSpeak } from '../lib/voice';
@@ -166,6 +166,8 @@ const RideMode: React.FC<RideModeProps> = ({
       else setGotoFailed(true);
     });
   };
+  const tonight = tonightStay(targets, dayIndex);
+  const nearby = position ? nearYou(targets, position) : [];
   const startGoto = (key: string) => {
     const place = targets.flatMap(g => g.items).find(x => x.key === key) || null;
     setTarget(place); setGotoRoute(null); setGotoFailed(false); said.current = new Set();
@@ -279,15 +281,30 @@ const RideMode: React.FC<RideModeProps> = ({
           <button onClick={stopGoto} className="rounded border border-violet-300 px-2 py-0.5 font-semibold hover:bg-violet-100">{t('Stop')}</button>
         </div>
       ) : targets.length > 0 && (
-        <select className="h-8 w-full rounded-md border border-emerald-200 bg-white px-2 text-xs" aria-label={t('Go to a place on your trip')}
-          value="" onChange={(e) => startGoto(e.target.value)}>
-          <option value="">{t('Go to… (a stop or a place on your trip)')}</option>
-          {targets.map(g => (
-            <optgroup key={g.label} label={g.label}>
-              {g.items.map(x => <option key={x.key} value={x.key}>{x.glyph} {x.name}</option>)}
-            </optgroup>
-          ))}
-        </select>
+        <div className="flex gap-1.5">
+          {/* One tap to tonight's bed: the booked place, or a saved place to stay. */}
+          {tonight && (
+            <button onClick={() => startGoto(tonight.key)}
+              className="inline-flex min-w-0 max-w-[55%] shrink-0 items-center gap-1 rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-violet-700"
+              title={t('Go to tonight\'s stay: {place}', { place: tonight.name })}>
+              <span aria-hidden>🛏</span><span className="truncate">{t('Tonight: {place}', { place: tonight.name })}</span>
+            </button>
+          )}
+          <select className="h-8 min-w-0 flex-1 rounded-md border border-emerald-200 bg-white px-2 text-xs" aria-label={t('Go to a place on your trip')}
+            value="" onChange={(e) => startGoto(e.target.value)}>
+            <option value="">{t('Go to…')}</option>
+            {nearby.length > 0 && (
+              <optgroup label={t('Near you')}>
+                {nearby.map(x => <option key={`n-${x.key}`} value={x.key}>{x.glyph} {x.name} · {dist(x.km, x.km < 10 ? 1 : 0)}</option>)}
+              </optgroup>
+            )}
+            {[...targets].sort((a, b) => Number(b.stop === dayIndex + 1) - Number(a.stop === dayIndex + 1)).map(g => (
+              <optgroup key={g.label} label={g.stop === dayIndex + 1 ? t('Tonight · {place}', { place: g.label }) : g.label}>
+                {g.items.map(x => <option key={x.key} value={x.key}>{x.glyph} {x.name}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
       )}
 
       {/* The numbers that matter on the road, large. */}

@@ -62,7 +62,7 @@ describe('route done and ahead', () => {
   });
 });
 
-import { rideTargets } from '../ride';
+import { rideTargets, tonightStay, nearYou } from '../ride';
 describe('Go to: places on the trip', () => {
   it('lists each stop, then its bookings first and saved places, with positions', () => {
     const paths = [[{ lat: 38.7, lng: -9.4 }, { lat: 39.0, lng: -9.0 }], [{ lat: 39.0, lng: -9.0 }, { lat: 40.28, lng: -7.5 }]];
@@ -75,5 +75,10 @@ describe('Go to: places on the trip', () => {
     expect(groups[1].items.map(x => `${x.glyph} ${x.name}`)).toEqual(['📍 Óbidos', '✅ Casa B', '🍴 Tasca']);
     expect(groups[1].items[0].at).toEqual({ lat: 39.0, lng: -9.0 });
     expect(groups[2].items[0].at).toEqual({ lat: 40.28, lng: -7.5 });
+    // Day 1 ends in Óbidos: tonight's stay is the booking there.
+    expect(tonightStay(groups, 0)?.name).toBe('Casa B');
+    expect(tonightStay(groups, 1)).toBeUndefined();
+    // Riding in Óbidos: its places nearest first; the stop point (40 km away) and Covilhã are left out.
+    expect(nearYou(groups, { lat: 39.36, lng: -9.155 }).map(x => x.name)).toEqual(['Tasca', 'Casa B']);
   });
 });
