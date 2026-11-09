@@ -69,7 +69,35 @@ Affiliate links fit better than ads: the popups already have a named place, its 
 - Build plan: links generated from place name + town + nights, affiliate IDs in server settings (BOOKING_AID,
   GETYOURGUIDE_PARTNER_ID, …); without IDs the links still work, just without commission.
 
-## 6. Other ideas
+## 6. When does it pay? (rough model, per monthly active user)
+
+| | Free user on OpenStreetMap data | Free user on Google Places |
+|---|---|---|
+| Cost / month | ~€0.01–0.03 (AI, routes, hosting share) | ~€0.30–0.60 per trip planned (Places searches) |
+| Affiliate revenue / month | ~€0.03–0.10 (10–20% click a booking link, 2–5% of those book, ~€8 commission) | same |
+| Subscriptions (2–4% of actives × ~€4 net) | ~€0.08–0.16 | same |
+
+- Fixed costs to start: hosting €7–25, domain ~€2, email €0–7, later own map/route servers €30–80 → ~€50–100/month.
+- **Break-even ≈ 1,000 monthly active users** if free users run on OpenStreetMap data (or capped Google searches);
+  ~10–20k actives for €2–3k/month. Unlimited Google Places for free users loses money: keep the daily caps.
+
+## 7. Name, trademark, domain, email
+
+- Candidates near "Mappa Mundi" (medieval world map): Mappamundi, Mapamundi (PT/ES spelling), Mappa Trail,
+  Mundi Trails, Itinera / Itinerarium (Roman road itineraries), Portolano (medieval sea charts), Rota Mundi, Rumo.
+  Avoid Cartamundi (a large playing-card company).
+- "Mappa Mundi" alone is a historical/descriptive term: hard to register and to defend. A distinctive combination
+  (e.g. "Mappamundi Trails", "Mundi Trails") is stronger.
+- Trademark: not mandatory, but check conflicts first (EUIPO TMview, WIPO Global Brand Database, INPI Portugal).
+  Costs: INPI Portugal ≈ €120–200 per class; EU trademark (EUIPO) €850 for 1 class, +€50 the 2nd, +€150 each further.
+  Classes: 9 (apps/software), 39 (travel arrangement), 42 (online software/SaaS).
+- Domains: .com (first choice), .app (HTTPS-only, ~€15/year, good for an app), .travel (~€100/year), .pt, .eu.
+  Check availability at a registrar (Cloudflare Registrar sells at cost; Namecheap, Porkbun, PTisp for .pt).
+  Buy the .com and the .app (and the .pt if you're in Portugal) of the chosen name together.
+- Email on the domain: Cloudflare Email Routing (free forwarding to a Gmail, send-as from Gmail) to start;
+  Zoho Mail (free plan for a few users) or Google Workspace (~€7/user/month) when you need real mailboxes.
+
+## 8. Other ideas
 
 - Partnerships: campsites / hostels (affiliate booking links), bike and moto rental, local guides.
 - Pro features: several riders per trip, shared editing, branded PDF itineraries, GPX packs for groups.
