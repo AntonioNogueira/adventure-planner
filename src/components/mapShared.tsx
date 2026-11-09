@@ -6,7 +6,7 @@ import StopDetails from './StopDetails';
 import { placeHighlight, PlaceHighlight, townName } from '../lib/wiki';
 import { LatLng } from '../lib/geo';
 import { InterestCategory, InterestItem, RouteInfo, StopKind, StopRef, Waypoint } from '../types';
-import { CATEGORIES, CategoryId } from '../lib/places';
+import { CATEGORIES, CategoryId, categoryLabel } from '../lib/places';
 import { mapSearchUrl, mapSiteName } from '../lib/provider';
 
 export type MapPoint = Partial<Waypoint> & {
@@ -52,7 +52,7 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
   return (
     <div className="w-[240px] max-w-[70vw] space-y-1 p-1 font-sans text-xs">
       <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: isBooking ? '#6d28d9' : cat.color }}>
-        {cat.glyph} {isBooking ? `${t('Booked')} · ` : ''}{t(cat.name)}
+        {cat.glyph} {isBooking ? `${t('Booked')} · ` : ''}{t(categoryLabel(categoryId))}
       </p>
       <p className="text-sm font-semibold text-slate-900">{item.name}</p>
       {isBooking && r?.checkIn && <p className="text-slate-700">{[r.checkIn, r.checkOut].filter(Boolean).join(' → ')}</p>}
@@ -167,3 +167,48 @@ export function setMarkerHeading(el: HTMLElement, heading?: number) {
   dot.style.display = known ? 'none' : '';
   svg.style.transform = known ? `rotate(${heading}deg)` : '';
 }
+
+/** Suggested names when marking a place, by category. */
+const MARK_NAMES: Record<CategoryId, string> = { stay: 'Camp spot', food: 'Local producer', shop: 'Repair stop', water: 'Water point', sights: 'Viewpoint' };
+
+/** Clicking the map: add an overnight stop there, or mark your own place (a camp spot, a water point…) in a category. */
+export const MapClickMenu: React.FC<{ onAddStop?: () => void; onMark?: (category: CategoryId, name: string) => void }> = ({ onAddStop, onMark }) => {
+  const { t } = useSettings();
+  const [marking, setMarking] = useState(false);
+  const [category, setCategory] = useState<CategoryId>('stay');
+  const [name, setName] = useState('');
+  const ids = Object.keys(CATEGORIES) as CategoryId[];
+  if (!marking) {
+    return (
+      <div className="flex w-[220px] flex-col gap-1.5 font-sans">
+        {onAddStop && (
+          <button onClick={onAddStop} className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">+ {t('Add overnight stop here')}</button>
+        )}
+        {onMark && (
+          <button onClick={() => setMarking(true)} className="rounded-md border border-emerald-600 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50">📍 {t('Mark a place here')}</button>
+        )}
+      </div>
+    );
+  }
+  const save = () => onMark?.(category, name.trim() || t(MARK_NAMES[category]));
+  return (
+    <form className="flex w-[230px] flex-col gap-1.5 font-sans text-xs" onSubmit={(e) => { e.preventDefault(); save(); }}>
+      <p className="font-bold text-slate-800">{t('Mark a place here')}</p>
+      <div className="grid grid-cols-5 gap-1" role="radiogroup" aria-label={t('Category')}>
+        {ids.map(id => (
+          <button key={id} type="button" role="radio" aria-checked={category === id} title={t(categoryLabel(id))} onClick={() => setCategory(id)}
+            className="rounded-sm border py-1 text-base" style={category === id ? { borderColor: CATEGORIES[id].color, background: `${CATEGORIES[id].color}22` } : { borderColor: '#e5e0d4' }}>
+            {CATEGORIES[id].glyph}
+          </button>
+        ))}
+      </div>
+      <p className="text-[11px] font-semibold" style={{ color: CATEGORIES[category].color }}>{t(categoryLabel(category))}</p>
+      <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t(MARK_NAMES[category])} aria-label={t('Place name')}
+        className="h-8 rounded-md border border-emerald-200 bg-white px-2 focus:border-emerald-500 focus:outline-none" />
+      <div className="flex gap-1.5">
+        <button type="submit" className="flex-1 rounded-md bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-700">{t('Save')}</button>
+        <button type="button" onClick={() => setMarking(false)} className="rounded-md border px-2 py-1.5">{t('Back')}</button>
+      </div>
+    </form>
+  );
+};

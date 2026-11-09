@@ -33,7 +33,7 @@ export interface InterestItem {
   name: string;
   description?: string;
   /** Suggestions ('places' from Google Places, older plans 'ai') are replaced when a stop moves; reservations are kept. */
-  source?: 'ai' | 'places' | 'reservation';
+  source?: 'ai' | 'places' | 'reservation' | 'mine';
   reservation?: Reservation;
   /** Google Places data, so suggestions get their own pin and a direct Maps link. */
   placeId?: string;

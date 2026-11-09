@@ -10,11 +10,11 @@ import { elevationsAlong, climbStats } from './lib/elevation';
 import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
 import { downsample } from './lib/geo';
-import { placeSuggestions, LodgingPreference } from './lib/places';
+import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt } from './lib/geocode';
 import { bestInsertIndex, haversineKm, LatLng } from './lib/geo';
-import { mergeSuggestions, keepReservations } from './lib/suggestions';
+import { mergeSuggestions, keepReservations, isOwn } from './lib/suggestions';
 import { storeAttachment, readAsBase64, fileMimeType, attachmentFile } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
 import { Sparkles, MapPin } from 'lucide-react';
@@ -211,6 +211,8 @@ const App: React.FC = () => {
   const [routeStale, setRouteStale] = useState(false);
   // Moto/car trips: the vehicle, for fuel and toll estimates (from the request, a quick reply or the budget).
   const [vehicle, setVehicle] = useState<Vehicle | undefined>(undefined);
+  // Category names that depend on the trip ("Bike shops", "Mechanics"…).
+  setTravelContext(travelMode, vehicle);
   const passThroughRef = useRef<{ stopsKey: string; via: { name: string; beforeStop: number }[] } | null>(null);
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
@@ -625,6 +627,15 @@ const App: React.FC = () => {
     setToast({ message: err instanceof Error ? err.message : fallback, type: 'error' });
   };
 
+  // A place the traveller marks on the map (a camp spot, a water point…): filed on the nearest stop, kept for good.
+  const handleMarkPlace = async (at: LatLng, category: CategoryId, name: string) => {
+    const { target } = await placeOnStop(null, 0, at);
+    const item: InterestItem = { name, lat: at.lat, lng: at.lng, source: 'mine', category, description: tr('Marked by you') };
+    addToStop(target, CATEGORIES[category].name, item);
+    setHasChanges(true);
+    setToast({ message: tr('Marked "{name}" at {stop} · {category}', { name, stop: stopLabel(target), category: tr(categoryLabel(category)) }), type: 'success' });
+  };
+
   const handleAttachDocument = async (ref: StopRef | null, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       setToast({ message: tr('That file is over 10 MB. Try a smaller PDF or the booking email.'), type: 'error' });
@@ -756,7 +767,7 @@ const App: React.FC = () => {
     }
     let failed = false;
     refs.forEach((ref, i) => {
-      placeSuggestions(locations[i], mode, lodgingPref)
+      placeSuggestions(locations[i], mode, lodgingPref, 3, vehicle || '')
         .then(fresh => { if (fresh.length) updateStopInterests(ref, cats => mergeSuggestions(cats, fresh)); })
         .catch(err => {
           console.error('Place suggestions failed:', err);
@@ -785,7 +796,7 @@ const App: React.FC = () => {
       const cats = ref.kind === 'start' ? routeInfo?.originInterests
         : ref.kind === 'end' ? routeInfo?.destinationInterests
         : waypoints[ref.index!]?.interests;
-      return !cats?.some(c => c.items.some(i => i.source !== 'reservation'));
+      return !cats?.some(c => c.items.some(i => !isOwn(i)));
     });
     const some = empty.length <= MAX_EAGER_STOPS + 2 ? empty : empty.filter(s => s.ref.kind !== 'stop');
     loadSuggestions(some.map(s => s.ref), some.map(s => s.position || s.location), travelMode, lodging);
@@ -1161,6 +1172,7 @@ const App: React.FC = () => {
             routeInfo={routeInfo}
             onMoveStop={handleMoveStop}
             onAddStop={routeInfo ? handleAddStop : undefined}
+            onMarkPlace={routeInfo ? handleMarkPlace : undefined}
             onRemoveStop={handleRemoveStop}
             onFindPlaces={handleFindPlaces}
             onRemoveItem={handleRemoveItem}

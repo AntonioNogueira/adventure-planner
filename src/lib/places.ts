@@ -6,33 +6,54 @@ import { geocodeAddress } from './geocode';
 import { LatLng } from './geo';
 import { osmSuggestions, osmOvernightTowns } from './overpass';
 
-export type CategoryId = 'stay' | 'food' | 'shop' | 'sights';
+export type CategoryId = 'stay' | 'food' | 'shop' | 'water' | 'sights';
 
+/** The place categories. `name` is how they're saved with a trip; what's shown can depend on the trip (shopLabel). */
 export const CATEGORIES: Record<CategoryId, { name: string; glyph: string; color: string }> = {
-  stay: { name: 'Accommodations', glyph: '🛏', color: '#3d4f7a' },
-  food: { name: 'Restaurants/Cafes', glyph: '🍴', color: '#b5652a' },
-  shop: { name: 'Bike/Moto Shops', glyph: '🔧', color: '#5f5649' },
-  sights: { name: 'Points of Interest', glyph: '📷', color: '#2f6f6a' },
+  stay: { name: 'Stay', glyph: '🛏', color: '#3d4f7a' },
+  food: { name: 'Food', glyph: '🍴', color: '#b5652a' },
+  shop: { name: 'Shops & repairs', glyph: '🔧', color: '#5f5649' },
+  water: { name: 'Utilities', glyph: '💧', color: '#2a7ab0' },
+  sights: { name: 'Points of interest', glyph: '📷', color: '#2f6f6a' },
 };
 
-/** Map an AI or user category name back to one of the four. */
+/** Map a category name (from a saved trip, the AI or a booking) to one of the five. Older names still match. */
 export function categoryId(name: string): CategoryId {
   const n = name.toLowerCase();
-  if (/accommodation|hotel|stay|camp|hostel|lodg/.test(n)) return 'stay';
-  if (/restaurant|cafe|food|eat|drink/.test(n)) return 'food';
-  if (/shop|bike|moto|repair|gear|store/.test(n)) return 'shop';
+  if (/accommodation|hotel|stay|sleep|camp|bivouac|hostel|lodg/.test(n)) return 'stay';
+  if (/restaurant|cafe|café|food|eat|drink|supermarket|grocer|market|bakery|producer/.test(n)) return 'food';
+  if (/utilit|water|toilet|fuel|shower|charging/.test(n)) return 'water';
+  if (/shop|bike|moto|repair|gear|store|mechanic|sport/.test(n)) return 'shop';
   return 'sights';
+}
+
+// The traveller's mode and vehicle, for names that depend on them (set by the app when they change).
+let travel: { mode: string; vehicle?: string } = { mode: 'DRIVING' };
+export function setTravelContext(mode: string, vehicle?: string) { travel = { mode, vehicle }; }
+
+/** What the shops category is called for this kind of trip. */
+export function shopLabel(mode = travel.mode, vehicle = travel.vehicle): string {
+  if (mode === 'BICYCLING') return 'Bike shops';
+  if (mode === 'WALKING') return 'Sport shops';
+  if (vehicle?.startsWith('motorcycle')) return 'Moto shops';
+  if (vehicle === 'car' || vehicle === '4x4' || vehicle === 'campervan') return 'Mechanics';
+  return 'Moto & car repairs';
+}
+
+/** The name shown for a category (in English: translate with t()). */
+export function categoryLabel(id: CategoryId): string {
+  return id === 'shop' ? shopLabel() : CATEGORIES[id].name;
 }
 
 export type LodgingPreference = 'any' | 'camping' | 'hostel' | 'hotel';
 
-/** Real places to stay, eat, fix the bike and visit near a stop: 4 categories × `count`. */
+/** Real places near a stop: to stay, food (to eat or buy), shops & repairs, utilities (water, toilets, fuel), sights. */
 export async function placeSuggestions(
-  location: string | LatLng, travelMode: string, lodging: LodgingPreference = 'any', count = 3,
+  location: string | LatLng, travelMode: string, lodging: LodgingPreference = 'any', count = 3, vehicle = '',
 ): Promise<InterestCategory[]> {
   const center = typeof location === 'string' ? await geocodeAddress(location) : location;
   if (!center) return [];
-  return osmSuggestions(center, travelMode, lodging, count);
+  return osmSuggestions(center, travelMode, lodging, count, vehicle);
 }
 
 /**

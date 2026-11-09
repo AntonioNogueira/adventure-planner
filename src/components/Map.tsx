@@ -10,12 +10,12 @@ import { Waypoint, RouteInfo, StopRef } from '../types';
 import { cn } from '../lib/utils';
 import SegmentDetails from './SegmentDetails';
 import { geocodeAddress } from '../lib/geocode';
-import { CATEGORIES, CategoryId, categoryId } from '../lib/places';
+import { CATEGORIES, CategoryId, categoryId, categoryLabel } from '../lib/places';
 import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
 import { useSettings, t as tr } from '../lib/settings';
 import { rentalUrl, type Nights } from '../lib/affiliate';
-import { buildPoints, MapPoint, PlacePopup, StopPopup, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS } from './mapShared';
+import { buildPoints, MapPoint, PlacePopup, StopPopup, MapClickMenu, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS } from './mapShared';
 import { progressOn, splitAt } from '../lib/ride';
 
 interface MapProps {
@@ -28,6 +28,8 @@ interface MapProps {
   routeInfo?: RouteInfo | null;
   onMoveStop?: (ref: StopRef, position: LatLng) => void;
   onAddStop?: (position: LatLng) => void;
+  /** Mark your own place (a camp spot, a water point…) in a category, filed on the nearest stop. */
+  onMarkPlace?: (position: LatLng, category: CategoryId, name: string) => void;
   onRemoveStop?: (index: number) => void;
   onFindPlaces?: (ref: StopRef) => void;
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
@@ -146,7 +148,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
 
 const MapView: React.FC<MapProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
-  onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays, ride,
+  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, attachingKey, stays, ride,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -159,8 +161,8 @@ const MapView: React.FC<MapProps> = ({
   const activeSegmentRef = useRef(-1);
   const segmentsRef = useRef(segments);
   segmentsRef.current = segments;
-  const callbacksRef = useRef({ onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode });
-  callbacksRef.current = { onMoveStop, onAddStop, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode };
+  const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode });
+  callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onRemoveItem, onAttachFile, travelMode };
   const [mapType, setMapType] = useState<MapType>('topo');
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
@@ -330,14 +332,12 @@ const MapView: React.FC<MapProps> = ({
         openStopRef.current = null;
         return;
       }
-      if (!callbacksRef.current.onAddStop) return;
+      if (!callbacksRef.current.onAddStop && !callbacksRef.current.onMarkPlace) return;
       showPopup(at, (
-        <button
-          className="rounded-md bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-700"
-          onClick={() => { popupRef.current?.remove(); callbacksRef.current.onAddStop?.(at); }}
-        >
-          + {tr('Add overnight stop here')}
-        </button>
+        <MapClickMenu
+          onAddStop={callbacksRef.current.onAddStop && (() => { popupRef.current?.remove(); callbacksRef.current.onAddStop?.(at); })}
+          onMark={callbacksRef.current.onMarkPlace && ((category, name) => { popupRef.current?.remove(); callbacksRef.current.onMarkPlace?.(at, category, name); })}
+        />
       ), 0);
       openStopRef.current = null;
     });
@@ -471,12 +471,12 @@ const MapView: React.FC<MapProps> = ({
               key={id}
               onClick={() => setHiddenCategories(prev => hidden ? prev.filter(c => c !== id) : [...prev, id])}
               aria-pressed={!hidden}
-              title={hidden ? t('Show {name} on the map', { name: t(CATEGORIES[id].name) }) : t('Hide {name} on the map', { name: t(CATEGORIES[id].name) })}
+              title={hidden ? t('Show {name} on the map', { name: t(categoryLabel(id)) }) : t('Hide {name} on the map', { name: t(categoryLabel(id)) })}
               className={cn("flex items-center gap-1 rounded-sm border bg-white/90 px-2.5 py-1 text-[11px] font-semibold shadow-md backdrop-blur transition-opacity", hidden && "opacity-50 line-through")}
               style={{ color: CATEGORIES[id].color, borderColor: CATEGORIES[id].color }}
             >
               <span>{CATEGORIES[id].glyph}</span>
-              <span className="hidden sm:inline">{t(CATEGORIES[id].name)}</span>
+              <span className="hidden sm:inline">{t(categoryLabel(id))}</span>
             </button>
           );
         })}

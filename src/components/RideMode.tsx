@@ -247,7 +247,7 @@ const RideMode: React.FC<RideModeProps> = ({
           <p className="truncate text-sm font-bold text-emerald-950">
             {t('Day {n}', { n: dayNumber || dayIndex + 1 })}{dayDate && <span className="font-normal text-muted-foreground"> · {date(dayDate)}</span>}
           </p>
-          <p className="truncate text-[11px] text-muted-foreground">{leg ? `${leg.from.split(',')[0]} → ${to}` : ''}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{leg ? `${leg.from.split(',')[0]} → ${dayTo}` : ''}</p>
         </div>
         <button onClick={() => onDayChange(Math.min(paths.length - 1, dayIndex + 1))} disabled={dayIndex >= paths.length - 1} aria-label={t('Next day')}
           className="rounded p-1 hover:bg-slate-100 disabled:opacity-30"><ChevronRight size={18} /></button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowLeft, ArrowRight, X, Paperclip, Loader2, FileText, MapPin } from 'lucide-react';
+import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowLeft, ArrowRight, X, Paperclip, Loader2, FileText, MapPin, Droplet } from 'lucide-react';
 import { InterestCategory, StopKind } from '../types';
 import { cn } from '../lib/utils';
 import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
@@ -8,6 +8,7 @@ import { stayUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
 import { townName } from '../lib/wiki';
 import { mapSearchUrl } from '../lib/provider';
 import LinkAdder from './LinkAdder';
+import { categoryId, categoryLabel } from '../lib/places';
 
 export type { StopKind } from '../types';
 
@@ -52,15 +53,8 @@ const THEMES: Record<StopKind, {
 };
 
 export const InterestIcon = ({ category, className }: { category: string, className?: string }) => {
-  const cat = category.toLowerCase();
-  if (cat.includes('accommodation') || cat.includes('stay') || cat.includes('hotel') || cat.includes('hostel')) return <Home size={13} className={className} />;
-  if (cat.includes('restaurant') || cat.includes('food') || cat.includes('eat') || cat.includes('cafe')) return <Utensils size={13} className={className} />;
-  if (cat.includes('camp')) return <Tent size={13} className={className} />;
-  if (cat.includes('bike') || cat.includes('moto') || cat.includes('repair')) return <Wrench size={13} className={className} />;
-  if (cat.includes('scenic') || cat.includes('view') || cat.includes('photo') || cat.includes('point')) return <Camera size={13} className={className} />;
-  if (cat.includes('coffee') || cat.includes('drink')) return <Coffee size={13} className={className} />;
-  if (cat.includes('shop') || cat.includes('store') || cat.includes('market')) return <ShoppingBag size={13} className={className} />;
-  return <Info size={13} className={className} />;
+  const Icon = { stay: Home, food: Utensils, shop: Wrench, water: Droplet, sights: Camera }[categoryId(category)] || Info;
+  return <Icon size={13} className={className} />;
 };
 
 interface StopDetailsProps {
@@ -130,6 +124,8 @@ const StopDetails: React.FC<StopDetailsProps> = ({
       {interests.some(c => c.items.length > 0) ? (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {interests.map((cat, catIdx) => {
+            // Nothing found in this category here: no empty box (indexes stay those of the trip's data).
+            if (!cat.items.length) return null;
             // Reservations first, then suggestions (fewer in the compact map popup).
             const indexed = cat.items.map((item, itemIdx) => ({ item, itemIdx }));
             const reservations = indexed.filter(({ item }) => item.source === 'reservation');
@@ -139,7 +135,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                 <div className={cn('mb-1 flex items-center gap-1.5 border-b pb-1', t.tileBorder)}>
                   <InterestIcon category={cat.category} className={cn('shrink-0', t.icon)} />
                   <span className={cn('truncate whitespace-nowrap text-[11px] font-bold uppercase tracking-wide', t.category)} title={tr(cat.category)}>
-                    {tr(cat.category)}
+                    {tr(categoryLabel(categoryId(cat.category)))}
                   </span>
                 </div>
                 <ul className="space-y-1">

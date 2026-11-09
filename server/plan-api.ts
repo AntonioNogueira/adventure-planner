@@ -70,7 +70,8 @@ interface ChatMessage {
   text: string;
 }
 
-const CATEGORIES = ['Accommodations', 'Restaurants/Cafes', 'Bike/Moto Shops', 'Points of Interest'];
+// Same names as the app's place categories (src/lib/places.ts).
+const CATEGORIES = ['Stay', 'Food', 'Shops & repairs', 'Utilities', 'Points of interest'];
 
 const LANGUAGE_NAMES: Record<string, string> = { 'pt-PT': 'European Portuguese (Portugal)', 'pt-BR': 'Brazilian Portuguese' };
 
@@ -507,10 +508,11 @@ Extract the booking details. Use empty strings for anything that is not in the f
 Give dates twice: as written in checkIn/checkOut, and as YYYY-MM-DD in checkInDate/checkOutDate.
 
 Choose "category":
-- "Accommodations" for hotels, hostels, campsites, apartments and other places to sleep
-- "Restaurants/Cafes" for food and drink
-- "Bike/Moto Shops" for rentals, repairs and gear
-- "Points of Interest" for tours, tickets and attractions
+- "Stay" for hotels, hostels, campsites, apartments, mountain huts and other places to sleep
+- "Food" for restaurants, cafés, supermarkets, markets and local producers
+- "Shops & repairs" for bike, moto and car rentals, repairs, mechanics, sport and outdoor gear
+- "Utilities" for fuel, charging, water points, showers and toilets
+- "Points of interest" for tours, tickets and attractions
 
 The trip stops are:
 ${stops.map((stop, i) => `${i}: ${stop}`).join('\n')}
@@ -526,10 +528,11 @@ If there are dates, give them as written in checkIn/checkOut and as YYYY-MM-DD i
 Put a one-line summary of what the post or page says about the place in "notes".
 
 Choose "category":
-- "Accommodations" for hotels, hostels, campsites, apartments and other places to sleep
-- "Restaurants/Cafes" for food and drink
-- "Bike/Moto Shops" for rentals, repairs and gear
-- "Points of Interest" for viewpoints, trails, beaches, tours, tickets and attractions
+- "Stay" for hotels, hostels, campsites, apartments, huts and places to camp in nature
+- "Food" for restaurants, cafés, supermarkets, markets and local producers
+- "Shops & repairs" for bike, moto and car rentals, repairs, mechanics, sport and outdoor gear
+- "Utilities" for fuel, charging, water points, springs, showers and toilets
+- "Points of interest" for viewpoints, trails, beaches, tours, tickets and attractions
 
 The trip stops are:
 ${stops.map((stop, i) => `${i}: ${stop}`).join('\n')}
