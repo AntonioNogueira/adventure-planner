@@ -123,3 +123,25 @@ General orientation, not legal/tax advice: thresholds and rates change; confirm 
 - Partnerships: campsites / hostels (affiliate booking links), bike and moto rental, local guides.
 - Pro features: several riders per trip, shared editing, branded PDF itineraries, GPX packs for groups.
 - Curated off-road routes (e.g. Trans Euro Trail-style tracks) as a premium layer.
+
+## 10. Google vs OpenStreetMap, measured (9 Nov 2026)
+
+8 trips in 6 countries, every service called directly (`scripts/bench`). Report: "Map Stack Comparison" artifact.
+
+| | Google | OpenStreetMap |
+|---|---|---|
+| Typical answer: place names / road route / places | 0.18 s / 0.23 s / 0.28 s | 0.16 s / 0.57 s / 0.19 s |
+| Off-road day route | 0.18 s (roads only) | 0.74 s typical, 3.1 s slowest (BRouter) |
+| Road routes | same distance within ~5% | same |
+| Off-road: unpaved share | 11% | 68% |
+| Places per stop | max 20, ~98% with rating, photos; hours 50–98% | 27–45 names, no ratings/photos |
+| Reliability | 0 failures | free public servers refused 11 of 80 place searches (busy); all fine on retry |
+
+- The slowness seen in the OpenStreetMap version comes from the free public servers (Overpass most of all, which
+  refused this cloud server outright), not from the data or the routing. Own or paid servers fix it.
+- Google fees ≈ $0.70 per planned trip (4 stops × 4 place searches at $32–35 per 1,000 + maps, routes, geocoding);
+  revenue ≈ €0.18 per monthly user. All-Google loses money at every size; a hybrid (Google map, Google Places for
+  stays only, ≈ $0.24/trip) too. All-OpenStreetMap breaks even at ≈ 400 monthly users (€40–260/month servers).
+- Google's place data may only be shown on a Google map, so a single OpenStreetMap version can't use it.
+  Ratings later: a place-data service allowed on any map (e.g. Foursquare) for paid plans only.
+- Decision suggested: one OpenStreetMap version on own/paid servers; Booking.com "Check prices" for reviews and commission.
