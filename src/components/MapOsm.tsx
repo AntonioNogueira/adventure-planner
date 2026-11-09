@@ -221,6 +221,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
     if (!ride) {
       rideMarkerRef.current?.remove();
       rideMarkerRef.current = null;
+      if (rideDayRef.current !== null) map.easeTo({ bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 });
       rideDayRef.current = null;
       return;
     }
@@ -231,15 +232,26 @@ const MapOsm: React.FC<MapOsmProps> = ({
       const bounds = new maplibregl.LngLatBounds();
       day.path.forEach(p => bounds.extend([p.lng, p.lat]));
       if (!ride.follow || !ride.position) {
-        map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 }, duration: 600 });
+        map.fitBounds(bounds, { bearing: 0, padding: window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 }, duration: 600 });
       }
     }
     if (ride.position) {
-      if (!rideMarkerRef.current) rideMarkerRef.current = new maplibregl.Marker({ element: positionMarker() }).setLngLat([ride.position.lng, ride.position.lat]).addTo(map);
+      // The arrow turns with the map (so it points up when the map faces the direction of travel).
+      if (!rideMarkerRef.current) rideMarkerRef.current = new maplibregl.Marker({ element: positionMarker(), rotationAlignment: 'map' }).setLngLat([ride.position.lng, ride.position.lat]).addTo(map);
       else rideMarkerRef.current.setLngLat([ride.position.lng, ride.position.lat]);
-      setMarkerHeading(rideMarkerRef.current.getElement(), ride.heading);
-      if (ride.follow) map.easeTo({ center: [ride.position.lng, ride.position.lat], zoom: Math.max(map.getZoom(), 14), duration: 500 });
+      rideMarkerRef.current.setRotation(ride.heading ?? 0);
+      setMarkerHeading(rideMarkerRef.current.getElement(), ride.heading == null ? undefined : 0);
+      // Following: the map faces the way you're going, with you low on the screen to show more of the road ahead.
+      if (ride.follow) {
+        map.easeTo({
+          center: [ride.position.lng, ride.position.lat], zoom: Math.max(map.getZoom(), 15),
+          bearing: ride.heading ?? map.getBearing(), padding: { top: Math.round(map.getContainer().clientHeight * 0.22), bottom: 0, left: 0, right: 0 },
+          duration: 700,
+        });
+      }
     }
+    // Not following: back to north up.
+    if (!ride.follow && map.getBearing() !== 0) map.easeTo({ bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 500 });
   }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.heading, ride?.follow, Boolean(ride), segments, isReady]);
 
   // Ride mode: the way back to the route when off it (dashed blue).
@@ -271,7 +283,7 @@ const MapOsm: React.FC<MapOsmProps> = ({
       zoom: 4,
       attributionControl: { compact: true },
     });
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    map.addControl(new maplibregl.NavigationControl({ showCompass: true, visualizePitch: false }), 'top-right');
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
     mapRef.current = map;
 

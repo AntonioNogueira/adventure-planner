@@ -122,7 +122,7 @@ No App Store or Play Store account or fee is needed.
 - **iPhone (Safari):** open the site → Share → *Add to Home Screen*.
 - **Android (Chrome):** the app offers *Install the app on this device* (Settings menu and Ride tab), or browser menu → *Install app*.
 
-**Ride** (fourth tab) is the day being ridden, drawn like a navigation map (ridden part grey, part ahead blue, other days faded, an arrow for your direction): live GPS position and follow-me, km left and arrival time to tonight's
+**Ride** (fourth tab) is the day being ridden, drawn like a navigation map (ridden part grey, part ahead blue, other days faded, an arrow for your direction): live GPS position and follow-me (in the OpenStreetMap version the map turns to face the way you ride, with more road ahead; the compass button or turning Follow off puts north back up; the Google version stays north up, as turning needs a vector map ID set up in Google Cloud), km left and arrival time to tonight's
 stop, an off-route warning, the screen kept on (Wake Lock), and one tap to open the rest of the day in Google Maps
 (with via points to keep it on our route) or Waze, or to download the day's GPX for OsmAnd, Garmin, Kurviger or Calimoto.
 **Voice turn-by-turn** (the *Voice* button in Ride; `src/lib/voice.ts`): the day's path is matched to OpenStreetMap

@@ -224,6 +224,7 @@ const Map: React.FC<MapProps> = ({
     if (!ride) {
       rideMarkerRef.current && (rideMarkerRef.current.map = null);
       rideMarkerRef.current = null;
+      if (rideDayRef.current !== null) map.setHeading(0);
       rideDayRef.current = null;
       return;
     }
@@ -241,17 +242,31 @@ const Map: React.FC<MapProps> = ({
       rideDayRef.current = ride.dayIndex;
       const bounds = new google.maps.LatLngBounds();
       day.path.forEach(p => bounds.extend(p));
+      if (!ride.follow || !ride.position) map.setHeading(0);
       if (!ride.follow || !ride.position) map.fitBounds(bounds, window.innerWidth < 768 ? { top: 120, left: 30, right: 30, bottom: Math.round(window.innerHeight * 0.45) } : { top: 100, left: 80, right: 80, bottom: 320 });
     }
+    // Following: on a vector map (a map ID styled as vector in Google Cloud) the map faces the way you're going,
+    // with you low on the screen; on the raster map it stays north up with you in the centre.
+    if (ride.position && ride.follow && map.getRenderingType() !== google.maps.RenderingType.VECTOR) {
+      map.moveCamera({ center: ride.position, zoom: Math.max(map.getZoom() || 0, 15) });
+    } else if (ride.position && ride.follow) {
+      const zoom = Math.max(map.getZoom() || 0, 15);
+      const heading = ride.heading ?? map.getHeading() ?? 0;
+      // Put the rider ~30% below the centre: aim the camera that far ahead along the heading.
+      const metresPerPx = (156543.03392 * Math.cos((ride.position.lat * Math.PI) / 180)) / 2 ** zoom;
+      const ahead = (map.getDiv().clientHeight * 0.15 * metresPerPx) / 111_320;
+      const r = (heading * Math.PI) / 180;
+      const center = { lat: ride.position.lat + ahead * Math.cos(r), lng: ride.position.lng + (ahead * Math.sin(r)) / Math.cos((ride.position.lat * Math.PI) / 180) };
+      map.moveCamera({ center, zoom, heading });
+    } else if (!ride.follow && (map.getHeading() || 0) !== 0) map.setHeading(0);
     if (ride.position) {
       (async () => {
         const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
         if (!rideMarkerRef.current) rideMarkerRef.current = new AdvancedMarkerElement({ map, content: positionMarker(), zIndex: 50 });
         rideMarkerRef.current.position = ride.position;
-        setMarkerHeading(rideMarkerRef.current.content as HTMLElement, ride.heading);
+        setMarkerHeading(rideMarkerRef.current.content as HTMLElement, ride.heading == null ? undefined : ride.heading - (map.getHeading() || 0));
         rideMarkerRef.current.map = map;
       })();
-      if (ride.follow) { map.panTo(ride.position); if ((map.getZoom() || 0) < 13) map.setZoom(14); }
     }
   }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.heading, ride?.follow, Boolean(ride), segments, isReady]);
 
