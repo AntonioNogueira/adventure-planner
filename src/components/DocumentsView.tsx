@@ -1,12 +1,14 @@
 import React, { useMemo, useRef } from 'react';
-import { FileText, Mail, Image as ImageIcon, Paperclip, Loader2, ExternalLink, X, FolderOpen } from 'lucide-react';
+import { FileText, Mail, Image as ImageIcon, Paperclip, Loader2, ExternalLink, X, FolderOpen, Link2 } from 'lucide-react';
 import { RouteInfo, StopRef, InterestItem } from '../types';
 import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
 import { useSettings } from '../lib/settings';
+import LinkAdder from './LinkAdder';
+import { cn } from '../lib/utils';
 
 interface DocumentsViewProps {
   routeInfo: RouteInfo | null;
-  onAttachFile: (ref: StopRef | null, file: File) => void;
+  onAttachFile: (ref: StopRef | null, file: File | string) => void;
   onRemoveItem: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
   attachingKey: string | null;
 }
@@ -21,7 +23,7 @@ interface Doc {
 }
 
 const iconFor = (type: string, name: string) =>
-  /image/.test(type) ? ImageIcon : /rfc822|message|\.eml$/i.test(type + name) ? Mail : FileText;
+  type === 'text/uri-list' ? Link2 : /image/.test(type) ? ImageIcon : /rfc822|message|\.eml$/i.test(type + name) ? Mail : FileText;
 
 /** All attached files of the trip in one place, grouped by stop in route order. */
 const DocumentsView: React.FC<DocumentsViewProps> = ({ routeInfo, onAttachFile, onRemoveItem, attachingKey }) => {
@@ -37,7 +39,7 @@ const DocumentsView: React.FC<DocumentsViewProps> = ({ routeInfo, onAttachFile, 
     const out: Doc[] = [];
     stops.forEach(s => (s.interests || []).forEach((cat, categoryIndex) => cat.items.forEach((item, itemIndex) => {
       if (item.source !== 'reservation' || !item.reservation) return;
-      out.push({ ref: s.ref, stopLabel: s.label, categoryIndex, itemIndex, item, url: attachmentUrl(item.reservation.fileId) || item.reservation.fileUrl });
+      out.push({ ref: s.ref, stopLabel: s.label, categoryIndex, itemIndex, item, url: attachmentUrl(item.reservation.fileId) || item.reservation.fileUrl || item.reservation.url });
     })));
     return out;
   }, [routeInfo]);
@@ -55,6 +57,7 @@ const DocumentsView: React.FC<DocumentsViewProps> = ({ routeInfo, onAttachFile, 
         {busy ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />}
         {busy ? t('Reading…') : t('Add document')}
       </button>
+      {routeInfo && <div className="w-full sm:w-72"><LinkAdder busy={busy} onAdd={(url) => onAttachFile(null, url)} /></div>}
     </>
   );
 
@@ -91,10 +94,11 @@ const DocumentsView: React.FC<DocumentsViewProps> = ({ routeInfo, onAttachFile, 
               {isImage ? (
                 <img src={d.url} alt={r.fileName} className="h-28 w-full object-cover" />
               ) : (
-                <div className="flex h-16 items-center gap-2 bg-violet-50 px-3 text-violet-700">
+                <a href={r.url || d.url || undefined} target="_blank" rel="noopener noreferrer"
+                  className={cn('flex h-16 items-center gap-2 bg-violet-50 px-3 text-violet-700', (r.url || d.url) && 'hover:bg-violet-100')}>
                   <Icon size={22} />
-                  <span className="truncate text-xs font-medium" title={r.fileName}>{r.fileName}</span>
-                </div>
+                  <span className="truncate text-xs font-medium" title={r.url || r.fileName}>{r.fileName}{r.url ? ' ↗' : ''}</span>
+                </a>
               )}
               <div className="flex flex-1 flex-col gap-1 p-3 text-xs">
                 <div className="flex items-start justify-between gap-2">

@@ -6,10 +6,10 @@ import {
 import { RouteInfo } from '../types';
 import { ScheduleDay } from '../lib/schedule';
 import { LatLng } from '../lib/geo';
-import { cumulativeKm, progressOn, googleMapsUrl, wazeUrl, arrivalAt, bearingDeg } from '../lib/ride';
+import { cumulativeKm, progressOn, googleMapsUrl, wazeUrl, arrivalAt, bearingDeg, rideTargets, RideTarget } from '../lib/ride';
 import { haversineKm } from '../lib/geo';
 import { useSettings } from '../lib/settings';
-import { Turn, TurnKind, dayTurns, rejoinTurns, nextAnnouncement, nextTurn, speak, canSpeak } from '../lib/voice';
+import { Turn, TurnKind, dayTurns, rejoinTurns, routeTo, nextAnnouncement, nextTurn, speak, canSpeak } from '../lib/voice';
 import { cn } from '../lib/utils';
 import InstallHint from './InstallHint';
 
@@ -64,6 +64,11 @@ const RideMode: React.FC<RideModeProps> = ({
   const said = useRef(new Set<string>());
   const lastRejoin = useRef(0);
   const wasOff = useRef(false);
+  // "Go to": a place on the trip picked from the list, and the route to it from where you are.
+  const [target, setTarget] = useState<RideTarget | null>(null);
+  const [gotoRoute, setGotoRoute] = useState<{ path: LatLng[]; cum: number[]; turns: Turn[] } | null>(null);
+  const [gotoFailed, setGotoFailed] = useState(false);
+  const lastGoto = useRef(0);
 
   // Live position (foreground; phones keep it going while the screen is on).
   useEffect(() => {
@@ -118,36 +123,74 @@ const RideMode: React.FC<RideModeProps> = ({
   const dayNumber = schedule.findIndex(d => d.kind === 'ride' && d.legIndex === dayIndex) + 1;
   const dayDate = schedule.find(d => d.kind === 'ride' && d.legIndex === dayIndex)?.date;
   // A few hundred metres off: a warning. Far away (another day, not started yet): just say how far.
-  const far = Boolean(progress && progress.offRouteKm > 5);
-  const offRoute = progress && progress.offRouteKm > 0.25 && !far;
-  const remaining = progress && !far ? progress.remainingKm : totalKm;
+  // While going to a picked place, the day's route warnings are off.
+  const far = !target && Boolean(progress && progress.offRouteKm > 5);
+  const offRoute = !target && progress && progress.offRouteKm > 0.25 && !far;
+  const nav = gotoRoute && position ? progressOn(gotoRoute.path, position, gotoRoute.cum) : null;
+  const remaining = target
+    ? (nav ? nav.remainingKm : position ? haversineKm(position, target.at) : 0)
+    : progress && !far ? progress.remainingKm : totalKm;
   const plannedKmh = leg?.durationSeconds ? (leg.distanceMeters || 0) / 1000 / (leg.durationSeconds / 3600) : 0;
+  const dayTo = (leg?.to || routeInfo?.destination || '').split(',')[0];
+  const targets = useMemo(() => (routeInfo ? rideTargets(routeInfo, paths) : []), [routeInfo, paths]);
+  const to = target ? target.name : dayTo;
   const eta = arrivalAt(remaining, kmh >= 5 ? kmh : plannedKmh);
-  const to = (leg?.to || routeInfo?.destination || '').split(',')[0];
 
   // The day's turns (in the user's language); re-fetched when the day, language or units change.
   useEffect(() => {
     let live = true;
     setTurns([]); setDetour(null); said.current = new Set(); wasOff.current = false;
     if (path.length > 1) {
-      dayTurns(path, { travelMode, offroad, language: settings.language, units: settings.units, destination: to })
+      dayTurns(path, { travelMode, offroad, language: settings.language, units: settings.units, destination: dayTo })
         .then(list => { if (live) setTurns(list); });
     }
     return () => { live = false; };
   }, [path, travelMode, offroad, settings.language, settings.units]);
 
-  useEffect(() => { onDetour?.(detour?.path); }, [detour]);
+  useEffect(() => { onDetour?.(gotoRoute?.path || detour?.path); }, [detour, gotoRoute]);
   useEffect(() => () => onDetour?.(undefined), []);
 
   const say = (text: string) => { if (voice) speak(text, settings.language); };
 
   // Detour progress (when off the route and a way back was found).
   const detourProgress = detour && position ? progressOn(detour.path, position, detour.cum) : null;
-  const upcoming = detour && detourProgress ? nextTurn(detour.turns, detourProgress.alongKm) : progress && !far ? nextTurn(turns, progress.alongKm) : undefined;
-  const upcomingKm = upcoming ? upcoming.km - (detour && detourProgress ? detourProgress.alongKm : progress?.alongKm || 0) : 0;
+  const upcoming = target ? (gotoRoute && nav ? nextTurn(gotoRoute.turns, nav.alongKm) : undefined)
+    : detour && detourProgress ? nextTurn(detour.turns, detourProgress.alongKm) : progress && !far ? nextTurn(turns, progress.alongKm) : undefined;
+  const upcomingKm = upcoming ? upcoming.km - (target ? nav?.alongKm || 0 : detour && detourProgress ? detourProgress.alongKm : progress?.alongKm || 0) : 0;
+
+  const opts = { travelMode, offroad, language: settings.language, units: settings.units };
+  const findWay = (from: LatLng, place: RideTarget) => {
+    lastGoto.current = Date.now();
+    routeTo(from, place.at, opts).then(r => {
+      if (r && r.path.length > 1) { setGotoRoute({ ...r, cum: cumulativeKm(r.path) }); setGotoFailed(false); }
+      else setGotoFailed(true);
+    });
+  };
+  const startGoto = (key: string) => {
+    const place = targets.flatMap(g => g.items).find(x => x.key === key) || null;
+    setTarget(place); setGotoRoute(null); setGotoFailed(false); said.current = new Set();
+    if (!place) return;
+    say(t('Going to {place}.', { place: place.name }));
+    if (position) findWay(position, place);
+  };
+  const stopGoto = () => { setTarget(null); setGotoRoute(null); setGotoFailed(false); said.current = new Set(); };
 
   // What to say at each GPS fix.
   useEffect(() => {
+    if (target && position) {
+      // No route yet (no GPS when picked) or left it: ask for one, at most every 20 s.
+      if ((!gotoRoute || (nav && nav.offRouteKm > 0.25)) && Date.now() - lastGoto.current > 20_000) findWay(position, target);
+      if (nav && nav.remainingKm < 0.04) {
+        say(t('You have arrived at {place}', { place: target.name }));
+        stopGoto();
+        return;
+      }
+      if (gotoRoute && nav) {
+        const next = nextAnnouncement(gotoRoute.turns.filter(x => x.kind !== 'arrive'), nav.alongKm, kmh, said.current, settings.units, locale);
+        if (next) { said.current.add(next.key); say(next.text); }
+      }
+      return;
+    }
     if (!progress || far) return;
     // Back on the route: drop the detour.
     if (progress.offRouteKm < 0.08) {
@@ -221,6 +264,31 @@ const RideMode: React.FC<RideModeProps> = ({
           </div>
         );
       })()}
+
+      {/* Go to a place on the trip: a stop, a booked place or a saved one. */}
+      {target ? (
+        <div className="flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50 px-2 py-1.5 text-xs text-violet-900">
+          <span className="min-w-0 flex-1 truncate">
+            <b>{t('Going to {place}', { place: `${target.glyph} ${target.name}` })}</b>
+            {gotoFailed && <span className="block text-[10px]">{t("No route found from here: use Google Maps or Waze.")}</span>}
+            {!position && <span className="block text-[10px]">{t('Waiting for GPS…')}</span>}
+          </span>
+          <a href={`https://www.google.com/maps/dir/?api=1&destination=${target.at.lat},${target.at.lng}&travelmode=${travelMode === 'BICYCLING' ? 'bicycling' : travelMode === 'WALKING' ? 'walking' : 'driving'}`}
+            target="_blank" rel="noopener noreferrer" className="font-semibold text-violet-800 hover:underline">Maps</a>
+          <a href={`https://waze.com/ul?ll=${target.at.lat},${target.at.lng}&navigate=yes`} target="_blank" rel="noopener noreferrer" className="font-semibold text-violet-800 hover:underline">Waze</a>
+          <button onClick={stopGoto} className="rounded border border-violet-300 px-2 py-0.5 font-semibold hover:bg-violet-100">{t('Stop')}</button>
+        </div>
+      ) : targets.length > 0 && (
+        <select className="h-8 w-full rounded-md border border-emerald-200 bg-white px-2 text-xs" aria-label={t('Go to a place on your trip')}
+          value="" onChange={(e) => startGoto(e.target.value)}>
+          <option value="">{t('Go to… (a stop or a place on your trip)')}</option>
+          {targets.map(g => (
+            <optgroup key={g.label} label={g.label}>
+              {g.items.map(x => <option key={x.key} value={x.key}>{x.glyph} {x.name}</option>)}
+            </optgroup>
+          ))}
+        </select>
+      )}
 
       {/* The numbers that matter on the road, large. */}
       <div className="grid grid-cols-3 gap-2 text-center">

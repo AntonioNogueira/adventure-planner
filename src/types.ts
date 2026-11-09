@@ -9,6 +9,8 @@ export interface RouteStep {
 export interface Reservation {
   fileName: string;
   fileType: string;
+  /** A booking or place added from a shared link: the page it came from. */
+  url?: string;
   /** Key into the in-browser attachment store (this session). */
   fileId?: string;
   /** Firebase Storage link, once the trip has been saved. */

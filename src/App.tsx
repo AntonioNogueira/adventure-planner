@@ -565,7 +565,67 @@ const App: React.FC = () => {
 
   // Read a booking file with the AI, then place it on the stop whose town is nearest to the booking's address.
   // `ref` is where the user attached it; it wins unless the address is clearly at another stop.
-  const handleAttachFile = async (ref: StopRef | null, file: File) => {
+  // A file (PDF, email, image) or a link (Booking/Airbnb share, Google Maps place, a post) becomes a booking or saved
+  // place on the matching stop; a link far from every stop becomes a new stop on the route.
+  const handleAttachFile = (ref: StopRef | null, input: File | string) =>
+    typeof input === 'string' ? handleAttachLink(ref, input) : handleAttachDocument(ref, input);
+
+  /** The stop a booking belongs to: the one it was attached to, unless its address is clearly nearer another. */
+  const placeOnStop = async (ref: StopRef | null, stopIndex: number, position: LatLng | null) => {
+    const stops = allStops();
+    let target = ref || stops[stopIndex]?.ref || stops[0].ref;
+    let nearestKm = Infinity;
+    if (position) {
+      const located = await Promise.all(stops.map(async s => ({ ...s, at: s.position || await geocodeAddress(s.location) })));
+      const ranked = located
+        .filter(s => s.at)
+        .map(s => ({ ...s, km: haversineKm(position, s.at!) }))
+        .sort((a, b) => a.km - b.km);
+      const nearest = ranked[0];
+      nearestKm = nearest?.km ?? Infinity;
+      const chosen = ranked.find(s => s.ref.kind === target.kind && s.ref.index === target.index);
+      if (nearest && (!ref || !chosen || (chosen.km > 50 && nearest.km < chosen.km))) target = nearest.ref;
+    }
+    return { target, nearestKm };
+  };
+
+  const addToStop = (target: StopRef, category: string, item: InterestItem) => updateStopInterests(target, cats => {
+    const idx = cats.findIndex(c => c.category.toLowerCase() === String(category).toLowerCase());
+    if (idx === -1) return [...cats, { category, items: [item] }];
+    return cats.map((c, i) => i === idx ? { ...c, items: [item, ...c.items] } : c);
+  });
+
+  const reservationOf = (r: any, base: Pick<NonNullable<InterestItem['reservation']>, 'fileName' | 'fileType' | 'fileId' | 'url'>, position: LatLng | null): InterestItem => ({
+    name: r.name || base.fileName,
+    description: r.notes || undefined,
+    source: 'reservation',
+    reservation: {
+      ...base,
+      address: r.address || undefined,
+      checkIn: r.checkIn || undefined,
+      checkOut: r.checkOut || undefined,
+      checkInDate: /^\d{4}-\d{2}-\d{2}$/.test(r.checkInDate) ? r.checkInDate : undefined,
+      checkOutDate: /^\d{4}-\d{2}-\d{2}$/.test(r.checkOutDate) ? r.checkOutDate : undefined,
+      price: typeof r.price === 'number' && r.price > 0 ? r.price : undefined,
+      currency: r.currency || undefined,
+      confirmation: r.confirmation || undefined,
+      notes: r.notes || undefined,
+      lat: position?.lat,
+      lng: position?.lng,
+    },
+  });
+
+  const attachFailed = (err: unknown, fallback: string) => {
+    if (err instanceof LimitError) {
+      setToast({ message: tr("You've used today's document reads on your plan."), type: 'error' });
+      openPlans('documents');
+      return;
+    }
+    console.error('Reservation import failed:', err);
+    setToast({ message: err instanceof Error ? err.message : fallback, type: 'error' });
+  };
+
+  const handleAttachDocument = async (ref: StopRef | null, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       setToast({ message: tr('That file is over 10 MB. Try a smaller PDF or the booking email.'), type: 'error' });
       return;
@@ -588,70 +648,55 @@ const App: React.FC = () => {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || tr('Could not read the file ({status})', { status: response.status }));
       const r = data.reservation;
-
       const position = await geocodeAddress(r.address || `${r.name} ${stops[r.stopIndex]?.location || ''}`);
-      let target = ref || stops[r.stopIndex]?.ref || stops[0].ref;
-      if (position) {
-        const located = await Promise.all(stops.map(async s => ({
-          ...s, at: s.position || await geocodeAddress(s.location),
-        })));
-        const ranked = located
-          .filter(s => s.at)
-          .map(s => ({ ...s, km: haversineKm(position, s.at!) }))
-          .sort((a, b) => a.km - b.km);
-        const nearest = ranked[0];
-        const chosen = ranked.find(s => s.ref.kind === target.kind && s.ref.index === target.index);
-        if (nearest && (!ref || !chosen || (chosen.km > 50 && nearest.km < chosen.km))) {
-          target = nearest.ref;
-        }
-      }
-
-      const item: InterestItem = {
-        name: r.name || file.name,
-        description: r.notes || undefined,
-        source: 'reservation',
-        reservation: {
-          fileName: file.name,
-          fileType: fileMimeType(file),
-          fileId: storeAttachment(file),
-          address: r.address || undefined,
-          checkIn: r.checkIn || undefined,
-          checkOut: r.checkOut || undefined,
-          checkInDate: /^\d{4}-\d{2}-\d{2}$/.test(r.checkInDate) ? r.checkInDate : undefined,
-          checkOutDate: /^\d{4}-\d{2}-\d{2}$/.test(r.checkOutDate) ? r.checkOutDate : undefined,
-          price: typeof r.price === 'number' && r.price > 0 ? r.price : undefined,
-          currency: r.currency || undefined,
-          confirmation: r.confirmation || undefined,
-          notes: r.notes || undefined,
-          lat: position?.lat,
-          lng: position?.lng,
-        },
-      };
-      updateStopInterests(target, cats => {
-        const idx = cats.findIndex(c => c.category.toLowerCase() === String(r.category).toLowerCase());
-        if (idx === -1) return [...cats, { category: r.category, items: [item] }];
-        return cats.map((c, i) => i === idx ? { ...c, items: [item, ...c.items] } : c);
-      });
+      const { target } = await placeOnStop(ref, r.stopIndex, position);
+      const item = reservationOf(r, { fileName: file.name, fileType: fileMimeType(file), fileId: storeAttachment(file) }, position);
+      addToStop(target, r.category, item);
       const moved = ref && (ref.kind !== target.kind || ref.index !== target.index);
       setToast({
         message: `${tr('Added "{name}" to {stop}', { name: item.name, stop: stopLabel(target) })} · ${tr(r.category)}${moved ? ` ${tr('(matched by its address)')}` : ''}`,
         type: 'success',
       });
     } catch (err) {
-      if (err instanceof LimitError) {
-        setToast({ message: tr("You've used today's document reads on your plan."), type: 'error' });
-        openPlans('documents');
-        return;
-      }
-      console.error('Reservation import failed:', err);
-      setToast({ message: err instanceof Error ? err.message : tr('Could not read that file.'), type: 'error' });
+      attachFailed(err, tr('Could not read that file.'));
     } finally {
       setAttachingKey(null);
     }
   };
 
-  // A pin was dragged: name the place, recalculate the route and refresh suggestions.
-  // Reservations stay attached to the stop; AI suggestions for the old place are replaced.
+  const handleAttachLink = async (ref: StopRef | null, url: string) => {
+    const stops = allStops();
+    setAttachingKey(ref ? (ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind) : 'any');
+    try {
+      const response = await authFetch('/api/extract-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, stops: stops.map(s => `${stopLabel(s.ref)}: ${s.location}`) }),
+      });
+      await checkLimit(response);
+      refreshAccount();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || tr('Could not read that link ({status})', { status: response.status }));
+      const r = data.reservation;
+      const link = data.link || {};
+      if (!r.address && link.address) r.address = link.address;
+      const position: LatLng | null = link.position || await geocodeAddress(r.address || `${r.name} ${stops[r.stopIndex]?.location || ''}`);
+      const item = reservationOf(r, { fileName: link.site || new URL(url).hostname, fileType: 'text/uri-list', url: link.finalUrl || url }, position);
+      const { target, nearestKm } = await placeOnStop(ref, r.stopIndex, position);
+      // Far from every stop (and not attached to a chosen stop): build the trip from it, as a new stop.
+      if (position && !ref && nearestKm > 40 && routeInfo) {
+        await handleAddStop(position, [{ category: r.category, items: [item] }]);
+        return;
+      }
+      addToStop(target, r.category, item);
+      setToast({ message: `${tr('Added "{name}" to {stop}', { name: item.name, stop: stopLabel(target) })} · ${tr(r.category)}`, type: 'success' });
+    } catch (err) {
+      attachFailed(err, tr('Could not read that link.'));
+    } finally {
+      setAttachingKey(null);
+    }
+  };
+
   const handleMoveStop = async (ref: StopRef, position: LatLng) => {
     const town = await townAt(position);
     if (!town) {
@@ -678,14 +723,14 @@ const App: React.FC = () => {
   };
 
   // A click on the map: add an overnight stop where it adds the least distance, then re-route.
-  const handleAddStop = async (position: LatLng) => {
+  const handleAddStop = async (position: LatLng, interests: InterestCategory[] = []) => {
     const name = await townAt(position);
     if (!name) return;
     const points = await Promise.all(allStops().map(async s => s.position || await geocodeAddress(s.location)));
     if (points.some(p => !p)) return;
     const insertAt = bestInsertIndex(points as LatLng[], position);
     const newWaypoints = [...waypoints];
-    newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests: [] });
+    newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests });
     setWaypoints(newWaypoints);
     setHasChanges(true);
     setToast({ message: tr('Added a stop at {name}. Finding places nearby…', { name }), type: 'success' });

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Wallet, Download, Plus, X, BedDouble } from 'lucide-react';
 import { RouteInfo } from '../types';
 import { ScheduleDay } from '../lib/schedule';
-import { BudgetSettings, BudgetStop, computeBudget, budgetCsv } from '../lib/budget';
+import { BudgetSettings, BudgetStop, BudgetRow, DayField, computeBudget, budgetCsv } from '../lib/budget';
 import { cn } from '../lib/utils';
 import { Vehicle, VEHICLES, VEHICLE_LABELS } from '../lib/fuel';
 import { roadData } from '../lib/osmRoads';
@@ -59,6 +59,28 @@ const EstimateField: React.FC<{ label: string; value?: number; estimate: number;
   </label>
 );
 
+/** A table amount you can type over; ↺ goes back to the estimate. */
+const Cell: React.FC<{ value: number; edited?: boolean; onChange: (v: number | undefined) => void; label: string; resetLabel: string }> = ({ value, edited, onChange, label, resetLabel }) => {
+  const [draft, setDraft] = React.useState<string | null>(null);
+  const shown = draft ?? String(Math.round(value * 100) / 100);
+  return (
+    <span className="inline-flex items-center justify-end gap-0.5">
+      {edited && (
+        <button type="button" onClick={() => { setDraft(null); onChange(undefined); }} title={resetLabel} aria-label={resetLabel}
+          className="text-[10px] text-emerald-700 hover:text-emerald-900">↺</button>
+      )}
+      <input
+        type="number" inputMode="decimal" min={0} step="any" value={shown} aria-label={label}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => { if (draft !== null) { onChange(draft === '' ? undefined : Math.max(0, Number(draft) || 0)); setDraft(null); } }}
+        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') { setDraft(null); (e.target as HTMLInputElement).blur(); } }}
+        className={cn('w-[4.5rem] rounded-sm border border-transparent bg-transparent px-1 py-0.5 text-right tabular-nums hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:outline-none',
+          edited ? 'font-semibold text-emerald-900' : 'border-b-emerald-100')}
+      />
+    </span>
+  );
+};
+
 const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths, offroad, vehicle, onVehicleChange }) => {
   const { t, settings: app, distUnit, toDist, money: fmtMoney, date } = useSettings();
   const imperial = app.units === 'imperial';
@@ -101,6 +123,16 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
   const cur = settings.currency;
   const money = (n: number) => fmtMoney(n, cur);
   const set = (patch: Partial<BudgetSettings>) => onChange({ ...settings, ...patch });
+  // A typed amount for one cell of the table (undefined = back to the estimate).
+  const editDay = (day: number, field: DayField, v: number | undefined) => {
+    const edits = { ...(settings.dayEdits || {}) };
+    const row = { ...(edits[String(day)] || {}) };
+    if (v === undefined) delete row[field]; else row[field] = v;
+    if (Object.keys(row).length) edits[String(day)] = row; else delete edits[String(day)];
+    set({ dayEdits: edits });
+  };
+  const isEdited = (r: BudgetRow, f: DayField) => Boolean(r.edited?.includes(f));
+  const reset = t('Back to the estimate');
   const motor = routeInfo.travelMode === 'DRIVING';
   const foreign = Object.entries(budget.otherCurrencies);
   const days = budget.rows.filter(r => r.kind !== 'before').length;
@@ -252,16 +284,20 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
                 <td className="max-w-[220px] truncate px-3 py-2" title={rowLabel(r)}>{rowLabel(r)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.km ? Math.round(toDist(r.km)) : ''}</td>
                 <td className="max-w-[140px] truncate px-3 py-2 text-muted-foreground" title={r.nightAt}>{r.nightAt?.split(',')[0] || '—'}</td>
-                <td className="px-3 py-2 text-right tabular-nums" title={r.stayNote}>
-                  {r.stayKind === 'none' ? '—' : r.stayKind === 'covered' ? <span className="text-violet-700">{t('booked')}</span> : money(r.stay)}
-                  {r.stayKind === 'booked' && <span className="ml-1 rounded bg-violet-100 px-1 text-[9px] font-bold uppercase text-violet-700">{t('booked')}</span>}
-                  {r.stayKind === 'places' && <span className="block text-[9px] text-emerald-700" title={t('Average of the places to stay suggested at this stop')}>{t('from {n} places', { n: r.stayNote || '' })}</span>}
+                <td className="px-2 py-1.5 text-right tabular-nums" title={r.stayNote}>
+                  {r.stayKind === 'none' && !isEdited(r, 'stay') ? '—'
+                    : r.stayKind === 'covered' && !isEdited(r, 'stay') ? <span className="text-violet-700">{t('booked')}</span>
+                    : <Cell value={r.stay} edited={isEdited(r, 'stay')} onChange={v => editDay(r.day, 'stay', v)} label={`${t('Stay')} · ${t('Day {n}', { n: r.day })}`} resetLabel={reset} />}
+                  {r.stayKind === 'booked' && !isEdited(r, 'stay') && <span className="ml-1 rounded bg-violet-100 px-1 text-[9px] font-bold uppercase text-violet-700">{t('booked')}</span>}
+                  {r.stayKind === 'places' && !isEdited(r, 'stay') && <span className="block text-[9px] text-emerald-700" title={t('Average of the places to stay suggested at this stop')}>{t('from {n} places', { n: r.stayNote || '' })}</span>}
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums" title={r.foodFromPlaces ? t('From the price level of restaurants at this stop') : undefined}>
-                  {r.food ? money(r.food) : '—'}
-                  {r.foodFromPlaces && <span className="block text-[9px] text-emerald-700">{t('local prices')}</span>}
+                <td className="px-2 py-1.5 text-right tabular-nums" title={r.foodFromPlaces ? t('From the price level of restaurants at this stop') : undefined}>
+                  <Cell value={r.food} edited={isEdited(r, 'food')} onChange={v => editDay(r.day, 'food', v)} label={`${t('Food')} · ${t('Day {n}', { n: r.day })}`} resetLabel={reset} />
+                  {r.foodFromPlaces && !isEdited(r, 'food') && <span className="block text-[9px] text-emerald-700">{t('local prices')}</span>}
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums">{r.other ? money(r.other) : '—'}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums">
+                  <Cell value={r.other} edited={isEdited(r, 'other')} onChange={v => editDay(r.day, 'other', v)} label={`${t('Other')} · ${t('Day {n}', { n: r.day })}`} resetLabel={reset} />
+                </td>
                 <td className="px-3 py-2 text-right font-semibold tabular-nums">{money(r.total)}</td>
               </tr>
             ))}
@@ -278,7 +314,9 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
                   })}
                   {budget.fuel.estimatedPrice && countryNames && <span className="text-[10px]"> ({t('typical price in {countries}', { countries: countryNames })})</span>}
                 </td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{money(budget.totals.fuel)}</td>
+                <td className="px-2 py-1 text-right tabular-nums">
+                  <Cell value={budget.totals.fuel} edited={budget.fuelEdited} onChange={v => set({ fuelOverride: v })} label={t('Fuel')} resetLabel={reset} />
+                </td>
               </tr>
             )}
             {motor && (
@@ -290,7 +328,10 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
                     : t('{d} on toll roads × {r}/km', { d: `${Math.round(toDist(budget.tolls.km))} ${distUnit}`, r: money(budget.tolls.rate) })}
                   {(settings.tollsTotal || 0) > 0 && <> + {money(settings.tollsTotal)}</>}
                 </td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{tollKm === null ? '…' : money(budget.totals.tolls)}</td>
+                <td className="px-2 py-1 text-right tabular-nums">
+                  {tollKm === null && !budget.tollEdited ? '…'
+                    : <Cell value={budget.totals.tolls} edited={budget.tollEdited} onChange={v => set({ tollOverride: v })} label={t('Tolls')} resetLabel={reset} />}
+                </td>
               </tr>
             )}
             {budget.bookings.map((b, i) => (
@@ -306,6 +347,7 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
           </tfoot>
         </table>
       </section>
+      <p className="text-[11px] font-semibold text-emerald-800">{t('Type over any amount in the table to use your own; ↺ goes back to the estimate.')}</p>
       <p className="text-[11px] text-muted-foreground">
         {t("Estimates from your averages. Accommodation you've booked (attached reservations with a price) replaces the estimate for that stop; other priced bookings, like tickets, are added as they are. Your averages are saved with the trip.")}
       </p>

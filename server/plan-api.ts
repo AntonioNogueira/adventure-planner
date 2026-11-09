@@ -6,10 +6,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import firebaseConfig from '../firebase-applet-config.json';
 import { verifyIdToken, readPlanRecord, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
+import { isLocalUrl, readLink, linkAsText } from './link';
 
 // Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
 //   POST /api/plan                 understand a trip request (start, finish, mode, days, places to pass)
 //   POST /api/extract-reservation  read a booking PDF/email/image and return its details
+//   POST /api/extract-link         read a shared link (Booking, Google Maps, a post) into a booking or place
 //   GET  /api/me                   the caller's plan, limits and today's usage
 //   POST /api/usage                count place searches ({ kind: 'placeSearches', amount })
 // Plans and limits: src/lib/plans.ts. Signed-in callers send their Firebase ID token.
@@ -515,6 +517,25 @@ ${stops.map((stop, i) => `${i}: ${stop}`).join('\n')}
 Set "stopIndex" to the stop the booking is in or nearest to.`;
 }
 
+function buildLinkPrompt(stops: string[]) {
+  return `The attached text is what a shared link says: a booking (Booking.com, Airbnb, a campsite), a place on a map,
+or a blog or social-media post about a place to sleep, eat or visit. It's for planning a trip.
+Extract the place and any booking details. Use empty strings for anything not given (0 for a missing price).
+"name" is the place's own name (not the website's). "address" is its address or, if none, its town and country.
+If there are dates, give them as written in checkIn/checkOut and as YYYY-MM-DD in checkInDate/checkOutDate.
+Put a one-line summary of what the post or page says about the place in "notes".
+
+Choose "category":
+- "Accommodations" for hotels, hostels, campsites, apartments and other places to sleep
+- "Restaurants/Cafes" for food and drink
+- "Bike/Moto Shops" for rentals, repairs and gear
+- "Points of Interest" for viewpoints, trails, beaches, tours, tickets and attractions
+
+The trip stops are:
+${stops.map((stop, i) => `${i}: ${stop}`).join('\n')}
+Set "stopIndex" to the stop the place is in or nearest to.`;
+}
+
 // Emails and text files are sent as text; long base64 blocks (attachments, images) are dropped.
 export function decodeTextFile(base64: string) {
   const raw = Buffer.from(base64, 'base64').toString('utf8');
@@ -544,7 +565,7 @@ const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    const routes = ['/api/plan', '/api/extract-reservation', '/api/me', '/api/usage'];
+    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage'];
     if (!req.url || !routes.includes(req.url)) return next();
     if (req.url === '/api/me') {
       if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
@@ -606,6 +627,34 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         }
         console.log(`[ai] understood: ${describeIntent(intent)}`);
         return sendJson(res, 200, { provider, plan: intent });
+      } catch (err) {
+        return sendTaskError(res, err);
+      }
+    }
+
+    if (req.url === '/api/extract-link') {
+      const url = String(body.url || '').trim().slice(0, 2000);
+      const stops: string[] = Array.isArray(body.stops) ? body.stops.map(String).slice(0, 30) : [];
+      if (!/^https?:\/\//i.test(url)) return sendJson(res, 400, { error: 'Paste a link that starts with http:// or https://' });
+      // Pages are only fetched when the host resolves to public addresses (readLink checks every hop).
+      if (isLocalUrl(url)) return sendJson(res, 400, { error: 'That link can\'t be opened.' });
+      if (!allow(res, acct, 'documents')) return;
+      const info = await readLink(url);
+      if (info.unreadable && !info.position && !info.checkIn) {
+        return sendJson(res, 422, { error: 'That page could not be read (it may need a login). Paste the place name, or attach a screenshot instead.' });
+      }
+      try {
+        const { provider, result } = await runTaskResult(env, {
+          name: `link (${info.site})`,
+          prompt: buildLinkPrompt(stops),
+          geminiSchema: reservationGeminiSchema,
+          claudeSchema: reservationJsonSchema,
+          file: { mimeType: 'text/plain', data: '', text: linkAsText(info) },
+        });
+        // Dates written in the link itself are exact: they win over the AI's reading.
+        if (info.checkIn) result.checkInDate = info.checkIn;
+        if (info.checkOut) result.checkOutDate = info.checkOut;
+        return sendJson(res, 200, { provider, reservation: result, link: { site: info.site, finalUrl: info.finalUrl, position: info.position, address: info.place?.address } });
       } catch (err) {
         return sendTaskError(res, err);
       }

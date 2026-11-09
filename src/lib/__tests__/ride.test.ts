@@ -61,3 +61,19 @@ describe('route done and ahead', () => {
     expect(bearingDeg({ lat: 38, lng: -8 }, { lat: 38, lng: -7.9 })).toBeCloseTo(90, 0);
   });
 });
+
+import { rideTargets } from '../ride';
+describe('Go to: places on the trip', () => {
+  it('lists each stop, then its bookings first and saved places, with positions', () => {
+    const paths = [[{ lat: 38.7, lng: -9.4 }, { lat: 39.0, lng: -9.0 }], [{ lat: 39.0, lng: -9.0 }, { lat: 40.28, lng: -7.5 }]];
+    const groups = rideTargets({
+      origin: 'Cascais, Portugal', destination: 'Covilhã, Portugal',
+      waypoints: [{ location: 'Óbidos, Portugal', stopover: true, interests: [{ category: 'Restaurants/Cafes', items: [{ name: 'Tasca', lat: 39.36, lng: -9.15 }, { name: 'No position' }] },
+        { category: 'Accommodations', items: [{ name: 'Casa B', source: 'reservation', reservation: { fileName: 'b.pdf', fileType: 'application/pdf', lat: 39.36, lng: -9.16 } }] }] }],
+    }, paths);
+    expect(groups.map(g => g.label)).toEqual(['Cascais', 'Óbidos', 'Covilhã']);
+    expect(groups[1].items.map(x => `${x.glyph} ${x.name}`)).toEqual(['📍 Óbidos', '✅ Casa B', '🍴 Tasca']);
+    expect(groups[1].items[0].at).toEqual({ lat: 39.0, lng: -9.0 });
+    expect(groups[2].items[0].at).toEqual({ lat: 40.28, lng: -7.5 });
+  });
+});

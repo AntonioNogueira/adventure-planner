@@ -1,6 +1,8 @@
 // Ride mode: where you are on today's route, how far is left, and links to open the day in a navigation app.
 // Pure functions, unit-tested.
 import { LatLng, haversineKm } from './geo';
+import type { RouteInfo, InterestCategory } from '../types';
+import { CATEGORIES, categoryId } from './places';
 
 export interface Progress {
   /** km from the day's start to the closest point of the route. */
@@ -114,4 +116,40 @@ function nearestIndex(path: LatLng[], p: LatLng): number {
 export function arrivalAt(remainingKm: number, kmh: number, now = new Date()): Date | null {
   if (!kmh || kmh < 2) return null;
   return new Date(now.getTime() + (remainingKm / kmh) * 3600_000);
+}
+
+export interface RideTarget { key: string; name: string; glyph: string; at: LatLng }
+export interface RideTargetGroup { label: string; items: RideTarget[] }
+
+/**
+ * Places on the trip you can "Go to" in ride mode, grouped by stop: the stop itself, then its booked and saved places
+ * (bookings first). Stop positions come from the day routes (each day ends at the next stop).
+ */
+export function rideTargets(route: Pick<RouteInfo, 'origin' | 'destination' | 'waypoints' | 'originInterests' | 'destinationInterests'>, paths: LatLng[][]): RideTargetGroup[] {
+  if (!paths.length || !paths[0].length) return [];
+  const stops: { label: string; at?: LatLng; interests?: InterestCategory[] }[] = [
+    { label: route.origin, at: paths[0][0], interests: route.originInterests },
+    ...route.waypoints.map((w, i) => ({ label: w.location, at: w.position || paths[i]?.[paths[i].length - 1], interests: w.interests })),
+    { label: route.destination, at: paths[paths.length - 1][paths[paths.length - 1].length - 1], interests: route.destinationInterests },
+  ];
+  return stops.map((stop, s) => {
+    const items: RideTarget[] = [];
+    if (stop.at) items.push({ key: `stop-${s}`, name: stop.label.split(',')[0], glyph: '📍', at: stop.at });
+    const places = (stop.interests || []).flatMap((cat, c) => cat.items.map((item, k) => ({ cat, c, item, k })))
+      .map(({ cat, c, item, k }) => {
+        const r = item.reservation;
+        const at = item.lat != null && item.lng != null ? { lat: item.lat, lng: item.lng }
+          : r?.lat != null && r?.lng != null ? { lat: r.lat, lng: r.lng } : null;
+        return at && { key: `p-${s}-${c}-${k}`, name: item.name, glyph: item.source === 'reservation' ? '✅' : CATEGORIES[categoryId(cat.category)].glyph, at, booked: item.source === 'reservation' };
+      })
+      .filter((x): x is RideTarget & { booked: boolean } => Boolean(x))
+      .sort((a, b) => Number(b.booked) - Number(a.booked));
+    // The same place can be saved twice (or mapped twice in OpenStreetMap): list it once.
+    const seen = new Set<string>();
+    for (const { booked: _b, ...x } of places) {
+      const id = `${x.name.toLowerCase()}|${x.at.lat.toFixed(3)}|${x.at.lng.toFixed(3)}`;
+      if (!seen.has(id)) { seen.add(id); items.push(x); }
+    }
+    return { label: stop.label.split(',')[0], items };
+  }).filter(g => g.items.length);
 }

@@ -7,6 +7,7 @@ import { useSettings } from '../lib/settings';
 import { stayUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
 import { townName } from '../lib/wiki';
 import { mapSearchUrl } from '../lib/provider';
+import LinkAdder from './LinkAdder';
 
 export type { StopKind } from '../types';
 
@@ -73,7 +74,7 @@ interface StopDetailsProps {
   compact?: boolean;
   /** Editing: remove one item, or attach a reservation file to this stop. */
   onRemoveItem?: (categoryIndex: number, itemIndex: number) => void;
-  onAttachFile?: (file: File) => void;
+  onAttachFile?: (file: File | string) => void;
   attaching?: boolean;
   /** Offered when the stop has no suggestions yet (long trips load them on request). */
   onFindPlaces?: () => void;
@@ -144,7 +145,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                 <ul className="space-y-1">
                   {[...reservations, ...suggestions].map(({ item, itemIdx }) => {
                     const r = item.reservation;
-                    const fileUrl = attachmentUrl(r?.fileId) || r?.fileUrl;
+                    const fileUrl = attachmentUrl(r?.fileId) || r?.fileUrl || r?.url;
                     return (
                       <li
                         key={itemIdx}
@@ -266,6 +267,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
             {attaching ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
             {attaching ? tr('Reading reservation…') : tr('Add reservation (PDF, email, image)')}
           </button>
+          {!attaching && <div className="mt-1.5"><LinkAdder compact onAdd={(url) => onAttachFile(url)} /></div>}
         </>
       )}
     </div>

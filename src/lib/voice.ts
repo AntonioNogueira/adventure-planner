@@ -147,8 +147,9 @@ async function fetchTurns(path: LatLng[], opts: { travelMode: string; offroad?: 
   return turns;
 }
 
-/** From where you are back to the route (off-route), with spoken text. Null if the service can't help. */
-export async function rejoinTurns(from: LatLng, to: LatLng, opts: { travelMode: string; offroad?: boolean; language: Language; units: Units }): Promise<{ path: LatLng[]; turns: Turn[] } | null> {
+/** From where you are to a point (back to the route, or a place picked with "Go to"), with spoken text.
+ *  Null if the service can't help. `keepArrival` keeps the final "you have arrived". */
+export async function rejoinTurns(from: LatLng, to: LatLng, opts: { travelMode: string; offroad?: boolean; language: Language; units: Units }, keepArrival = false): Promise<{ path: LatLng[]; turns: Turn[] } | null> {
   try {
     const res = await fetch(ROUTE, {
       signal: AbortSignal.timeout(20000),
@@ -165,7 +166,7 @@ export async function rejoinTurns(from: LatLng, to: LatLng, opts: { travelMode: 
     if (!leg) return null;
     const path = decodePolyline6(leg.shape);
     // The end of a rejoin is the route, not the day's destination.
-    const turns = turnsFromManeuvers(leg.maneuvers, path, 0).filter(x => x.kind !== 'arrive');
+    const turns = turnsFromManeuvers(leg.maneuvers, path, 0).filter(x => keepArrival || x.kind !== 'arrive');
     return { path, turns };
   } catch {
     return null;
@@ -302,4 +303,9 @@ export function speak(text: string, language: Language) {
   if (voice) u.voice = voice;
   u.rate = 1;
   synth.speak(u);
+}
+
+/** "Go to" a place from where you are: the route and its turns, ending with the arrival. */
+export function routeTo(from: LatLng, to: LatLng, opts: { travelMode: string; offroad?: boolean; language: Language; units: Units }) {
+  return rejoinTurns(from, to, opts, true);
 }

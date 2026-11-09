@@ -21,7 +21,14 @@ export interface BudgetSettings {
   includeFinishNight: boolean;
   /** One-off costs: ferry tickets, insurance, gear… */
   extras: { label: string; amount: number }[];
+  /** Amounts typed into the table, by day number ("0" = the night before day 1); they replace the estimates. */
+  dayEdits?: Record<string, { stay?: number; food?: number; other?: number }>;
+  /** Fuel or toll total typed into the table, replacing the estimate. */
+  fuelOverride?: number;
+  tollOverride?: number;
 }
+
+export type DayField = 'stay' | 'food' | 'other';
 
 export type Lodging = 'any' | 'camping' | 'hostel' | 'hotel';
 
@@ -92,6 +99,8 @@ export interface BudgetRow {
   foodFromPlaces?: boolean;
   other: number;
   total: number;
+  /** Cells the traveller typed (the rest are estimates). */
+  edited?: DayField[];
 }
 
 export interface Budget {
@@ -102,6 +111,9 @@ export interface Budget {
   fuel: { km: number; per100km: number; price: number; estimatedPrice: boolean; estimatedConsumption: boolean; countries: string[] };
   /** Tolls for the whole trip: km on toll roads × rate per km. */
   tolls: { km: number; rate: number; estimatedRate: boolean; known: boolean };
+  /** The fuel or toll total was typed into the table. */
+  fuelEdited?: boolean;
+  tollEdited?: boolean;
   /** Other priced bookings (tickets, tours…), in the budget currency. */
   bookings: { name: string; stop: string; amount: number }[];
   /** Booked prices in another currency, not included in the totals. */
@@ -236,6 +248,14 @@ export function computeBudget(
     };
   }));
 
+  // Typed amounts win over the estimates.
+  for (const r of rows) {
+    const edit = settings.dayEdits?.[String(r.day)];
+    if (!edit) continue;
+    const edited = (['stay', 'food', 'other'] as DayField[]).filter(f => typeof edit[f] === 'number');
+    for (const f of edited) r[f] = round2(edit[f]!);
+    if (edited.length) { r.edited = edited; r.total = round2(r.stay + r.food + r.other); }
+  }
   const sum = (f: (r: BudgetRow) => number) => round2(rows.reduce((s, r) => s + f(r), 0));
   const extras = round2(settings.extras.reduce((s, e) => s + (e.amount || 0), 0));
   const bookings: Budget['bookings'] = [];
@@ -254,8 +274,8 @@ export function computeBudget(
   const rate = settings.tollPerKm ?? (motor ? Math.round(estimatedTollRate(legs, currency) * TOLL_FACTOR[opts.vehicle || 'motorcycle'] * 1000) / 1000 : 0);
   const tollCost = round2(tolledKm * rate + (settings.tollsTotal || 0));
   const totals = {
-    stay: sum(r => r.stay), food: sum(r => r.food), fuel: fuelCost, other: sum(r => r.other),
-    tolls: tollCost, extras, bookings: round2(bookings.reduce((s, b) => s + b.amount, 0)), all: 0,
+    stay: sum(r => r.stay), food: sum(r => r.food), fuel: settings.fuelOverride ?? fuelCost, other: sum(r => r.other),
+    tolls: settings.tollOverride ?? tollCost, extras, bookings: round2(bookings.reduce((s, b) => s + b.amount, 0)), all: 0,
   };
   totals.all = round2(totals.stay + totals.food + totals.fuel + totals.other + totals.tolls + totals.extras + totals.bookings);
   const days = rows.filter(r => r.kind !== 'before').length;
@@ -269,6 +289,8 @@ export function computeBudget(
       countries: kmByCountry(legs).filter(c => c.country !== '?').map(c => c.country),
     },
     tolls: { km: Math.round(tolledKm), rate, estimatedRate: settings.tollPerKm === undefined, known: tollKm !== null },
+    fuelEdited: settings.fuelOverride !== undefined,
+    tollEdited: settings.tollOverride !== undefined,
     bookings,
     otherCurrencies,
     perDay: days ? round2(totals.all / days) : 0,

@@ -31,7 +31,7 @@ interface MapProps {
   onRemoveStop?: (index: number) => void;
   onFindPlaces?: (ref: StopRef) => void;
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
-  onAttachFile?: (ref: StopRef, file: File) => void;
+  onAttachFile?: (ref: StopRef, file: File | string) => void;
   attachingKey?: string | null;
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
@@ -43,18 +43,22 @@ interface MapProps {
 type MapType = 'topo' | 'satellite' | 'hybrid';
 
 const OSM = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-const raster = (tiles: string[], attribution: string, maxzoom: number): StyleSpecification => ({
+// The vintage look is applied to the map imagery only (not the route, pins or labels, which stay bright):
+// topo is faded like an old printed sheet, satellite keeps most of its colour.
+const TOPO_PAINT = { 'raster-saturation': -0.38, 'raster-contrast': -0.08, 'raster-brightness-min': 0.05, 'raster-hue-rotate': -4 };
+const SATELLITE_PAINT = { 'raster-saturation': -0.12, 'raster-contrast': -0.03 };
+const raster = (tiles: string[], attribution: string, maxzoom: number, paint: Record<string, number>): StyleSpecification => ({
   version: 8,
   sources: { base: { type: 'raster', tiles, tileSize: 256, attribution, maxzoom } },
-  layers: [{ id: 'base', type: 'raster', source: 'base' }],
+  layers: [{ id: 'base', type: 'raster', source: 'base', paint }],
 });
 
 const SATELLITE_TILES = ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg'];
 const SATELLITE_CREDIT = '<a href="https://s2maps.eu">Sentinel-2 cloudless</a> by EOX (CC BY-NC-SA 4.0), contains Copernicus data';
 
 const STYLES: Record<Exclude<MapType, 'hybrid'>, string | StyleSpecification> = {
-  topo: raster(['https://tile.opentopomap.org/{z}/{x}/{y}.png'], `${OSM}, SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`, 17),
-  satellite: raster(SATELLITE_TILES, SATELLITE_CREDIT, 15),
+  topo: raster(['https://tile.opentopomap.org/{z}/{x}/{y}.png'], `${OSM}, SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`, 17, TOPO_PAINT),
+  satellite: raster(SATELLITE_TILES, SATELLITE_CREDIT, 15, SATELLITE_PAINT),
 };
 
 /** Satellite with OpenFreeMap's roads, borders and place names on top (vector layers of its "liberty" style). */
@@ -66,7 +70,7 @@ function getHybridStyle(): Promise<StyleSpecification> {
       ...style,
       sources: { ...style.sources, satellite: { type: 'raster', tiles: SATELLITE_TILES, tileSize: 256, attribution: SATELLITE_CREDIT, maxzoom: 15 } },
       layers: [
-        { id: 'satellite', type: 'raster', source: 'satellite' },
+        { id: 'satellite', type: 'raster', source: 'satellite', paint: SATELLITE_PAINT },
         ...style.layers.filter(l => l.type === 'symbol'
           || ('source-layer' in l && ['transportation', 'boundary'].includes(String(l['source-layer'])) && l.type === 'line')),
       ],
@@ -84,8 +88,9 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
 ];
 
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
-const ROUTE_COLOR = '#a0462c';
-const ACTIVE_COLOR = '#6e2a18';
+// A bright raspberry red: stands out on the topo's greens, browns and orange roads, and on satellite.
+const ROUTE_COLOR = '#e3175f';
+const ACTIVE_COLOR = '#a8003f';
 
 interface RideLines { done: LatLng[]; ahead: LatLng[]; on: boolean }
 
@@ -134,9 +139,9 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
   if (source) { source.setData(data); return; }
   const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
   map.addSource('route', { type: 'geojson', data });
-  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#fffcf4', 'line-width': 9 } });
-  map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout, paint: { 'line-color': ROUTE_COLOR, 'line-width': 5 } });
-  map.addLayer({ id: 'route-active', type: 'line', source: 'route', filter: ['==', ['get', 'index'], active], layout, paint: { 'line-color': ACTIVE_COLOR, 'line-width': 8 } });
+  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#ffffff', 'line-width': 10 } });
+  map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout, paint: { 'line-color': ROUTE_COLOR, 'line-width': 6 } });
+  map.addLayer({ id: 'route-active', type: 'line', source: 'route', filter: ['==', ['get', 'index'], active], layout, paint: { 'line-color': ACTIVE_COLOR, 'line-width': 9 } });
 }
 
 const MapView: React.FC<MapProps> = ({

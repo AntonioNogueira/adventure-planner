@@ -34,6 +34,7 @@ import { useSettings } from '../lib/settings';
 import { useAccount, openPlans } from '../lib/account';
 import { rentalUrl } from '../lib/affiliate';
 import { PLANS } from '../lib/plans';
+import LinkAdder from './LinkAdder';
 
 // Phone bottom-sheet heights (desktop always uses the full-height sidebar).
 type SheetHeight = 'peek' | 'half' | 'full';
@@ -65,7 +66,7 @@ interface SidebarProps {
   /** The typed route changed since it was last calculated. */
   needsCalculate: boolean;
   onRemoveItem: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
-  onAttachFile: (ref: StopRef | null, file: File) => void;
+  onAttachFile: (ref: StopRef | null, file: File | string) => void;
   attachingKey: string | null;
   schedule: ScheduleDay[];
   startDate: string;
@@ -558,6 +559,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {attachingKey === 'any' ? t('Reading…') : t('Add reservation')}
               </button>
             </div>
+            <LinkAdder busy={attachingKey === 'any'} onAdd={(url) => onAttachFile(null, url)} />
             {stopsOpen && (<>
             <p className="text-[11px] text-muted-foreground">{t('Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.')}</p>
             <StopDetails

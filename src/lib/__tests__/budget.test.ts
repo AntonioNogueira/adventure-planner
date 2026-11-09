@@ -49,6 +49,17 @@ describe('computeBudget', () => {
     expect(budget.nights).toBe(3);
   });
 
+  it('uses amounts typed into the table instead of the estimates', () => {
+    const b = computeBudget({ ...settings, dayEdits: { '2': { food: 12, other: 0 }, '1': { stay: 140 } }, fuelOverride: 50, tollOverride: 0 }, schedule, legs, stops);
+    expect(b.rows[1]).toMatchObject({ food: 12, other: 0, edited: ['food', 'other'] });
+    expect(b.rows[1].total).toBe(12);
+    expect(b.rows[0]).toMatchObject({ stay: 140, edited: ['stay'] });
+    expect(b.totals.fuel).toBe(50);
+    expect(b.totals.tolls).toBe(0);
+    expect(b).toMatchObject({ fuelEdited: true, tollEdited: true });
+    expect(budget.rows[1].edited).toBeUndefined();
+  });
+
   it('counts fuel for the whole trip on riding km (ferries excluded)', () => {
     const b = computeBudget({ ...settings, fuelPer100km: 6, fuelPrice: 1.75 }, schedule, legs, stops);
     expect(b.fuel).toMatchObject({ km: 200, per100km: 6, price: 1.75, estimatedPrice: false });   // 100 + 50 + 50 km
