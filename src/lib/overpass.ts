@@ -208,30 +208,6 @@ async function fetchSuggestions(center: LatLng, travelMode: string, lodging: Lod
   });
 }
 
-/** For each point, the nearest place to stay within 15 km (one request for all points), named after its town. */
-export async function osmOvernightTowns(points: LatLng[], lodging: LodgingPreference): Promise<({ name: string; position: LatLng } | null)[]> {
-  if (!points.length) return [];
-  let elements: OsmElement[] = [];
-  try {
-    const clauses = points.map(p => `nwr["tourism"~"${LODGING[lodging]}"](around:15000,${p.lat.toFixed(5)},${p.lng.toFixed(5)});`).join('\n');
-    // Planning waits for this: at most 10 s on Overpass, then Photon.
-    elements = await overpass(`[out:json][timeout:25];(${clauses});out center tags;`, 10000);
-  } catch (err) {
-    console.warn('No Overpass server answered; overnight places from Photon instead.', err);
-    elements = await photonOvernight(points, lodging);
-  }
-  const located = elements.map(e => ({ e, at: position(e) })).filter((x): x is { e: OsmElement; at: LatLng } => x.at !== null);
-  return Promise.all(points.map(async point => {
-    const nearest = located
-      .map(x => ({ ...x, km: haversineKm(point, x.at) }))
-      .filter(x => x.km <= 15)
-      .sort((a, b) => a.km - b.km)[0];
-    if (!nearest) return placeAt(point);
-    const name = await townAt(nearest.at);
-    return name ? { name, position: nearest.at } : placeAt(point);
-  }));
-}
-
 // ---- Fallback: the same categories from Photon (names, kinds, positions; no website or stars) ----
 
 const PHOTON_TAGS: Record<CategoryId, string[]> = {
@@ -292,12 +268,6 @@ async function photonSuggestions(center: LatLng, travelMode: string, lodging: Lo
       .filter((x): x is InterestItem => x !== null)
       .slice(0, count),
   }));
-}
-
-/** The nearest place to stay within 15 km of each point, from Photon. */
-async function photonOvernight(points: LatLng[], lodging: LodgingPreference): Promise<OsmElement[]> {
-  const found = await Promise.allSettled(points.map(p => photonNear(p, 15, PHOTON_LODGING[lodging], 3)));
-  return found.flatMap(r => (r.status === 'fulfilled' ? r.value : []));
 }
 
 // ---- Places to stay near a route (for choosing nights) ----

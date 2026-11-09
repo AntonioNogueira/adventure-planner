@@ -36,7 +36,6 @@ export interface RoutedLeg {
 
 export interface RoutedTrip {
   legs: RoutedLeg[];
-  engine: 'osm';
   /** Off-road was asked for but this route is the normal one. */
   offroadUnavailable?: boolean;
 }
@@ -68,9 +67,4 @@ export async function computeTrip(req: TripRequest): Promise<RoutedTrip> {
 /** Total ferry distance in a trip, in km. */
 export function ferryKm(trip: RoutedTrip): number {
   return Math.round(trip.legs.flatMap(l => l.steps).filter(s => s.ferry).reduce((sum, s) => sum + s.distanceMeters, 0) / 1000);
-}
-
-/** Every point of the trip in order, for drawing and export. */
-export function tripPath(trip: RoutedTrip): LatLng[] {
-  return trip.legs.flatMap(leg => leg.path);
 }

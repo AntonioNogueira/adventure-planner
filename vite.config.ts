@@ -73,6 +73,8 @@ export default defineConfig(({ mode, command }) => {
     },
     build: {
       target: 'esnext',
+      // The map chunk (MapLibre) is ~1 MB and loads after the first paint; don't warn about it.
+      chunkSizeWarningLimit: 1200,
       rollupOptions: {
         output: {
           manualChunks: {

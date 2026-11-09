@@ -291,9 +291,8 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
                   {r.stayKind === 'booked' && !isEdited(r, 'stay') && <span className="ml-1 rounded bg-violet-100 px-1 text-[9px] font-bold uppercase text-violet-700">{t('booked')}</span>}
                   {r.stayKind === 'places' && !isEdited(r, 'stay') && <span className="block text-[9px] text-emerald-700" title={t('Average of the places to stay suggested at this stop')}>{t('from {n} places', { n: r.stayNote || '' })}</span>}
                 </td>
-                <td className="px-2 py-1.5 text-right tabular-nums" title={r.foodFromPlaces ? t('From the price level of restaurants at this stop') : undefined}>
+                <td className="px-2 py-1.5 text-right tabular-nums">
                   <Cell value={r.food} edited={isEdited(r, 'food')} onChange={v => editDay(r.day, 'food', v)} label={`${t('Food')} · ${t('Day {n}', { n: r.day })}`} resetLabel={reset} />
-                  {r.foodFromPlaces && !isEdited(r, 'food') && <span className="block text-[9px] text-emerald-700">{t('local prices')}</span>}
                 </td>
                 <td className="px-2 py-1.5 text-right tabular-nums">
                   <Cell value={r.other} edited={isEdited(r, 'other')} onChange={v => editDay(r.day, 'other', v)} label={`${t('Other')} · ${t('Day {n}', { n: r.day })}`} resetLabel={reset} />
@@ -326,7 +325,6 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
                   {tollKm === null
                     ? t('finding toll roads on the route…')
                     : t('{d} on toll roads × {r}/km', { d: `${Math.round(toDist(budget.tolls.km))} ${distUnit}`, r: money(budget.tolls.rate) })}
-                  {(settings.tollsTotal || 0) > 0 && <> + {money(settings.tollsTotal)}</>}
                 </td>
                 <td className="px-2 py-1 text-right tabular-nums">
                   {tollKm === null && !budget.tollEdited ? '…'

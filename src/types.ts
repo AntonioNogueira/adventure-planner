@@ -32,22 +32,18 @@ export interface Reservation {
 export interface InterestItem {
   name: string;
   description?: string;
-  /** Suggestions ('places' from Google Places, older plans 'ai') are replaced when a stop moves; reservations are kept. */
-  source?: 'ai' | 'places' | 'reservation' | 'mine';
+  /** Suggestions ('places') are replaced when a stop moves; bookings ('reservation') and places you marked ('mine') stay. */
+  source?: 'places' | 'reservation' | 'mine';
   reservation?: Reservation;
-  /** Google Places data, so suggestions get their own pin and a direct Maps link. */
+  /** The OpenStreetMap element it came from (osm:node/123). */
   placeId?: string;
   url?: string;
   lat?: number;
   lng?: number;
-  /** 'stay' | 'food' | 'shop' | 'sights', for the map icon. */
+  /** Its category id ('stay', 'food', 'shop', 'water', 'sights'). */
   category?: string;
   /** Kind of place to stay, for budget estimates. */
   stayKind?: 'camping' | 'hostel' | 'guesthouse' | 'hotel';
-  /** Google price level 1 (inexpensive) to 4 (very expensive), for food estimates. */
-  priceLevel?: number;
-  /** A typical price range from Google, when known. */
-  priceRange?: { min: number; max: number; currency: string };
 }
 
 export type StopKind = 'start' | 'stop' | 'end';

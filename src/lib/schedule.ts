@@ -2,6 +2,7 @@
 // Pure functions, unit-tested.
 import { InterestCategory, StopRef } from '../types';
 import { getSettings, formatters, t } from './settings';
+import { categoryId } from './places';
 
 export interface ScheduleDay {
   kind: 'ride' | 'rest';
@@ -79,7 +80,7 @@ export function bookingWarnings(
     const stay = stays.get(stop.key);
     if (!stay) continue;
     stop.interests.forEach((cat, categoryIndex) => {
-      if (!/accommodation|hotel|stay|camp|lodg/i.test(cat.category)) return;
+      if (categoryId(cat.category) !== 'stay') return;
       cat.items.forEach((item, itemIndex) => {
         const checkIn = item.reservation?.checkInDate;
         if (!checkIn) return;

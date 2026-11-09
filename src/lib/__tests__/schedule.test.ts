@@ -35,7 +35,7 @@ describe('staysByStop', () => {
 });
 
 const hotel = (checkInDate: string, price?: number): InterestCategory[] => [{
-  category: 'Accommodations',
+  category: 'Stay',
   items: [{ name: 'Hotel Test', source: 'reservation', reservation: { fileName: 'b.pdf', fileType: 'application/pdf', checkInDate, price, currency: 'eur' } }],
 }];
 

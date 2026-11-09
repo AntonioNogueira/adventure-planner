@@ -85,11 +85,6 @@
   }
 }
 
-.map-container {
-  height: 100%;
-  width: 100%;
-}
-
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -149,13 +144,11 @@ input, select, textarea, button {
   box-shadow: inset 0 0 90px rgb(92 70 40 / 0.28), inset 0 0 0 1px rgb(92 70 40 / 0.35);
 }
 /* Map popups and controls in the same paper and ink. */
-.gm-style .gm-style-iw-c, .maplibregl-popup-content {
+.maplibregl-popup-content {
   border-radius: 3px !important;
   background: #faf6ec !important;
   box-shadow: 3px 3px 0 rgb(42 38 32 / 0.18) !important;
   border: 1px solid #d6cbb3;
 }
-.gm-style .gm-style-iw-d { background: #faf6ec; }
-.gm-style .gm-style-iw-tc::after { background: #faf6ec !important; }
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: #faf6ec !important; }
 .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: #faf6ec !important; }

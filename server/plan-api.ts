@@ -15,7 +15,7 @@ import { isLocalUrl, readLink, linkAsText } from './link';
 //   GET  /api/me                   the caller's plan, limits and today's usage
 //   POST /api/usage                count place searches ({ kind: 'placeSearches', amount })
 // Plans and limits: src/lib/plans.ts. Signed-in callers send their Firebase ID token.
-// Overnight stops and place suggestions come from Google Maps/Places in the browser, not from the AI.
+// Routes, overnight stops and place suggestions come from OpenStreetMap services in the browser, not from the AI.
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
 interface PlanEnv {

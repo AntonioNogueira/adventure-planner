@@ -1,5 +1,5 @@
 // Voice turn-by-turn for ride mode.
-// Turns come from Valhalla (VALHALLA_URL; by default the FOSSGIS public server): `trace_route` matches the day's path (whatever made it: Google,
+// Turns come from Valhalla (VALHALLA_URL; by default the FOSSGIS public server): `trace_route` matches the day's path (whatever made it:
 // OSRM, BRouter) to OpenStreetMap roads and returns the manoeuvres with spoken sentences in the user's language.
 // If that fails (no connection, unmatched track), turns are worked out from the path's own bends.
 // The browser's speech synthesis reads them out (works on iPhone and Android while the app is open).

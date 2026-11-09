@@ -2,6 +2,7 @@
 // taking the place of the estimate for the nights they cover. Pure functions, unit-tested.
 import { InterestCategory, InterestItem, RouteLeg } from '../types';
 import { ScheduleDay } from './schedule';
+import { categoryId } from './places';
 import { estimatedFuelPrice, estimatedTollRate, estimatedConsumption, kmByCountry, Vehicle, TOLL_FACTOR } from './fuel';
 
 export interface BudgetSettings {
@@ -12,8 +13,6 @@ export interface BudgetSettings {
   fuelPer100km?: number;
   /** Price per litre (unset = estimated from the countries on the route). */
   fuelPrice?: number;
-  /** Older saved budgets: a toll total the traveller entered (added as is). */
-  tollsTotal: number;
   /** Toll per km driven on toll roads (unset = typical rate of the countries on the route; toll km from OpenStreetMap). */
   tollPerKm?: number;
   otherPerDay: number;
@@ -66,7 +65,6 @@ export function defaultBudget(travelMode: string, lodging: Lodging = 'any', curr
     foodPerDay: p.food,
     // Fuel, consumption and tolls are estimated from the route until the traveller types their own.
     ...(motor ? {} : { fuelPer100km: 0, fuelPrice: 0, tollPerKm: 0 }),
-    tollsTotal: 0,
     otherPerDay: travelMode === 'TRANSIT' ? p.other * 2 : p.other,
     includeFinishNight: false,
     extras: [],
@@ -95,8 +93,6 @@ export interface BudgetRow {
   stayKind: 'places' | 'estimate' | 'booked' | 'covered' | 'none';
   stayNote?: string;
   food: number;
-  /** Food priced from the restaurants at the stop (their price level). */
-  foodFromPlaces?: boolean;
   other: number;
   total: number;
   /** Cells the traveller typed (the rest are estimates). */
@@ -127,8 +123,7 @@ const addDay = (date: string, days: number) => {
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 };
-const isStay = (cat: InterestCategory, category?: string) =>
-  category === 'stay' || /accommodation|hotel|stay|camp|lodg|hostel/i.test(cat.category);
+const isStay = (cat: InterestCategory, category?: string) => (category || categoryId(cat.category)) === 'stay';
 
 /** Priced bookings that aren't accommodation (ferry or train tickets, tours…). */
 export function otherBookings(stops: BudgetStop[]) {
@@ -142,7 +137,6 @@ export function otherBookings(stops: BudgetStop[]) {
 }
 
 const KIND_PRICE: Record<NonNullable<InterestItem['stayKind']>, Lodging> = { camping: 'camping', hostel: 'hostel', guesthouse: 'any', hotel: 'hotel' };
-const LEVEL_FACTOR = [1, 0.7, 1, 1.5, 2.2];
 
 /** A night's price from the places to stay suggested at a stop (their kind, or a price range), or null. */
 export function stayFromPlaces(stop: BudgetStop | undefined, currency: string): { amount: number; count: number } | null {
@@ -150,21 +144,9 @@ export function stayFromPlaces(stop: BudgetStop | undefined, currency: string): 
   const prices: number[] = [];
   stop?.interests.forEach(cat => cat.items.forEach(item => {
     if (item.source === 'reservation' || !isStay(cat, item.category)) return;
-    if (item.priceRange && item.priceRange.currency.toUpperCase() === currency) prices.push((item.priceRange.min + item.priceRange.max) / 2);
-    else if (item.stayKind) prices.push(p.stay[KIND_PRICE[item.stayKind]]);
+    if (item.stayKind) prices.push(p.stay[KIND_PRICE[item.stayKind]]);
   }));
   return prices.length ? { amount: round2(prices.reduce((a, b) => a + b, 0) / prices.length), count: prices.length } : null;
-}
-
-/** A day's food from the restaurants' price level at a stop (scaling your average), or null. */
-export function foodFromPlaces(stop: BudgetStop | undefined, foodPerDay: number): number | null {
-  const levels: number[] = [];
-  stop?.interests.forEach(cat => cat.items.forEach(item => {
-    if (item.source !== 'reservation' && item.priceLevel && (item.category === 'food' || /restaurant|cafe|food/i.test(cat.category))) levels.push(item.priceLevel);
-  }));
-  if (!levels.length) return null;
-  const factor = levels.reduce((sum, l) => sum + LEVEL_FACTOR[Math.max(1, Math.min(4, Math.round(l)))], 0) / levels.length;
-  return round2(foodPerDay * factor);
 }
 
 /** Booked accommodation at a stop: total price per currency and the names. */
@@ -221,11 +203,9 @@ export function computeBudget(
     });
   }
   rows.push(...schedule.map((d, n) => {
-    let label = '', km = 0, nightKey: string | undefined, foodKey: string | undefined;
+    let label = '', km = 0, nightKey: string | undefined;
     if (d.kind === 'ride') {
       const i = d.legIndex!;
-      // Dinner where the day ends.
-      foodKey = i < lastRide ? `stop-${i}` : 'end';
       const leg = legs[i];
       label = leg ? `${leg.from} → ${leg.to}` : `Day ${n + 1}`;
       km = Math.max(0, (leg?.distanceMeters || 0) / 1000 - (leg?.ferryKm || 0));
@@ -234,16 +214,14 @@ export function computeBudget(
     } else {
       label = `Rest day in ${byKey.get(`stop-${d.stopIndex}`)?.label || `stop ${d.stopIndex! + 1}`}`;
       nightKey = `stop-${d.stopIndex}`;
-      foodKey = nightKey;
     }
     const night = nightKey ? nightCost(nightKey) : { stay: 0, stayKind: 'none' as const };
-    const placesFood = foodKey ? foodFromPlaces(byKey.get(foodKey), settings.foodPerDay) : null;
-    const food = placesFood ?? settings.foodPerDay;
+    const food = settings.foodPerDay;
     const other = settings.otherPerDay;
     return {
       day: n + 1, date: d.date, kind: d.kind, label, km: Math.round(km),
       nightAt: nightKey ? byKey.get(nightKey)?.label : undefined,
-      ...night, food, foodFromPlaces: placesFood !== null, other,
+      ...night, food, other,
       total: round2(night.stay + food + other),
     };
   }));
@@ -272,7 +250,7 @@ export function computeBudget(
   const fuelCost = round2(ridingKm * per100km / 100 * price);
   const tolledKm = (tollKm || []).reduce((a, b) => a + b, 0);
   const rate = settings.tollPerKm ?? (motor ? Math.round(estimatedTollRate(legs, currency) * TOLL_FACTOR[opts.vehicle || 'motorcycle'] * 1000) / 1000 : 0);
-  const tollCost = round2(tolledKm * rate + (settings.tollsTotal || 0));
+  const tollCost = round2(tolledKm * rate);
   const totals = {
     stay: sum(r => r.stay), food: sum(r => r.food), fuel: settings.fuelOverride ?? fuelCost, other: sum(r => r.other),
     tolls: settings.tollOverride ?? tollCost, extras, bookings: round2(bookings.reduce((s, b) => s + b.amount, 0)), all: 0,

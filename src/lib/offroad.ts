@@ -214,5 +214,5 @@ export async function offroadTrip(req: TripRequest): Promise<RoutedTrip> {
   await Promise.all([0, 1].map(async () => {
     while (next < days.length) { const i = next++; legs[i] = await routeDay(days[i]); }
   }));
-  return { legs, engine: 'osm' };
+  return { legs };
 }

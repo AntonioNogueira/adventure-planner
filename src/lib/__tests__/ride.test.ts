@@ -68,8 +68,8 @@ describe('Go to: places on the trip', () => {
     const paths = [[{ lat: 38.7, lng: -9.4 }, { lat: 39.0, lng: -9.0 }], [{ lat: 39.0, lng: -9.0 }, { lat: 40.28, lng: -7.5 }]];
     const groups = rideTargets({
       origin: 'Cascais, Portugal', destination: 'Covilhã, Portugal',
-      waypoints: [{ location: 'Óbidos, Portugal', stopover: true, interests: [{ category: 'Restaurants/Cafes', items: [{ name: 'Tasca', lat: 39.36, lng: -9.15 }, { name: 'No position' }] },
-        { category: 'Accommodations', items: [{ name: 'Casa B', source: 'reservation', reservation: { fileName: 'b.pdf', fileType: 'application/pdf', lat: 39.36, lng: -9.16 } }] }] }],
+      waypoints: [{ location: 'Óbidos, Portugal', stopover: true, interests: [{ category: 'Food', items: [{ name: 'Tasca', lat: 39.36, lng: -9.15 }, { name: 'No position' }] },
+        { category: 'Stay', items: [{ name: 'Casa B', source: 'reservation', reservation: { fileName: 'b.pdf', fileType: 'application/pdf', lat: 39.36, lng: -9.16 } }] }] }],
     }, paths);
     expect(groups.map(g => g.label)).toEqual(['Cascais', 'Óbidos', 'Covilhã']);
     expect(groups[1].items.map(x => `${x.glyph} ${x.name}`)).toEqual(['📍 Óbidos', '✅ Casa B', '🍴 Tasca']);

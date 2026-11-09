@@ -24,13 +24,13 @@ describe('gpx', () => {
 describe('suggestions', () => {
   const booking = { name: 'My hotel', source: 'reservation' as const };
   const old: InterestCategory[] = [
-    { category: 'Accommodations', items: [booking, { name: 'Old suggestion', source: 'places' }] },
-    { category: 'Tours', items: [{ name: 'Boat trip', source: 'reservation' }] },
+    { category: 'Stay', items: [booking, { name: 'Old suggestion', source: 'places' }] },
+    { category: 'Points of interest', items: [{ name: 'Boat trip', source: 'reservation' }] },
   ];
   it('replaces suggestions but keeps bookings first', () => {
-    const merged = mergeSuggestions(old, [{ category: 'accommodations', items: [{ name: 'New suggestion', source: 'places' }] }]);
+    const merged = mergeSuggestions(old, [{ category: 'Stay', items: [{ name: 'New suggestion', source: 'places' }] }]);
     expect(merged[0].items.map(i => i.name)).toEqual(['My hotel', 'New suggestion']);
-    expect(merged.find(c => c.category === 'Tours')?.items[0].name).toBe('Boat trip');
+    expect(merged.find(c => c.category === 'Points of interest')?.items[0].name).toBe('Boat trip');
   });
   it('keepReservations drops empty categories', () => {
     expect(keepReservations([{ category: 'Food', items: [{ name: 'x', source: 'places' }] }])).toEqual([]);
@@ -77,10 +77,10 @@ describe('weather', () => {
 
 describe('categories', () => {
   it('maps names to the four categories', () => {
-    expect(categoryId('Accommodations')).toBe('stay');
-    expect(categoryId('Restaurants/Cafes')).toBe('food');
-    expect(categoryId('Bike/Moto Shops')).toBe('shop');
-    expect(categoryId('Points of Interest')).toBe('sights');
+    expect(categoryId('Stay')).toBe('stay');
+    expect(categoryId('Food')).toBe('food');
+    expect(categoryId('Shops & repairs')).toBe('shop');
+    expect(categoryId('Points of interest')).toBe('sights');
   });
 });
 

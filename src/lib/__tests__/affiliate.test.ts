@@ -22,12 +22,12 @@ describe('booking links', () => {
   });
   it('offers links for stays and sights, not for bookings already made or shops', () => {
     expect(offerFor('stay')).toBe('stay');
-    expect(offerFor('Accommodations')).toBe('stay');
+    expect(offerFor('Stay')).toBe('stay');
     expect(offerFor('sights')).toBe('tours');
-    expect(offerFor('Points of Interest')).toBe('tours');
+    expect(offerFor('Points of interest')).toBe('tours');
     expect(offerFor('stay', 'reservation')).toBeNull();
     expect(offerFor('shop')).toBeNull();
-    expect(offerFor('Restaurants/Cafes')).toBeNull();
+    expect(offerFor('Food')).toBeNull();
   });
 });
 

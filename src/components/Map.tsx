@@ -1,5 +1,5 @@
-// The open version's map: MapLibre GL with OpenFreeMap vector tiles (free, no key), plus
-// OpenTopoMap and EOX Sentinel-2 imagery. Same features as the Google map in Map.tsx.
+// The map: MapLibre GL with OpenTopoMap (topo), EOX Sentinel-2 (satellite) and OpenFreeMap labels (hybrid).
+// Stops, places, day lines, popups and ride mode (position, direction, route ahead/done) are drawn here.
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl, { StyleSpecification } from 'maplibre-gl';
 import type { FeatureCollection, LineString } from 'geojson';
@@ -459,7 +459,7 @@ const MapView: React.FC<MapProps> = ({
   }, [isReady, waypoints, origin, destination, routeInfo, attachingKey, hiddenCategories, settings.language, settings.units, stays]);
 
   return (
-    <div className={cn("relative h-full w-full", !ride && "vintage-map", !ride && mapType !== 'topo' && "vintage-imagery")}>
+    <div className={cn("relative h-full w-full", !ride && "vintage-map")}>
       <div ref={containerRef} className="h-full w-full" />
 
       {/* Category legend: show or hide suggestion pins */}

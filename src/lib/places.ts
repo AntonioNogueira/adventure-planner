@@ -1,10 +1,9 @@
-// Places to stay, eat, fix the bike and visit, and overnight towns with somewhere to sleep, from OpenStreetMap
-// (Overpass, with Photon as the fallback: see overpass.ts). Reviews and prices are one tap away: "Check prices"
-// (Booking.com) on places to stay, and "Open in Google Maps" on every place.
+// Place categories and suggestions near a stop, from OpenStreetMap (Overpass, with Photon as the fallback: see
+// overpass.ts). Reviews and prices are one tap away: "Check prices" (Booking.com) and "Open in Google Maps".
 import { InterestCategory } from '../types';
 import { geocodeAddress } from './geocode';
 import { LatLng } from './geo';
-import { osmSuggestions, osmOvernightTowns } from './overpass';
+import { osmSuggestions } from './overpass';
 
 export type CategoryId = 'stay' | 'food' | 'shop' | 'water' | 'sights';
 
@@ -17,14 +16,10 @@ export const CATEGORIES: Record<CategoryId, { name: string; glyph: string; color
   sights: { name: 'Points of interest', glyph: '📷', color: '#2f6f6a' },
 };
 
-/** Map a category name (from a saved trip, the AI or a booking) to one of the five. Older names still match. */
+/** The category of a saved name ("Stay") or id ("stay"); anything else counts as a point of interest. */
 export function categoryId(name: string): CategoryId {
-  const n = name.toLowerCase();
-  if (/accommodation|hotel|stay|sleep|camp|bivouac|hostel|lodg/.test(n)) return 'stay';
-  if (/restaurant|cafe|café|food|eat|drink|supermarket|grocer|market|bakery|producer/.test(n)) return 'food';
-  if (/utilit|water|toilet|fuel|shower|charging/.test(n)) return 'water';
-  if (/shop|bike|moto|repair|gear|store|mechanic|sport/.test(n)) return 'shop';
-  return 'sights';
+  const n = name.trim().toLowerCase();
+  return (Object.keys(CATEGORIES) as CategoryId[]).find(id => id === n || CATEGORIES[id].name.toLowerCase() === n) ?? 'sights';
 }
 
 // The traveller's mode and vehicle, for names that depend on them (set by the app when they change).
@@ -54,12 +49,4 @@ export async function placeSuggestions(
   const center = typeof location === 'string' ? await geocodeAddress(location) : location;
   if (!center) return [];
   return osmSuggestions(center, travelMode, lodging, count, vehicle);
-}
-
-/**
- * Where to sleep near each point on the route: the nearest place to stay (named after its town),
- * or the point itself if nothing is found.
- */
-export function overnightTownsNear(points: LatLng[], lodging: LodgingPreference): Promise<({ name: string; position: LatLng } | null)[]> {
-  return osmOvernightTowns(points, lodging);
 }

@@ -4,12 +4,10 @@ import { classify, shopTags, utilityTags, toItem } from '../overpass';
 import { mergeSuggestions } from '../suggestions';
 
 describe('place categories', () => {
-  it('keeps old saved names working and reads new ones', () => {
-    expect(['Accommodations', 'Stay', 'Camp spot'].map(categoryId)).toEqual(['stay', 'stay', 'stay']);
-    expect(['Restaurants/Cafes', 'Food', 'Supermarket'].map(categoryId)).toEqual(['food', 'food', 'food']);
-    expect(['Bike/Moto Shops', 'Shops & repairs', 'Mechanics'].map(categoryId)).toEqual(['shop', 'shop', 'shop']);
-    expect(['Utilities', 'Water point', 'Fuel station'].map(categoryId)).toEqual(['water', 'water', 'water']);
-    expect(['Points of Interest', 'Points of interest'].map(categoryId)).toEqual(['sights', 'sights']);
+  it('reads the saved names and ids of the five categories', () => {
+    expect(['Stay', 'Food', 'Shops & repairs', 'Utilities', 'Points of interest'].map(categoryId)).toEqual(['stay', 'food', 'shop', 'water', 'sights']);
+    expect(['stay', 'water', ' FOOD '].map(categoryId)).toEqual(['stay', 'water', 'food']);
+    expect(categoryId('Something else')).toBe('sights');
   });
   it('names the shops for the kind of trip', () => {
     expect(shopLabel('BICYCLING')).toBe('Bike shops');
@@ -32,8 +30,8 @@ describe('place categories', () => {
     expect(classify({ amenity: 'drinking_water' })).toBe('water');
     expect(toItem({ type: 'node', id: 1, lat: 38, lon: -8, tags: { amenity: 'drinking_water' } }, 'water')?.name).toBe('Drinking water');
   });
-  it('keeps places you marked and bookings when suggestions refresh, under old or new names', () => {
-    const cats = [{ category: 'Accommodations', items: [{ name: 'Old hotel', source: 'places' as const }, { name: 'Camp by the river', source: 'mine' as const, lat: 38, lng: -8 }] }];
+  it('keeps places you marked and bookings when suggestions refresh', () => {
+    const cats = [{ category: 'Stay', items: [{ name: 'Old hotel', source: 'places' as const }, { name: 'Camp by the river', source: 'mine' as const, lat: 38, lng: -8 }] }];
     const fresh = [{ category: 'Stay', items: [{ name: 'New hotel', source: 'places' as const }] }];
     expect(mergeSuggestions(cats, fresh)).toEqual([{ category: 'Stay', items: [cats[0].items[1], fresh[0].items[0]] }]);
   });

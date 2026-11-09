@@ -5,6 +5,7 @@
 //   - Templates use {q} (place and town), {name}, {town}, {checkin}, {checkout} (YYYY-MM-DD).
 //   - Tracking ids are only added after the visitor accepts them (consent banner); otherwise the links still
 //     work, without ids. Without templates, hostels and campsites use Booking.com filtered by property type.
+import { categoryId } from './places';
 
 export interface AffiliateConfig {
   booking?: string;
@@ -91,11 +92,9 @@ export function rentalUrl(town: string, pickup?: string, dropoff?: string, cfg: 
   return fillTemplate(cfg.rentals, { q: short, town: short, name: short, checkin: pickup || '', checkout: dropoff || '' });
 }
 
-/** Which booking link a suggestion gets, if any (bookings already made and shops get none). */
+/** Which booking link a suggestion gets, if any (bookings already made, places you marked and shops get none). */
 export function offerFor(category: string | undefined, source?: string): 'stay' | 'tours' | null {
-  if (source === 'reservation') return null;
-  const c = (category || '').toLowerCase();
-  if (c === 'stay' || /accommodation|hotel|hostel|camp|lodg/.test(c)) return 'stay';
-  if (c === 'sights' || /point|interest|sight|museum|attraction/.test(c)) return 'tours';
-  return null;
+  if (source === 'reservation' || source === 'mine') return null;
+  const id = categoryId(category || '');
+  return id === 'stay' ? 'stay' : id === 'sights' && category ? 'tours' : null;
 }

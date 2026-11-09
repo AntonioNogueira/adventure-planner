@@ -1,8 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 // The map (MapLibre, OpenStreetMap) is loaded after the first paint.
 const MapView = lazy(() => import('./components/Map'));
+// Screens opened on demand are loaded when first shown (a smaller first download).
+const SavedRoutes = lazy(() => import('./components/SavedRoutes'));
+const LoginDialog = lazy(() => import('./components/LoginDialog'));
+const BudgetView = lazy(() => import('./components/BudgetView'));
+const DocumentsView = lazy(() => import('./components/DocumentsView'));
+const RideMode = lazy(() => import('./components/RideMode'));
+const PlansDialog = lazy(() => import('./components/PlansDialog'));
 import Sidebar from './components/Sidebar';
-import SavedRoutes from './components/SavedRoutes';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
 import { planOvernightStops } from './lib/tripBuilder';
 import { computeTrip, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES, RoutePlace } from './lib/routing';
@@ -22,17 +28,12 @@ import { db, auth, storage, handleFirestoreError, OperationType } from './fireba
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, getRedirectResult, signOut } from 'firebase/auth';
-import LoginDialog from './components/LoginDialog';
-import BudgetView from './components/BudgetView';
-import DocumentsView from './components/DocumentsView';
 import ViewTabs, { AppView } from './components/ViewTabs';
-import RideMode from './components/RideMode';
 import { BudgetSettings, defaultBudget } from './lib/budget';
 import type { Vehicle } from './lib/fuel';
 import { authErrorMessage } from './lib/authErrors';
 import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
 import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, openPlans, getAccount, PlansReason } from './lib/account';
-import PlansDialog from './components/PlansDialog';
 import ConsentBanner from './components/ConsentBanner';
 import { onConsentChange } from './lib/affiliate';
 
@@ -158,8 +159,8 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
 
 // A trip's default name, the same in every language: "Tavira → Beja".
 const autoName = (from: string, to: string) => `${from.split(',')[0].trim()} → ${to.split(',')[0].trim()}`;
-// Names made by the app (including older "X to Y Expedition" ones) follow route changes; typed names stay.
-const isAutoName = (name: string) => / → | to /.test(name);
+// Names made by the app follow route changes; typed names stay.
+const isAutoName = (name: string) => / → /.test(name);
 
 // Trips with more stops than this load suggestions for intermediate stops on request.
 const MAX_EAGER_STOPS = 10;
@@ -756,7 +757,7 @@ const App: React.FC = () => {
     await calculateRoute(undefined, undefined, newWaypoints);
   };
 
-  // Fetch Google Places suggestions for several stops (in the background).
+  // Fetch place suggestions for several stops (in the background).
   const loadSuggestions = async (refs: StopRef[], locations: (string | LatLng)[], mode: string, lodgingPref: LodgingPreference) => {
     if (!refs.length) return;
     // Each stop's suggestions count as one place search (the costly part of a trip).
@@ -1125,7 +1126,7 @@ const App: React.FC = () => {
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
           <ViewTabs view={view} onChange={openView} documentCount={documentCount} />
           {view === 'ride' && (
-            <RideMode
+            <Suspense fallback={null}><RideMode
               routeInfo={routeInfo}
               paths={legPaths}
               schedule={schedule}
@@ -1140,13 +1141,13 @@ const App: React.FC = () => {
               onDetour={setRideDetour}
               onExportGpx={handleExportGpx}
               onClose={() => setView('route')}
-            />
+            /></Suspense>
           )}
           {(view === 'budget' || view === 'documents') && (
             // Budget and Documents cover the map (which stays loaded underneath).
             <div className="absolute inset-0 z-[17] overflow-y-auto bg-slate-50 px-4 pb-[24dvh] pt-16 md:px-8 md:pb-8 md:pt-20">
               {view === 'budget' ? (
-                <BudgetView
+                <Suspense fallback={null}><BudgetView
                   routeInfo={routeInfo}
                   schedule={schedule}
                   settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency)}
@@ -1155,9 +1156,9 @@ const App: React.FC = () => {
                   offroad={routeOptions.offroad}
                   vehicle={vehicle}
                   onVehicleChange={(v) => { setVehicle(v); setHasChanges(true); }}
-                />
+                /></Suspense>
               ) : (
-                <DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} />
+                <Suspense fallback={null}><DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} /></Suspense>
               )}
             </div>
           )}
@@ -1185,12 +1186,12 @@ const App: React.FC = () => {
         </main>
 
         {showSaved && (
-          <SavedRoutes
+          <Suspense fallback={null}><SavedRoutes
             routes={savedRoutes}
             onClose={() => setShowSaved(false)}
             onLoad={handleLoadRoute}
             onDelete={handleDeleteRoute}
-          />
+          /></Suspense>
         )}
 
         {showWelcome && (
@@ -1205,22 +1206,22 @@ const App: React.FC = () => {
         <ConsentBanner />
 
         {plansReason !== undefined && (
-          <PlansDialog
+          <Suspense fallback={null}><PlansDialog
             reason={plansReason}
             savedTrips={savedRoutes.length}
             onClose={() => setPlansReason(undefined)}
             onLogin={handleLogin}
-          />
+          /></Suspense>
         )}
 
         {showLogin && (
-          <LoginDialog
+          <Suspense fallback={null}><LoginDialog
             onClose={() => setShowLogin(false)}
             onSignedIn={() => {
               setShowLogin(false);
               setToast({ message: tr("You're logged in. Your expeditions can now be saved."), type: 'success' });
             }}
-          />
+          /></Suspense>
         )}
 
         {toast && (

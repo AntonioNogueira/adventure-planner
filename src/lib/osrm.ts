@@ -60,7 +60,6 @@ async function osrm(profile: string, locs: Loc[]): Promise<RoutedTrip> {
   }
   if (data.code !== 'Ok' || !data.routes?.length) throw new Error(data.code === 'NoRoute' ? 'ZERO_RESULTS' : `OSRM ${data.code || res?.status || 'unreachable'}`);
   return {
-    engine: 'osm',
     legs: data.routes[0].legs.map((leg: any): RoutedLeg => ({
       distanceMeters: leg.distance,
       durationSeconds: leg.duration,
@@ -110,7 +109,6 @@ async function valhallaCar(locs: Loc[], req: TripRequest): Promise<RoutedTrip> {
   const data = await res.json().catch(() => ({}));
   if (!data.trip) throw new Error(`Valhalla: ${data.error || res.status}`);
   return {
-    engine: 'osm',
     legs: data.trip.legs.map((leg: any): RoutedLeg => ({
       distanceMeters: leg.summary.length * 1000,
       durationSeconds: leg.summary.time,
