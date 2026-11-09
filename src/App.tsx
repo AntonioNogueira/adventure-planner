@@ -202,6 +202,7 @@ const App: React.FC = () => {
   const [rideDay, setRideDay] = useState(0);
   const [ridePos, setRidePos] = useState<{ lat: number; lng: number } | undefined>(undefined);
   const [rideFollow, setRideFollow] = useState(true);
+  const [rideDetour, setRideDetour] = useState<{ lat: number; lng: number }[] | undefined>(undefined);
   // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
   const [budgetSettings, setBudgetSettings] = useState<BudgetSettings | null>(null);
   // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
@@ -1079,12 +1080,14 @@ const App: React.FC = () => {
               paths={legPaths}
               schedule={schedule}
               travelMode={travelMode as string}
+              offroad={routeOptions.offroad}
               dayIndex={Math.min(rideDay, Math.max(0, legPaths.length - 1))}
               onDayChange={setRideDay}
               position={ridePos}
               onPosition={setRidePos}
               follow={rideFollow}
               onFollowChange={setRideFollow}
+              onDetour={setRideDetour}
               onExportGpx={handleExportGpx}
               onClose={() => setView('route')}
             />
@@ -1125,7 +1128,7 @@ const App: React.FC = () => {
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}
             stays={stays}
-            ride={view === 'ride' ? { dayIndex: Math.min(rideDay, Math.max(0, legPaths.length - 1)), position: ridePos, follow: rideFollow } : null}
+            ride={view === 'ride' ? { dayIndex: Math.min(rideDay, Math.max(0, legPaths.length - 1)), position: ridePos, follow: rideFollow, detour: rideDetour } : null}
           />
           </Suspense>
         </main>

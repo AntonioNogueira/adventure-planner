@@ -125,8 +125,15 @@ No App Store or Play Store account or fee is needed.
 **Ride** (fourth tab) is the day being ridden: live GPS position and follow-me, km left and arrival time to tonight's
 stop, an off-route warning, the screen kept on (Wake Lock), and one tap to open the rest of the day in Google Maps
 (with via points to keep it on our route) or Waze, or to download the day's GPX for OsmAnd, Garmin, Kurviger or Calimoto.
-Limits of a web app: GPS works while the app is open with the screen on (not in the background on iPhone);
-turn-by-turn voice comes from the navigation app it hands over to. The service worker never caches `/api`, maps or tiles.
+**Voice turn-by-turn** (the *Voice* button in Ride; `src/lib/voice.ts`): the day's path is matched to OpenStreetMap
+roads by Valhalla `trace_route` (valhalla1.openstreetmap.de), which returns the turns with spoken sentences in
+English, PT-PT or PT-BR (street names, exits, roundabouts). The phone's own speech voices read them: an early warning
+("In 500 metres, turn right onto N2", earlier at higher speed), then the turn itself. Off the route it says so,
+asks Valhalla for the way back (at most every 30 s) and draws it dashed on the map. Without a connection, turns
+come from the path's bends ("Turn right"). The same works for Google, OSRM and BRouter (off-road) routes.
+
+Limits of a web app: GPS and voice work while the app is open with the screen on (not in the background or with
+the phone locked on iPhone; the first tap on *Voice* unlocks speech there). No lane guidance or traffic. The service worker never caches `/api`, maps or tiles.
 
 ## Booking links (affiliate)
 

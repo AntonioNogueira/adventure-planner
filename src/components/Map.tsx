@@ -32,7 +32,7 @@ interface MapProps {
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
   /** Ride mode: the day being ridden, the rider's position and whether the map follows it. */
-  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean } | null;
+  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
 }
 
 // Topo: a survey-map look (contours, hill shading, forests) from OpenTopoMap tiles drawn over Google's
@@ -248,6 +248,21 @@ const Map: React.FC<MapProps> = ({
       if (ride.follow) { map.panTo(ride.position); if ((map.getZoom() || 0) < 13) map.setZoom(14); }
     }
   }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.follow, Boolean(ride), segments, isReady]);
+
+  // Ride mode: the way back to the route when off it (dashed blue).
+  const detourLineRef = useRef<google.maps.Polyline | null>(null);
+  const detour = ride?.detour;
+  useEffect(() => {
+    const map = googleMapRef.current;
+    if (!isReady || !map) return;
+    detourLineRef.current?.setMap(null);
+    detourLineRef.current = null;
+    if (!detour?.length) return;
+    detourLineRef.current = new google.maps.Polyline({
+      map, path: detour, zIndex: 40, strokeOpacity: 0,
+      icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: '#1d4ed8', strokeWeight: 5, scale: 3 }, offset: '0', repeat: '14px' }],
+    });
+  }, [detour, isReady]);
 
   useEffect(() => {
     if (!isReady || !googleMapRef.current) return;

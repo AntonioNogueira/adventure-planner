@@ -35,7 +35,7 @@ interface MapOsmProps {
   /** Nights at each stop (key 'start' | 'stop-N' | 'end'), for the booking links. */
   stays?: Map<string, Nights>;
   /** Ride mode: the day being ridden, the rider's position and whether the map follows it. */
-  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean } | null;
+  ride?: { dayIndex: number; position?: { lat: number; lng: number }; follow: boolean; detour?: { lat: number; lng: number }[] } | null;
 }
 
 // Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
@@ -219,6 +219,25 @@ const MapOsm: React.FC<MapOsmProps> = ({
       if (ride.follow) map.easeTo({ center: [ride.position.lng, ride.position.lat], zoom: Math.max(map.getZoom(), 14), duration: 500 });
     }
   }, [ride?.dayIndex, ride?.position?.lat, ride?.position?.lng, ride?.follow, Boolean(ride), segments, isReady]);
+
+  // Ride mode: the way back to the route when off it (dashed blue).
+  const detour = ride?.detour;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    const draw = () => {
+      const data = { type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates: (detour || []).map(p => [p.lng, p.lat]) } };
+      const source = map.getSource('ride-detour') as maplibregl.GeoJSONSource | undefined;
+      if (source) source.setData(data);
+      else {
+        map.addSource('ride-detour', { type: 'geojson', data });
+        map.addLayer({ id: 'ride-detour', type: 'line', source: 'ride-detour', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#1d4ed8', 'line-width': 5, 'line-dasharray': [1, 1.6] } });
+      }
+    };
+    try { draw(); } catch { /* style loading */ }
+    map.on('style.load', draw);
+    return () => { map.off('style.load', draw); };
+  }, [detour, isReady]);
 
   // Create the map once.
   useEffect(() => {
