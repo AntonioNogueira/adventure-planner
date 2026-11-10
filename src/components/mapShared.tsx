@@ -121,16 +121,17 @@ export const StopPopup: React.FC<StopPopupProps> = ({ at, ...details }) => {
   }, [details.location, at.lat, at.lng, settings.language]);
 
   return (
-    <div className="w-[360px] max-w-[78vw] font-sans">
-      {highlight === undefined && <div className="mb-2 h-32 w-full animate-pulse rounded-lg bg-slate-100" />}
+    <div className="w-[340px] max-w-[78vw] font-sans">
+      {/* A small photo and two lines about the place (Wikipedia): enough to recognise it, without a big image. */}
+      {highlight === undefined && <div className="mb-1.5 h-14 w-full animate-pulse rounded-md bg-slate-100" />}
       {highlight && (
-        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="group mb-2 block overflow-hidden rounded-lg">
-          <div className="relative">
-            <img src={highlight.image} alt={highlight.title} className="h-36 w-full object-cover transition-transform group-hover:scale-105" />
-            <span className="absolute bottom-1 left-2 rounded bg-black/55 px-1.5 py-0.5 text-[11px] font-semibold text-white">{highlight.title}</span>
-          </div>
-          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-slate-600">{highlight.extract}</p>
-          <p className="text-[10px] text-slate-400">Wikipedia (CC BY-SA) · {t('read more')}</p>
+        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="group mb-1.5 flex gap-2 rounded-md hover:bg-slate-50">
+          <img src={highlight.image} alt={highlight.title} loading="lazy" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+          <span className="min-w-0">
+            <span className="block truncate text-xs font-semibold text-slate-800">{highlight.title}</span>
+            <span className="line-clamp-2 text-[10.5px] leading-snug text-slate-600">{highlight.extract}</span>
+            <span className="block text-[9px] text-slate-400">Wikipedia (CC BY-SA) · {t('read more')}</span>
+          </span>
         </a>
       )}
       <StopDetails {...details} />

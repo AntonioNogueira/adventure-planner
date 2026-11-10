@@ -3,7 +3,7 @@ import { Link2, Loader2 } from 'lucide-react';
 import { useSettings } from '../lib/settings';
 
 /** "Add a link": paste a Booking/Airbnb share, a Google Maps place or a post; it's read and added to the trip. */
-const LinkAdder: React.FC<{ onAdd: (url: string) => void; busy?: boolean; compact?: boolean }> = ({ onAdd, busy, compact }) => {
+const LinkAdder: React.FC<{ onAdd: (url: string) => void; busy?: boolean; compact?: boolean; short?: boolean }> = ({ onAdd, busy, compact, short }) => {
   const { t } = useSettings();
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
@@ -17,7 +17,7 @@ const LinkAdder: React.FC<{ onAdd: (url: string) => void; busy?: boolean; compac
           ? 'inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline disabled:opacity-50'
           : 'flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-emerald-300 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50'}>
         {busy ? <Loader2 size={12} className="animate-spin" /> : <Link2 size={12} />}
-        {busy ? t('Reading…') : t('Add a link (Booking, Google Maps, a post…)')}
+        {busy ? t('Reading…') : short ? t('Add a link') : t('Add a link (Booking, Google Maps, a post…)')}
       </button>
     );
   }

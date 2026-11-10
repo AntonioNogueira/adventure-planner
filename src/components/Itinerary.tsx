@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarDays, Clock, Map as MapIcon, Mountain, Download, BedDouble, Plus, X, AlertTriangle, Wallet } from 'lucide-react';
+import { CalendarDays, Map as MapIcon, Mountain, Download, BedDouble, Plus, X, AlertTriangle, Wallet } from 'lucide-react';
 import { RouteInfo } from '../types';
 import { ScheduleDay, BookingWarning, formatDate } from '../lib/schedule';
 import { forecastFor, describeWeather, WeatherResult } from '../lib/weather';
@@ -78,7 +78,6 @@ const Itinerary: React.FC<ItineraryProps> = ({
     <div className="rounded-xl border bg-card p-4 shadow-sm">
       <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold">
         <span className="flex items-center gap-1.5 text-emerald-700"><MapIcon size={16} />{totalKm ? dist(totalKm, 0) : localizeText(routeInfo.distance)}</span>
-        <span className="flex items-center gap-1.5 text-muted-foreground"><Clock size={16} />{routeInfo.duration}</span>
         {hasElevation && <span className="flex items-center gap-1.5 text-muted-foreground"><Mountain size={16} />↑ {elev(totalAscent)}</span>}
         <button
           onClick={() => onExportGpx(null)}

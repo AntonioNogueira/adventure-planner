@@ -93,7 +93,7 @@ export function pickTownPage(pages: WikiPage[], at: LatLng, maxKm = 25, lang = '
 }
 
 const PAGE_PROPS = {
-  prop: 'pageimages|extracts|info|coordinates|pageprops', piprop: 'thumbnail', pithumbsize: '480',
+  prop: 'pageimages|extracts|info|coordinates|pageprops', piprop: 'thumbnail', pithumbsize: '160',
   exintro: '1', explaintext: '1', exsentences: '2', inprop: 'url', ppprop: 'disambiguation',
 };
 

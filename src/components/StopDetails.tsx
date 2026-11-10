@@ -97,8 +97,8 @@ const StopDetails: React.FC<StopDetailsProps> = ({
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
-    <div className={cn('rounded-xl border p-3 font-sans', t.card, compact && 'border-0 bg-transparent p-1')}>
-      <div className={cn('mb-2 flex items-center gap-2 font-semibold', t.title)}>
+    <div className={cn('rounded-xl border p-3 font-sans', t.card, compact && 'border-0 bg-transparent p-0.5')}>
+      <div className={cn('flex items-center gap-2 font-semibold', compact ? 'mb-1' : 'mb-2', t.title)}>
         <div className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', t.badge)}>
           {badge}
         </div>
@@ -111,7 +111,7 @@ const StopDetails: React.FC<StopDetailsProps> = ({
       </div>
 
       {(distanceFromPrev || distanceToNext) && (
-        <div className={cn('mb-2 flex items-center gap-4 text-xs font-medium', t.meta)}>
+        <div className={cn('flex items-center gap-4 text-xs font-medium', compact ? 'mb-1.5' : 'mb-2', t.meta)}>
           {distanceFromPrev && (
             <span className="flex items-center gap-1"><ArrowLeft size={12} />{distanceFromPrev}</span>
           )}
@@ -122,23 +122,26 @@ const StopDetails: React.FC<StopDetailsProps> = ({
       )}
 
       {interests.some(c => c.items.length > 0) ? (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className={cn('grid grid-cols-1 sm:grid-cols-2', compact ? 'gap-1.5' : 'gap-2')}>
           {interests.map((cat, catIdx) => {
             // Nothing found in this category here: no empty box (indexes stay those of the trip's data).
             if (!cat.items.length) return null;
             // Reservations first, then suggestions (fewer in the compact map popup).
-            const indexed = cat.items.map((item, itemIdx) => ({ item, itemIdx }));
+            // The same place listed twice (mapped twice in OpenStreetMap) is shown once.
+            const seen = new Set<string>();
+            const indexed = cat.items.map((item, itemIdx) => ({ item, itemIdx }))
+              .filter(({ item }) => { const k = item.name.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
             const reservations = indexed.filter(({ item }) => item.source === 'reservation');
-            const suggestions = indexed.filter(({ item }) => item.source !== 'reservation').slice(0, compact ? 3 : 5);
+            const suggestions = indexed.filter(({ item }) => item.source !== 'reservation').slice(0, compact ? 2 : 5);
             return (
-              <div key={catIdx} className={cn('min-w-0 rounded-lg p-2', t.tile)}>
-                <div className={cn('mb-1 flex items-center gap-1.5 border-b pb-1', t.tileBorder)}>
+              <div key={catIdx} className={cn('min-w-0 rounded-lg', compact ? 'p-1.5' : 'p-2', t.tile)}>
+                <div className={cn('flex items-center gap-1.5 border-b', compact ? 'mb-0.5 pb-0.5' : 'mb-1 pb-1', t.tileBorder)}>
                   <InterestIcon category={cat.category} className={cn('shrink-0', t.icon)} />
                   <span className={cn('truncate whitespace-nowrap text-[11px] font-bold uppercase tracking-wide', t.category)} title={tr(cat.category)}>
                     {tr(categoryLabel(categoryId(cat.category)))}
                   </span>
                 </div>
-                <ul className="space-y-1">
+                <ul className={compact ? 'space-y-0.5' : 'space-y-1'}>
                   {[...reservations, ...suggestions].map(({ item, itemIdx }) => {
                     const r = item.reservation;
                     const fileUrl = attachmentUrl(r?.fileId) || r?.fileUrl || r?.url;
@@ -158,6 +161,15 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                           >
                             {item.name}
                           </a>
+                          {/* In the map popup the booking link sits on the name's line. */}
+                          {compact && !r && offerFor(item.category || cat.category, item.source) === 'stay' && (
+                            <a href={stayUrl(item, townName(location), nights)} target="_blank" rel="noopener noreferrer sponsored" title={tr('Check prices & reviews')}
+                              className="shrink-0 text-[10px] font-semibold text-violet-700 hover:underline">{tr('Prices')} ↗</a>
+                          )}
+                          {compact && !r && offerFor(item.category || cat.category, item.source) === 'tours' && (
+                            <a href={toursUrl(item.name, townName(location))} target="_blank" rel="noopener noreferrer sponsored" title={tr('Tickets & tours')}
+                              className="shrink-0 text-[10px] font-semibold text-violet-700 hover:underline">{tr('Tours')} ↗</a>
+                          )}
                         </div>
                         {r ? (
                           <div className="mt-0.5 space-y-0.5 text-[11px] text-violet-900/80">
@@ -190,11 +202,11 @@ const StopDetails: React.FC<StopDetailsProps> = ({
                             {!compact && item.description && (
                               <span className="line-clamp-2 text-[11px] text-muted-foreground">{item.description}</span>
                             )}
-                            {offerFor(item.category || cat.category, item.source) === 'stay' && (
+                            {!compact && offerFor(item.category || cat.category, item.source) === 'stay' && (
                               <a href={stayUrl(item, townName(location), nights)} target="_blank" rel="noopener noreferrer sponsored"
                                 className="text-[10px] font-semibold text-violet-700 hover:underline">{tr('Check prices & reviews')} ↗</a>
                             )}
-                            {offerFor(item.category || cat.category, item.source) === 'tours' && (
+                            {!compact && offerFor(item.category || cat.category, item.source) === 'tours' && (
                               <a href={toursUrl(item.name, townName(location))} target="_blank" rel="noopener noreferrer sponsored"
                                 className="text-[10px] font-semibold text-violet-700 hover:underline">{tr('Tickets & tours')} ↗</a>
                             )}
@@ -255,15 +267,18 @@ const StopDetails: React.FC<StopDetailsProps> = ({
               e.target.value = '';
             }}
           />
-          <button
-            onClick={() => fileInput.current?.click()}
-            disabled={attaching}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-dashed border-violet-300 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 disabled:opacity-60"
-          >
-            {attaching ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
-            {attaching ? tr('Reading reservation…') : tr('Add reservation (PDF, email, image)')}
-          </button>
-          {!attaching && <div className="mt-1.5"><LinkAdder compact onAdd={(url) => onAttachFile(url)} /></div>}
+          <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-1.5', compact ? 'mt-1.5' : 'mt-2')}>
+            <button
+              onClick={() => fileInput.current?.click()}
+              disabled={attaching}
+              title={tr('Add reservation (PDF, email, image)')}
+              className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-violet-300 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 disabled:opacity-60"
+            >
+              {attaching ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />}
+              {attaching ? tr('Reading reservation…') : compact ? tr('Add booking') : tr('Add reservation (PDF, email, image)')}
+            </button>
+            {!attaching && <LinkAdder compact short={compact} onAdd={(url) => onAttachFile(url)} />}
+          </div>
         </>
       )}
     </div>

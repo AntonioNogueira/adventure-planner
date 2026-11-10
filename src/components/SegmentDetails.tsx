@@ -5,11 +5,14 @@ import { elevationsAlong } from '../lib/elevation';
 import { terrainStats, gradients, gradientColor, roadSummary, averageSpeed } from '../lib/terrain';
 import { roadData, RoadData, SURFACES, ROAD_CLASS_LABELS, SurfaceRun } from '../lib/osmRoads';
 import { useSettings } from '../lib/settings';
+import { cn } from '../lib/utils';
 
 interface SegmentDetailsProps {
   label: string;
   leg: RoutedLeg;
   travelMode: string;
+  /** Shown in the map's banner (full width) instead of a popup. */
+  wide?: boolean;
 }
 
 // Shared horizontal geometry, so the surface strip lines up with the elevation profile.
@@ -186,7 +189,7 @@ const OsmRoads: React.FC<{ leg: RoutedLeg; travelMode: string; surfaceInProfile?
   );
 };
 
-const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode }) => {
+const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode, wide }) => {
   const [showTerrain, setShowTerrain] = useState(false);
   const { t, dist, speed: fmtSpeed } = useSettings();
   const motor = travelMode === 'DRIVING';
@@ -194,12 +197,13 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode 
   const speed = averageSpeed(leg.distanceMeters - roads.ferryKm * 1000, leg.durationSeconds);
 
   return (
-    <div className="w-[340px] max-w-[80vw] space-y-2 p-1 font-sans">
+    <div className={cn('space-y-2 font-sans', wide ? 'w-full pr-6' : 'w-[340px] max-w-[80vw] p-1')}>
       <p className="text-sm font-semibold text-slate-900">{label}</p>
       {roads.ferryKm > 0 && (
         <p className="flex items-center gap-1 text-xs text-sky-800"><Ship size={12} />{t('Includes {d} by ferry', { d: dist(roads.ferryKm) })}</p>
       )}
 
+      <div className={wide ? 'grid gap-x-5 gap-y-2 md:grid-cols-2' : 'space-y-2'}>
       {motor ? (
         <>
           <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-700">
@@ -229,6 +233,7 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode 
           <OsmRoads leg={leg} travelMode={travelMode} surfaceInProfile />
         </>
       )}
+      </div>
     </div>
   );
 };

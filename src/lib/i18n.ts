@@ -472,6 +472,10 @@ export const PT: Record<string, string> = {
   'then “Add to Home Screen”.': 'e depois em “Adicionar ao ecrã principal”.',
   'Full screen, its own icon, opens without a connection. Free, no app store.': 'Ecrã inteiro, ícone próprio, abre sem ligação. Grátis, sem loja de apps.',
   'Voice': 'Voz',
+  'Prices': 'Preços',
+  'Tours': 'Visitas',
+  'Add booking': 'Adicionar reserva',
+  'Add a link': 'Adicionar ligação',
   'Place name': 'Nome do local',
   'Shops & repairs': 'Lojas e reparações',
   'Utilities': 'Serviços',
@@ -814,4 +818,5 @@ export const PT_BR: Record<string, string> = {
   'Viewpoint': 'Mirante',
   'Marked by you': 'Marcado por você',
   'Place name': 'Nome do lugar',
+  'Add a link': 'Adicionar link',
 };

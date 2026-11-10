@@ -96,14 +96,18 @@ const MAP_TYPES: { id: MapType; label: string; icon: typeof MapIcon }[] = [
 const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
 // A bright raspberry red: stands out on the topo's greens, browns and orange roads, and on satellite.
 const ROUTE_COLOR = '#e3175f';
+// Route lines let the road underneath show through: nearly solid zoomed out, more see-through zoomed in.
+const LINE_OPACITY = ['interpolate', ['linear'], ['zoom'], 10, 0.92, 13, 0.8, 15, 0.65, 18, 0.5] as unknown as number;
+const CASING_OPACITY = ['interpolate', ['linear'], ['zoom'], 10, 1, 13, 0.75, 15, 0.45, 18, 0.25] as unknown as number;
+const FADED_OPACITY = ['interpolate', ['linear'], ['zoom'], 10, 0.35, 15, 0.25] as unknown as number;
 const ACTIVE_COLOR = '#a8003f';
 
 interface RideLines { done: LatLng[]; ahead: LatLng[]; on: boolean }
 
 /** Ride mode lines: the other days faded, the day's done part grey, the part ahead blue with a white edge. */
 function drawRideLines(map: maplibregl.Map, lines: RideLines) {
-  if (map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-opacity', lines.on ? 0.35 : 1);
-  if (map.getLayer('route-casing')) map.setPaintProperty('route-casing', 'line-opacity', lines.on ? 0.35 : 1);
+  if (map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-opacity', lines.on ? FADED_OPACITY : LINE_OPACITY);
+  if (map.getLayer('route-casing')) map.setPaintProperty('route-casing', 'line-opacity', lines.on ? FADED_OPACITY : CASING_OPACITY);
   const feature = (part: string, path: LatLng[]) => ({ type: 'Feature' as const, properties: { part }, geometry: { type: 'LineString' as const, coordinates: path.map(p => [p.lng, p.lat]) } });
   const data: FeatureCollection<LineString> = { type: 'FeatureCollection', features: lines.on ? [
     ...(lines.done.length > 1 ? [feature('done', lines.done)] : []),
@@ -114,9 +118,9 @@ function drawRideLines(map: maplibregl.Map, lines: RideLines) {
   map.addSource('ride-lines', { type: 'geojson', data });
   const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
   const before = map.getLayer('ride-detour') ? 'ride-detour' : undefined;
-  map.addLayer({ id: 'ride-done', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'done'], layout, paint: { 'line-color': RIDE_COLORS.done, 'line-width': 7 } }, before);
-  map.addLayer({ id: 'ride-ahead-casing', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.casing, 'line-width': 12 } }, before);
-  map.addLayer({ id: 'ride-ahead', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.ahead, 'line-width': 7 } }, before);
+  map.addLayer({ id: 'ride-done', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'done'], layout, paint: { 'line-color': RIDE_COLORS.done, 'line-width': 7, 'line-opacity': LINE_OPACITY } }, before);
+  map.addLayer({ id: 'ride-ahead-casing', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.casing, 'line-width': 12, 'line-opacity': CASING_OPACITY } }, before);
+  map.addLayer({ id: 'ride-ahead', type: 'line', source: 'ride-lines', filter: ['==', ['get', 'part'], 'ahead'], layout, paint: { 'line-color': RIDE_COLORS.ahead, 'line-width': 7, 'line-opacity': LINE_OPACITY } }, before);
 }
 
 /** A teardrop pin with a label, as a DOM element for MapLibre markers. */
@@ -145,9 +149,9 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
   if (source) { source.setData(data); return; }
   const layout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
   map.addSource('route', { type: 'geojson', data });
-  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#ffffff', 'line-width': 10 } });
-  map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout, paint: { 'line-color': ROUTE_COLOR, 'line-width': 6 } });
-  map.addLayer({ id: 'route-active', type: 'line', source: 'route', filter: ['==', ['get', 'index'], active], layout, paint: { 'line-color': ACTIVE_COLOR, 'line-width': 9 } });
+  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout, paint: { 'line-color': '#ffffff', 'line-width': 10, 'line-opacity': CASING_OPACITY } });
+  map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout, paint: { 'line-color': ROUTE_COLOR, 'line-width': 6, 'line-opacity': LINE_OPACITY } });
+  map.addLayer({ id: 'route-active', type: 'line', source: 'route', filter: ['==', ['get', 'index'], active], layout, paint: { 'line-color': ACTIVE_COLOR, 'line-width': 9, 'line-opacity': LINE_OPACITY } });
 }
 
 const MapView: React.FC<MapProps> = ({
@@ -170,6 +174,9 @@ const MapView: React.FC<MapProps> = ({
   const [mapType, setMapType] = useState<MapType>('topo');
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
+  // The day whose details show in the banner (a banner, not a popup, so the map stays free to zoom and pan).
+  const [openSegment, setOpenSegment] = useState<number | null>(null);
+  useEffect(() => setOpenSegment(null), [segments]);
   const { t, settings } = useSettings();
 
   // One popup, re-used for stops, places, segments and "add stop here".
@@ -331,9 +338,15 @@ const MapView: React.FC<MapProps> = ({
         const index = hit[0].properties?.index as number;
         const segment = segmentsRef.current[index];
         if (!segment) return;
-        showPopup(at, <SegmentDetails label={segment.label} leg={segment.leg} travelMode={callbacksRef.current.travelMode} />);
+        popupRef.current?.remove();
+        setOpenSegment(index);
         setActiveSegment(index);
         openStopRef.current = null;
+        // Show the whole day, clear of the banner.
+        const bounds = new maplibregl.LngLatBounds();
+        segment.path.forEach(p => bounds.extend([p.lng, p.lat]));
+        const h = map.getContainer().clientHeight;
+        map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: Math.round(h * 0.45), bottom: Math.round(h * 0.42), left: 30, right: 30 } : { top: 90, left: 60, right: 60, bottom: 340 }, duration: 600, maxZoom: 14 });
         return;
       }
       if (!callbacksRef.current.onAddStop && !callbacksRef.current.onMarkPlace) return;
@@ -465,6 +478,16 @@ const MapView: React.FC<MapProps> = ({
   return (
     <div className={cn("relative h-full w-full", !ride && "vintage-map")}>
       <div ref={containerRef} className="h-full w-full" />
+
+      {/* The day's details (terrain, surface, roads): top on phones (the planner sheet is at the bottom), bottom on desktop. */}
+      {openSegment !== null && !ride && segments[openSegment] && (
+        <div role="region" aria-label={segments[openSegment].label}
+          className="absolute inset-x-2 top-[6.5rem] z-[16] max-h-[36%] overflow-y-auto rounded-xl border border-[#d6cbb3] bg-[#faf6ec] p-2.5 shadow-xl md:inset-x-auto md:bottom-16 md:left-6 md:top-auto md:max-h-[34%] md:w-[min(760px,calc(100%-3rem))]">
+          <button onClick={() => { setOpenSegment(null); setActiveSegment(-1); }} aria-label={t('Close')}
+            className="absolute right-2 top-2 rounded p-1 text-slate-500 hover:bg-slate-200/60">✕</button>
+          <SegmentDetails wide label={segments[openSegment].label} leg={segments[openSegment].leg} travelMode={travelMode} />
+        </div>
+      )}
 
       {/* Category legend: show or hide suggestion pins */}
       <div className="absolute left-3 top-[7.25rem] z-10 flex flex-wrap gap-1 md:bottom-8 md:left-6 md:top-auto">
