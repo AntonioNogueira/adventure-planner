@@ -69,12 +69,12 @@ const PlansDialog: React.FC<{ reason: PlansReason; savedTrips: number; onClose: 
           {(Object.keys(USAGE_LABELS) as UsageKind[]).map(kind => (
             <div key={kind} className="rounded-md border bg-white px-3 py-2 text-xs">
               <p className="font-semibold uppercase text-slate-500">{t(USAGE_LABELS[kind])}</p>
-              <p className="tabular-nums text-sm font-bold">{account.usage[kind]} / {account.limits[kind]}</p>
+              <p className="tabular-nums text-sm font-bold">{account.usage[kind]} / {account.enforced ? account.limits[kind] : '∞'}</p>
             </div>
           ))}
           <div className="rounded-md border bg-white px-3 py-2 text-xs">
             <p className="font-semibold uppercase text-slate-500">{t('Saved trips')}</p>
-            <p className="tabular-nums text-sm font-bold">{savedTrips} / {account.limits.savedTrips ?? '∞'}</p>
+            <p className="tabular-nums text-sm font-bold">{savedTrips} / {account.enforced ? (account.limits.savedTrips ?? '∞') : '∞'}</p>
           </div>
         </div>
 

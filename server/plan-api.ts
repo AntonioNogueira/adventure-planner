@@ -30,6 +30,8 @@ interface PlanEnv {
   AI_REQUESTS_PER_HOUR?: string;
   /** JSON overrides for plan limits, e.g. {"free":{"aiPlans":3}}. */
   PLAN_LIMITS?: string;
+  /** "true" to enforce the plans' daily limits (at launch); otherwise usage is only counted. */
+  ENFORCE_LIMITS?: string;
   /** Grant plans for testing without payments: "you@example.com=explorer,friend@example.com=pro". */
   PLAN_OVERRIDES?: string;
 }
@@ -38,29 +40,31 @@ interface PlanEnv {
 
 const planUsage = new UsageCounter();
 
-interface Account { who: string; plan: PlanId; limits: Limits; caller: Caller | null }
+interface Account { who: string; plan: PlanId; limits: Limits; caller: Caller | null; enforced: boolean }
 
 async function account(env: PlanEnv, req: IncomingMessage): Promise<Account> {
   let overrides: Partial<Record<PlanId, Partial<Limits>>> | undefined;
   try { overrides = env.PLAN_LIMITS ? JSON.parse(env.PLAN_LIMITS) : undefined; } catch { overrides = undefined; }
+  const enforced = env.ENFORCE_LIMITS === 'true';
   const auth = String(req.headers.authorization || '');
   const caller = auth.startsWith('Bearer ') ? await verifyIdToken(auth.slice(7), firebaseConfig.projectId) : null;
   if (!caller) {
     const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-    return { who: `ip:${forwarded || req.socket.remoteAddress || 'unknown'}`, plan: 'anonymous', limits: limitsFor('anonymous', overrides), caller: null };
+    return { who: `ip:${forwarded || req.socket.remoteAddress || 'unknown'}`, plan: 'anonymous', limits: limitsFor('anonymous', overrides), caller: null, enforced };
   }
   const granted = caller.email ? parsePlanOverrides(env.PLAN_OVERRIDES).get(caller.email.toLowerCase()) : undefined;
   const plan = granted || effectivePlan(await readPlanRecord(caller, firebaseConfig.projectId, firebaseConfig.firestoreDatabaseId), true);
-  return { who: `uid:${caller.uid}`, plan, limits: limitsFor(plan, overrides), caller };
+  return { who: `uid:${caller.uid}`, plan, limits: limitsFor(plan, overrides), caller, enforced };
 }
 
 function usageOf(a: Account) {
   return { aiPlans: planUsage.used(a.who, 'aiPlans'), placeSearches: planUsage.used(a.who, 'placeSearches'), documents: planUsage.used(a.who, 'documents') };
 }
 
-/** Count one use, or answer 402 with what ran out (the app shows the plans screen). */
+/** Count one use, or answer 402 with what ran out (the app shows the plans screen).
+ *  Until ENFORCE_LIMITS=true (launch), uses are only counted, never refused. */
 function allow(res: ServerResponse, a: Account, kind: UsageKind, amount = 1): boolean {
-  if (planUsage.take(a.who, kind, a.limits[kind], amount)) return true;
+  if (planUsage.take(a.who, kind, a.enforced ? a.limits[kind] : Number.MAX_SAFE_INTEGER, amount)) return true;
   sendJson(res, 402, { error: 'limit', code: 'limit', kind, limit: a.limits[kind], plan: a.plan, signedIn: Boolean(a.caller) });
   return false;
 }
@@ -573,10 +577,10 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
     if (req.url === '/api/me') {
       if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
       const a = await account(env, req);
-      return sendJson(res, 200, { plan: a.plan, signedIn: Boolean(a.caller), limits: a.limits, usage: usageOf(a) });
+      return sendJson(res, 200, { plan: a.plan, signedIn: Boolean(a.caller), limits: a.limits, usage: usageOf(a), enforced: a.enforced });
     }
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
-    if (overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });
+    if (req.url !== '/api/usage' && overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });
 
     let body: any;
     try {
@@ -589,7 +593,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
     if (req.url === '/api/usage') {
       const amount = Math.max(1, Math.min(50, Number(body.amount) || 1));
       if (!allow(res, acct, 'placeSearches', amount)) return;
-      return sendJson(res, 200, { ok: true, usage: usageOf(acct), limits: acct.limits });
+      return sendJson(res, 200, { ok: true, usage: usageOf(acct), limits: acct.limits, enforced: acct.enforced });
     }
 
     if (req.url === '/api/plan') {

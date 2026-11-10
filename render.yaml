@@ -18,6 +18,9 @@ services:
       # Plans: grant test plans by email; checkout links for the Upgrade buttons (optional).
       - key: PLAN_OVERRIDES
         sync: false
+      # Set to "true" at launch to enforce the plans' daily limits (off while testing).
+      - key: ENFORCE_LIMITS
+        sync: false
       - key: CHECKOUT_URL_EXPLORER
         sync: false
       # Affiliate ids for the booking links in place popups (optional).

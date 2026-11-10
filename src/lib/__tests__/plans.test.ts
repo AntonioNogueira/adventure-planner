@@ -20,8 +20,8 @@ describe('effectivePlan', () => {
 
 describe('limits', () => {
   it('can be overridden per plan', () => {
-    expect(limitsFor('free').aiPlans).toBe(20);
-    expect(limitsFor('free', { free: { aiPlans: 3 } })).toMatchObject({ aiPlans: 3, placeSearches: 80 });
+    expect(limitsFor('free').aiPlans).toBe(10);
+    expect(limitsFor('free', { free: { aiPlans: 3 } })).toMatchObject({ aiPlans: 3, placeSearches: 20 });
     expect(limitsFor('explorer').savedTrips).toBeNull();
   });
   it('grants plans for testing by email', () => {

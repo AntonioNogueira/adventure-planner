@@ -9,9 +9,11 @@ export interface AccountInfo {
   signedIn: boolean;
   limits: Limits;
   usage: Record<UsageKind, number>;
+  /** False while testing (ENFORCE_LIMITS unset): limits are shown as unlimited and nothing is refused. */
+  enforced: boolean;
 }
 
-const fallback: AccountInfo = { plan: 'anonymous', signedIn: false, limits: PLANS.anonymous.limits, usage: { aiPlans: 0, placeSearches: 0, documents: 0 } };
+const fallback: AccountInfo = { plan: 'anonymous', signedIn: false, limits: PLANS.anonymous.limits, usage: { aiPlans: 0, placeSearches: 0, documents: 0 }, enforced: false };
 let current: AccountInfo = fallback;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach(l => l());
@@ -59,7 +61,7 @@ export async function takePlaceSearches(amount: number): Promise<boolean> {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'placeSearches', amount }),
     });
     if (res.status === 402) { refreshAccount(); return false; }
-    if (res.ok) { const data = await res.json(); current = { ...current, usage: data.usage, limits: data.limits }; emit(); }
+    if (res.ok) { const data = await res.json(); current = { ...current, usage: data.usage, limits: data.limits, enforced: Boolean(data.enforced) }; emit(); }
   } catch { /* no server (static preview): don't block */ }
   return true;
 }

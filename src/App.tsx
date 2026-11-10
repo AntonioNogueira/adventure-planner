@@ -952,7 +952,7 @@ const App: React.FC = () => {
     if (!routeInfo || !user) return;
     // A new trip (not an update of one of yours) counts against the plan's saved trips.
     const isNew = !currentTripId || viewingShared;
-    const maxTrips = getAccount().limits.savedTrips;
+    const maxTrips = getAccount().enforced ? getAccount().limits.savedTrips : null;
     if (isNew && maxTrips !== null && savedRoutes.length >= maxTrips) {
       setToast({ message: tr("You've saved as many trips as your plan allows."), type: 'error' });
       openPlans('savedTrips');

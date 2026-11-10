@@ -243,7 +243,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <div className="mb-2 flex items-center justify-between gap-2 rounded-sm bg-emerald-50 px-2 py-1.5">
                     <span>
                       <span className="font-bold uppercase text-emerald-800">{t(PLANS[account.plan].name)}</span>
-                      <span className="block text-[10px] text-muted-foreground">{t('{used} of {limit} AI plans today', { used: account.usage.aiPlans, limit: account.limits.aiPlans })}</span>
+                      {account.enforced && <span className="block text-[10px] text-muted-foreground">{t('{used} of {limit} AI plans today', { used: account.usage.aiPlans, limit: account.limits.aiPlans })}</span>}
                     </span>
                     <button onClick={() => { setAccountOpen(false); openPlans(); }} className="shrink-0 font-semibold text-emerald-700 hover:underline">{t('Plans')}</button>
                   </div>

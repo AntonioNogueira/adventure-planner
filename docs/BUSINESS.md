@@ -33,6 +33,10 @@ partner or sold, and so personal email stays separate.
   Wanderlog ~€40–60/year. €30/month only works for businesses (guides, tour operators).
 - "Unlimited" = fair use with soft caps (AI and place-server load).
 - Decided (Nov 2026): one version on OpenStreetMap data for everyone; no Google Places (section 10).
+- **Limits are switched off while testing (Nov 2026):** usage is counted, nothing is refused, the app shows ∞.
+  At launch on the own domain: set `ENFORCE_LIMITS=true` on the server, then the table above applies.
+  Visitors are counted per internet connection (one 5-day trip ≈ 6 place searches), so consider raising
+  the visitor and free place searches (e.g. 40 / 80) with `PLAN_LIMITS` if the place servers allow it.
 
 ## 3. Costs to watch
 

@@ -169,6 +169,7 @@ Plans and their daily limits are in `src/lib/plans.ts`:
   with an optional `planUntil` timestamp (Trip Pass). Set it by hand in the Firebase console for now; the security rules
   stop users from changing it themselves (publish the updated `firestore.rules`).
 - For testing without Firestore: `PLAN_OVERRIDES=you@example.com=explorer`. Change limits with `PLAN_LIMITS` (JSON).
+- **Limits are off while testing:** usage is counted but nothing is refused. Set `ENFORCE_LIMITS=true` at launch.
 - **Upgrade** buttons open `CHECKOUT_URL_EXPLORER` / `_TRIP_PASS` / `_PRO` (e.g. Stripe Payment Links, which get the
   buyer's email and Firebase uid as `client_reference_id`). Turning a payment into a plan automatically needs a small
   webhook with Firebase Admin credentials: the next step once a payment account exists.
