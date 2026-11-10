@@ -50,3 +50,32 @@ describe('Nominatim (backup place names)', () => {
     expect(nominatimTown(null)).toBeNull();
   });
 });
+
+import { pickPhoton, townPoint } from '../geocode';
+
+describe('town lookups (Photon)', () => {
+  const f = (name: string, key: string, value: string, type: string, lng: number, lat: number) =>
+    ({ geometry: { coordinates: [lng, lat] as [number, number] }, properties: { name, osm_key: key, osm_value: value, type } });
+  // What Photon answers for "Silves, Portugal": the municipality first (its middle is in the hills), then the station.
+  const silves = [
+    f('Silves', 'boundary', 'administrative', 'city', -8.3487, 37.2640),
+    f('Silves', 'railway', 'stop', 'house', -8.4405, 37.1757),
+    f('Silves', 'boundary', 'administrative', 'city', -8.4366, 37.2242),
+  ];
+  const places = [
+    f('Silves', 'place', 'city', 'district', -8.4396, 37.1894),
+    f('Vale de Silves', 'place', 'hamlet', 'district', -8.1384, 37.1583),
+    f('São Silvestre', 'place', 'village', 'district', -8.5264, 40.2301),
+  ];
+  it("doesn't use a municipality's middle as the town", () => {
+    const { point, area } = pickPhoton(silves);
+    expect(point).toBeNull();
+    expect(townPoint(places, 'Silves, Portugal', area!)).toEqual({ lat: 37.1894, lng: -8.4396 });
+  });
+  it('takes a town straight away when Photon has one', () => {
+    expect(pickPhoton([silves[1], places[0]]).point).toEqual({ lat: 37.1894, lng: -8.4396 });
+  });
+  it('ignores a same-name place far away', () => {
+    expect(townPoint([f('Silves', 'place', 'town', 'city', -47.8, -3.1)], 'Silves, Portugal', silves[0])).toBeNull();
+  });
+});

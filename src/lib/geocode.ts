@@ -3,7 +3,7 @@
 import { SERVICES } from './services';
 import { t } from './settings';
 import { searchTown } from './affiliate';
-import { LatLng } from './geo';
+import { LatLng, haversineKm } from './geo';
 
 const cache = new Map<string, Promise<LatLng | null>>();
 const PLACEHOLDERS = ['apt', 'home', 'my location', 'office', 'work'];
@@ -78,15 +78,40 @@ export function pickNominatim(results: NominatimPlace[]): LatLng | null {
   return best ? { lat: Number(best.lat), lng: Number(best.lon) } : null;
 }
 
+const fold = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+const at = (f: PhotonFeature): LatLng => ({ lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] });
+const isSettlement = (f: PhotonFeature) => f.properties.osm_key === 'place' && SETTLEMENT.has(f.properties.osm_value || '');
+
+/** The best Photon result for an address: a town or city over a street that shares the name. Null when the best is
+ *  only an administrative area (a municipality's middle can be in the hills, far from the town): see townPoint. */
+export function pickPhoton(features: PhotonFeature[]): { point: LatLng | null; area?: PhotonFeature } {
+  const settlement = features.find(isSettlement);
+  if (settlement) return { point: at(settlement) };
+  const best = features.find(f => f.properties.type === 'city') || features[0];
+  if (!best) return { point: null };
+  return best.properties.osm_key === 'boundary' ? { point: null, area: best } : { point: at(best) };
+}
+
+/** The town itself (its place point) named like `address`, near an administrative area found for it. */
+export function townPoint(places: PhotonFeature[], address: string, area: PhotonFeature): LatLng | null {
+  const name = fold(address.split(',')[0]);
+  const near = (f: PhotonFeature) => haversineKm(at(f), at(area)) < 40;
+  const town = places.find(f => isSettlement(f) && fold(f.properties.name || '') === name && near(f))
+    || places.find(f => isSettlement(f) && fold(f.properties.name || '') === fold(area.properties.name || '') && near(f));
+  return town ? at(town) : null;
+}
+
 async function lookup(address: string): Promise<LatLng | null> {
   let photonError: unknown = null;
   try {
     const features = await photon(`/api/?q=${encodeURIComponent(address)}&limit=5`);
-    // Prefer a town or city over a street that happens to share the name.
-    const best = features.find(f => f.properties.osm_key === 'place' && SETTLEMENT.has(f.properties.osm_value || ''))
-      || features.find(f => f.properties.type === 'city')
-      || features[0];
-    if (best) return { lat: best.geometry.coordinates[1], lng: best.geometry.coordinates[0] };
+    const { point, area } = pickPhoton(features);
+    if (point) return point;
+    if (area) {
+      // Only a municipality came back: ask for places only, to get the town's own point.
+      const places = await photon(`/api/?q=${encodeURIComponent(address)}&limit=5&osm_tag=place`).catch(() => []);
+      return townPoint(places, address, area) || at(area);
+    }
   } catch (error) {
     photonError = error;
   }
