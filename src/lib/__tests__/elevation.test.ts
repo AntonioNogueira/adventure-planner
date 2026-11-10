@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { climbStats, splitByEffort, effortKm } from '../elevation';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { climbStats, splitByEffort, effortKm, elevationsAlong } from '../elevation';
 
 describe('climbStats', () => {
   it('sums climbs and descents, ignoring small wobbles', () => {
@@ -48,5 +48,30 @@ describe('splitByEffort with ferries', () => {
     expect(splits[0]).toBeCloseTo(75, 0);
     expect(splits[1]).toBeCloseTo(250, 0);
     expect(splits[2]).toBeCloseTo(325, 0);
+  });
+});
+
+describe('elevation lookups', () => {
+  const path = [{ lat: 38.7, lng: -9.4 }, { lat: 40.28, lng: -7.5 }];
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('falls back to Open-Meteo when Valhalla fails', async () => {
+    // 150 points: two Open-Meteo requests of at most 100.
+    const fetchMock = vi.fn(async (url: string) => {
+      if (String(url).includes('/height')) return new Response('busy', { status: 429 });
+      const n = new URL(String(url)).searchParams.get('latitude')!.split(',').length;
+      return new Response(JSON.stringify({ elevation: Array(n).fill(100) }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const heights = await elevationsAlong(path, 150);
+    expect(heights).toHaveLength(150);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("doesn't remember a failure, so the next look tries again", async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('down', { status: 503 })));
+    expect(await elevationsAlong(path, 7)).toBeNull();
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ height: Array(7).fill(50) }))));
+    expect(await elevationsAlong(path, 7)).toEqual(Array(7).fill(50));
   });
 });

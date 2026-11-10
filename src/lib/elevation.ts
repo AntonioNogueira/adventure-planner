@@ -1,4 +1,4 @@
-// Elevation along routes (Valhalla's height service, VALHALLA_URL) and climbing statistics.
+// Elevation along routes (Valhalla's height service, VALHALLA_URL; Open-Meteo, ELEVATION_URL, as the backup) and climbing statistics.
 import { LatLng, downsample, evenlySpaced } from './geo';
 import { SERVICES } from './services';
 
@@ -63,30 +63,70 @@ export function effortKm(totalKm: number, elevations: number[] | null, kmPer1000
   return totalKm - ferryKm + (elevations ? climbStats(elevations).ascent * kmPer1000m / 1000 : 0);
 }
 
-const cache = new Map<string, number[] | null>();
+const cache = new Map<string, Promise<number[] | null>>();
 
-/** `samples` evenly spaced elevations (m) along a path, or null if the elevation service fails. */
-export async function elevationsAlong(path: LatLng[], samples: number): Promise<number[] | null> {
-  if (path.length < 2) return null;
+// Heights at the given points from Valhalla's height service (VALHALLA_URL).
+async function valhallaHeights(points: LatLng[]): Promise<number[]> {
+  const res = await fetch(`${SERVICES.valhalla}/height`, {
+    signal: AbortSignal.timeout(12000),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ shape: points.map(p => ({ lat: p.lat, lon: p.lng })), range: false }),
+  });
+  if (!res.ok) throw new Error(`Valhalla height ${res.status}`);
+  const data = await res.json();
+  if (!Array.isArray(data.height) || data.height.length !== points.length) throw new Error(data.error || 'no heights');
+  return data.height;
+}
+
+// The backup: Open-Meteo's elevation API (free, 100 points per request).
+async function openMeteoHeights(points: LatLng[]): Promise<number[]> {
+  const out: number[] = [];
+  for (let i = 0; i < points.length; i += 100) {
+    const part = points.slice(i, i + 100);
+    const lat = part.map(p => p.lat.toFixed(5)).join(',');
+    const lng = part.map(p => p.lng.toFixed(5)).join(',');
+    const res = await fetch(`${SERVICES.elevation}?latitude=${lat}&longitude=${lng}`, { signal: AbortSignal.timeout(12000) });
+    if (!res.ok) throw new Error(`Open-Meteo elevation ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data.elevation) || data.elevation.length !== part.length) throw new Error(data.reason || 'no heights');
+    out.push(...data.elevation);
+  }
+  return out;
+}
+
+// At most two lookups at a time, so a whole trip's profiles don't hit the free servers in one burst.
+let running = 0;
+const waiting: (() => void)[] = [];
+async function limited<T>(run: () => Promise<T>): Promise<T> {
+  if (running >= 2) await new Promise<void>(go => waiting.push(go));
+  running++;
+  try { return await run(); } finally { running--; waiting.shift()?.(); }
+}
+
+async function lookup(points: LatLng[]): Promise<number[] | null> {
+  for (const source of [valhallaHeights, openMeteoHeights]) {
+    try {
+      const heights = await limited(() => source(points));
+      return heights.map(h => Math.max(0, h ?? 0));
+    } catch (err) {
+      console.warn(`Elevation from ${source === valhallaHeights ? 'Valhalla' : 'Open-Meteo'} failed.`, err);
+    }
+  }
+  console.warn('No elevation service answered; planning by distance only.');
+  return null;
+}
+
+/** `samples` evenly spaced elevations (m) along a path, or null if no elevation service answers.
+ *  Valhalla first, Open-Meteo if it fails; a failure isn't remembered, so the next look tries again. */
+export function elevationsAlong(path: LatLng[], samples: number): Promise<number[] | null> {
+  if (path.length < 2) return Promise.resolve(null);
   const short = downsample(path, 200);
   const key = `${samples}|${short.length}|${short[0].lat},${short[0].lng}|${short[short.length - 1].lat},${short[short.length - 1].lng}`;
-  if (cache.has(key)) return cache.get(key)!;
-  try {
-    // Valhalla's elevation service (free): heights at evenly spaced points.
-    const res = await fetch(`${SERVICES.valhalla}/height`, {
-        signal: AbortSignal.timeout(15000),
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ shape: evenlySpaced(path, samples).map(p => ({ lat: p.lat, lon: p.lng })), range: false }),
-    });
-    const data = await res.json();
-    if (!Array.isArray(data.height)) throw new Error(data.error || 'no heights');
-    const heights = data.height.map((h: number | null) => Math.max(0, h ?? 0));
-    cache.set(key, heights);
-    return heights;
-  } catch (err) {
-    console.warn('Elevation lookup failed; planning by distance only.', err);
-    cache.set(key, null);
-    return null;
+  if (!cache.has(key)) {
+    const pending = lookup(evenlySpaced(path, samples));
+    cache.set(key, pending);
+    pending.then(h => { if (!h) cache.delete(key); });
   }
+  return cache.get(key)!;
 }

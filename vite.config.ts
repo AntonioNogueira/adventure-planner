@@ -25,7 +25,7 @@ export default defineConfig(({ mode, command }) => {
   const https = (v?: string) => (v || '').split(',').map(s => s.trim()).filter(u => /^https:\/\/[^\s"<>]+$/.test(u));
   const services = Object.fromEntries(([
     ['overpass', https(env.OVERPASS_URL)], ['photon', https(env.PHOTON_URL)[0]], ['nominatim', https(env.NOMINATIM_URL)[0]], ['osrm', https(env.OSRM_URL)[0]],
-    ['valhalla', https(env.VALHALLA_URL)[0]], ['brouter', https(env.BROUTER_URL)[0]],
+    ['valhalla', https(env.VALHALLA_URL)[0]], ['brouter', https(env.BROUTER_URL)[0]], ['elevation', https(env.ELEVATION_URL)[0]],
   ] as const).filter(([, v]) => (Array.isArray(v) ? v.length : v)));
   const appConfig = JSON.stringify({ authProviders, checkout, affiliates, services }).replace(/</g, '\\u003c');
   const configScript = `<script>window.__APP_CONFIG__ = ${appConfig};</script>`;

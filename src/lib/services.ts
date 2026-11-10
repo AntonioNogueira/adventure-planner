@@ -14,6 +14,8 @@ export interface Services {
   valhalla: string;
   /** BRouter base URL (off-road routes). */
   brouter: string;
+  /** Open-Meteo-style elevation API: the backup when Valhalla's height service fails. */
+  elevation: string;
 }
 
 export const PUBLIC_SERVICES: Services = {
@@ -23,6 +25,7 @@ export const PUBLIC_SERVICES: Services = {
   osrm: 'https://routing.openstreetmap.de',
   valhalla: 'https://valhalla1.openstreetmap.de',
   brouter: 'https://brouter.de/brouter',
+  elevation: 'https://api.open-meteo.com/v1/elevation',
 };
 
 const trim = (url: string) => url.replace(/\/+$/, '');
@@ -37,7 +40,7 @@ export function resolveServices(config?: Partial<Record<keyof Services, string |
   const list = (Array.isArray(overpass) ? overpass : (overpass || '').split(',')).map(s => s.trim()).filter(Boolean).map(trim);
   return {
     overpass: list.length ? list : PUBLIC_SERVICES.overpass,
-    photon: one('photon'), nominatim: one('nominatim'), osrm: one('osrm'), valhalla: one('valhalla'), brouter: one('brouter'),
+    photon: one('photon'), nominatim: one('nominatim'), osrm: one('osrm'), valhalla: one('valhalla'), brouter: one('brouter'), elevation: one('elevation'),
   };
 }
 

@@ -28,13 +28,13 @@ export interface Plan {
 export const PLANS: Record<PlanId, Plan> = {
   anonymous: {
     id: 'anonymous', name: 'Visitor', price: '',
-    limits: { savedTrips: 0, aiPlans: 5, placeSearches: 10, documents: 2 },
+    limits: { savedTrips: 0, aiPlans: 10, placeSearches: 40, documents: 2 },
     features: [],
   },
   free: {
     id: 'free', name: 'Free', price: '',
-    limits: { savedTrips: 3, aiPlans: 10, placeSearches: 20, documents: 5 },
-    features: ['3 saved trips', '10 AI plans a day', '20 place searches a day', 'Budget, GPX and weather', 'Share trips by link'],
+    limits: { savedTrips: 3, aiPlans: 20, placeSearches: 80, documents: 5 },
+    features: ['3 saved trips', '20 AI plans a day', '80 place searches a day', 'Budget, GPX and weather', 'Share trips by link'],
   },
   explorer: {
     id: 'explorer', name: 'Explorer', price: '€2.99 / month', priceAlt: '€19 / year',
