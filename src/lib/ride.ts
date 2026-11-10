@@ -155,6 +155,12 @@ export function rideTargets(route: Pick<RouteInfo, 'origin' | 'destination' | 'w
   }).filter(g => g.items.length);
 }
 
+/** A place picked on the map (its popup's "Go to") as a Go-to target. */
+export function placeTarget(item: { name: string; placeId?: string; source?: string }, glyph: string, at: LatLng, stay = false): RideTarget {
+  const booked = item.source === 'reservation';
+  return { key: `map-${item.placeId || item.name}`, name: item.name, glyph: booked ? '✅' : glyph, at, booked, stay };
+}
+
 /** Tonight's place to stay (where day `dayIndex` ends): a booking first, else a saved place to stay. */
 export function tonightStay(groups: RideTargetGroup[], dayIndex: number): RideTarget | undefined {
   const tonight = groups.find(g => g.stop === dayIndex + 1);

@@ -32,6 +32,8 @@ interface RideModeProps {
   onDetour?: (path: LatLng[] | undefined) => void;
   onExportGpx: (legIndex: number) => void;
   onClose: () => void;
+  /** A place picked on the map ("Go to" in its popup); `n` changes with each pick. */
+  gotoRequest?: { target: RideTarget; n: number } | null;
 }
 
 type GpsState = 'waiting' | 'ok' | 'denied' | 'unavailable';
@@ -47,7 +49,7 @@ const TURN_ICON: Record<TurnKind, typeof ArrowUp> = {
 
 /** The day being ridden: progress, arrival, off-route warning and links to a navigation app. */
 const RideMode: React.FC<RideModeProps> = ({
-  routeInfo, paths, schedule, travelMode, offroad, dayIndex, onDayChange, position, onPosition, follow, onFollowChange, onDetour, onExportGpx, onClose,
+  routeInfo, paths, schedule, travelMode, offroad, dayIndex, onDayChange, position, onPosition, follow, onFollowChange, onDetour, onExportGpx, onClose, gotoRequest,
 }) => {
   const { t, dist, speed: fmtSpeed, date, locale, settings } = useSettings();
   const [gps, setGps] = useState<GpsState>('waiting');
@@ -168,13 +170,15 @@ const RideMode: React.FC<RideModeProps> = ({
   };
   const tonight = tonightStay(targets, dayIndex);
   const nearby = position ? nearYou(targets, position) : [];
-  const startGoto = (key: string) => {
-    const place = targets.flatMap(g => g.items).find(x => x.key === key) || null;
+  const goTo = (place: RideTarget | null) => {
     setTarget(place); setGotoRoute(null); setGotoFailed(false); said.current = new Set();
     if (!place) return;
     say(t('Going to {place}.', { place: place.name }));
-    if (position) findWay(position, place);
+    if (position) { findWay(position, place); onFollowChange(true); }
   };
+  const startGoto = (key: string) => goTo(targets.flatMap(g => g.items).find(x => x.key === key) || null);
+  // "Go to" pressed in a place's popup on the map.
+  useEffect(() => { if (gotoRequest) goTo(gotoRequest.target); }, [gotoRequest?.n]);
   const stopGoto = () => { setTarget(null); setGotoRoute(null); setGotoFailed(false); said.current = new Set(); };
 
   // What to say at each GPS fix.

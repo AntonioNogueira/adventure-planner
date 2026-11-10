@@ -82,3 +82,12 @@ describe('Go to: places on the trip', () => {
     expect(nearYou(groups, { lat: 39.36, lng: -9.155 }).map(x => x.name)).toEqual(['Tasca', 'Casa B']);
   });
 });
+
+describe('placeTarget (Go to from a map popup)', () => {
+  it('turns a popup place into a Go-to target', async () => {
+    const { placeTarget } = await import('../ride');
+    const at = { lat: 37.19, lng: -8.44 };
+    expect(placeTarget({ name: 'O Gralha', placeId: 'osm:node/1' }, '🍴', at)).toMatchObject({ key: 'map-osm:node/1', name: 'O Gralha', glyph: '🍴', at, booked: false });
+    expect(placeTarget({ name: 'Casa X', source: 'reservation' }, '🛏', at, true)).toMatchObject({ glyph: '✅', booked: true, stay: true });
+  });
+});

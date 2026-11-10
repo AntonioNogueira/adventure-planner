@@ -499,6 +499,7 @@ export const PT: Record<string, string> = {
   "Go to tonight's stay: {place}": 'Ir para o alojamento desta noite: {place}',
   'Tonight: {place}': 'Esta noite: {place}',
   'Go to…': 'Ir para…',
+  'Go to': 'Ir para lá',
   'Near you': 'Perto de si',
   'Tonight · {place}': 'Esta noite · {place}',
   'Add a link (Booking, Google Maps, a post…)': 'Adicionar uma ligação (Booking, Google Maps, uma publicação…)',

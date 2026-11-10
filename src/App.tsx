@@ -16,6 +16,7 @@ import { elevationsAlong, climbStats } from './lib/elevation';
 import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
 import { downsample } from './lib/geo';
+import { placeTarget, type RideTarget } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt } from './lib/geocode';
@@ -200,6 +201,8 @@ const App: React.FC = () => {
   const [rideFollow, setRideFollow] = useState(true);
   const [rideHeading, setRideHeading] = useState<number | undefined>(undefined);
   const [rideDetour, setRideDetour] = useState<{ lat: number; lng: number }[] | undefined>(undefined);
+  // Ride mode: a place picked with "Go to" in its map popup.
+  const [gotoRequest, setGotoRequest] = useState<{ target: RideTarget; n: number } | null>(null);
   // The traveller's budget averages; null until edited (defaults follow the travel mode and lodging).
   const [budgetSettings, setBudgetSettings] = useState<BudgetSettings | null>(null);
   // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
@@ -1141,6 +1144,7 @@ const App: React.FC = () => {
               onDetour={setRideDetour}
               onExportGpx={handleExportGpx}
               onClose={() => setView('route')}
+              gotoRequest={gotoRequest}
             /></Suspense>
           )}
           {(view === 'budget' || view === 'documents') && (
@@ -1180,6 +1184,7 @@ const App: React.FC = () => {
             onAttachFile={handleAttachFile}
             attachingKey={attachingKey}
             stays={stays}
+            onGoto={view === 'ride' ? (item, id, at) => setGotoRequest(r => ({ target: placeTarget(item, CATEGORIES[id].glyph, at, id === 'stay'), n: (r?.n || 0) + 1 })) : undefined}
             ride={view === 'ride' ? { dayIndex: Math.min(rideDay, Math.max(0, legPaths.length - 1)), position: ridePos, heading: rideHeading, follow: rideFollow, detour: rideDetour } : null}
           />
           </Suspense>

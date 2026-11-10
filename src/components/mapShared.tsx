@@ -36,10 +36,12 @@ interface PlacePopupProps {
   onRemove: () => void;
   /** Nights at the stop: dates for "Check prices". */
   nights?: Nights;
+  /** Ride mode: navigate to this place now. */
+  onGoto?: (at: { lat: number; lng: number }) => void;
 }
 
 /** The card for a suggestion or booking pin. */
-export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point, onRemove, nights }) => {
+export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point, onRemove, nights, onGoto }) => {
   const { t, date } = useSettings();
   const isBooking = item.source === 'reservation';
   const offer = offerFor(item.category || categoryId, item.source);
@@ -59,6 +61,12 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
       {isBooking && r?.confirmation && <p className="text-slate-700">{t('Ref:')} <b>{r.confirmation}</b></p>}
       {item.description && <p className="text-slate-500">{item.description}</p>}
       <p className="text-slate-400">{t('Near {stop}: {place}', { stop: point.label, place: point.location })}</p>
+      {onGoto && at && (
+        <button onClick={() => onGoto(at)}
+          className="mt-1 flex w-full items-center justify-center gap-1 rounded-sm bg-blue-600 px-2 py-1.5 font-bold text-white hover:bg-blue-700">
+          ➜ {t('Go to')}
+        </button>
+      )}
       <div className="flex gap-3 pt-1">
         <a href={link} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">{linkLabel}</a>
         {at && !isBooking && item.url && linkLabel === t('Website') && (
