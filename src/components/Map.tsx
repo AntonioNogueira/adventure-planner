@@ -1,7 +1,11 @@
 // The map: MapLibre GL with OpenTopoMap (topo), EOX Sentinel-2 (satellite) and OpenFreeMap labels (hybrid).
 // Stops, places, day lines, popups and ride mode (position, direction, route ahead/done) are drawn here.
 import React, { useEffect, useRef, useState } from 'react';
-import maplibregl, { StyleSpecification } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type { StyleSpecification } from 'maplibre-gl';
+// MapLibre 6 does its tile work in a separate module worker: bundle it with the app and tell MapLibre where it is.
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+maplibregl.setWorkerUrl(mapWorkerUrl);
 import type { FeatureCollection, LineString } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';

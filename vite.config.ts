@@ -71,6 +71,8 @@ export default defineConfig(({ mode, command }) => {
     optimizeDeps: {
       include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
     },
+    // Web workers (MapLibre's) as ES modules, like the rest of the app.
+    worker: { format: 'es' },
     build: {
       target: 'esnext',
       // The map chunk (MapLibre) is ~1 MB and loads after the first paint; don't warn about it.
