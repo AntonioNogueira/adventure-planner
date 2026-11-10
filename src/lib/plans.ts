@@ -37,12 +37,12 @@ export const PLANS: Record<PlanId, Plan> = {
     features: ['3 saved trips', '10 AI plans a day', '20 place searches a day', 'Budget, GPX and weather', 'Share trips by link'],
   },
   explorer: {
-    id: 'explorer', name: 'Explorer', price: '€4.99 / month', priceAlt: '€39 / year',
+    id: 'explorer', name: 'Explorer', price: '€2.99 / month', priceAlt: '€19 / year',
     limits: { savedTrips: null, aiPlans: 100, placeSearches: 300, documents: 200 },
     features: ['Unlimited saved trips', '100 AI plans a day', '300 place searches a day', 'Documents for every booking', 'Everything in Free'],
   },
   trip_pass: {
-    id: 'trip_pass', name: 'Trip Pass', price: '€7.99 once',
+    id: 'trip_pass', name: 'Trip Pass', price: '€4.99 once',
     limits: { savedTrips: null, aiPlans: 100, placeSearches: 300, documents: 200 },
     features: ['Explorer for 3 months', 'One payment, no subscription', 'For the one big trip a year'],
   },

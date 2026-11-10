@@ -23,7 +23,7 @@ partner or sold, and so personal email stays separate.
 
 | | Visitor | Free | Explorer | Trip Pass | Pro |
 |---|---|---|---|---|---|
-| Price | – | €0 | €4.99/month or €39/year | €7.99 once (3 months) | €24/month |
+| Price | – | €0 | €2.99/month or €19/year | €4.99 once (3 months) | €24/month |
 | Saved trips | – | 3 | unlimited | unlimited | unlimited |
 | AI plans / day | 5 | 10 | 100 | 100 | 400 |
 | Place searches / day | 10 | 20 | 300 | 300 | 1500 |
@@ -148,3 +148,42 @@ General orientation, not legal/tax advice: thresholds and rates change; confirm 
 - **Done (Nov 2026):** the Google map version was removed. The app runs on OpenStreetMap only, with server addresses
   in settings (`OVERPASS_URL`, `PHOTON_URL`, `OSRM_URL`, `VALHALLA_URL`, `BROUTER_URL`) and `deploy/places-server` to
   run an own Overpass (~€8–15/month for one country, €40–60 for Europe). Next: rent the server and set `OVERPASS_URL`.
+
+## 11. Covering the running costs (10 Nov 2026)
+
+**Now (testing):** everything runs on free services (public Overpass servers with fallbacks, Photon → Nominatim,
+OSRM, Valhalla, BRouter, OpenTopoMap, EOX satellite). EOX imagery is non-commercial only: replace it before charging.
+
+| Stage | Paid for | Per month |
+|---|---|---|
+| Testing | Nothing (domain optional) | €0–3 |
+| Public beta (free for users) | Domain, always-on hosting (Render Starter ~$7; the free plan sleeps), a little AI | ~€10–15 |
+| Launch (charging) | + MapTiler (topo + commercial satellite, ~€25), Stadia Maps (hosted Valhalla routing, ~€20), own Overpass (~€8–15) or Geoapify | ~€70–90 |
+
+Other providers compared (Mapbox, CARTO, HERE, TomTom, Stadia, MapTiler, Geoapify, Thunderforest, Esri, Apple):
+none routes off-road, so BRouter/Valhalla stay; MapTiler (map + satellite), Stadia (routing, names) and
+Geoapify or own Overpass (places) are the best fits. Set through OVERPASS_URL, VALHALLA_URL, … (no code change
+except a small adapter for Stadia's geocoding).
+
+**How ~€80/month gets covered** (a mix, so no one source carries it):
+1. **Booking commissions** (Booking.com ~4–6%, ≈ €4–8 per booking): **10–15 bookings a month cover it**, realistic at
+   a few hundred active users. Needs `BOOKING_AID` (apply with the domain live).
+2. **Paid plan** (prices now in `src/lib/plans.ts`): Free (3 saved trips, a few AI plans a day); **Explorer €2.99/month
+   or €19/year**; **Trip Pass €4.99** (one trip, 3 months). After Paddle/Lemon Squeezy fees (~5% + €0.50), €19/year ≈
+   €17.50 net: **~55 yearly subscribers cover it** without bookings (≈ 1,500–2,500 active users at 2–4% conversion).
+   Still well under Komoot (~€60/year) and Calimoto (~€50/year). $5/year would not cover the cost per user.
+3. **"Support the project"** (Ko-fi / Buy Me a Coffee) during the beta: free, often covers domain and hosting early.
+- No display ads (very low at this size, clutter the map).
+- Path: bookings cover hosting in the beta; the paid plan starts when moving to the paid map services.
+
+### Name and domain checklist
+1. Pick a distinctive name (e.g. *Mundi Trails*, *Mappamundi Trails*, *Rota Mundi*, *Itinera*); "Mappa Mundi" alone
+   is a historical term, hard to protect.
+2. Check it: trademarks at tmdn.org/tmview (EU) and INPI Portugal; domains at Cloudflare Registrar or Porkbun.
+3. Buy **.com** (~€10/year) and **.app** (~€15/year) together (+ **.pt** for Portugal). Cloudflare Registrar sells at cost.
+4. Email: Cloudflare Email Routing forwards `hello@<name>` to Gmail (free); Gmail can send as it.
+5. Render → service → Settings → **Custom Domains** → add the domain; add the two DNS records it shows in Cloudflare
+   (HTTPS is automatic, also on the free plan).
+6. Firebase → Authentication → **Authorized domains**: add the new domain (or login fails there). Then rename the
+   app (title, manifest, README) to the chosen name.
+7. Trademark later, with traction: INPI Portugal ~€120–200 per class; EU (EUIPO) ~€850 for one class.
