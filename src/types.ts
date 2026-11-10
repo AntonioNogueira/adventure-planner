@@ -93,6 +93,8 @@ export interface TripIntent {
   origin: string;
   destination: string;
   travelMode: string;
+  /** The AI read how they travel from the request itself (not a guess). */
+  travelModeStated?: boolean;
   /** 0 when the user didn't say. */
   days: number;
   dailyKm: number;

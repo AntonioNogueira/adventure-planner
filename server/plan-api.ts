@@ -107,6 +107,8 @@ NEW REQUEST: "${request}"
 Return the complete plan:
 - origin, destination: specific geocodable places, e.g. "Cádiz, Spain".
 - travelMode: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips, TRANSIT only for public transport.
+- travelModeStated: true if the NEW REQUEST says or clearly implies how they travel, in any language and even misspelled
+  ("biccicle", "bycicle", "bicicleta", "vélo", "bikepacking", "GS", "on foot", "Camino"); false if you had to guess.
 - days: only if the user states a number of days themselves; otherwise the current plan's value (0 if none).
   Never copy a day count from the assistant's summaries.
 - dailyKm: the daily distance if the user gives one (e.g. "about 60 km per day"), otherwise 0 (or the current plan's value).
@@ -134,13 +136,14 @@ Return the complete plan:
 - Write the summary in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'coastFrom', 'coastTo', 'summary'];
+const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'coastFrom', 'coastTo', 'summary'];
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
     origin: { type: Type.STRING },
     destination: { type: Type.STRING },
     travelMode: { type: Type.STRING, enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
+    travelModeStated: { type: Type.BOOLEAN },
     days: { type: Type.INTEGER },
     dailyKm: { type: Type.INTEGER },
     route: {
@@ -168,6 +171,7 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "origin": string,
   "destination": string,
   "travelMode": "DRIVING" | "WALKING" | "BICYCLING" | "TRANSIT",
+  "travelModeStated": boolean,
   "days": number,
   "dailyKm": number,
   "route": [{ "place": string, "overnight": boolean }],
@@ -187,6 +191,7 @@ const planJsonSchema = {
     origin: { type: 'string' },
     destination: { type: 'string' },
     travelMode: { type: 'string', enum: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'] },
+    travelModeStated: { type: 'boolean' },
     days: { type: 'integer' },
     dailyKm: { type: 'integer' },
     route: {

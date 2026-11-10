@@ -142,7 +142,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
         askedRef.current = new Set();
         modeMentionedRef.current = false;
       }
-      if (mentionsTravelMode(messageToPlan)) modeMentionedRef.current = true;
+      if (mentionsTravelMode(messageToPlan) || understood.travelModeStated) modeMentionedRef.current = true;
       await runPlan(intent);
     } catch (error) {
       if (error instanceof LimitError) {

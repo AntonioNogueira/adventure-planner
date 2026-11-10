@@ -35,7 +35,7 @@ export interface Question {
   dateInput?: boolean;
 }
 
-const MODE_WORDS = /\b(bike|bikes|biking|bikepack\w*|cycl\w*|bicycle|gravel|mtb|hike|hiking|trek\w*|walk\w*|camino|moto\w*|motorcycle|motorbike|car|drive|driving|road ?trip|bicicleta|bici|btt|cicl\w*|pedal\w*|caminh\w*|a p[ée]|andar|trilh\w*|mota|motociclet\w*|carro|conduzir|dirigir|viagem de carro)\b/i;
+const MODE_WORDS = /\b(bik\w*|byk\w*|bi[cks]+\w*cl\w*|by[cks]+\w*cl\w*|velo|v[ée]lo|fahrrad|cycl\w*|gravel|mtb|hike|hiking|trek\w*|walk\w*|camino|moto\w*|motorcycle|motorbike|car|drive|driving|road ?trip|bicicleta|bici|btt|cicl\w*|pedal\w*|caminh\w*|a p[ée]|andar|trilh\w*|mota|motociclet\w*|carro|conduzir|dirigir|viagem de carro)\b/i;
 
 /** Did the user say how they travel? If not, the AI guessed and we ask. */
 export function mentionsTravelMode(text: string): boolean {
@@ -71,6 +71,7 @@ export function summaryText(intent: TripIntent, plan: PlanSummary): string {
 
 export interface ConversationState {
   asked: Set<Topic>;
+  /** The user said how they travel (or the AI read it, e.g. from a misspelling): don't ask. */
   modeMentioned: boolean;
   hasStartDate: boolean;
 }
@@ -80,9 +81,10 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
   const open = (topic: Topic) => !state.asked.has(topic);
 
   if (open('mode') && !state.modeMentioned) {
+    // A guess, so confirm it rather than ask from scratch.
     return {
       topic: 'mode',
-      text: t('How are you travelling?'),
+      text: modeName(intent) ? t('I planned it {mode}. Is that how you\'re travelling?', { mode: modeName(intent) }) : t('How are you travelling?'),
       choices: [{ label: t('Bike'), value: 'BICYCLING' }, { label: t('Hike'), value: 'WALKING' }, { label: t('Moto / car'), value: 'DRIVING' }],
     };
   }
@@ -172,7 +174,7 @@ const MENTIONS = {
 export function mergeIntent(previous: TripIntent | null, next: TripIntent, message: string): TripIntent {
   if (!previous) return next;
   const merged = { ...next };
-  if (!mentionsTravelMode(message)) merged.travelMode = previous.travelMode;
+  if (!mentionsTravelMode(message) && !next.travelModeStated) merged.travelMode = previous.travelMode;
   // Distance and day count change only when the message talks about them (the AI sometimes copies
   // the day count from the planner's own summary, which would override a chosen daily distance).
   if (!MENTIONS.distance.test(message)) {

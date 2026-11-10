@@ -113,3 +113,23 @@ describe('vehicle', () => {
     expect(mergeIntent({ ...moto, vehicle: '4x4' }, { ...moto, vehicle: 'campervan' }, 'actually we take the camper').vehicle).toBe('campervan');
   });
 });
+
+describe('reading the travel mode', () => {
+  it('understands misspelled and foreign words for a bike', () => {
+    for (const text of ['silves to cadiz by biccicle', 'by bycicle', 'on my bicicle', 'en vélo', 'mit dem Fahrrad', 'bikepacking trip'])
+      expect(mentionsTravelMode(text), text).toBe(true);
+    expect(mentionsTravelMode('silves to cadiz, 5 days')).toBe(false);
+  });
+  it('confirms a guessed mode instead of asking from scratch', () => {
+    expect(nextQuestion(intent, ferryPlan, state({ modeMentioned: false }))?.text).toBe("I planned it by bike. Is that how you're travelling?");
+  });
+  it('asks the daily distance next when the mode was said (or read by the AI)', () => {
+    expect(nextQuestion(intent, { ...ferryPlan, ferry: undefined, ferryKm: 0 }, state())?.topic).toBe('distance');
+  });
+  it('takes a new mode the AI read from a typo in a change', () => {
+    const previous = { ...intent, travelMode: 'WALKING' };
+    expect(mergeIntent(previous, { ...intent, travelModeStated: true }, 'actually by biccycle').travelMode).toBe('BICYCLING');
+    expect(mergeIntent(previous, { ...intent, travelModeStated: true }, 'make it 4 days').travelMode).toBe('BICYCLING');
+    expect(mergeIntent(previous, { ...intent }, 'make it 4 days').travelMode).toBe('WALKING');
+  });
+});
