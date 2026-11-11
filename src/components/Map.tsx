@@ -10,7 +10,7 @@ import type { FeatureCollection, LineString } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
 import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
-import { Waypoint, RouteInfo, StopRef, InterestItem } from '../types';
+import { Waypoint, RouteInfo, StopRef, InterestItem, Via } from '../types';
 import { cn } from '../lib/utils';
 import SegmentDetails from './SegmentDetails';
 import { geocodeAddress } from '../lib/geocode';
@@ -19,7 +19,7 @@ import { RoutedLeg } from '../lib/routing';
 import { LatLng } from '../lib/geo';
 import { useSettings, t as tr } from '../lib/settings';
 import { rentalUrl, type Nights } from '../lib/affiliate';
-import { buildPoints, MapPoint, PlacePopup, StopPopup, MapClickMenu, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS } from './mapShared';
+import { buildPoints, MapPoint, PlacePopup, StopPopup, MapClickMenu, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS, viaElement } from './mapShared';
 import { progressOn, splitAt } from '../lib/ride';
 
 interface MapProps {
@@ -36,6 +36,12 @@ interface MapProps {
   onMarkPlace?: (position: LatLng, category: CategoryId, name: string) => void;
   onRemoveStop?: (index: number) => void;
   onFindPlaces?: (ref: StopRef) => void;
+  /** Points the route is pulled through (dragging the line); not stops. */
+  vias?: Via[];
+  /** Dragging a day line: the route passes through where it's dropped. */
+  onShapeRoute?: (leg: number, at: LatLng) => void;
+  onMoveVia?: (index: number, at: LatLng) => void;
+  onRemoveVia?: (index: number) => void;
   /** Ride mode: navigate to a place from its popup. */
   onGoto?: (item: InterestItem, categoryId: CategoryId, at: LatLng) => void;
   onRemoveItem?: (ref: StopRef, categoryIndex: number, itemIndex: number) => void;
@@ -158,7 +164,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
 
 const MapView: React.FC<MapProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
-  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, attachingKey, stays, ride,
+  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, attachingKey, stays, ride, vias, onShapeRoute, onMoveVia, onRemoveVia,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -171,14 +177,36 @@ const MapView: React.FC<MapProps> = ({
   const activeSegmentRef = useRef(-1);
   const segmentsRef = useRef(segments);
   segmentsRef.current = segments;
-  const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, travelMode });
-  callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, travelMode };
+  const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, travelMode });
+  callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, travelMode };
   const [mapType, setMapType] = useState<MapType>('topo');
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
   // The day whose details show in the banner (a banner, not a popup, so the map stays free to zoom and pan).
   const [openSegment, setOpenSegment] = useState<number | null>(null);
   useEffect(() => setOpenSegment(null), [segments]);
+
+  // The points the route was dragged through: small dots to drag again, or tap to remove.
+  const viaMarkersRef = useRef<maplibregl.Marker[]>([]);
+  useEffect(() => {
+    viaMarkersRef.current.forEach(m => m.remove());
+    viaMarkersRef.current = [];
+    const map = mapRef.current;
+    if (!map || !isReady || ride) return;
+    (vias || []).forEach((v, i) => {
+      const el = viaElement(false, tr('The route passes here: drag to move, tap to remove'));
+      const marker = new maplibregl.Marker({ element: el, draggable: true }).setLngLat([v.at.lng, v.at.lat]).addTo(map);
+      let moved = false;
+      marker.on('dragstart', () => { moved = true; });
+      marker.on('dragend', () => {
+        const p = marker.getLngLat();
+        callbacksRef.current.onMoveVia?.(i, { lat: p.lat, lng: p.lng });
+        setTimeout(() => { moved = false; }, 300);
+      });
+      el.addEventListener('click', (ev) => { ev.stopPropagation(); if (!moved) callbacksRef.current.onRemoveVia?.(i); });
+      viaMarkersRef.current.push(marker);
+    });
+  }, [vias, isReady, Boolean(ride)]);
   const { t, settings } = useSettings();
 
   // One popup, re-used for stops, places, segments and "add stop here".
@@ -331,9 +359,43 @@ const MapView: React.FC<MapProps> = ({
     // Hovering a day line shows a pointer; clicking it opens its details; clicking elsewhere offers a new stop.
     map.on('mousemove', (e) => {
       const hit = map.getLayer('route-line') && map.queryRenderedFeatures(e.point, { layers: ['route-line'] }).length > 0;
-      map.getCanvas().style.cursor = hit ? 'pointer' : '';
+      map.getCanvas().style.cursor = hit ? (callbacksRef.current.onShapeRoute ? 'grab' : 'pointer') : '';
     });
+    // Dragging a day line pulls the route through where it's dropped (a pass-through point, not a stop).
+    // A press that doesn't move is a click (it opens the day). Mouse and one finger.
+    let drag: { leg: number; start: maplibregl.Point; last?: maplibregl.LngLat; ghost?: maplibregl.Marker } | null = null;
+    let justDragged = false;
+    const startDrag = (e: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent) => {
+      if (!callbacksRef.current.onShapeRoute || ('points' in e && e.points.length > 1)) return;
+      const f = map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['route-line'] })[0];
+      if (!f) return;
+      e.preventDefault(); // the map doesn't pan while the line is dragged
+      drag = { leg: f.properties?.index as number, start: e.point };
+    };
+    const moveDrag = (e: maplibregl.MapMouseEvent | maplibregl.MapTouchEvent) => {
+      if (!drag) return;
+      drag.last = e.lngLat;
+      if (drag.ghost) drag.ghost.setLngLat(e.lngLat);
+      else if (e.point.dist(drag.start) > 6) drag.ghost = new maplibregl.Marker({ element: viaElement(true) }).setLngLat(e.lngLat).addTo(map);
+    };
+    const endDrag = () => {
+      const d = drag;
+      drag = null;
+      if (!d?.ghost || !d.last) return;
+      d.ghost.remove();
+      justDragged = true;
+      setTimeout(() => { justDragged = false; }, 300);
+      callbacksRef.current.onShapeRoute?.(d.leg, { lat: d.last.lat, lng: d.last.lng });
+    };
+    map.on('mousedown', 'route-line', startDrag);
+    map.on('touchstart', 'route-line', startDrag);
+    map.on('mousemove', moveDrag);
+    map.on('touchmove', moveDrag);
+    map.on('mouseup', endDrag);
+    map.on('touchend', endDrag);
+
     map.on('click', (e) => {
+      if (justDragged) return;
       const hit = map.getLayer('route-line') ? map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['route-line'] }) : [];
       const at = { lat: e.lngLat.lat, lng: e.lngLat.lng };
       if (hit.length) {

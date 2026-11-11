@@ -105,6 +105,9 @@ export interface VehicleInfo {
   /** Known problems, limitations and tips for this kind of trip. */
   notes: string[];
 }
+/** A point the route is pulled through by dragging the line (not a stop): on day `leg`. */
+export interface Via { leg: number; at: { lat: number; lng: number } }
+
 /** The traveller's style, kept with the trip. */
 export interface TripStyle {
   ride?: RideKind;
@@ -167,6 +170,8 @@ export interface RouteInfo {
   vehicle?: 'motorcycle' | 'motorcycle_2up' | 'car' | 'suv' | '4x4' | 'campervan' | 'truck';
   /** The traveller's style from the planner: kind of riding, who's going, interests, budget, named vehicle. */
   style?: TripStyle;
+  /** Points the route was dragged through. */
+  vias?: Via[];
   /** The traveller's budget averages (Budget tab). */
   budget?: BudgetSettings;
   /** Anyone with the link can view a shared trip. */

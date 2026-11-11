@@ -89,6 +89,16 @@ export const PlacePopup: React.FC<PlacePopupProps> = ({ item, categoryId, point,
   );
 };
 
+/** A point the route is dragged through: a small white dot ringed in the route colour (bigger while dragging). */
+export function viaElement(dragging = false, title = ''): HTMLElement {
+  const el = document.createElement('div');
+  const size = dragging ? 18 : 14;
+  el.title = title;
+  el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:#fff;border:3px solid #a8003f;`
+    + `box-shadow:0 1px 3px rgba(0,0,0,.4);cursor:${dragging ? 'grabbing' : 'grab'};box-sizing:border-box;`;
+  return el;
+}
+
 /**
  * A stop pin with its number and town name ("③ Tavira"), like a Google Maps label. The name hides when
  * the map is zoomed far out (see .stop-labels-hidden in index.css) so long trips stay readable.

@@ -563,7 +563,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <LinkAdder busy={attachingKey === 'any'} onAdd={(url) => onAttachFile(null, url)} />
             {stopsOpen && (<>
-            <p className="text-[11px] text-muted-foreground">{t('Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.')}</p>
+            <p className="text-[11px] text-muted-foreground">{t('Drag pins on the map to move a stop, or drag the route line to make it pass somewhere. Remove suggestions with ×, or attach bookings to keep them with the trip.')}</p>
             <StopDetails
               kind="start" badge="S" title={t('Start')} location={routeInfo.origin} interests={routeInfo.originInterests || []}
               onRemoveItem={(c, i) => onRemoveItem({ kind: 'start' }, c, i)}

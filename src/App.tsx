@@ -17,7 +17,8 @@ import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
 import { downsample } from './lib/geo';
 import { placeTarget, type RideTarget } from './lib/ride';
-import type { TripStyle } from './types';
+import type { TripStyle, Via } from './types';
+import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt } from './lib/geocode';
@@ -218,6 +219,10 @@ const App: React.FC = () => {
   const [vehicle, setVehicle] = useState<Vehicle | undefined>(undefined);
   // The traveller's style from the planner (kind of riding, who's going, interests, budget, named vehicle).
   const [tripStyle, setTripStyle] = useState<TripStyle>({});
+  // Points the route is dragged through (not stops); the ref lets a route calculation use them right away.
+  const [vias, setVias] = useState<Via[]>([]);
+  const viasRef = useRef<Via[]>([]);
+  const updateVias = (next: Via[]) => { viasRef.current = next; setVias(next); };
   // Category names that depend on the trip ("Bike shops", "Mechanics"…).
   setTravelContext(travelMode, vehicle, tripStyle.interests);
   const passThroughRef = useRef<{ stopsKey: string; via: { name: string; beforeStop: number }[] } | null>(null);
@@ -327,6 +332,7 @@ const App: React.FC = () => {
     setRouteOptions(options);
     const { waypoints: stops, targetKm, passThrough } = await planOvernightStops(intent, options);
     const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
+    updateVias([]);
     // Named places to pass through (e.g. "via Monsaraz") shape the route while the stops stay as planned.
     passThroughRef.current = { stopsKey: mappedWaypoints.map(w => w.location).join('|'), via: passThrough };
 
@@ -404,13 +410,17 @@ const App: React.FC = () => {
     // Pass-through places from the plan, threaded between the stops (only while the stops are unchanged).
     const pass = passThroughRef.current;
     const usePass = pass && pass.stopsKey === stops.map(w => w.location).join('|') ? pass.via : [];
+    // Dragged-through points of day k go before the stop that ends it (they're kept in order along the day).
+    const dragged = viasRef.current;
     const routeStops = (exact: boolean) => {
       const out: { location: RoutePlace; via: boolean }[] = [];
       stops.forEach((wp, k) => {
         usePass.filter(p => p.beforeStop === k).forEach(p => out.push({ location: p.name, via: true }));
+        dragged.filter(v => v.leg === k).forEach(v => out.push({ location: v.at, via: true }));
         out.push({ location: (exact && wp.position) || wp.location, via: !wp.stopover });
       });
       usePass.filter(p => p.beforeStop >= stops.length).forEach(p => out.push({ location: p.name, via: true }));
+      dragged.filter(v => v.leg >= stops.length).forEach(v => out.push({ location: v.at, via: true }));
       return out;
     };
     const request = (mode: string, exact = true) => computeTrip({
@@ -749,6 +759,9 @@ const App: React.FC = () => {
     const insertAt = bestInsertIndex(points as LatLng[], position);
     const newWaypoints = [...waypoints];
     newWaypoints.splice(insertAt, 0, { location: name, position, stopover: true, interests });
+    // The new stop splits day `insertAt`: its dragged-through points go to the part they're on.
+    const along = (p: LatLng) => (legPaths[insertAt]?.length > 1 ? progressOn(legPaths[insertAt], p).alongKm : 0);
+    updateVias(viasRef.current.map(v => ({ ...v, leg: v.leg > insertAt || (v.leg === insertAt && along(v.at) > along(position)) ? v.leg + 1 : v.leg })));
     setWaypoints(newWaypoints);
     setHasChanges(true);
     setToast({ message: tr('Added a stop at {name}. Finding places nearby…', { name }), type: 'success' });
@@ -756,8 +769,24 @@ const App: React.FC = () => {
     if (legs) loadSuggestions([{ kind: 'stop', index: insertAt }], [position], travelMode, lodging);
   };
 
+  // Dragging a day line: the route passes through where it was dropped (in order along that day).
+  const sortVias = (list: Via[]) => {
+    const along = (v: Via) => (legPaths[v.leg]?.length > 1 ? progressOn(legPaths[v.leg], v.at).alongKm : 0);
+    return [...list].sort((a, b) => a.leg - b.leg || along(a) - along(b));
+  };
+  const reshape = async (next: Via[]) => {
+    updateVias(next);
+    setHasChanges(true);
+    await calculateRoute();
+  };
+  const handleShapeRoute = (leg: number, at: LatLng) => reshape(sortVias([...viasRef.current, { leg, at }]));
+  const handleMoveVia = (index: number, at: LatLng) => reshape(sortVias(viasRef.current.map((v, i) => (i === index ? { ...v, at } : v))));
+  const handleRemoveVia = (index: number) => reshape(viasRef.current.filter((_, i) => i !== index));
+
   const handleRemoveStop = async (index: number) => {
     const newWaypoints = waypoints.filter((_, i) => i !== index);
+    // Days `index` and `index + 1` become one.
+    updateVias(viasRef.current.map(v => (v.leg > index ? { ...v, leg: v.leg - 1 } : v)));
     setWaypoints(newWaypoints);
     setHasChanges(true);
     await calculateRoute(undefined, undefined, newWaypoints);
@@ -994,6 +1023,7 @@ const App: React.FC = () => {
         budget: budgetSettings || undefined,
         vehicle,
         style: tripStyle,
+        vias,
         shared: owned ? routeInfo.shared : false,
         createdAt: owned && routeInfo.createdAt ? routeInfo.createdAt : Date.now(),
       }));
@@ -1053,6 +1083,7 @@ const App: React.FC = () => {
     setBudgetSettings(route.budget || null);
     setVehicle(route.vehicle);
     setTripStyle(route.style || {});
+    updateVias(route.vias || []);
     setCurrentTripId(route.id || null);
     setViewingShared(Boolean(options.shared));
     setShareLink(route.shared && route.id ? `${window.location.origin}${window.location.pathname}?trip=${route.id}` : null);
@@ -1198,6 +1229,10 @@ const App: React.FC = () => {
             routeInfo={routeInfo}
             onMoveStop={handleMoveStop}
             onAddStop={routeInfo ? handleAddStop : undefined}
+            vias={vias}
+            onShapeRoute={routeInfo && view !== 'ride' ? handleShapeRoute : undefined}
+            onMoveVia={handleMoveVia}
+            onRemoveVia={handleRemoveVia}
             onMarkPlace={routeInfo ? handleMarkPlace : undefined}
             onRemoveStop={handleRemoveStop}
             onFindPlaces={handleFindPlaces}

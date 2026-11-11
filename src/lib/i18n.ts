@@ -73,7 +73,7 @@ export const PT: Record<string, string> = {
   'Reading…': 'A ler…',
   'Add reservation': 'Adicionar reserva',
   'Stops & places': 'Paragens e locais',
-  'Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.': 'Arraste os marcadores no mapa para mover uma paragem. Remova sugestões com × ou anexe reservas para as manter com a viagem.',
+  'Drag pins on the map to move a stop, or drag the route line to make it pass somewhere. Remove suggestions with ×, or attach bookings to keep them with the trip.': 'Arraste os marcadores no mapa para mover uma paragem, ou arraste a linha da rota para a fazer passar por outro sítio. Remova sugestões com × ou anexe reservas para as manter com a viagem.',
   'Finish': 'Chegada',
 
   // Itinerary
@@ -341,6 +341,7 @@ export const PT: Record<string, string> = {
   'about {d}/day': 'cerca de {d}/dia',
   'Includes a ferry crossing of {d} on day {day} ({from} → {to}).': 'Inclui uma travessia de ferry de {d} no dia {day} ({from} → {to}).',
   'How are you travelling?': 'Como vai viajar?',
+  'The route passes here: drag to move, tap to remove': 'A rota passa aqui: arraste para mover, toque para remover',
   'by {name}': 'de {name}',
   'about {l} l/100 km': 'cerca de {l} l/100 km',
   '{d} on a full tank': '{d} com o depósito cheio',
@@ -623,7 +624,7 @@ export const PT_BR: Record<string, string> = {
   "Attach a booking PDF, email or screenshot; it's placed on the matching stop automatically": 'Anexe o PDF, e-mail ou print de uma reserva; ela é colocada automaticamente na parada certa',
   'Reading…': 'Lendo…',
   'Stops & places': 'Paradas e lugares',
-  'Drag pins on the map to move a stop. Remove suggestions with ×, or attach bookings to keep them with the trip.': 'Arraste os marcadores no mapa para mover uma parada. Remova sugestões com × ou anexe reservas para mantê-las com a viagem.',
+  'Drag pins on the map to move a stop, or drag the route line to make it pass somewhere. Remove suggestions with ×, or attach bookings to keep them with the trip.': 'Arraste os marcadores no mapa para mover uma parada, ou arraste a linha da rota para fazê-la passar por outro lugar. Remova sugestões com × ou anexe reservas para mantê-las com a viagem.',
   'Download the whole trip as GPX (one track per day) for Garmin, Wahoo, Komoot…': 'Baixar a viagem em GPX (um trajeto por dia) para Garmin, Wahoo, Komoot…',
   'Add one for dates, weather and booking checks.': 'Informe para ver datas, clima e conferir reservas.',
   'Download day {n} as GPX': 'Baixar o dia {n} em GPX',
@@ -758,6 +759,7 @@ export const PT_BR: Record<string, string> = {
   'by public transport': 'de transporte público',
   'Includes a ferry crossing of {d} on day {day} ({from} → {to}).': 'Inclui uma travessia de balsa de {d} no dia {day} ({from} → {to}).',
   'How are you travelling?': 'Como você vai viajar?',
+  'The route passes here: drag to move, tap to remove': 'A rota passa aqui: arraste para mover, toque para remover',
   '{d} on a full tank': '{d} com o tanque cheio',
   'About the {name}: {figures}': 'Sobre {name}: {figures}',
   'typical figures, check yours': 'valores típicos, confira os seus',
