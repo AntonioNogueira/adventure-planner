@@ -3,7 +3,7 @@ import { updateSettings } from '../settings';
 
 // The planner's text follows Settings; these tests read it in English with km.
 beforeAll(() => updateSettings({ units: 'metric', currency: 'EUR', language: 'en' }));
-import { applyAnswer, mentionsTravelMode, nextQuestion, summaryText, mergeIntent, PlanSummary, ConversationState } from '../conversation';
+import { applyAnswer, changesRoute, distanceChoices, mentionsTravelMode, nextQuestion, summaryText, mergeIntent, vehicleNote, PlanSummary, ConversationState } from '../conversation';
 import { TripIntent } from '../../types';
 
 const intent: TripIntent = {
@@ -29,29 +29,29 @@ describe('nextQuestion', () => {
     expect(nextQuestion(intent, ferryPlan, state({ modeMentioned: false }))?.topic).toBe('mode');
   });
 
-  it('then asks distance, lodging, a long ferry and date, skipping what is answered', () => {
+  it('then asks the kind of bike, who goes, distance, lodging, a long ferry, interests, budget and date', () => {
     const asked = new Set<any>();
     const topics: string[] = [];
     for (let q = nextQuestion(intent, ferryPlan, state({ asked })); q; q = nextQuestion(intent, ferryPlan, state({ asked }))) {
       topics.push(q.topic);
       asked.add(q.topic);
     }
-    expect(topics).toEqual(['distance', 'lodging', 'ferry', 'date']);
+    expect(topics).toEqual(['ride', 'party', 'distance', 'lodging', 'ferry', 'interests', 'budget', 'date']);
   });
 
   it('takes a short river ferry without asking (often the only way across by bike)', () => {
     const river = { ...ferryPlan, ferryKm: 13, ferry: { day: 1, from: 'Lisbon, Portugal', to: 'Palmela, Portugal', km: 13 } };
-    const asked = new Set<any>(['distance', 'lodging']);
+    const asked = new Set<any>(['ride', 'party', 'distance', 'lodging', 'interests', 'budget']);
     expect(nextQuestion(intent, river, state({ asked }))?.topic).toBe('date');
   });
 
   it('does not ask what the request already said', () => {
-    const settled = { ...intent, dailyKm: 60, lodging: 'camping' as const, avoidFerries: true };
+    const settled = { ...intent, dailyKm: 60, lodging: 'camping' as const, avoidFerries: true, ride: 'gravel' as const, party: 'couple' as const, interests: ['nature' as const], budgetStyle: 'mid' as const };
     expect(nextQuestion(settled, ferryPlan, state({ hasStartDate: true }))).toBeNull();
   });
 
   it('offers distances that fit the travel mode', () => {
-    const q = nextQuestion({ ...intent, travelMode: 'WALKING' }, { ...ferryPlan, ferry: undefined }, state());
+    const q = nextQuestion({ ...intent, travelMode: 'WALKING', party: 'solo' }, { ...ferryPlan, ferry: undefined }, state());
     expect(q?.topic).toBe('distance');
     expect(q?.choices.map(c => c.value)).toEqual(['15', '20', '25']);
   });
@@ -101,7 +101,7 @@ describe('vehicle', () => {
   it('asks what they travel in for moto/car trips, once', () => {
     const q = nextQuestion(moto, plan, state({ modeMentioned: true }));
     expect(q?.topic).toBe('vehicle');
-    expect(q?.choices.map(c => c.value)).toEqual(['motorcycle', 'motorcycle_2up', 'car', '4x4', 'campervan']);
+    expect(q?.choices.map(c => c.value)).toEqual(['motorcycle', 'motorcycle_2up', 'car', 'suv', '4x4', 'campervan', 'truck']);
     expect(nextQuestion({ ...moto, vehicle: 'car' }, plan, state({ modeMentioned: true }))?.topic).not.toBe('vehicle');
     expect(applyAnswer(moto, 'vehicle', 'motorcycle_2up').vehicle).toBe('motorcycle_2up');
   });
@@ -124,12 +124,61 @@ describe('reading the travel mode', () => {
     expect(nextQuestion(intent, ferryPlan, state({ modeMentioned: false }))?.text).toBe("I planned it by bike. Is that how you're travelling?");
   });
   it('asks the daily distance next when the mode was said (or read by the AI)', () => {
-    expect(nextQuestion(intent, { ...ferryPlan, ferry: undefined, ferryKm: 0 }, state())?.topic).toBe('distance');
+    expect(nextQuestion({ ...intent, ride: 'gravel', party: 'solo' }, { ...ferryPlan, ferry: undefined, ferryKm: 0 }, state())?.topic).toBe('distance');
   });
   it('takes a new mode the AI read from a typo in a change', () => {
     const previous = { ...intent, travelMode: 'WALKING' };
     expect(mergeIntent(previous, { ...intent, travelModeStated: true }, 'actually by biccycle').travelMode).toBe('BICYCLING');
     expect(mergeIntent(previous, { ...intent, travelModeStated: true }, 'make it 4 days').travelMode).toBe('BICYCLING');
     expect(mergeIntent(previous, { ...intent }, 'make it 4 days').travelMode).toBe('WALKING');
+  });
+});
+
+describe('travel style', () => {
+  const plan: PlanSummary = { days: 3, stops: [], targetKm: null, longestKm: 80, totalKm: 220, averageKm: 73, ferryKm: 0 };
+  it('asks the kind of bike, and the kind of riding on a motorcycle', () => {
+    expect(nextQuestion(intent, plan, state())?.choices.map(c => c.value)).toEqual(['road', 'gravel', 'mtb', 'emtb']);
+    const moto = { ...intent, travelMode: 'DRIVING', vehicle: 'motorcycle' as const };
+    expect(nextQuestion(moto, plan, state())?.choices.map(c => c.value)).toEqual(['touring', 'adventure', 'enduro']);
+    // A car has no kind of riding: straight to who's going.
+    expect(nextQuestion({ ...moto, vehicle: '4x4' }, plan, state())?.topic).toBe('party');
+  });
+  it('a kind of riding decides road or off-road, and re-plans when that changes', () => {
+    const gravel = applyAnswer(intent, 'ride', 'gravel');
+    expect(gravel).toMatchObject({ ride: 'gravel', offroad: true });
+    expect(changesRoute(intent, gravel, 'ride')).toBe(true);
+    expect(applyAnswer(intent, 'ride', 'road').offroad).toBe(false);
+  });
+  it('offers shorter days to a family, and distances that fit the bike', () => {
+    expect(distanceChoices({ travelMode: 'BICYCLING', ride: 'road' })).toEqual([80, 100, 130]);
+    expect(distanceChoices({ travelMode: 'BICYCLING', ride: 'mtb', party: 'family' })).toEqual([25, 35, 50]);
+    expect(distanceChoices({ travelMode: 'DRIVING', ride: 'adventure' })).toEqual([200, 280, 350]);
+  });
+  it('re-plans for a family only when the day length was guessed', () => {
+    const family = applyAnswer(intent, 'party', 'family');
+    expect(changesRoute(intent, family, 'party')).toBe(true);
+    expect(changesRoute({ ...intent, dailyKm: 50 }, { ...family, dailyKm: 50 }, 'party')).toBe(false);
+    expect(changesRoute(intent, applyAnswer(intent, 'party', 'couple'), 'party')).toBe(false);
+  });
+  it("interests and budget don't change the route", () => {
+    expect(applyAnswer(intent, 'interests', 'all').interests).toEqual(['nature', 'history', 'contemporary']);
+    expect(changesRoute(intent, applyAnswer(intent, 'interests', 'history'), 'interests')).toBe(false);
+    expect(applyAnswer(intent, 'budget', 'shoestring').budgetStyle).toBe('shoestring');
+  });
+  it('names the kind of riding or the vehicle in the summary', () => {
+    expect(summaryText({ ...intent, ride: 'gravel' }, plan)).toContain('by gravel bike');
+    expect(summaryText({ ...intent, travelMode: 'DRIVING', vehicle: 'motorcycle', vehicleModel: 'Honda Africa Twin' }, plan)).toContain('by Honda Africa Twin');
+  });
+  it('describes a named vehicle', () => {
+    const note = vehicleNote({ ...intent, travelMode: 'DRIVING', vehicleModel: 'Honda Africa Twin',
+      vehicleInfo: { litresPer100km: 5.5, tankLitres: 18.8, rangeKm: 340, notes: ['Heavy when loaded: keep to good gravel'] } });
+    expect(note).toContain('About the Honda Africa Twin: about 5.5 l/100 km, 340 km on a full tank');
+    expect(note).toContain('• Heavy when loaded');
+    expect(vehicleNote(intent)).toBe('');
+  });
+  it('keeps style answers through a change, but not a bike kind on a moto trip', () => {
+    const prev = { ...intent, ride: 'gravel' as const, party: 'family' as const, interests: ['history' as const], budgetStyle: 'comfort' as const };
+    expect(mergeIntent(prev, { ...intent }, 'add a stop in Évora')).toMatchObject({ ride: 'gravel', party: 'family', interests: ['history'], budgetStyle: 'comfort' });
+    expect(mergeIntent(prev, { ...intent, travelMode: 'DRIVING', travelModeStated: true }, 'actually by moto').ride).toBe('');
   });
 });

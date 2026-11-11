@@ -88,8 +88,37 @@ export interface RouteLeg {
   profile?: number[];
 }
 
+/** Bikes: road, gravel, mountain bike, e-MTB. Motorcycles: touring (tarmac), adventure (dirt roads), enduro (rough tracks). */
+export type RideKind = '' | 'road' | 'gravel' | 'mtb' | 'emtb' | 'touring' | 'adventure' | 'enduro';
+/** Who's travelling: sets the pace and the kind of places. */
+export type Party = '' | 'solo' | 'couple' | 'family' | 'group';
+/** What they like to stop for. */
+export type Interest = 'nature' | 'history' | 'contemporary';
+/** Budget style: the stay and food averages in the budget. */
+export type BudgetStyle = '' | 'shoestring' | 'mid' | 'comfort';
+/** General knowledge about a named vehicle (e.g. "Honda Africa Twin"): typical figures, not the owner's own. */
+export interface VehicleInfo {
+  litresPer100km?: number;
+  tankLitres?: number;
+  /** Typical km on a full tank. */
+  rangeKm?: number;
+  /** Known problems, limitations and tips for this kind of trip. */
+  notes: string[];
+}
+/** The traveller's style, kept with the trip. */
+export interface TripStyle {
+  ride?: RideKind;
+  party?: Party;
+  interests?: Interest[];
+  budgetStyle?: BudgetStyle;
+  vehicleModel?: string;
+  vehicleInfo?: VehicleInfo;
+}
+
 /** What the AI understood from the chat; the app turns it into a real route. */
-export interface TripIntent {
+export interface TripIntent extends TripStyle {
+  /** The planner's own words for this message: answers to questions, tips and warnings for the trip. */
+  reply?: string;
   origin: string;
   destination: string;
   travelMode: string;
@@ -106,7 +135,7 @@ export interface TripIntent {
   /** The traveller wants unpaved roads and trails (kept easy). */
   offroad?: boolean;
   /** Moto/car trips: what they drive or ride (for fuel and tolls); '' if not said. */
-  vehicle?: '' | 'motorcycle' | 'motorcycle_2up' | 'car' | '4x4' | 'campervan';
+  vehicle?: '' | 'motorcycle' | 'motorcycle_2up' | 'car' | 'suv' | '4x4' | 'campervan' | 'truck';
   /** A stretch the user wants along the coast (the server fills the coastal towns into `route`). */
   coastFrom?: string;
   coastTo?: string;
@@ -135,7 +164,9 @@ export interface RouteInfo {
   avoid?: { avoidHighways: boolean; avoidFerries: boolean; avoidTolls: boolean; offroad?: boolean };
   lodging?: 'any' | 'camping' | 'hostel' | 'hotel';
   /** Moto/car trips: the vehicle (fuel and toll estimates). */
-  vehicle?: 'motorcycle' | 'motorcycle_2up' | 'car' | '4x4' | 'campervan';
+  vehicle?: 'motorcycle' | 'motorcycle_2up' | 'car' | 'suv' | '4x4' | 'campervan' | 'truck';
+  /** The traveller's style from the planner: kind of riding, who's going, interests, budget, named vehicle. */
+  style?: TripStyle;
   /** The traveller's budget averages (Budget tab). */
   budget?: BudgetSettings;
   /** Anyone with the link can view a shared trip. */

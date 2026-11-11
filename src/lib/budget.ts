@@ -56,13 +56,18 @@ function preset(currency: string): Preset {
 }
 
 /** Sensible starting averages for the travel mode, lodging choice and currency (the traveller edits them). */
-export function defaultBudget(travelMode: string, lodging: Lodging = 'any', currency = 'EUR'): BudgetSettings {
+/** Stay and food averages by budget style (shoestring: camping and cooking; comfort: hotels and restaurants). */
+const STYLE_FACTOR: Record<string, { stay: number; food: number }> = { shoestring: { stay: 0.6, food: 0.6 }, comfort: { stay: 1.6, food: 1.5 } };
+
+export function defaultBudget(travelMode: string, lodging: Lodging = 'any', currency = 'EUR', style = ''): BudgetSettings {
   const motor = travelMode === 'DRIVING';
   const p = preset(currency);
+  const f = STYLE_FACTOR[style] || { stay: 1, food: 1 };
+  const round = (n: number) => (n >= 100 ? Math.round(n / 5) * 5 : Math.round(n));
   return {
     currency,
-    stayPerNight: p.stay[lodging] ?? p.stay.any,
-    foodPerDay: p.food,
+    stayPerNight: round((p.stay[lodging] ?? p.stay.any) * f.stay),
+    foodPerDay: round(p.food * f.food),
     // Fuel, consumption and tolls are estimated from the route until the traveller types their own.
     ...(motor ? {} : { fuelPer100km: 0, fuelPrice: 0, tollPerKm: 0 }),
     otherPerDay: travelMode === 'TRANSIT' ? p.other * 2 : p.other,
@@ -165,7 +170,7 @@ export function bookedStay(stop: BudgetStop | undefined) {
 
 export function computeBudget(
   settings: BudgetSettings, schedule: ScheduleDay[], legs: RouteLeg[], stops: BudgetStop[],
-  tollKm: number[] | null = null, opts: { offroad?: boolean; motor?: boolean; vehicle?: Vehicle } = {},
+  tollKm: number[] | null = null, opts: { offroad?: boolean; motor?: boolean; vehicle?: Vehicle; litresPer100km?: number } = {},
 ): Budget {
   const byKey = new Map(stops.map(s => [s.key, s]));
   const counted = new Set<string>();
@@ -245,7 +250,9 @@ export function computeBudget(
   const motor = opts.motor ?? true;
   const ridingKm = legs.reduce((a, l) => a + Math.max(0, (l.distanceMeters || 0) / 1000 - (l.ferryKm || 0)), 0);
   const autoPrice = estimatedFuelPrice(legs, currency);
-  const per100km = settings.fuelPer100km ?? (motor ? estimatedConsumption(opts.offroad, opts.vehicle) : 0);
+  // The traveller's figure, else what's known about their model (a little more off-road), else the vehicle type's.
+  const known = opts.litresPer100km && Math.round(opts.litresPer100km * (opts.offroad ? 1.1 : 1) * 10) / 10;
+  const per100km = settings.fuelPer100km ?? (motor ? known || estimatedConsumption(opts.offroad, opts.vehicle) : 0);
   const price = settings.fuelPrice ?? (motor ? autoPrice ?? preset(currency).fuelPerLitre : 0);
   const fuelCost = round2(ridingKm * per100km / 100 * price);
   const tolledKm = (tollKm || []).reduce((a, b) => a + b, 0);

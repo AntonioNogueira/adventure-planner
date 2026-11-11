@@ -2,6 +2,7 @@
 // into overnight stops, using the real route instead of AI guesses.
 // Days are split by effort: distance plus climbing, so hilly days come out shorter.
 import { TripIntent } from '../types';
+import { defaultDailyKm } from './pace';
 import { t } from './settings';
 import { lodgingNear, settlementAt } from './overpass';
 import { progressOn } from './ride';
@@ -11,7 +12,7 @@ import { haversineKm, pathWithDistances, pointAt, LatLng, downsample } from './g
 import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange } from './elevation';
 
 /** Typical comfortable day, used when the user gives neither days nor a daily distance. */
-export const DEFAULT_DAILY_KM: Record<string, number> = { BICYCLING: 70, WALKING: 22, DRIVING: 300 };
+export { DEFAULT_DAILY_KM, defaultDailyKm } from './pace';
 // With a guessed daily distance, a day may run this much over before it's split into two.
 // A distance the user chose is treated as a maximum.
 const SPLIT_TOLERANCE = 1.15;
@@ -143,7 +144,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
 
   const target = intent.days > 0
     ? totalEffort / intent.days
-    : intent.dailyKm || DEFAULT_DAILY_KM[intent.travelMode] || 300;
+    : intent.dailyKm || defaultDailyKm(intent);
 
   // With a day count, share the days between the parts so they add up to exactly that many.
   // A daily distance is a maximum, so each part (between nights the traveller chose) is rounded up.

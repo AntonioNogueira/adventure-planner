@@ -1,6 +1,6 @@
 // Place categories and suggestions near a stop, from OpenStreetMap (Overpass, with Photon as the fallback: see
 // overpass.ts). Reviews and prices are one tap away: "Check prices" (Booking.com) and "Open in Google Maps".
-import { InterestCategory } from '../types';
+import { InterestCategory, Interest } from '../types';
 import { geocodeAddress } from './geocode';
 import { LatLng } from './geo';
 import { osmSuggestions } from './overpass';
@@ -22,16 +22,18 @@ export function categoryId(name: string): CategoryId {
   return (Object.keys(CATEGORIES) as CategoryId[]).find(id => id === n || CATEGORIES[id].name.toLowerCase() === n) ?? 'sights';
 }
 
-// The traveller's mode and vehicle, for names that depend on them (set by the app when they change).
-let travel: { mode: string; vehicle?: string } = { mode: 'DRIVING' };
-export function setTravelContext(mode: string, vehicle?: string) { travel = { mode, vehicle }; }
+// The traveller's mode, vehicle and interests, for names and places that depend on them (set by the app).
+let travel: { mode: string; vehicle?: string; interests?: Interest[] } = { mode: 'DRIVING' };
+export function setTravelContext(mode: string, vehicle?: string, interests?: Interest[]) { travel = { mode, vehicle, interests }; }
+/** What the traveller likes to stop for (empty: a bit of everything). */
+export function travelInterests(): Interest[] { return travel.interests || []; }
 
 /** What the shops category is called for this kind of trip. */
 export function shopLabel(mode = travel.mode, vehicle = travel.vehicle): string {
   if (mode === 'BICYCLING') return 'Bike shops';
   if (mode === 'WALKING') return 'Sport shops';
   if (vehicle?.startsWith('motorcycle')) return 'Moto shops';
-  if (vehicle === 'car' || vehicle === '4x4' || vehicle === 'campervan') return 'Mechanics';
+  if (vehicle && ['car', 'suv', '4x4', 'campervan', 'truck'].includes(vehicle)) return 'Mechanics';
   return 'Moto & car repairs';
 }
 

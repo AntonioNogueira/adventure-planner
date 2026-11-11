@@ -88,7 +88,7 @@ function buildPrompt(request: string, history: ChatMessage[], current?: unknown,
 ${JSON.stringify(current, null, 2)}
 
 The user is refining this plan unless they clearly ask for a different trip.
-- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries, offroad, vehicle and the existing route places.
+- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries, offroad, vehicle, ride, party, interests, budgetStyle, vehicleModel, vehicleInfo and the existing route places.
 - A request about part of the trip (e.g. "Cádiz to Valencia along the coast instead of inland") changes only that part:
   keep the overall origin and destination, and add or replace route places for that stretch.
 - "Keep the plan but …" always means: start from the current plan and apply only the change.`
@@ -129,14 +129,47 @@ Return the complete plan:
 - vehicle: for DRIVING trips, what they drive or ride if they say (or the current plan says): "motorcycle" (motorbike,
   moto, mota, scooter, a named bike like GS/Africa Twin/Ténéré), "motorcycle_2up" (a motorcycle with a passenger or
   pillion, "two-up", "2 up", "with my wife/partner on the back"), "car", "4x4" (4WD, SUV off-road, Land Cruiser,
-  Defender, overlanding truck), "campervan" (camper, motorhome, van, autocaravana). "unknown" if they don't say.
+  Defender), "suv" (SUV or crossover), "campervan" (camper, motorhome, van, autocaravana), "truck" (expedition or
+  overland truck, Unimog, humanitarian or aid truck). "unknown" if they don't say.
+- ride: the kind of riding, if they say or it's clear: bikes "road" (road bike, racing), "gravel", "mtb" (mountain bike,
+  BTT, singletrack), "emtb" (electric mountain bike, e-bike off-road); motorcycles "touring" (tarmac touring, sport
+  tourer, cruiser), "adventure" (ADV, dual-sport, big trail bike on dirt roads), "enduro" (hard enduro, rally, rough
+  tracks). A named bike counts: an Africa Twin, GS or Ténéré is "adventure", a KTM EXC or Husqvarna FE is "enduro", a
+  Gold Wing is "touring". "none" if they don't say (or the current plan's value).
+- party: who travels, if they say: "solo", "couple", "family" (with children), "group" (friends, a club, a team).
+  "none" if they don't say (or the current plan's value).
+- interests: what they want to see, if they say: any of "nature" (mountains, viewpoints, waterfalls, beaches, wildlife),
+  "history" (castles, ruins, old towns, monuments), "contemporary" (museums, art, architecture, street art, design).
+  Empty list if they don't say (or the current plan's value).
+- budgetStyle: "shoestring" (cheap, wild camping, cooking), "mid", or "comfort" (hotels, restaurants, no budget limit)
+  if they say. "none" if they don't say (or the current plan's value).
+- vehicleModel: the make and model of their vehicle if they name one (e.g. "Honda CRF1100L Africa Twin", "Toyota Land
+  Cruiser 70", "VW California"), otherwise an empty string (or the current plan's value). A model name alone ("my GS")
+  counts: write the full name.
+- vehicleInfo: only when vehicleModel is set, general knowledge about that model for this trip: litresPer100km (typical
+  loaded touring use, not the brochure figure), tankLitres, rangeKm (typical km on a full tank), and notes: 2-4 short,
+  practical points an experienced owner would tell a friend before this trip: well-known weak points and common
+  failures, limitations (weight, ground clearance, range, heat, sand, two-up load), and what to carry or check (e.g.
+  "Heavy when fully loaded: keep to good gravel roads", "Known for chain wear: carry a spare link"). No praise or
+  marketing. Use 0 for a figure you don't know. Never invent problems that aren't well known.
 - coastFrom, coastTo: if the user wants the trip (or part of it) along the coast, the start and end of that coastal stretch
   (the whole trip: origin and destination). Otherwise empty strings. The app fills in the coastal towns itself.
-- summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.${LANGUAGE_NAMES[language || ''] ? `
-- Write the summary in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
+- summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.
+- reply: your answer to the traveller, as a knowledgeable adventure-travel friend, in 1-4 short sentences (at most ~70
+  words). First answer anything they asked (weather, season, gear, what to see, whether something is possible). Then add
+  the one or two most useful, specific tips for this trip and style: heat or cold for the season, water and resupply,
+  big climbs, rough or remote stretches, border or ferry practicalities, a highlight on the way, or what suits who's
+  going (children, a group) and their vehicle. Be concrete (place names), never generic. Don't repeat the distances or
+  day counts (the app shows them), don't ask questions (the app asks them), and don't invent facts you aren't sure of.${LANGUAGE_NAMES[language || ''] ? `
+- Write the summary, the reply and the vehicle notes in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'coastFrom', 'coastTo', 'summary'];
+const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply'];
+const VEHICLE_ENUM = ['unknown', 'motorcycle', 'motorcycle_2up', 'car', 'suv', '4x4', 'campervan', 'truck'];
+const RIDE_ENUM = ['none', 'road', 'gravel', 'mtb', 'emtb', 'touring', 'adventure', 'enduro'];
+const PARTY_ENUM = ['none', 'solo', 'couple', 'family', 'group'];
+const INTEREST_ENUM = ['nature', 'history', 'contemporary'];
+const BUDGET_ENUM = ['none', 'shoestring', 'mid', 'comfort'];
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -157,10 +190,24 @@ const responseSchema = {
     lodging: { type: Type.STRING, enum: ['any', 'camping', 'hostel', 'hotel'] },
     avoidFerries: { type: Type.BOOLEAN },
     offroad: { type: Type.BOOLEAN },
-    vehicle: { type: Type.STRING, enum: ['unknown', 'motorcycle', 'motorcycle_2up', 'car', '4x4', 'campervan'] },
+    vehicle: { type: Type.STRING, enum: VEHICLE_ENUM },
+    ride: { type: Type.STRING, enum: RIDE_ENUM },
+    party: { type: Type.STRING, enum: PARTY_ENUM },
+    interests: { type: Type.ARRAY, items: { type: Type.STRING, enum: INTEREST_ENUM } },
+    budgetStyle: { type: Type.STRING, enum: BUDGET_ENUM },
+    vehicleModel: { type: Type.STRING },
+    vehicleInfo: {
+      type: Type.OBJECT,
+      properties: {
+        litresPer100km: { type: Type.NUMBER }, tankLitres: { type: Type.NUMBER }, rangeKm: { type: Type.NUMBER },
+        notes: { type: Type.ARRAY, items: { type: Type.STRING } },
+      },
+      required: ['litresPer100km', 'tankLitres', 'rangeKm', 'notes'],
+    },
     coastFrom: { type: Type.STRING },
     coastTo: { type: Type.STRING },
     summary: { type: Type.STRING },
+    reply: { type: Type.STRING },
   },
   required: intentFields,
 };
@@ -178,10 +225,17 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "lodging": "any" | "camping" | "hostel" | "hotel",
   "avoidFerries": boolean,
   "offroad": boolean,
-  "vehicle": "unknown" | "motorcycle" | "motorcycle_2up" | "car" | "4x4" | "campervan",
+  "vehicle": "unknown" | "motorcycle" | "motorcycle_2up" | "car" | "suv" | "4x4" | "campervan" | "truck",
+  "ride": "none" | "road" | "gravel" | "mtb" | "emtb" | "touring" | "adventure" | "enduro",
+  "party": "none" | "solo" | "couple" | "family" | "group",
+  "interests": ("nature" | "history" | "contemporary")[],
+  "budgetStyle": "none" | "shoestring" | "mid" | "comfort",
+  "vehicleModel": string,
+  "vehicleInfo": { "litresPer100km": number, "tankLitres": number, "rangeKm": number, "notes": string[] },
   "coastFrom": string,
   "coastTo": string,
-  "summary": string
+  "summary": string,
+  "reply": string
 }`;
 
 // Plain JSON Schema for Claude structured outputs (every object closed with additionalProperties: false).
@@ -206,10 +260,25 @@ const planJsonSchema = {
     lodging: { type: 'string', enum: ['any', 'camping', 'hostel', 'hotel'] },
     avoidFerries: { type: 'boolean' },
     offroad: { type: 'boolean' },
-    vehicle: { type: 'string', enum: ['unknown', 'motorcycle', 'motorcycle_2up', 'car', '4x4', 'campervan'] },
+    vehicle: { type: 'string', enum: VEHICLE_ENUM },
+    ride: { type: 'string', enum: RIDE_ENUM },
+    party: { type: 'string', enum: PARTY_ENUM },
+    interests: { type: 'array', items: { type: 'string', enum: INTEREST_ENUM } },
+    budgetStyle: { type: 'string', enum: BUDGET_ENUM },
+    vehicleModel: { type: 'string' },
+    vehicleInfo: {
+      type: 'object',
+      properties: {
+        litresPer100km: { type: 'number' }, tankLitres: { type: 'number' }, rangeKm: { type: 'number' },
+        notes: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['litresPer100km', 'tankLitres', 'rangeKm', 'notes'],
+      additionalProperties: false,
+    },
     coastFrom: { type: 'string' },
     coastTo: { type: 'string' },
     summary: { type: 'string' },
+    reply: { type: 'string' },
   },
   required: intentFields,
   additionalProperties: false,
@@ -562,6 +631,30 @@ export function decodeTextFile(base64: string) {
 // Simple per-visitor limit so a public deployment can't burn through the AI quota.
 // AI_REQUESTS_PER_HOUR in the environment overrides the default.
 const requestLog = new Map<string, number[]>();
+/** Keep only the style values that fit the trip; vehicle facts only with a named vehicle, and only sensible figures. */
+export function cleanStyle(intent: any) {
+  const bike = ['road', 'gravel', 'mtb', 'emtb'];
+  const moto = ['touring', 'adventure', 'enduro'];
+  const ride = String(intent.ride || '');
+  const motorcycle = intent.travelMode === 'DRIVING' && (!intent.vehicle || String(intent.vehicle).startsWith('motorcycle'));
+  intent.ride = (intent.travelMode === 'BICYCLING' && bike.includes(ride)) || (motorcycle && moto.includes(ride)) ? ride : '';
+  intent.reply = typeof intent.reply === 'string' ? intent.reply.trim().slice(0, 700) : '';
+  if (!PARTY_ENUM.includes(intent.party) || intent.party === 'none') intent.party = '';
+  intent.interests = Array.isArray(intent.interests) ? [...new Set(intent.interests.filter((i: string) => INTEREST_ENUM.includes(i)))] : [];
+  if (!BUDGET_ENUM.includes(intent.budgetStyle) || intent.budgetStyle === 'none') intent.budgetStyle = '';
+  intent.vehicleModel = typeof intent.vehicleModel === 'string' ? intent.vehicleModel.trim().slice(0, 80) : '';
+  const info = intent.vehicleInfo;
+  if (!intent.vehicleModel || !info || typeof info !== 'object') { delete intent.vehicleInfo; return intent; }
+  const num = (v: unknown, lo: number, hi: number) => (typeof v === 'number' && v >= lo && v <= hi ? Math.round(v * 10) / 10 : undefined);
+  intent.vehicleInfo = {
+    litresPer100km: num(info.litresPer100km, 1, 60),
+    tankLitres: num(info.tankLitres, 2, 1000),
+    rangeKm: num(info.rangeKm, 50, 3000),
+    notes: (Array.isArray(info.notes) ? info.notes : []).filter((n: unknown) => typeof n === 'string' && n.trim()).map((n: string) => n.trim().slice(0, 200)).slice(0, 4),
+  };
+  return intent;
+}
+
 function overLimit(env: PlanEnv, req: IncomingMessage) {
   const perHour = Number(env.AI_REQUESTS_PER_HOUR) || 60;
   const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
@@ -618,6 +711,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
           allowOpenAI: true,
         });
         if (!intent.vehicle || intent.vehicle === 'unknown' || intent.travelMode !== 'DRIVING') intent.vehicle = '';
+        cleanStyle(intent);
         // Places that are just the origin or destination again (the AI sometimes repeats them) make empty days.
         const town = (p: string) => String(p || '').split(',')[0].trim().toLowerCase();
         if (Array.isArray(intent.route)) intent.route = intent.route.filter((r: any) => ![town(intent.origin), town(intent.destination)].includes(town(r.place)));

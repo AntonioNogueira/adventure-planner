@@ -21,7 +21,7 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react';
-import { RouteInfo, Waypoint, StopRef, TripIntent } from '../types';
+import { RouteInfo, Waypoint, StopRef, TripIntent, TripStyle } from '../types';
 import type { PlanSummary } from './AIAgent';
 import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
@@ -72,6 +72,7 @@ interface SidebarProps {
   startDate: string;
   onStartDateChange: (date: string) => void;
   onVehicleChange?: (vehicle: string) => void;
+  onStyleChange?: (style: TripStyle) => void;
   onRestDaysChange: (stopIndex: number, restDays: number) => void;
   onExportGpx: (legIndex: number | null) => void;
   warnings: BookingWarning[];
@@ -128,6 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   startDate,
   onStartDateChange,
   onVehicleChange,
+  onStyleChange,
   onRestDaysChange,
   onExportGpx,
   warnings,
@@ -272,7 +274,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <div className="mb-4">
-        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} />
       </div>
 
       {aiSummary && (

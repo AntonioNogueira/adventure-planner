@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSettings, getSettings, t as tr } from '../lib/settings';
 import { authFetch, checkLimit, LimitError, refreshAccount, openPlans } from '../lib/account';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
-import { TripIntent } from '../types';
-import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, mentionsTravelMode, mergeIntent } from '../lib/conversation';
+import { TripIntent, TripStyle } from '../types';
+import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf } from '../lib/conversation';
 import { cn } from '../lib/utils';
 
 export type { PlanSummary } from '../lib/conversation';
@@ -16,6 +16,8 @@ interface AIAgentProps {
   onStartDateChange: (date: string) => void;
   /** The vehicle (moto/car trips), from the request or a quick reply: used for fuel and tolls. */
   onVehicleChange?: (vehicle: string) => void;
+  /** The traveller's style (kind of riding, who's going, interests, budget, named vehicle): places and budget follow it. */
+  onStyleChange?: (style: TripStyle) => void;
 }
 
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
@@ -45,7 +47,7 @@ interface Message {
   answer?: string;
 }
 
-const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange }) => {
+const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange }) => {
   const lastPlanRef = useRef<PlanSummary | null>(null);
   const { t, locale } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
@@ -57,6 +59,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   const intentRef = useRef<TripIntent | null>(null);
   const askedRef = useRef(new Set<Topic>());
   const modeMentionedRef = useRef(false);
+  // The named vehicle already described in the chat (said once per vehicle).
+  const describedVehicleRef = useRef('');
 
   const placeholders = [
     t('e.g., Bikepacking from Paris to Rome, about 80 km per day...'),
@@ -96,13 +100,19 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   const reportPlan = (intent: TripIntent, plan: PlanSummary, dateSet = Boolean(startDate)) => {
     lastPlanRef.current = plan;
     if (intent.vehicle) onVehicleChange?.(intent.vehicle);
+    onStyleChange?.(styleOf(intent));
     const question = nextQuestion(intent, plan, {
       asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: dateSet,
     });
     // Asked once: if the traveller types something else instead of answering, don't ask it again.
     if (question) askedRef.current.add(question.topic);
+    // What the planner knows about a named vehicle, said once.
+    const vehicle = intent.vehicleModel && intent.vehicleModel !== describedVehicleRef.current ? vehicleNote(intent) : '';
+    if (vehicle) describedVehicleRef.current = intent.vehicleModel!;
     say({
-      text: question ? `${summaryText(intent, plan)}\n\n${question.text}` : `${summaryText(intent, plan)}\n\n${t('All set! Drag the pins or ask me for any change.')}`,
+      // The AI's own answer (tips, answers to questions) first, then the plan in numbers and the next question.
+      text: [intent.reply, summaryText(intent, plan), vehicle, question ? question.text : t('All set! Drag the pins or ask me for any change.')]
+        .filter(Boolean).join('\n\n'),
       question: question || undefined,
     });
   };
@@ -119,7 +129,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       say({ text: t("I understood {from} → {to}, but the map couldn't draw that route. Try more specific place names.", { from: intent.origin, to: intent.destination }) });
       return;
     }
-    intentRef.current = intent;
+    // The AI's answer belongs to the message it answered: not repeated when a quick reply re-plans.
+    intentRef.current = { ...intent, reply: '' };
     reportPlan(intent, plan);
   };
 
@@ -166,11 +177,13 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     const intent = intentRef.current;
     if (!intent) return;
 
-    // The vehicle only changes the fuel and toll estimates: no new route needed.
-    if (question.topic === 'vehicle') {
-      const updated = applyAnswer(intent, 'vehicle', value);
+    // Answers that don't change the route (vehicle, interests, budget, often who's going) only update the
+    // estimates and places: no new route needed.
+    const updated = question.topic === 'date' ? intent : applyAnswer(intent, question.topic, value);
+    if (question.topic !== 'date' && !changesRoute(intent, updated, question.topic)) {
       intentRef.current = updated;
-      onVehicleChange?.(value);
+      if (question.topic === 'vehicle') onVehicleChange?.(value);
+      onStyleChange?.(styleOf(updated));
       const plan = lastPlanRef.current || { days: 0, stops: [], targetKm: null, longestKm: 0, totalKm: 0, averageKm: 0, ferryKm: 0 };
       const next = nextQuestion(updated, plan, { asked: askedRef.current, modeMentioned: modeMentionedRef.current, hasStartDate: Boolean(startDate) });
       say(next ? { text: next.text, question: next } : { text: t('All set! Drag the pins or ask me for any change.') });
@@ -188,7 +201,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     }
     setIsPlanning(true);
     try {
-      await runPlan(applyAnswer(intent, question.topic, value));
+      await runPlan(updated);
     } finally {
       setIsPlanning(false);
     }

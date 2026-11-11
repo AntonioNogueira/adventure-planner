@@ -21,6 +21,8 @@ interface BudgetViewProps {
   /** Moto/car trips: what they travel in (fuel and tolls). */
   vehicle?: Vehicle;
   onVehicleChange: (vehicle: Vehicle) => void;
+  /** Typical consumption of the traveller's named vehicle (from the planner), used until they type their own. */
+  litresPer100km?: number;
 }
 
 import { CURRENCIES } from '../lib/settings';
@@ -81,7 +83,7 @@ const Cell: React.FC<{ value: number; edited?: boolean; onChange: (v: number | u
   );
 };
 
-const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths, offroad, vehicle, onVehicleChange }) => {
+const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, onChange, legPaths, offroad, vehicle, onVehicleChange, litresPer100km }) => {
   const { t, settings: app, distUnit, toDist, money: fmtMoney, date } = useSettings();
   const imperial = app.units === 'imperial';
   // US units for fuel: mpg and price per gallon (stored as L/100 km and per litre).
@@ -107,8 +109,8 @@ const BudgetView: React.FC<BudgetViewProps> = ({ routeInfo, schedule, settings, 
   }, [legPaths, motorTrip]);
 
   const budget = useMemo(
-    () => computeBudget(settings, schedule, routeInfo?.legs || [], stops, tollKm, { offroad, motor: motorTrip, vehicle }),
-    [settings, schedule, routeInfo, stops, tollKm, offroad, motorTrip, vehicle],
+    () => computeBudget(settings, schedule, routeInfo?.legs || [], stops, tollKm, { offroad, motor: motorTrip, vehicle, litresPer100km }),
+    [settings, schedule, routeInfo, stops, tollKm, offroad, motorTrip, vehicle, litresPer100km],
   );
 
   if (!routeInfo?.legs?.length) {

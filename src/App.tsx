@@ -17,6 +17,7 @@ import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
 import { downsample } from './lib/geo';
 import { placeTarget, type RideTarget } from './lib/ride';
+import type { TripStyle } from './types';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt } from './lib/geocode';
@@ -215,8 +216,10 @@ const App: React.FC = () => {
   const [routeStale, setRouteStale] = useState(false);
   // Moto/car trips: the vehicle, for fuel and toll estimates (from the request, a quick reply or the budget).
   const [vehicle, setVehicle] = useState<Vehicle | undefined>(undefined);
+  // The traveller's style from the planner (kind of riding, who's going, interests, budget, named vehicle).
+  const [tripStyle, setTripStyle] = useState<TripStyle>({});
   // Category names that depend on the trip ("Bike shops", "Mechanics"…).
-  setTravelContext(travelMode, vehicle);
+  setTravelContext(travelMode, vehicle, tripStyle.interests);
   const passThroughRef = useRef<{ stopsKey: string; via: { name: string; beforeStop: number }[] } | null>(null);
   // Which stop is reading a reservation file ('start', 'stop-2', 'end' or 'any').
   const [attachingKey, setAttachingKey] = useState<string | null>(null);
@@ -786,6 +789,20 @@ const App: React.FC = () => {
     });
   };
 
+  // New interests: the points of interest near each stop are looked up again (the traveller's own places stay).
+  const handleStyleChange = (style: TripStyle) => {
+    const before = (tripStyle.interests || []).join(',');
+    setTripStyle(style);
+    setHasChanges(true);
+    if ((style.interests || []).join(',') === before) return;
+    setTravelContext(travelMode, vehicle, style.interests);
+    const loaded = allStops().filter(({ ref }) => {
+      const cats = ref.kind === 'start' ? routeInfo?.originInterests : ref.kind === 'end' ? routeInfo?.destinationInterests : waypoints[ref.index!]?.interests;
+      return cats?.some(c => c.items.some(i => !isOwn(i)));
+    });
+    if (loaded.length) loadSuggestions(loaded.map(s => s.ref), loaded.map(s => s.position || s.location), travelMode, lodging);
+  };
+
   const handleFindPlaces = (ref: StopRef) => {
     const stop = allStops().find(s => s.ref.kind === ref.kind && s.ref.index === ref.index);
     if (stop) loadSuggestions([ref], [stop.position || stop.location], travelMode, lodging);
@@ -976,6 +993,7 @@ const App: React.FC = () => {
         lodging,
         budget: budgetSettings || undefined,
         vehicle,
+        style: tripStyle,
         shared: owned ? routeInfo.shared : false,
         createdAt: owned && routeInfo.createdAt ? routeInfo.createdAt : Date.now(),
       }));
@@ -1034,6 +1052,7 @@ const App: React.FC = () => {
     setLodging(route.lodging || 'any');
     setBudgetSettings(route.budget || null);
     setVehicle(route.vehicle);
+    setTripStyle(route.style || {});
     setCurrentTripId(route.id || null);
     setViewingShared(Boolean(options.shared));
     setShareLink(route.shared && route.id ? `${window.location.origin}${window.location.pathname}?trip=${route.id}` : null);
@@ -1113,6 +1132,7 @@ const App: React.FC = () => {
           startDate={startDate}
           onStartDateChange={handleStartDateChange}
           onVehicleChange={(v) => { setVehicle((v || undefined) as Vehicle | undefined); setHasChanges(true); }}
+          onStyleChange={handleStyleChange}
           onRestDaysChange={handleRestDaysChange}
           onExportGpx={handleExportGpx}
           warnings={warnings}
@@ -1154,12 +1174,13 @@ const App: React.FC = () => {
                 <Suspense fallback={null}><BudgetView
                   routeInfo={routeInfo}
                   schedule={schedule}
-                  settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency)}
+                  settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency, tripStyle.budgetStyle)}
                   onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
                   legPaths={legPaths}
                   offroad={routeOptions.offroad}
                   vehicle={vehicle}
                   onVehicleChange={(v) => { setVehicle(v); setHasChanges(true); }}
+                  litresPer100km={tripStyle.vehicleInfo?.litresPer100km}
                 /></Suspense>
               ) : (
                 <Suspense fallback={null}><DocumentsView routeInfo={routeInfo} onAttachFile={handleAttachFile} onRemoveItem={handleRemoveItem} attachingKey={attachingKey} /></Suspense>

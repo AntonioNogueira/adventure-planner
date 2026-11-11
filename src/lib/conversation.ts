@@ -2,7 +2,8 @@
 // (with quick-reply buttons) about whatever the request didn't settle. Unit-tested.
 // Text follows the app's language and distances its units (Settings).
 import { getSettings, formatters, t } from './settings';
-import { TripIntent } from '../types';
+import { TripIntent, TripStyle, Interest } from '../types';
+import { defaultDailyKm, OFFROAD_RIDES } from './pace';
 
 export interface PlanSummary {
   days: number;
@@ -20,7 +21,7 @@ export interface PlanSummary {
 /** Ferries at least this long get a question (take it or go overland); shorter ones are simply taken. */
 export const LONG_FERRY_KM = 20;
 
-export type Topic = 'mode' | 'vehicle' | 'ferry' | 'distance' | 'lodging' | 'date';
+export type Topic = 'mode' | 'vehicle' | 'ride' | 'party' | 'distance' | 'lodging' | 'ferry' | 'interests' | 'budget' | 'date';
 
 export interface Choice {
   label: string;
@@ -44,19 +45,57 @@ export function mentionsTravelMode(text: string): boolean {
 
 const MODE_NAMES: Record<string, string> = { BICYCLING: 'by bike', WALKING: 'on foot', DRIVING: 'by moto/car', TRANSIT: 'by public transport' };
 const VEHICLE_NAMES: Record<string, string> = {
-  motorcycle: 'by motorcycle', motorcycle_2up: 'by motorcycle, two-up', car: 'by car', '4x4': 'by 4x4', campervan: 'by campervan',
+  motorcycle: 'by motorcycle', motorcycle_2up: 'by motorcycle, two-up', car: 'by car', suv: 'by SUV', '4x4': 'by 4x4',
+  campervan: 'by campervan', truck: 'by expedition truck',
+};
+const RIDE_NAMES: Record<string, string> = {
+  road: 'by road bike', gravel: 'by gravel bike', mtb: 'by mountain bike', emtb: 'by e-MTB',
+  touring: 'by touring motorcycle', adventure: 'by adventure motorcycle', enduro: 'by enduro motorcycle',
 };
 const DISTANCE_CHOICES: Record<string, number[]> = { BICYCLING: [50, 70, 90], WALKING: [15, 20, 25], DRIVING: [200, 300, 400] };
-const DISTANCE_CHOICES_MI: Record<string, number[]> = { BICYCLING: [30, 45, 55], WALKING: [10, 12, 15], DRIVING: [125, 185, 250] };
+const RIDE_DISTANCES: Record<string, number[]> = {
+  road: [80, 100, 130], gravel: [60, 80, 100], mtb: [35, 50, 70], emtb: [50, 65, 85],
+  touring: [250, 350, 450], adventure: [200, 280, 350], enduro: [120, 170, 220],
+};
+
+/** Three daily distances to offer (km): by mode and kind of riding, shorter with children, rounded to a nice number. */
+export function distanceChoices(intent: Pick<TripIntent, 'travelMode' | 'ride' | 'party'>): number[] {
+  const list = (intent.ride && RIDE_DISTANCES[intent.ride]) || DISTANCE_CHOICES[intent.travelMode];
+  if (!list) return [];
+  const step = list[0] >= 150 ? 10 : 5;
+  return list.map(km => (intent.party === 'family' ? Math.round(km * 0.7 / step) * step : km));
+}
 
 const fmt = () => formatters(getSettings());
 /** A whole distance in the chosen unit: "70 km" / "43 mi". */
 const n = (km: number) => fmt().dist(km, 0);
 
 const modeName = (intent: TripIntent) => {
-  const name = (intent.travelMode === 'DRIVING' && intent.vehicle && VEHICLE_NAMES[intent.vehicle]) || MODE_NAMES[intent.travelMode];
+  if (intent.vehicleModel && intent.travelMode !== 'TRANSIT') return t('by {name}', { name: intent.vehicleModel });
+  const name = (intent.ride && RIDE_NAMES[intent.ride])
+    || (intent.travelMode === 'DRIVING' && intent.vehicle && VEHICLE_NAMES[intent.vehicle]) || MODE_NAMES[intent.travelMode];
   return name ? t(name) : '';
 };
+
+/** The style part of an intent, kept with the trip. */
+export function styleOf(intent: TripIntent): TripStyle {
+  const { ride, party, interests, budgetStyle, vehicleModel, vehicleInfo } = intent;
+  return { ride, party, interests, budgetStyle, vehicleModel, vehicleInfo };
+}
+
+/** A short note on a named vehicle: typical consumption and range, and what's worth knowing for the trip. */
+export function vehicleNote(intent: TripIntent): string {
+  const info = intent.vehicleInfo;
+  if (!intent.vehicleModel || !info) return '';
+  const figures = [
+    info.litresPer100km ? t('about {l} l/100 km', { l: info.litresPer100km.toLocaleString(fmt().locale, { maximumFractionDigits: 1 }) }) : '',
+    info.rangeKm ? t('{d} on a full tank', { d: n(info.rangeKm) }) : '',
+  ].filter(Boolean).join(', ');
+  const lines = [t('About the {name}: {figures}', { name: intent.vehicleModel, figures: figures || t('typical figures unknown') })
+    + (figures ? ` (${t('typical figures, check yours')}).` : '.')];
+  for (const note of info.notes || []) lines.push(`• ${note}`);
+  return lines.join('\n');
+}
 
 /** One or two short lines: where, how long, how far, ferry if any. */
 export function summaryText(intent: TripIntent, plan: PlanSummary): string {
@@ -88,36 +127,71 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
       choices: [{ label: t('Bike'), value: 'BICYCLING' }, { label: t('Hike'), value: 'WALKING' }, { label: t('Moto / car'), value: 'DRIVING' }],
     };
   }
-  // Moto/car trips: what they drive (fuel and tolls); doesn't change the route.
+  // Moto/car trips: what they drive (route style, fuel and tolls).
   if (open('vehicle') && intent.travelMode === 'DRIVING' && !intent.vehicle) {
     return {
       topic: 'vehicle',
-      text: t('What are you travelling in? I\'ll use it for the fuel and toll estimates.'),
+      text: t('What are you travelling in? It sets the fuel and toll estimates, and for a motorcycle the kind of roads.'),
       choices: [
         { label: t('Motorcycle'), value: 'motorcycle' },
         { label: t('Motorcycle, two-up'), value: 'motorcycle_2up' },
         { label: t('Car'), value: 'car' },
+        { label: t('SUV'), value: 'suv' },
         { label: t('4x4'), value: '4x4' },
-        { label: t('Campervan'), value: 'campervan' },
+        { label: t('Campervan or van'), value: 'campervan' },
+        { label: t('Expedition truck'), value: 'truck' },
       ],
     };
   }
-  if (open('distance') && !intent.dailyKm && !intent.days && DISTANCE_CHOICES[intent.travelMode]) {
+  // The kind of bike or motorcycle riding: road or off-road, and how far a day goes.
+  if (open('ride') && !intent.ride) {
+    if (intent.travelMode === 'BICYCLING') {
+      return {
+        topic: 'ride',
+        text: t('What kind of bike? A road bike (fast, tarmac only), gravel (dirt roads and easy tracks), a mountain bike (rough trails, shorter days) or an e-MTB (trails with a boost)?'),
+        choices: [
+          { label: t('Road bike'), value: 'road' }, { label: t('Gravel'), value: 'gravel' },
+          { label: t('Mountain bike'), value: 'mtb' }, { label: t('e-MTB'), value: 'emtb' },
+        ],
+      };
+    }
+    if (intent.travelMode === 'DRIVING' && intent.vehicle?.startsWith('motorcycle')) {
+      return {
+        topic: 'ride',
+        text: t('What kind of riding? Touring (tarmac, longer days), adventure (good dirt roads on a bike like an Africa Twin, GS or Ténéré) or enduro (rough tracks on a light bike)?'),
+        choices: [{ label: t('Touring'), value: 'touring' }, { label: t('Adventure'), value: 'adventure' }, { label: t('Enduro'), value: 'enduro' }],
+      };
+    }
+  }
+  if (open('party') && !intent.party && intent.travelMode !== 'TRANSIT') {
+    return {
+      topic: 'party',
+      text: t("Who's going? I'll pace the days and pick places to suit."),
+      choices: [
+        { label: t('Just me'), value: 'solo' }, { label: t('A couple'), value: 'couple' },
+        { label: t('Family with kids'), value: 'family' }, { label: t('A group'), value: 'group' },
+      ],
+    };
+  }
+  const distances = distanceChoices(intent);
+  if (open('distance') && !intent.dailyKm && !intent.days && distances.length) {
     const imperial = getSettings().units === 'imperial';
     return {
       topic: 'distance',
       text: intent.travelMode === 'WALKING'
         ? t('I planned about {d} a day. How far do you like to walk each day?', { d: n(plan.averageKm) })
-        : t('I planned about {d} a day. How far do you like to ride each day?', { d: n(plan.averageKm) }),
+        : intent.travelMode === 'DRIVING' && intent.vehicle && !intent.vehicle.startsWith('motorcycle')
+          ? t('I planned about {d} a day. How far do you like to drive each day?', { d: n(plan.averageKm) })
+          : t('I planned about {d} a day. How far do you like to ride each day?', { d: n(plan.averageKm) }),
       choices: imperial
-        ? DISTANCE_CHOICES_MI[intent.travelMode].map(mi => ({ label: `${mi} mi`, value: String(Math.round(mi * 1.609344)) }))
-        : DISTANCE_CHOICES[intent.travelMode].map(km => ({ label: `${km} km`, value: String(km) })),
+        ? distances.map(km => Math.max(5, Math.round(km / 1.609344 / 5) * 5)).map(mi => ({ label: `${mi} mi`, value: String(Math.round(mi * 1.609344)) }))
+        : distances.map(km => ({ label: `${km} km`, value: String(km) })),
     };
   }
   if (open('lodging') && intent.lodging === 'any' && intent.travelMode !== 'TRANSIT') {
     return {
       topic: 'lodging',
-      text: t('Where do you like to sleep? I\'ll put each night near that kind of place.'),
+      text: t("Where do you like to sleep: campsites, hostels, or hotels and guesthouses? I'll put each night near that kind of place."),
       choices: [
         { label: t('Camping'), value: 'camping' },
         { label: t('Hostels'), value: 'hostel' },
@@ -135,6 +209,23 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
       choices: [{ label: t('Take the ferry'), value: 'ferry' }, { label: t('Go overland'), value: 'overland' }],
     };
   }
+  if (open('interests') && !intent.interests?.length) {
+    return {
+      topic: 'interests',
+      text: t('What do you like to stop for? Nature (viewpoints, waterfalls, beaches), history (castles, ruins, old towns) or contemporary (museums, art, architecture)?'),
+      choices: [
+        { label: t('Nature'), value: 'nature' }, { label: t('History'), value: 'history' },
+        { label: t('Contemporary'), value: 'contemporary' }, { label: t('A bit of everything'), value: 'all' },
+      ],
+    };
+  }
+  if (open('budget') && !intent.budgetStyle) {
+    return {
+      topic: 'budget',
+      text: t("And the budget? Shoestring (camping, cooking your own), mid-range, or comfort (hotels, restaurants). I'll use it for the budget estimate."),
+      choices: [{ label: t('Shoestring'), value: 'shoestring' }, { label: t('Mid-range'), value: 'mid' }, { label: t('Comfort'), value: 'comfort' }],
+    };
+  }
   if (open('date') && !state.hasStartDate) {
     return {
       topic: 'date',
@@ -149,14 +240,28 @@ export function nextQuestion(intent: TripIntent, plan: PlanSummary, state: Conve
 /** The trip intent after answering a question (the date is handled separately, without re-planning). */
 export function applyAnswer(intent: TripIntent, topic: Topic, value: string): TripIntent {
   switch (topic) {
-    // The AI's brief described the guessed mode, so drop it.
-    case 'mode': return { ...intent, travelMode: value, summary: value === intent.travelMode ? intent.summary : '' };
-    case 'vehicle': return { ...intent, vehicle: value as TripIntent['vehicle'] };
+    // The AI's brief described the guessed mode, so drop it; a bike or moto kind no longer fits another mode.
+    case 'mode': return value === intent.travelMode ? intent : { ...intent, travelMode: value, summary: '', ride: '', vehicleModel: '', vehicleInfo: undefined };
+    case 'vehicle': return { ...intent, vehicle: value as TripIntent['vehicle'], ride: value.startsWith('motorcycle') ? intent.ride : '' };
+    // A kind of riding decides road or off-road.
+    case 'ride': return { ...intent, ride: value as TripIntent['ride'], offroad: OFFROAD_RIDES.has(value) };
+    case 'party': return { ...intent, party: value as TripIntent['party'] };
     case 'ferry': return { ...intent, avoidFerries: value === 'overland' };
     case 'distance': return { ...intent, dailyKm: Number(value), days: 0 };
     case 'lodging': return { ...intent, lodging: value as TripIntent['lodging'] };
+    case 'interests': return { ...intent, interests: value === 'all' ? ['nature', 'history', 'contemporary'] : [value as Interest] };
+    case 'budget': return { ...intent, budgetStyle: value as TripIntent['budgetStyle'] };
     default: return intent;
   }
+}
+
+/** Does this answer change the route (so the trip is planned again), or only the estimates and places? */
+export function changesRoute(before: TripIntent, after: TripIntent, topic: Topic): boolean {
+  if (['mode', 'distance', 'lodging', 'ferry'].includes(topic)) return true;
+  if (topic !== 'ride' && topic !== 'party') return false;
+  if (Boolean(before.offroad) !== Boolean(after.offroad)) return true;
+  // The day length changes only when the traveller didn't choose it.
+  return !after.dailyKm && !after.days && defaultDailyKm(before) !== defaultDailyKm(after);
 }
 
 const MENTIONS = {
@@ -185,5 +290,12 @@ export function mergeIntent(previous: TripIntent | null, next: TripIntent, messa
   if (!MENTIONS.ferry.test(message) && previous.avoidFerries && !next.avoidFerries) merged.avoidFerries = true;
   if (!MENTIONS.offroad.test(message) && previous.offroad !== undefined) merged.offroad = previous.offroad;
   if (!next.vehicle || !MENTIONS.vehicle.test(message)) merged.vehicle = next.vehicle && MENTIONS.vehicle.test(message) ? next.vehicle : previous.vehicle || next.vehicle;
+  // Style answers stay unless the message changes them (a bike kind doesn't carry over to a moto trip).
+  const sameMode = merged.travelMode === previous.travelMode;
+  merged.ride = next.ride || (sameMode ? previous.ride : '');
+  merged.party = next.party || previous.party;
+  merged.interests = next.interests?.length ? next.interests : previous.interests;
+  merged.budgetStyle = next.budgetStyle || previous.budgetStyle;
+  if (!next.vehicleModel && sameMode) { merged.vehicleModel = previous.vehicleModel; merged.vehicleInfo = previous.vehicleInfo; }
   return merged;
 }

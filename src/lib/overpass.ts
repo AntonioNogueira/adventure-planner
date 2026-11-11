@@ -5,7 +5,8 @@ import { InterestCategory, InterestItem } from '../types';
 import { LatLng, haversineKm } from './geo';
 import { townAt, placeAt, photon, PhotonFeature } from './geocode';
 import { SERVICES } from './services';
-import { CATEGORIES, type CategoryId, type LodgingPreference } from './places';
+import { CATEGORIES, travelInterests, type CategoryId, type LodgingPreference } from './places';
+import type { Interest } from '../types';
 
 export interface OsmElement {
   type: 'node' | 'way' | 'relation';
@@ -74,7 +75,7 @@ export function shopTags(travelMode: string, vehicle = ''): string[] {
   if (travelMode === 'BICYCLING') return ['bicycle', 'sports'];
   if (travelMode === 'WALKING') return ['outdoor', 'sports'];
   if (vehicle.startsWith('motorcycle')) return ['motorcycle', 'motorcycle_repair'];
-  if (['car', '4x4', 'campervan'].includes(vehicle)) return ['car_repair', 'tyres', 'car_parts'];
+  if (['car', 'suv', '4x4', 'campervan', 'truck'].includes(vehicle)) return ['car_repair', 'tyres', 'car_parts'];
   return ['motorcycle', 'motorcycle_repair', 'car_repair'];
 }
 const GROCERY = ['supermarket', 'convenience', 'greengrocer', 'bakery', 'farm', 'deli', 'butcher', 'cheese'];
@@ -95,8 +96,29 @@ const TYPE_LABELS: Record<string, string> = {
   drinking_water: 'Drinking water', water_point: 'Water point', toilets: 'Toilets', shower: 'Showers',
   fuel: 'Fuel station', charging_station: 'Charging point', sanitary_dump_station: 'Motorhome service point',
   attraction: 'Attraction', viewpoint: 'Viewpoint', museum: 'Museum', castle: 'Castle', monument: 'Monument',
-  fort: 'Fort', ruins: 'Ruins',
+  fort: 'Fort', ruins: 'Ruins', archaeological_site: 'Archaeological site', city_gate: 'City gate', monastery: 'Monastery',
+  peak: 'Peak', waterfall: 'Waterfall', beach: 'Beach', cave_entrance: 'Cave', hot_spring: 'Hot spring', gorge: 'Gorge',
+  gallery: 'Gallery', artwork: 'Artwork', arts_centre: 'Arts centre', theatre: 'Theatre',
 };
+
+/** Points of interest by what the traveller likes; all of them when they didn't say. Each entry: [key, values]. */
+const SIGHTS: Record<Interest, [string, string[]][]> = {
+  nature: [['tourism', ['viewpoint']], ['natural', ['peak', 'waterfall', 'beach', 'cave_entrance', 'hot_spring', 'gorge']]],
+  history: [['historic', ['castle', 'monument', 'fort', 'ruins', 'archaeological_site', 'city_gate', 'monastery']], ['tourism', ['museum']]],
+  contemporary: [['tourism', ['museum', 'gallery', 'artwork', 'attraction']], ['amenity', ['arts_centre', 'theatre']]],
+};
+const MIX: [string, string[]][] = [['tourism', ['attraction', 'viewpoint', 'museum']], ['historic', ['castle', 'monument', 'fort', 'ruins']], ['natural', ['peak', 'waterfall', 'beach']]];
+
+/** The [key, values] pairs to look for, merged per key. */
+export function sightTags(interests: Interest[] = []): [string, string[]][] {
+  const merged = new Map<string, Set<string>>();
+  for (const [key, values] of interests.length ? interests.flatMap(i => SIGHTS[i] || []) : MIX) {
+    const set = merged.get(key) || new Set<string>();
+    values.forEach(v => set.add(v));
+    merged.set(key, set);
+  }
+  return [...merged].map(([key, set]) => [key, [...set]]);
+}
 
 const position = (e: OsmElement): LatLng | null =>
   e.lat != null && e.lon != null ? { lat: e.lat, lng: e.lon } : e.center ? { lat: e.center.lat, lng: e.center.lon } : null;
@@ -107,7 +129,7 @@ export function classify(tags: Record<string, string>): CategoryId | null {
   if (/^(restaurant|cafe|marketplace)$/.test(tags.amenity || '') || GROCERY.includes(tags.shop || '')) return 'food';
   if (/^(drinking_water|water_point|toilets|shower|fuel|charging_station|sanitary_dump_station)$/.test(tags.amenity || '')) return 'water';
   if (tags.shop) return 'shop';
-  if (tags.tourism || tags.historic) return 'sights';
+  if (tags.tourism || tags.historic || tags.natural || /^(arts_centre|theatre)$/.test(tags.amenity || '')) return 'sights';
   return null;
 }
 
@@ -119,7 +141,7 @@ export function rankScore(tags: Record<string, string>) {
 export function toItem(e: OsmElement, category: CategoryId): InterestItem | null {
   const tags = e.tags || {};
   const at = position(e);
-  const kind = tags.tourism || tags.amenity || tags.shop || tags.historic || '';
+  const kind = tags.tourism || tags.amenity || tags.shop || tags.historic || tags.natural || '';
   // Water points and toilets rarely have a name: call them by what they are.
   const name = tags.name || (category === 'water' ? TYPE_LABELS[kind] : undefined);
   if (!name || !at) return null;
@@ -151,7 +173,7 @@ const cache = new Map<string, Promise<InterestCategory[]>>();
 
 /** 4 categories × `count` named OSM places near a stop, in one Overpass request. */
 export function osmSuggestions(center: LatLng, travelMode: string, lodging: LodgingPreference, count: number, vehicle = ''): Promise<InterestCategory[]> {
-  const key = [center.lat.toFixed(3), center.lng.toFixed(3), travelMode, lodging, count, vehicle].join('|');
+  const key = [center.lat.toFixed(3), center.lng.toFixed(3), travelMode, lodging, count, vehicle, travelInterests().join(',')].join('|');
   if (!cache.has(key)) {
     const pending = fetchSuggestions(center, travelMode, lodging, count, vehicle);
     cache.set(key, pending);
@@ -170,8 +192,7 @@ async function fetchSuggestions(center: LatLng, travelMode: string, lodging: Lod
     nwr["shop"~${any(GROCERY)}]["name"]${around(r)};
     nwr["shop"~${any(shopTags(travelMode, vehicle))}]["name"]${around(r * 4)};
     nwr["amenity"~${any(utilityTags(travelMode))}]${around(Math.round(r * 0.75))};
-    nwr["tourism"~"^(attraction|viewpoint|museum)$"]["name"]${around(r * 2)};
-    nwr["historic"~"^(castle|monument|fort|ruins)$"]["name"]${around(r * 2)};
+    ${sightTags(travelInterests()).map(([k, v]) => `nwr["${k}"~${any(v)}]["name"]${around(r * 2)};`).join('\n    ')}
   );out center tags 400;`;
   let elements: OsmElement[];
   try {
@@ -215,7 +236,7 @@ const PHOTON_TAGS: Record<CategoryId, string[]> = {
   food: ['amenity:restaurant', 'amenity:cafe', 'shop:supermarket', 'shop:bakery', 'shop:farm'],
   shop: [],  // by travel mode, below
   water: [], // by travel mode, below
-  sights: ['tourism:attraction', 'tourism:viewpoint', 'tourism:museum', 'historic:castle', 'historic:monument', 'historic:fort', 'historic:ruins'],
+  sights: [], // by interests, below
 };
 const PHOTON_LODGING: Record<LodgingPreference, string[]> = {
   any: ['hotel', 'hostel', 'guest_house', 'motel', 'camp_site', 'alpine_hut', 'chalet', 'apartment'].map(v => `tourism:${v}`),
@@ -255,7 +276,7 @@ async function photonSuggestions(center: LatLng, travelMode: string, lodging: Lo
     ['stay', PHOTON_LODGING[lodging], km], ['food', PHOTON_TAGS.food, km],
     ['shop', shopTags(travelMode, vehicle).map(v => `shop:${v}`), km * 4],
     ['water', utilityTags(travelMode).map(v => `amenity:${v}`), km * 0.75],
-    ['sights', PHOTON_TAGS.sights, km * 2],
+    ['sights', sightTags(travelInterests()).flatMap(([k, v]) => v.map(x => `${k}:${x}`)), km * 2],
   ];
   const found = await Promise.allSettled(plan.map(([, tags, r]) => photonNear(center, r, tags, Math.max(count * 4, 12))));
   if (found.every(r => r.status === 'rejected')) throw (found[0] as PromiseRejectedResult).reason;

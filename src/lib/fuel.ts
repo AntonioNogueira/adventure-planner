@@ -91,10 +91,11 @@ export function estimatedTollRate(legs: RouteLeg[], currency: string): number {
   return Math.round(convert(eur, currency) * 1000) / 1000;
 }
 
-export type Vehicle = 'motorcycle' | 'motorcycle_2up' | 'car' | '4x4' | 'campervan';
-export const VEHICLES: Vehicle[] = ['motorcycle', 'motorcycle_2up', 'car', '4x4', 'campervan'];
+export type Vehicle = 'motorcycle' | 'motorcycle_2up' | 'car' | 'suv' | '4x4' | 'campervan' | 'truck';
+export const VEHICLES: Vehicle[] = ['motorcycle', 'motorcycle_2up', 'car', 'suv', '4x4', 'campervan', 'truck'];
 export const VEHICLE_LABELS: Record<Vehicle, string> = {
-  motorcycle: 'Motorcycle', motorcycle_2up: 'Motorcycle, two-up', car: 'Car', '4x4': '4x4', campervan: 'Campervan',
+  motorcycle: 'Motorcycle', motorcycle_2up: 'Motorcycle, two-up', car: 'Car', suv: 'SUV', '4x4': '4x4', campervan: 'Campervan or van',
+  truck: 'Expedition truck',
 };
 
 /** Typical litres per 100 km on roads and off-road (loaded touring use, not the brochure figure). */
@@ -102,12 +103,14 @@ const CONSUMPTION: Record<Vehicle, [number, number]> = {
   motorcycle: [5.0, 5.8],
   motorcycle_2up: [5.8, 6.6],
   car: [6.8, 7.8],
+  suv: [8.5, 10],
   '4x4': [9.5, 11],
   campervan: [10.5, 12],
+  truck: [17, 21],
 };
 
 /** Tolls by vehicle, relative to a car (motorcycles pay a lower class in most countries; campervans a higher one). */
-export const TOLL_FACTOR: Record<Vehicle, number> = { motorcycle: 0.6, motorcycle_2up: 0.6, car: 1, '4x4': 1, campervan: 1.5 };
+export const TOLL_FACTOR: Record<Vehicle, number> = { motorcycle: 0.6, motorcycle_2up: 0.6, car: 1, suv: 1, '4x4': 1, campervan: 1.5, truck: 2.2 };
 
 /** Litres per 100 km for the vehicle (a motorcycle if unknown); off-road uses a little more. */
 export function estimatedConsumption(offroad = false, vehicle: Vehicle = 'motorcycle'): number {
