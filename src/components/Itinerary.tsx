@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarDays, Map as MapIcon, Mountain, Download, BedDouble, Plus, X, AlertTriangle, Wallet } from 'lucide-react';
+import { CalendarDays, Map as MapIcon, Mountain, Download, BedDouble, Plus, X, AlertTriangle, Wallet, Share2 } from 'lucide-react';
+import { canSendFiles } from '../lib/gpx';
 import { RouteInfo } from '../types';
 import { ScheduleDay, BookingWarning, formatDate } from '../lib/schedule';
 import { forecastFor, describeWeather, WeatherResult } from '../lib/weather';
@@ -82,9 +83,9 @@ const Itinerary: React.FC<ItineraryProps> = ({
         <button
           onClick={() => onExportGpx(null)}
           className="ml-auto inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-          title={t('Download the whole trip as GPX (one track per day) for Garmin, Wahoo, Komoot…')}
+          title={canSendFiles() ? t('Send the whole trip (one track per day) to Organic Maps, OsmAnd, Garmin, Komoot…') : t('Download the whole trip as GPX (one track per day) for Garmin, Wahoo, Komoot…')}
         >
-          <Download size={12} /> GPX
+          {canSendFiles() ? <><Share2 size={12} /> {t('Send to app')}</> : <><Download size={12} /> GPX</>}
         </button>
       </div>
 

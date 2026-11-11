@@ -15,13 +15,13 @@ import { planOvernightStops } from './lib/tripBuilder';
 import { computeTrip, ferryKm, RoutedTrip, RouteOptions, NO_AVOIDANCES, RoutePlace } from './lib/routing';
 import { elevationsAlong, climbStats } from './lib/elevation';
 import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib/schedule';
-import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
+import { buildGpx, gpxFileName, shareOrDownload } from './lib/gpx';
 import { downsample } from './lib/geo';
 import { placeTarget, type RideTarget } from './lib/ride';
 import type { TripStyle, Via, Story, StoryPhoto } from './types';
 import { pendingPhoto } from './lib/photos';
 import { progressOn } from './lib/ride';
-import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryLabel } from './lib/places';
+import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
 import { geocodeAddress, townAt } from './lib/geocode';
 import { bestInsertIndex, haversineKm, LatLng } from './lib/geo';
@@ -970,8 +970,13 @@ const App: React.FC = () => {
       { name: `${tr('Start')}: ${origin}`, at: trip.legs[0]?.path[0] },
       ...trip.legs.map((leg, i) => ({ name: i === trip.legs.length - 1 ? `${tr('Finish')}: ${destination}` : `${tr('Night {n}', { n: i + 1 })}: ${routeInfo.legs?.[i]?.to}`, at: leg.path[leg.path.length - 1] })),
     ].filter(p => p.at).map(p => ({ name: p.name, lat: p.at!.lat, lng: p.at!.lng }));
-    const bookings = [routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || []]
-      .flat().flatMap(cat => cat.items)
+    const items = [routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || []]
+      .flat().flatMap(cat => cat.items.map(item => ({ item, category: cat.category })));
+    // Places the traveller marked on the map (a wild camping spot, a water point) go along too.
+    const marked = items
+      .filter(({ item }) => item.source === 'mine' && item.lat != null && item.lng != null)
+      .map(({ item, category }) => ({ name: item.name, lat: item.lat!, lng: item.lng!, description: tr(categoryLabel(categoryId(category))) }));
+    const bookings = items.map(({ item }) => item)
       .filter(item => item.source === 'reservation' && item.reservation?.lat != null)
       .map(item => ({
         name: `${tr('Booked:')} ${item.name}`,
@@ -983,9 +988,9 @@ const App: React.FC = () => {
       legIndex === null ? name : `${name} – ${dayLabel(legIndex)}`,
       // ~2,500 points per day keeps files small for GPS devices while following every turn closely.
       legs.map(({ leg, i }) => ({ name: dayLabel(i), points: downsample(leg.path, 2500) })),
-      [...stopPoints, ...bookings],
+      [...stopPoints, ...bookings, ...marked],
     );
-    downloadFile(gpxFileName(legIndex === null ? name : `${name} day ${legIndex + 1}`), gpx);
+    void shareOrDownload(gpxFileName(legIndex === null ? name : `${name} day ${legIndex + 1}`), gpx, legIndex === null ? name : dayLabel(legIndex));
   };
 
   // Upload reservation files attached in this session to Firebase Storage; returns how many failed.

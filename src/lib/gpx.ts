@@ -58,3 +58,27 @@ export function downloadFile(fileName: string, content: string, type = 'applicat
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** On phones and tablets: the share sheet, so the file goes straight to Organic Maps, OsmAnd, Garmin, Komoot, Mapy,
+ *  WhatsApp… On computers (or where sharing files isn't supported): a normal download. */
+export async function shareOrDownload(fileName: string, content: string, title: string, type = 'application/gpx+xml'): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+  const file = typeof File !== 'undefined' ? new File([content], fileName, { type }) : null;
+  if (touch && file && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title });
+      return 'shared';
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';
+      // Sharing failed for another reason: fall back to the download.
+    }
+  }
+  downloadFile(fileName, content, type);
+  return 'downloaded';
+}
+
+/** Can this device send a file to another app (phones and tablets with a share sheet)? */
+export function canSendFiles(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia?.('(pointer: coarse)').matches || typeof File === 'undefined') return false;
+  try { return Boolean(navigator.canShare?.({ files: [new File([''], 'route.gpx', { type: 'application/gpx+xml' })] })); } catch { return false; }
+}

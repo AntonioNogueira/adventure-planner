@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   X, ChevronLeft, ChevronRight, Crosshair, Download, Navigation, AlertTriangle, Sun, Volume2, VolumeX,
   CornerUpLeft, CornerUpRight, ArrowUp, ArrowUpLeft, ArrowUpRight, RotateCw, Undo2, Flag, Ship,
+  Share2,
 } from 'lucide-react';
 import { RouteInfo } from '../types';
 import { ScheduleDay } from '../lib/schedule';
@@ -12,6 +13,7 @@ import { useSettings } from '../lib/settings';
 import { Turn, TurnKind, dayTurns, rejoinTurns, routeTo, nextAnnouncement, nextTurn, speak, canSpeak } from '../lib/voice';
 import { cn } from '../lib/utils';
 import InstallHint from './InstallHint';
+import { canSendFiles } from '../lib/gpx';
 
 interface RideModeProps {
   routeInfo: RouteInfo | null;
@@ -353,9 +355,9 @@ const RideMode: React.FC<RideModeProps> = ({
           className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50">
           Waze
         </a>
-        <button onClick={() => onExportGpx(dayIndex)} title={t('For OsmAnd, Garmin, Kurviger, Calimoto…')}
+        <button onClick={() => onExportGpx(dayIndex)} title={t('For Organic Maps, OsmAnd, Garmin, Kurviger, Calimoto…')}
           className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50">
-          <Download size={13} /> GPX
+          {canSendFiles() ? <><Share2 size={13} /> {t('Send to app')}</> : <><Download size={13} /> GPX</>}
         </button>
         {canSpeak() && (
           <button onClick={toggleVoice} aria-pressed={voice} title={t('Spoken turn-by-turn directions')}
