@@ -164,7 +164,8 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     const map = mapRef.current;
     if (!ready || !map) return;
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
-      all.map(j => feature(j.overview, { id: j.id, color: j.color, dim: Boolean(shown) && shown!.id !== j.id })),
+      // The chosen journey is drawn in detail below: its rough overview line would show as a shortcut.
+      all.filter(j => j.id !== shown?.id).map(j => feature(j.overview, { id: j.id, color: j.color, dim: Boolean(shown) })),
     ));
   }, [ready, all, shown]);
 
