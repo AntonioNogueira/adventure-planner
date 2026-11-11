@@ -1174,6 +1174,8 @@ const App: React.FC = () => {
     <ErrorBoundary>
       {/* Phones: full-screen map with the planner as a bottom sheet. Desktop: sidebar + map. */}
       <div className="relative h-[100dvh] w-full overflow-hidden bg-background text-foreground md:flex md:flex-row">
+        {/* Inspire is a world of journeys: the planner steps aside (it stays loaded, to take "plan this stretch"). */}
+        <div className={view === 'inspire' ? 'hidden' : 'contents'}>
         <Sidebar
           origin={origin}
           setOrigin={(val) => { setOrigin(val); setHasChanges(true); setRouteStale(true); }}
@@ -1225,6 +1227,7 @@ const App: React.FC = () => {
           onStopSharing={handleStopSharing}
           onFindPlaces={handleFindPlaces}
         />
+        </div>
         <main className="absolute inset-0 md:relative md:inset-auto md:min-h-0 md:flex-1">
           <ViewTabs view={view} onChange={openView} documentCount={documentCount} />
           {view === 'ride' && (

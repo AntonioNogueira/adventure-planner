@@ -82,6 +82,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   const markers = useRef<maplibregl.Marker[]>([]);
   const popup = useRef<{ popup: maplibregl.Popup; root: Root } | null>(null);
   const journeyRef = useRef<Journey | null>(null);
+  const spinRef = useRef<() => void>(() => {});
   journeyRef.current = shown;
   const narrow = () => (container.current?.clientWidth || 1000) < 768;
   // The panel covers part of the map: keep the journey clear of it.
@@ -98,7 +99,19 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     });
   }, []);
   // Famous journeys first, then those imported (newest first).
-  const all = useMemo(() => [...(list || []), ...published.map(summarize)], [list, published]);
+  const every = useMemo(() => [...(list || []), ...published.map(summarize)], [list, published]);
+  // Filters: how they travelled, when, and words (title, people, vehicle, story).
+  const [kind, setKind] = useState('');
+  const [era, setEra] = useState('');
+  const [words, setWords] = useState('');
+  const all = useMemo(() => every.filter(j => {
+    const year = Number(j.when.match(/\d{4}/)?.[0] || 0);
+    if (kind && j.kind !== kind) return false;
+    if (era === 'old' && !(year && year < 1990)) return false;
+    if (era === 'new' && !(year >= 1990)) return false;
+    const q = words.trim().toLowerCase();
+    return !q || [j.title, j.who, j.vehicle, j.summary].join(' ').toLowerCase().includes(q);
+  }), [every, kind, era, words]);
 
   const select = async (id: string) => {
     const mine = published.find(j => j.id === id);
@@ -112,7 +125,20 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   // The map, once.
   useEffect(() => {
     if (!container.current) return;
-    const map = new maplibregl.Map({ container: container.current, style: TOPO_STYLE, center: [10, 20], zoom: 1.2, attributionControl: { compact: true } });
+    const map = new maplibregl.Map({ container: container.current, style: TOPO_STYLE, center: [10, 25], zoom: narrow() ? 0.9 : 1.9, attributionControl: { compact: true } });
+    // The globe sits beside the panel (desktop) or above the sheet (phones).
+    map.setPadding(narrow() ? { top: 60, bottom: Math.round((container.current.clientHeight || 800) * 0.45), left: 0, right: 0 } : { left: 400, top: 40, right: 0, bottom: 0 });
+    // A globe: the journeys wrap round the world as they did. It turns slowly until the visitor touches it.
+    map.on('style.load', () => map.setProjection({ type: 'globe' }));
+    let spinning = true;
+    const stop = () => { spinning = false; };
+    ['mousedown', 'touchstart', 'wheel', 'dragstart'].forEach(ev => map.on(ev as 'mousedown', stop));
+    const spin = () => {
+      if (!spinning || !mapRef.current) return;
+      if (map.getZoom() < 3 && !map.isMoving()) map.easeTo({ center: [map.getCenter().lng + 6, map.getCenter().lat], duration: 1000, easing: t => t });
+    };
+    map.on('moveend', spin);
+    spinRef.current = stop;
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     mapRef.current = map;
     map.on('load', () => {
@@ -128,6 +154,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
       map.on('mouseenter', 'overview-line', () => { map.getCanvas().style.cursor = 'pointer'; });
       map.on('mouseleave', 'overview-line', () => { map.getCanvas().style.cursor = ''; });
       setReady(true);
+      spin();
     });
     return () => { popup.current?.root.unmount(); map.remove(); mapRef.current = null; };
   }, []);
@@ -167,10 +194,8 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     (map.getSource('journey') as maplibregl.GeoJSONSource).setData(collection(
       journey ? journey.legs.map(l => feature(l.line, { color: journey.color, road: ON_ROAD.has(l.by) })) : [],
     ));
-    if (!journey) {
-      map.easeTo({ center: [10, 20], zoom: 1.2, padding: padding(), duration: 600 });
-      return;
-    }
+    if (!journey) return;
+    spinRef.current();
     journey.stops.forEach((stop, i) => {
       const el = document.createElement('button');
       el.type = 'button';
@@ -194,7 +219,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   const totalKm = useMemo(() => all.reduce((n, j) => n + j.km, 0), [all]);
 
   return (
-    <div className="absolute inset-0 z-[17] bg-slate-100">
+    <div className="absolute inset-0 z-[17] bg-[radial-gradient(ellipse_at_center,#1e3a4f_0%,#0b1622_70%)]">
       <div ref={container} className="h-full w-full" />
       <aside className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4]/95 p-3 shadow-2xl backdrop-blur md:inset-x-auto md:bottom-4 md:left-4 md:top-20 md:max-h-none md:w-[380px] md:rounded-xl md:border">
         {importing && uid ? (
@@ -206,6 +231,22 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
               <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Compass size={16} />{t('Inspiration')}</h2>
               <p className="mt-0.5 text-xs text-slate-600">{t('Famous journeys to dream about. Pick one to follow it stop by stop, then plan any stretch of it as your own trip.')}</p>
               {list && <p className="mt-1 text-[10.5px] text-slate-400">{t('{n} journeys · {d} of adventure', { n: all.length, d: dist(totalKm, 0) })}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <input value={words} onChange={(e) => setWords(e.target.value)} placeholder={t('Search: a place, a rider, a bike…')} aria-label={t('Search journeys')}
+                className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs focus:border-emerald-400 focus:outline-none" />
+              <div className="flex flex-wrap gap-1">
+                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland']] as const).map(([id, label]) => (
+                  <button key={id || 'all'} onClick={() => setKind(id)} aria-pressed={kind === id}
+                    className={cn('rounded-full border px-2 py-0.5 text-[10.5px] font-semibold', kind === id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50')}>{t(label)}</button>
+                ))}
+                <span className="mx-0.5 w-px bg-slate-200" />
+                {([['', 'Any time'], ['old', 'Before 1990'], ['new', 'Since 1990']] as const).map(([id, label]) => (
+                  <button key={id || 'any'} onClick={() => setEra(id)} aria-pressed={era === id}
+                    className={cn('rounded-full border px-2 py-0.5 text-[10.5px] font-semibold', era === id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50')}>{t(label)}</button>
+                ))}
+              </div>
+              {list && all.length === 0 && <p className="text-xs text-slate-500">{t('No journey matches these filters yet.')}</p>}
             </div>
             {admin && (
               <button onClick={() => { setJourney(null); setImporting(true); }}
@@ -232,7 +273,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
           </div>
         ) : (
           <div className="space-y-2.5">
-            <button onClick={() => setJourney(null)} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"><ArrowLeft size={13} />{t('All journeys')}</button>
+            <button onClick={() => { setJourney(null); mapRef.current?.easeTo({ zoom: narrow() ? 0.9 : 1.9, duration: 900 }); }} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"><ArrowLeft size={13} />{t('All journeys')}</button>
             <div className="border-l-4 pl-2" style={{ borderColor: journey.color }}>
               <h2 className="text-base font-bold leading-tight text-slate-900">{journey.title}</h2>
               <p className="text-[11px] text-slate-600">{journey.who} · {journey.when}</p>

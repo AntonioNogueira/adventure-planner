@@ -226,3 +226,35 @@ except a small adapter for Stadia's geocoding).
 6. Firebase → Authentication → **Authorized domains**: add the new domain (or login fails there). Then rename the
    app (title, manifest, README) to the chosen name.
 7. Trademark later, with traction: INPI Portugal ~€120–200 per class; EU (EUIPO) ~€850 for one class.
+
+## 12. Inspire as a world database of adventures (Nov 2026)
+
+Goal: tens of thousands of real journeys on the globe, filterable (motorcycle, bicycle, on foot, 4x4; era; words;
+later region, length, season), each linking back to its original source.
+
+### What each journey costs (estimate)
+
+| Step | Per journey | 1,000 | 10,000 | 100,000 |
+|---|---|---|---|---|
+| AI reading (Gemini Flash-Lite; Flash ~4×) — blog post ~8k tokens, forum ride report 30–150k | $0.002–0.02 | $2–20 | $20–200 | $200–2,000 |
+| Finding ~25 places (Photon) and routing ~25 legs (OSRM) | free on public servers, slowly (~1 req/s) | days, free | weeks, free, or €20–50 for a rented server for a weekend | own servers (one-off €50–150), or straight lines between stops |
+| Storage (~50 KB per journey) | – | 50 MB, free | 0.5 GB, free (Firestore 1 GB free) | 5 GB: ~€1/month (Firestore) or free (Cloudflare R2, 10 GB) |
+| Showing them on the globe | – | one index file | vector tiles (PMTiles) needed beyond ~2–3,000 | PMTiles on R2: free |
+| Opening a journey | 1 read | free | free (50k reads/day) | ~€0.03 per 100k opens beyond that |
+| Photos | Wikimedia place photos, linked: free | | | |
+
+So: **10,000 journeys ≈ $20–250 one-off and ~€0/month; 100,000 ≈ $300–2,500 one-off and €1–30/month.** The AI is
+the main cost; Gemini's Batch mode halves it. Prices change: check before a big run.
+
+### Where journeys come from (in order of preference)
+
+1. **Travellers add their own trip** ("Add my trip": a blog link or ride report): best quality, and their consent.
+2. **Permission or partnership** with the big communities (Horizons Unlimited, ADVrider, bikepacking sites): a map
+   that sends readers back to them is a good offer; ask before importing their content.
+3. **Blogs with RSS feeds** (made for sharing), one post at a time, politely.
+4. **Automatic discovery** only where the site allows it: respect robots.txt and each site's terms (many forums
+   forbid scraping), one request every few seconds, a clear client name.
+
+Always: store only the route, places, dates and a 1–2 sentence summary in our own words; no copied text or
+photos; a link to the original on every journey and stop; a "remove my trip" link honoured quickly. The import
+tool proposes; a person checks before anything is published.
