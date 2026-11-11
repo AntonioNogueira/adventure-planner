@@ -79,8 +79,8 @@ const modeName = (intent: TripIntent) => {
 
 /** The style part of an intent, kept with the trip. */
 export function styleOf(intent: TripIntent): TripStyle {
-  const { ride, party, interests, budgetStyle, vehicleModel, vehicleInfo } = intent;
-  return { ride, party, interests, budgetStyle, vehicleModel, vehicleInfo };
+  const { ride, party, interests, budgetStyle, maxStayPrice, vehicleModel, vehicleInfo } = intent;
+  return { ride, party, interests, budgetStyle, maxStayPrice, vehicleModel, vehicleInfo };
 }
 
 /** A short note on a named vehicle: typical consumption and range, and what's worth knowing for the trip. */
@@ -296,6 +296,7 @@ export function mergeIntent(previous: TripIntent | null, next: TripIntent, messa
   merged.party = next.party || previous.party;
   merged.interests = next.interests?.length ? next.interests : previous.interests;
   merged.budgetStyle = next.budgetStyle || previous.budgetStyle;
+  merged.maxStayPrice = next.maxStayPrice || previous.maxStayPrice;
   if (!next.vehicleModel && sameMode) { merged.vehicleModel = previous.vehicleModel; merged.vehicleInfo = previous.vehicleInfo; }
   return merged;
 }

@@ -1262,7 +1262,7 @@ const App: React.FC = () => {
                 <Suspense fallback={null}><BudgetView
                   routeInfo={routeInfo}
                   schedule={schedule}
-                  settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency, tripStyle.budgetStyle)}
+                  settings={budgetSettings || defaultBudget(travelMode as string, lodging, appSettings.currency, tripStyle.budgetStyle, tripStyle.maxStayPrice)}
                   onChange={(settings) => { setBudgetSettings(settings); setHasChanges(true); }}
                   legPaths={legPaths}
                   offroad={routeOptions.offroad}

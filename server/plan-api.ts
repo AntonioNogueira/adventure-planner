@@ -88,7 +88,7 @@ function buildPrompt(request: string, history: ChatMessage[], current?: unknown,
 ${JSON.stringify(current, null, 2)}
 
 The user is refining this plan unless they clearly ask for a different trip.
-- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries, offroad, vehicle, ride, party, interests, budgetStyle, vehicleModel, vehicleInfo and the existing route places.
+- Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries, offroad, vehicle, ride, party, interests, budgetStyle, maxStayPrice, vehicleModel, vehicleInfo and the existing route places.
 - A request about part of the trip (e.g. "Cádiz to Valencia along the coast instead of inland") changes only that part:
   keep the overall origin and destination, and add or replace route places for that stretch.
 - "Keep the plan but …" always means: start from the current plan and apply only the change.`
@@ -121,6 +121,10 @@ Return the complete plan:
   Never list the origin or destination themselves. Use towns or villages, not regions or mountain ranges: for a region
   (e.g. "through the Alpujarras", "over Serra da Estrela") name one or two towns in it (Trevélez; Torre / Penhas da Saúde).
   Set overnight=true only if the user wants to sleep there.
+  A loop or round trip ("around the island", "round the lake", "contornar a ilha", "volta à ilha", "a loop from X",
+  "circuit", "round trip"): origin and destination are the same place, and route must list 4-10 towns or landmarks
+  around the loop in travel order (clockwise unless they say otherwise), spread all the way round, so the route really
+  goes round it (e.g. around Mallorca from Palma: Andratx, Sóller, Pollença, Alcúdia, Artà, Cala d'Or, Santanyí).
 - lodging: "camping" if they want to camp, "hostel" or "hotel" if they say so, otherwise "any" (or the current plan's value).
 - avoidFerries: true if they want to travel overland / without ferries or boats (or the current plan says so), otherwise false.
 - offroad: true if they want unpaved roads: off-road, gravel, dirt roads, tracks, trails, bikepacking, mountain biking,
@@ -141,6 +145,8 @@ Return the complete plan:
 - interests: what they want to see, if they say: any of "nature" (mountains, viewpoints, waterfalls, beaches, wildlife),
   "history" (castles, ruins, old towns, monuments), "contemporary" (museums, art, architecture, street art, design).
   Empty list if they don't say (or the current plan's value).
+- maxStayPrice: the most they want to pay for a night's stay if they say (a number in the money they used, e.g. 50
+  for "under 50 euros a night"), otherwise 0 (or the current plan's value).
 - budgetStyle: "shoestring" (cheap, wild camping, cooking), "mid", or "comfort" (hotels, restaurants, no budget limit)
   if they say. "none" if they don't say (or the current plan's value).
 - vehicleModel: the make and model of their vehicle if they name one (e.g. "Honda CRF1100L Africa Twin", "Toyota Land
@@ -164,7 +170,7 @@ Return the complete plan:
 - Write the summary, the reply and the vehicle notes in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply'];
+const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'maxStayPrice', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply'];
 const VEHICLE_ENUM = ['unknown', 'motorcycle', 'motorcycle_2up', 'car', 'suv', '4x4', 'campervan', 'truck'];
 const RIDE_ENUM = ['none', 'road', 'gravel', 'mtb', 'emtb', 'touring', 'adventure', 'enduro'];
 const PARTY_ENUM = ['none', 'solo', 'couple', 'family', 'group'];
@@ -195,6 +201,7 @@ const responseSchema = {
     party: { type: Type.STRING, enum: PARTY_ENUM },
     interests: { type: Type.ARRAY, items: { type: Type.STRING, enum: INTEREST_ENUM } },
     budgetStyle: { type: Type.STRING, enum: BUDGET_ENUM },
+    maxStayPrice: { type: Type.NUMBER },
     vehicleModel: { type: Type.STRING },
     vehicleInfo: {
       type: Type.OBJECT,
@@ -230,6 +237,7 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "party": "none" | "solo" | "couple" | "family" | "group",
   "interests": ("nature" | "history" | "contemporary")[],
   "budgetStyle": "none" | "shoestring" | "mid" | "comfort",
+  "maxStayPrice": number,
   "vehicleModel": string,
   "vehicleInfo": { "litresPer100km": number, "tankLitres": number, "rangeKm": number, "notes": string[] },
   "coastFrom": string,
@@ -265,6 +273,7 @@ const planJsonSchema = {
     party: { type: 'string', enum: PARTY_ENUM },
     interests: { type: 'array', items: { type: 'string', enum: INTEREST_ENUM } },
     budgetStyle: { type: 'string', enum: BUDGET_ENUM },
+    maxStayPrice: { type: 'number' },
     vehicleModel: { type: 'string' },
     vehicleInfo: {
       type: 'object',
@@ -529,6 +538,14 @@ const coastJsonSchema = {
   additionalProperties: false,
 };
 
+/** A round trip the first answer gave no places for: towns around the loop, so it doesn't collapse to one spot. */
+export function buildLoopPrompt(intent: any, request: string) {
+  return `A ${String(intent.travelMode).toLowerCase()} trip starts and ends at ${intent.origin}: the traveller asked for "${request}".
+It is a loop or round trip. Return the places it passes, in travel order (clockwise unless the request says otherwise):
+4-10 towns, villages or landmarks spread all the way round the loop (for an island or lake, near its shore), so that
+following them goes right round. Never include ${intent.origin} itself. Use "Place, Country" names.`;
+}
+
 function buildCoastPrompt(intent: any) {
   return `A ${String(intent.travelMode).toLowerCase()} trip goes from ${intent.origin} to ${intent.destination}.
 Its current list of places to pass, in order: ${JSON.stringify(intent.route || [])}.
@@ -725,6 +742,7 @@ export function cleanStyle(intent: any) {
   if (!PARTY_ENUM.includes(intent.party) || intent.party === 'none') intent.party = '';
   intent.interests = Array.isArray(intent.interests) ? [...new Set(intent.interests.filter((i: string) => INTEREST_ENUM.includes(i)))] : [];
   if (!BUDGET_ENUM.includes(intent.budgetStyle) || intent.budgetStyle === 'none') intent.budgetStyle = '';
+  intent.maxStayPrice = typeof intent.maxStayPrice === 'number' && intent.maxStayPrice > 0 && intent.maxStayPrice < 100000 ? Math.round(intent.maxStayPrice) : 0;
   intent.vehicleModel = typeof intent.vehicleModel === 'string' ? intent.vehicleModel.trim().slice(0, 80) : '';
   const info = intent.vehicleInfo;
   if (!intent.vehicleModel || !info || typeof info !== 'object') { delete intent.vehicleInfo; return intent; }
@@ -812,6 +830,20 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
             }
           } catch (err) {
             console.warn('[plan-api] coastal towns unavailable, keeping the first answer:', err instanceof Error ? err.message : err);
+          }
+        }
+        // A round trip with no places around it would collapse to a few metres: ask for the places round the loop.
+        if (town(intent.origin) === town(intent.destination) && (intent.route || []).length < 2) {
+          try {
+            const { result } = await runTaskResult(env, {
+              name: 'loop', prompt: buildLoopPrompt(intent, request), geminiSchema: coastGeminiSchema, claudeSchema: coastJsonSchema,
+            });
+            if (Array.isArray(result.route) && result.route.length >= 2) {
+              intent.route = result.route.map((r: any) => ({ place: String(r.place), overnight: false }))
+                .filter((r: any) => town(r.place) !== town(intent.origin));
+            }
+          } catch (err) {
+            console.warn('[plan-api] loop places unavailable, keeping the first answer:', err instanceof Error ? err.message : err);
           }
         }
         console.log(`[ai] understood: ${describeIntent(intent)}`);

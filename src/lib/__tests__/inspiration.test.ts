@@ -56,3 +56,16 @@ describe('trip style (server)', () => {
     expect(cleanStyle({ travelMode: 'BICYCLING', ride: 'mtb', vehicleInfo: { notes: [] } })).toMatchObject({ ride: 'mtb' });
   });
 });
+
+import { buildLoopPrompt } from '../../../server/plan-api';
+describe('round trips (server)', () => {
+  it('asks for places all the way round, never the start itself', () => {
+    const p = buildLoopPrompt({ travelMode: 'BICYCLING', origin: 'Florianópolis, Brazil' }, 'contornar a ilha de santa catarina de bicicleta');
+    expect(p).toContain('starts and ends at Florianópolis, Brazil');
+    expect(p).toContain('Never include Florianópolis, Brazil itself');
+  });
+  it('reads a price limit per night', () => {
+    expect(cleanStyle({ travelMode: 'BICYCLING', maxStayPrice: 49.6 }).maxStayPrice).toBe(50);
+    expect(cleanStyle({ travelMode: 'BICYCLING', maxStayPrice: -3 }).maxStayPrice).toBe(0);
+  });
+});

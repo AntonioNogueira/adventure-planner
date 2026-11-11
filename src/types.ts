@@ -128,6 +128,8 @@ export interface TripStyle {
   party?: Party;
   interests?: Interest[];
   budgetStyle?: BudgetStyle;
+  /** The most they want to pay per night (in their currency), if they said. */
+  maxStayPrice?: number;
   vehicleModel?: string;
   vehicleInfo?: VehicleInfo;
 }

@@ -59,14 +59,15 @@ function preset(currency: string): Preset {
 /** Stay and food averages by budget style (shoestring: camping and cooking; comfort: hotels and restaurants). */
 const STYLE_FACTOR: Record<string, { stay: number; food: number }> = { shoestring: { stay: 0.6, food: 0.6 }, comfort: { stay: 1.6, food: 1.5 } };
 
-export function defaultBudget(travelMode: string, lodging: Lodging = 'any', currency = 'EUR', style = ''): BudgetSettings {
+export function defaultBudget(travelMode: string, lodging: Lodging = 'any', currency = 'EUR', style = '', maxStay = 0): BudgetSettings {
   const motor = travelMode === 'DRIVING';
   const p = preset(currency);
   const f = STYLE_FACTOR[style] || { stay: 1, food: 1 };
   const round = (n: number) => (n >= 100 ? Math.round(n / 5) * 5 : Math.round(n));
   return {
     currency,
-    stayPerNight: round((p.stay[lodging] ?? p.stay.any) * f.stay),
+    // A price limit the traveller gave is their average night.
+    stayPerNight: maxStay > 0 ? maxStay : round((p.stay[lodging] ?? p.stay.any) * f.stay),
     foodPerDay: round(p.food * f.food),
     // Fuel, consumption and tolls are estimated from the route until the traveller types their own.
     ...(motor ? {} : { fuelPer100km: 0, fuelPrice: 0, tollPerKm: 0 }),
