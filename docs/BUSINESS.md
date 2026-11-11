@@ -128,6 +128,41 @@ General orientation, not legal/tax advice: thresholds and rates change; confirm 
 - Pro features: several riders per trip, shared editing, branded PDF itineraries, GPX packs for groups.
 - Curated off-road routes (e.g. Trans Euro Trail-style tracks) as a premium layer.
 
+### Curated trips: travel stories on a map (idea, Nov 2026)
+
+Guides, travel creators and experienced riders publish a trip as a story: each stop's balloon carries their own text
+and photos (like a blog post pinned to the map), plus their links (videos, gear, bookings), the day lines and GPX.
+Readers follow it in the app, copy it into their own trip, ride it in Ride mode, and book through the place links.
+
+- **Why it fits:** the app is for dreaming and planning; stories are the "dream" part, and every copied trip brings a
+  new user. Creators get a better format than a blog or an Instagram highlight: a trip people can actually ride.
+- **What it needs:** a story editor per stop (text, a few photos, links), photo storage (Firebase Storage, resized on
+  upload; ~€0.03/GB/month), public pages with a clean link and preview image for social media, "copy this trip",
+  and simple moderation (report button, creator accounts).
+- **Money:** creators on Pro (or a Creator plan, ~€8–10/month) for unlimited stories, a profile page and stats
+  (views, copies, clicks); readers free. Affiliate bookings from story places can be shared with the creator
+  (e.g. 30–50%), which gives creators a reason to promote the app. Later: paid premium stories (guide's full route
+  pack), the platform keeping ~20–30%.
+- **Order:** 1) photos and long text in stop and place balloons on your own trips; 2) public story view + copy;
+  3) creator profiles, stats and revenue share.
+
+### Ambassadors (beta testers, Nov 2026)
+
+A small group (~15–30) who use the app on real trips and tell us what breaks, chosen to cover every kind of trip:
+bikepacking (road, gravel, MTB), adventure and enduro motorcycling, 4x4 and overland trucks, vans and campervans,
+hikers, and people working in the field (humanitarian and aid workers, NGO logistics, expedition support), who need
+reliable routes, fuel range, water and services in remote places more than anyone.
+
+- **Ask:** use it to plan and ride at least one trip a month; report problems and ideas (a short form in the app,
+  a WhatsApp/Signal or Discord group); share a story or two when the curated trips arrive.
+- **Give:** free Pro for life while active, early features, their name and link on the ambassadors page, a share of
+  bookings from their stories, and a say in what's built next.
+- **Find them:** bikepacking and overland forums and groups, Trans Euro Trail and Adventure Rider communities,
+  local moto and cycling clubs, van-life groups, NGO logistics networks; one or two well-known riders or creators
+  to start (they bring the rest).
+- **Run it:** a sign-up page (who you are, how you travel, where), a short welcome guide, monthly 30-minute call,
+  and a public changelog so they see their feedback land. In-app: an "Ambassador" badge and a feedback button.
+
 ## 10. Google vs OpenStreetMap, measured (9 Nov 2026)
 
 8 trips in 6 countries, every service called directly (`scripts/bench`). Report: "Map Stack Comparison" artifact.
