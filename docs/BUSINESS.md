@@ -258,3 +258,45 @@ the main cost; Gemini's Batch mode halves it. Prices change: check before a big 
 Always: store only the route, places, dates and a 1–2 sentence summary in our own words; no copied text or
 photos; a link to the original on every journey and stop; a "remove my trip" link honoured quickly. The import
 tool proposes; a person checks before anything is published.
+
+## 13. The market: who else is out there, and where we fit (Nov 2026)
+
+Prices are rough, from memory: check before quoting them.
+
+| App | Best at | Business model | What it means for us |
+|---|---|---|---|
+| **Organic Maps** | Free offline navigation on OpenStreetMap, no ads, open source | Free, donations | Don't compete on offline navigation: hand routes over to it in one tap (GPX per day) |
+| **Mapy.com** | Very accurate trails and back roads, offline | Free + premium | Same: export to it; maybe use its outdoor map tiles later (has a developer API) |
+| **Rever** | Motorcycle route planning, ride recording, sharing, curated roads | Free + Pro (~$5–10/month) | Closest moto rival: we add the AI planner, overnight stops, stays and budget; we lack ride recording |
+| **Wanderlog** | Complete itineraries, notes, bookings, shared editing in real time | Free + Pro (~$40–60/year) | Learn: shared editing for groups, bookings imported from email |
+| **TripIt** | Forward booking emails → automatic timeline | Free + Pro (~$49/year) | We already read booking PDFs/emails/links: add a forwarding email address |
+| **Hostelworld / Travello** | Meeting other travellers (noticeboards, meetups) | Bookings / free | Later: opt-in "riders on the same route this week" |
+| **WiFi Map** | Wi-Fi hotspots, eSIM | eSIM sales | Affiliate eSIM offers per country in the trip budget |
+| **Komoot** | Bike/hike planning and navigation, huge shared routes | Regions + premium (~€60/year) | The benchmark for planning; we're multi-day stages, stays and budget, and moto/4x4 too |
+| **Calimoto / Kurviger / Scenic** | Curvy roads for motorcycles | Premium (~€30–60/year) | A "curvy roads" preference for moto trips |
+| **Polarsteps** | Automatic travel tracking → diary → printed photo books | Free; earns from printed books | Strong idea: ride recording → stories (we have them) → a printed trip book |
+| **iOverlander / Park4Night** | Camp spots, water, fuel, borders for overlanders | Free / premium | Overlander points matter: OSM has some; ask iOverlander about a partnership (their data has its own licence) |
+| **Wikiloc / Bikepacking.com** | Shared trails / curated bikepacking routes | Premium / membership | Inspire is our version for multi-day journeys, linking back to sources |
+| **Horizons Unlimited** | The overland community: HUBB forum, meetings, riders who host travellers | Donations, events, books | The audience we want: a partner, not a competitor (link back, map their travellers' stories) |
+
+**Our niche:** nobody joins up the whole adventure for motorcycles, bicycles, hikers and 4x4s: *dream it* (Inspire
+globe) → *plan it in a chat* (AI daily stages by effort and terrain, overnight towns, stays, budget, bookings in one
+place) → *ride it* (Ride mode, voice, go to) → *share it* (stories). Each rival does one or two of these.
+
+**Weak spots to cover:** offline navigation (people will use Organic Maps, OsmAnd, Garmin: make handing over
+perfect), no community yet, free map servers that can be slow.
+
+### Moves, best value first
+
+1. **One-tap hand-over to navigation apps**: GPX per day exists; add "Open in Organic Maps / OsmAnd / Mapy / Garmin"
+   (share sheet on phones). Low effort, removes the biggest objection.
+2. **Forward your bookings** to a personal address (like TripIt): reuse the booking reader; inbound email via a free
+   service (e.g. Cloudflare Email Routing). Medium effort.
+3. **Ride recording → automatic trip story → printed book** (Polarsteps' business). Medium–high effort, new revenue.
+4. **Overlander points**: wild camping, water, fuel range warnings, border crossings (OSM + partnerships). Medium.
+5. **Shared trips for groups** (Wanderlog): edit together; good for moto groups and small tour operators (Pro).
+6. **Inspire growth**: "Add my trip" + partnerships (section 12): the community engine.
+7. **More affiliate income**: eSIM, travel insurance, ferries, bike/moto rental, alongside Booking.com.
+
+**Pricing check:** Explorer at €19/year is below most rivals (€30–60/year). Once hand-over to navigation apps and ride
+recording exist, €29–39/year is reasonable.
