@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Home, Utensils, Tent, Wrench, Camera, Coffee, ShoppingBag, Info, ArrowLeft, ArrowRight, X, Paperclip, Loader2, FileText, MapPin, Droplet } from 'lucide-react';
-import { InterestCategory, StopKind } from '../types';
+import { InterestCategory, StopKind, Story } from '../types';
 import { cn } from '../lib/utils';
 import { ACCEPTED_FILES, attachmentUrl } from '../lib/attachments';
 import { useSettings } from '../lib/settings';
 import { stayUrl, toursUrl, offerFor, Nights } from '../lib/affiliate';
 import { townName } from '../lib/wiki';
 import { mapSearchUrl } from '../lib/provider';
+import StoryBlock from './StoryBlock';
 import LinkAdder from './LinkAdder';
 import { categoryId, categoryLabel } from '../lib/places';
 
@@ -80,13 +81,16 @@ interface StopDetailsProps {
   nights?: Nights;
   /** Start of a moto/car trip: a vehicle rental link, when a rental partner is set up. */
   rentalLink?: string | null;
+  /** The traveller's text and photos about this stop; editable when onStoryChange is given. */
+  story?: Story;
+  onStoryChange?: (story: Story | undefined) => void;
 }
 
 const mapsLink = (query: string, at?: { lat: number; lng: number }) => mapSearchUrl(query, at);
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
-  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces, nights, rentalLink,
+  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces, nights, rentalLink, story, onStoryChange,
 }) => {
   const t = THEMES[kind];
   const { t: tr } = useSettings();
@@ -118,6 +122,12 @@ const StopDetails: React.FC<StopDetailsProps> = ({
           {distanceToNext && (
             <span className="flex items-center gap-1">{distanceToNext}<ArrowRight size={12} /></span>
           )}
+        </div>
+      )}
+
+      {(story || onStoryChange) && (
+        <div className={compact ? 'mb-1.5' : 'mb-2'}>
+          <StoryBlock story={story} onChange={onStoryChange} compact={compact} draftKey={`${kind}-${badge}-${location}`} />
         </div>
       )}
 

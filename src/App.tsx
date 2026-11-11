@@ -17,7 +17,8 @@ import { buildSchedule, staysByStop, bookingWarnings, bookingCosts } from './lib
 import { buildGpx, gpxFileName, downloadFile } from './lib/gpx';
 import { downsample } from './lib/geo';
 import { placeTarget, type RideTarget } from './lib/ride';
-import type { TripStyle, Via } from './types';
+import type { TripStyle, Via, Story, StoryPhoto } from './types';
+import { pendingPhoto } from './lib/photos';
 import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
@@ -495,6 +496,9 @@ const App: React.FC = () => {
         originInterests: overrideInterests?.origin || routeInfo?.originInterests || [],
         destination: currentDestination,
         destinationInterests: overrideInterests?.destination || routeInfo?.destinationInterests || [],
+        // Stories stay with the start and finish while the route changes (only when they're the same places).
+        originStory: routeInfo?.origin === currentOrigin ? routeInfo?.originStory : undefined,
+        destinationStory: routeInfo?.destination === currentDestination ? routeInfo?.destinationStory : undefined,
         waypoints: updatedWaypoints,
         travelMode: currentTravelMode as string,
         distance: formatDistance(totalDistance),
@@ -572,6 +576,19 @@ const App: React.FC = () => {
     } else {
       const key = ref.kind === 'start' ? 'originInterests' : 'destinationInterests';
       setRouteInfo(prev => prev && { ...prev, [key]: update(prev[key] || []) });
+    }
+    setHasChanges(true);
+  };
+
+  // A stop's story (the traveller's text and photos); undefined removes it.
+  const handleStoryChange = (ref: StopRef, story: Story | undefined) => {
+    if (ref.kind === 'stop') {
+      const apply = (list: Waypoint[]) => list.map((wp, i) => (i === ref.index ? { ...wp, story } : wp));
+      setWaypoints(apply);
+      setRouteInfo(prev => prev && { ...prev, waypoints: apply(prev.waypoints) });
+    } else {
+      const key = ref.kind === 'start' ? 'originStory' : 'destinationStory';
+      setRouteInfo(prev => prev && { ...prev, [key]: story });
     }
     setHasChanges(true);
   };
@@ -985,12 +1002,32 @@ const App: React.FC = () => {
         }
       })),
     })));
+    // Story photos waiting in this browser: uploaded now (same folder as booking files), then kept by their link.
+    const uploadStory = async (story?: Story): Promise<Story | undefined> => story && {
+      ...story,
+      photos: (await Promise.all(story.photos.map(async (photo): Promise<StoryPhoto | null> => {
+        if (photo.url) return photo;
+        const blob = pendingPhoto(photo.pendingId);
+        if (!blob) return null; // from an earlier visit, never saved: gone
+        try {
+          const stored = storageRef(storage, `users/${uid}/attachments/${photo.pendingId}.jpg`);
+          await uploadBytes(stored, blob, { contentType: 'image/jpeg' });
+          return { url: await getDownloadURL(stored), ...(photo.caption ? { caption: photo.caption } : {}) };
+        } catch (err) {
+          console.error('Photo upload failed:', err);
+          failed++;
+          return photo;
+        }
+      }))).filter((p): p is StoryPhoto => p !== null),
+    };
     return {
       info: {
         ...info,
         originInterests: await upload(info.originInterests),
         destinationInterests: await upload(info.destinationInterests),
-        waypoints: await Promise.all(info.waypoints.map(async wp => ({ ...wp, interests: await upload(wp.interests) }))),
+        originStory: await uploadStory(info.originStory),
+        destinationStory: await uploadStory(info.destinationStory),
+        waypoints: await Promise.all(info.waypoints.map(async wp => ({ ...wp, interests: await upload(wp.interests), story: await uploadStory(wp.story) }))),
       },
       failed,
     };
@@ -1033,6 +1070,8 @@ const App: React.FC = () => {
       setCurrentTripId(id);
       setViewingShared(false);
       setRouteInfo(prev => prev && { ...info, id: id!, shared: data.shared, createdAt: data.createdAt, userId: user.uid });
+      // Uploaded photos are now links: the stops keep those (so a later save doesn't upload them again).
+      setWaypoints(prev => prev.map((wp, i) => (info.waypoints[i] ? { ...wp, story: info.waypoints[i].story } : wp)));
       setHasChanges(false);
       setToast(failed
         ? { message: tr("Saved, but {n} file(s) couldn't be uploaded (is Firebase Storage enabled?). Booking details were saved.", { n: failed }), type: 'error' }
@@ -1164,6 +1203,7 @@ const App: React.FC = () => {
           onStartDateChange={handleStartDateChange}
           onVehicleChange={(v) => { setVehicle((v || undefined) as Vehicle | undefined); setHasChanges(true); }}
           onStyleChange={handleStyleChange}
+          onStoryChange={handleStoryChange}
           onRestDaysChange={handleRestDaysChange}
           onExportGpx={handleExportGpx}
           warnings={warnings}
@@ -1230,6 +1270,7 @@ const App: React.FC = () => {
             onMoveStop={handleMoveStop}
             onAddStop={routeInfo ? handleAddStop : undefined}
             vias={vias}
+            onStoryChange={view !== 'ride' ? handleStoryChange : undefined}
             onShapeRoute={routeInfo && view !== 'ride' ? handleShapeRoute : undefined}
             onMoveVia={handleMoveVia}
             onRemoveVia={handleRemoveVia}

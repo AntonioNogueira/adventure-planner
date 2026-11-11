@@ -10,7 +10,7 @@ import type { FeatureCollection, LineString } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
 import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
-import { Waypoint, RouteInfo, StopRef, InterestItem, Via } from '../types';
+import { Waypoint, RouteInfo, StopRef, InterestItem, Via, Story } from '../types';
 import { cn } from '../lib/utils';
 import SegmentDetails from './SegmentDetails';
 import { geocodeAddress } from '../lib/geocode';
@@ -36,6 +36,8 @@ interface MapProps {
   onMarkPlace?: (position: LatLng, category: CategoryId, name: string) => void;
   onRemoveStop?: (index: number) => void;
   onFindPlaces?: (ref: StopRef) => void;
+  /** Editing a stop's story (text and photos) from its balloon. */
+  onStoryChange?: (ref: StopRef, story: Story | undefined) => void;
   /** Points the route is pulled through (dragging the line); not stops. */
   vias?: Via[];
   /** Dragging a day line: the route passes through where it's dropped. */
@@ -164,7 +166,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
 
 const MapView: React.FC<MapProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
-  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, attachingKey, stays, ride, vias, onShapeRoute, onMoveVia, onRemoveVia,
+  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, attachingKey, stays, ride, vias, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -177,8 +179,8 @@ const MapView: React.FC<MapProps> = ({
   const activeSegmentRef = useRef(-1);
   const segmentsRef = useRef(segments);
   segmentsRef.current = segments;
-  const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, travelMode });
-  callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, travelMode };
+  const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, travelMode });
+  callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, travelMode };
   const [mapType, setMapType] = useState<MapType>('topo');
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
@@ -473,6 +475,8 @@ const MapView: React.FC<MapProps> = ({
               onAttachFile={(file) => callbacksRef.current.onAttachFile?.(point.ref, file)}
               attaching={attachingKey === key}
               onFindPlaces={() => callbacksRef.current.onFindPlaces?.(point.ref)}
+              story={point.story}
+              onStoryChange={callbacksRef.current.onStoryChange ? (s) => callbacksRef.current.onStoryChange?.(point.ref, s) : undefined}
               onRemoveStop={point.ref.kind === 'stop' && callbacksRef.current.onRemoveStop
                 ? () => { popupRef.current?.remove(); callbacksRef.current.onRemoveStop?.(point.ref.index!); }
                 : undefined}

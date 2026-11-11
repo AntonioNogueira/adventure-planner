@@ -21,7 +21,7 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react';
-import { RouteInfo, Waypoint, StopRef, TripIntent, TripStyle } from '../types';
+import { RouteInfo, Waypoint, StopRef, TripIntent, TripStyle, Story } from '../types';
 import type { PlanSummary } from './AIAgent';
 import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
@@ -73,6 +73,8 @@ interface SidebarProps {
   onStartDateChange: (date: string) => void;
   onVehicleChange?: (vehicle: string) => void;
   onStyleChange?: (style: TripStyle) => void;
+  /** Editing a stop's story (text and photos). */
+  onStoryChange?: (ref: StopRef, story: Story | undefined) => void;
   onRestDaysChange: (stopIndex: number, restDays: number) => void;
   onExportGpx: (legIndex: number | null) => void;
   warnings: BookingWarning[];
@@ -130,6 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onStartDateChange,
   onVehicleChange,
   onStyleChange,
+  onStoryChange,
   onRestDaysChange,
   onExportGpx,
   warnings,
@@ -573,6 +576,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               rentalLink={travelMode === 'DRIVING' ? rentalUrl(routeInfo.origin, stays?.get('start')?.checkOut, stays?.get('end')?.checkIn) : null}
               onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
               attaching={attachingKey === 'start'}
+              story={routeInfo.originStory}
+              onStoryChange={onStoryChange && ((s) => onStoryChange({ kind: 'start' }, s))}
             />
             {routeInfo.waypoints.map((wp, i) => (
               <StopDetails
@@ -590,6 +595,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 nights={stays?.get(`stop-${i}`)}
                 onAttachFile={(file) => onAttachFile({ kind: 'stop', index: i }, file)}
                 attaching={attachingKey === `stop-${i}`}
+                story={wp.story}
+                onStoryChange={onStoryChange && ((s) => onStoryChange({ kind: 'stop', index: i }, s))}
               />
             ))}
             <StopDetails
@@ -600,6 +607,8 @@ const Sidebar: React.FC<SidebarProps> = ({
               nights={stays?.get('end')}
               onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
               attaching={attachingKey === 'end'}
+              story={routeInfo.destinationStory}
+              onStoryChange={onStoryChange && ((s) => onStoryChange({ kind: 'end' }, s))}
             />
             </>)}
           </div>

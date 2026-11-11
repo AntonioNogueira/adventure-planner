@@ -59,8 +59,22 @@ export interface InterestCategory {
   items: InterestItem[];
 }
 
+/** A photo in a stop's story: its link once uploaded; before that, a photo waiting in this browser (see photos.ts). */
+export interface StoryPhoto {
+  url?: string;
+  pendingId?: string;
+  caption?: string;
+}
+/** The traveller's own words and photos about a stop, like a short blog post on the map. */
+export interface Story {
+  text: string;
+  photos: StoryPhoto[];
+}
+
 export interface Waypoint {
   location: string;
+  /** The traveller's text and photos about this stop. */
+  story?: Story;
   /** Exact spot (from route splitting or a dragged pin); used for routing instead of geocoding the name. */
   position?: { lat: number; lng: number };
   stopover: boolean;
@@ -150,8 +164,10 @@ export interface RouteInfo {
   name?: string;
   origin: string;
   originInterests?: InterestCategory[];
+  originStory?: Story;
   destination: string;
   destinationInterests?: InterestCategory[];
+  destinationStory?: Story;
   waypoints: Waypoint[];
   travelMode: string;
   distance: string;

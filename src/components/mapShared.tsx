@@ -16,12 +16,13 @@ export type MapPoint = Partial<Waypoint> & {
 /** Start, overnight stops and finish, each with its suggestions and bookings. */
 export function buildPoints(origin: string | undefined, waypoints: Waypoint[], destination: string | undefined, routeInfo?: RouteInfo | null): MapPoint[] {
   return [
-    ...(origin ? [{ location: origin, kind: 'start' as const, ref: { kind: 'start' as const }, label: tr('Start'), badge: 'S', interests: routeInfo?.originInterests || [] }] : []),
+    ...(origin ? [{ location: origin, kind: 'start' as const, ref: { kind: 'start' as const }, label: tr('Start'), badge: 'S', interests: routeInfo?.originInterests || [], story: routeInfo?.originStory }] : []),
     ...waypoints.map((wp, i) => ({
       ...wp, kind: 'stop' as const, ref: { kind: 'stop' as const, index: i }, label: tr('Stop {n}', { n: i + 1 }), badge: String(i + 1),
       interests: routeInfo?.waypoints[i]?.interests || wp.interests || [],
+      story: routeInfo?.waypoints[i]?.story || wp.story,
     })),
-    ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: tr('Finish'), badge: 'F', interests: routeInfo?.destinationInterests || [] }] : []),
+    ...(destination ? [{ location: destination, kind: 'end' as const, ref: { kind: 'end' as const }, label: tr('Finish'), badge: 'F', interests: routeInfo?.destinationInterests || [], story: routeInfo?.destinationStory }] : []),
   ];
 }
 
