@@ -142,7 +142,9 @@ async function photos(titles) {
   const out = {};
   for (const t of titles) {
     const e = cache[`wiki|${t}`];
-    out[t] = e ? { url: e.url, page: e.page, source: e.source, credit: e.credit, license: e.license } : null;
+    // Standard thumbnail size on Wikimedia's long-standing image host (also for links saved by older runs).
+    const url = e?.url.replace('://thumb.wikimedia.org/', '://upload.wikimedia.org/').replace(/\/\d+px-/, '/500px-');
+    out[t] = e ? { url, page: e.page, source: e.source, credit: e.credit, license: e.license } : null;
   }
   return out;
 }
