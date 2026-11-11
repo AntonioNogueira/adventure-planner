@@ -7,6 +7,7 @@ const LoginDialog = lazy(() => import('./components/LoginDialog'));
 const BudgetView = lazy(() => import('./components/BudgetView'));
 const DocumentsView = lazy(() => import('./components/DocumentsView'));
 const RideMode = lazy(() => import('./components/RideMode'));
+const InspirationView = lazy(() => import('./components/InspirationView'));
 const PlansDialog = lazy(() => import('./components/PlansDialog'));
 import Sidebar from './components/Sidebar';
 import { RouteInfo, Waypoint, InterestCategory, InterestItem, RouteLeg, StopRef, TripIntent } from './types';
@@ -27,7 +28,7 @@ import { bestInsertIndex, haversineKm, LatLng } from './lib/geo';
 import { mergeSuggestions, keepReservations, isOwn } from './lib/suggestions';
 import { storeAttachment, readAsBase64, fileMimeType, attachmentFile } from './lib/attachments';
 import { formatDistance, formatDuration } from './lib/utils';
-import { Sparkles, MapPin } from 'lucide-react';
+import { Sparkles, MapPin, Compass } from 'lucide-react';
 import { db, auth, storage, handleFirestoreError, OperationType } from './firebase';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -75,7 +76,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
-const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStart }) => {
+const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: () => void }> = ({ onStart, onInspire }) => {
   const { t } = useSettings();
   const [prompt, setPrompt] = useState('');
   const [isLocating, setIsLocating] = useState(false);
@@ -154,6 +155,10 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void }> = ({ onStar
             >
               {prompt.trim() ? t('Plan my adventure') : t('Skip and plan manually')}
             </button>
+            <button onClick={onInspire}
+              className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
+              <Compass size={16} />{t('Or get inspired by famous journeys')}
+            </button>
           </div>
         </div>
       </div>
@@ -185,6 +190,8 @@ const App: React.FC = () => {
   const [expeditionName, setExpeditionName] = useState('');
   const [showWelcome, setShowWelcome] = useState(true);
   const [initialPrompt, setInitialPrompt] = useState('');
+  // A planner request from the Inspiration map ("plan this stretch").
+  const [plannerRequest, setPlannerRequest] = useState<{ text: string; n: number } | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [lodging, setLodging] = useState<LodgingPreference>('any');
@@ -1194,6 +1201,7 @@ const App: React.FC = () => {
           expeditionName={expeditionName}
           setExpeditionName={(val) => { setExpeditionName(val); setHasChanges(true); }}
           initialPrompt={initialPrompt}
+          plannerRequest={plannerRequest}
           onRemoveItem={handleRemoveItem}
           onAttachFile={handleAttachFile}
           stays={stays}
@@ -1237,6 +1245,12 @@ const App: React.FC = () => {
               onClose={() => setView('route')}
               gotoRequest={gotoRequest}
             /></Suspense>
+          )}
+          {view === 'inspire' && (
+            <Suspense fallback={null}><InspirationView onPlan={(text) => {
+              setView('route');
+              setPlannerRequest(r => ({ text, n: (r?.n || 0) + 1 }));
+            }} /></Suspense>
           )}
           {(view === 'budget' || view === 'documents') && (
             // Budget and Documents cover the map (which stays loaded underneath).
@@ -1301,7 +1315,8 @@ const App: React.FC = () => {
             onStart={(prompt) => {
               setInitialPrompt(prompt);
               setShowWelcome(false);
-            }} 
+            }}
+            onInspire={() => { setShowWelcome(false); setView('inspire'); }}
           />
         )}
 

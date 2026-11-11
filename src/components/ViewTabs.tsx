@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Route as RouteIcon, Wallet, FolderOpen, Settings, Navigation } from 'lucide-react';
+import { Route as RouteIcon, Wallet, FolderOpen, Settings, Navigation, Compass } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSettings, LANGUAGES, CURRENCIES, Units, Language } from '../lib/settings';
 import { useAccount, openPlans } from '../lib/account';
@@ -7,13 +7,14 @@ import { PLANS } from '../lib/plans';
 import { openPrivacy } from './ConsentBanner';
 import InstallHint from './InstallHint';
 
-export type AppView = 'route' | 'budget' | 'documents' | 'ride';
+export type AppView = 'route' | 'budget' | 'documents' | 'ride' | 'inspire';
 
 const TABS: { id: AppView; label: string; icon: typeof RouteIcon }[] = [
   { id: 'route', label: 'Route', icon: RouteIcon },
   { id: 'budget', label: 'Budget', icon: Wallet },
   { id: 'documents', label: 'Documents', icon: FolderOpen },
   { id: 'ride', label: 'Ride', icon: Navigation },
+  { id: 'inspire', label: 'Inspire', icon: Compass },
 ];
 
 /** Distance units, currency and language (defaults come from the browser's locale). */
@@ -84,7 +85,7 @@ const SettingsMenu: React.FC = () => {
   );
 };
 
-/** The switch above the map: Route (the map), Budget, Documents and Ride, then Settings. */
+/** The switch above the map: Route (the map), Budget, Documents, Ride and Inspire (famous journeys), then Settings. */
 const ViewTabs: React.FC<{ view: AppView; onChange: (view: AppView) => void; documentCount: number }> = ({ view, onChange, documentCount }) => {
   const { t } = useSettings();
   return (

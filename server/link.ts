@@ -132,15 +132,17 @@ function jsonLdPlace(html: string): { name?: string; kind?: string; address?: st
   };
 }
 
-function readableText(html: string): string {
-  return decode(html
-    .replace(/<(script|style|noscript|svg|head)[\s\S]*?<\/\1>/gi, ' ')
+function readableText(html: string, max = 3000): string {
+  // For long reads (a travel story), the article itself when the page marks it, without menus and footers.
+  const article = max > 3000 ? [...html.matchAll(/<(article|main)\b[\s\S]*?<\/\1>/gi)].map(m => m[0]).sort((a, b) => b.length - a.length)[0] : undefined;
+  return decode((article && article.length > 2000 ? article : html)
+    .replace(/<(script|style|noscript|svg|head|nav|footer|aside)[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')).slice(0, 3000);
+    .replace(/\s+/g, ' ')).slice(0, max);
 }
 
 /** Everything useful in a page, plus what the link itself says. */
-export function parseLinkHtml(html: string, url: string, finalUrl = url): LinkInfo {
+export function parseLinkHtml(html: string, url: string, finalUrl = url, maxText = 3000): LinkInfo {
   const ld = jsonLdPlace(html);
   const lat = num(meta(html, 'place:location:latitude') || meta(html, 'og:latitude')) ?? num(meta(html, 'latitude'));
   const lng = num(meta(html, 'place:location:longitude') || meta(html, 'og:longitude')) ?? num(meta(html, 'longitude'));
@@ -153,7 +155,7 @@ export function parseLinkHtml(html: string, url: string, finalUrl = url): LinkIn
     place: ld && { name: ld.name, kind: ld.kind, address: ld.address },
     position: ld?.position || valid(lat, lng) || coordsFromUrl(finalUrl) || coordsFromUrl(url),
     ...dates,
-    text: readableText(html),
+    text: readableText(html, maxText),
   };
 }
 
@@ -189,7 +191,8 @@ export function googleMapsPlace(raw: string): { name?: string; position?: { lat:
 }
 
 /** Fetch a public link (following up to 4 redirects, each checked) and read it. Never throws. */
-export async function readLink(url: string): Promise<LinkInfo> {
+/** A link's page, read safely (public addresses only, a few redirects, ~1.5 MB). `maxText`: how much page text to keep. */
+export async function readLink(url: string, maxText = 3000): Promise<LinkInfo> {
   const fromUrl = (u: string): LinkInfo => ({ url, finalUrl: u, site: (() => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return 'link'; } })(),
     position: coordsFromUrl(u) || coordsFromUrl(url), ...datesFromUrl(u), unreadable: true });
   let current = url;
@@ -227,7 +230,7 @@ export async function readLink(url: string): Promise<LinkInfo> {
         html += new TextDecoder().decode(value, { stream: true });
         if (size > 1_500_000) { reader.cancel().catch(() => {}); break; }
       }
-      const info = parseLinkHtml(html, url, current);
+      const info = parseLinkHtml(html, url, current, maxText);
       return info.title || info.place || info.description ? info : { ...info, unreadable: true };
     }
   } catch {

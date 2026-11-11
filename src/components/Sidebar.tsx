@@ -90,10 +90,11 @@ interface SidebarProps {
   expeditionName: string;
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
+  plannerRequest?: { text: string; n: number } | null;
   /** Nights at each stop, for the booking links' dates. */
   stays?: Map<string, { checkIn: string; checkOut: string }>;
   /** The top tab; on phones the sheet drops to its smallest height for Budget and Documents. */
-  view?: 'route' | 'budget' | 'documents' | 'ride';
+  view?: 'route' | 'budget' | 'documents' | 'ride' | 'inspire';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -122,6 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   expeditionName,
   setExpeditionName,
   initialPrompt,
+  plannerRequest,
   view = 'route',
   stays,
   onRemoveItem,
@@ -277,7 +279,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <div className="mb-4">
-        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} request={plannerRequest} />
       </div>
 
       {aiSummary && (

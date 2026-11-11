@@ -18,6 +18,8 @@ interface AIAgentProps {
   onVehicleChange?: (vehicle: string) => void;
   /** The traveller's style (kind of riding, who's going, interests, budget, named vehicle): places and budget follow it. */
   onStyleChange?: (style: TripStyle) => void;
+  /** A request from elsewhere in the app (e.g. "plan this stretch" on the Inspiration map); `n` changes each time. */
+  request?: { text: string; n: number } | null;
 }
 
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
@@ -47,7 +49,7 @@ interface Message {
   answer?: string;
 }
 
-const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange }) => {
+const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange, request }) => {
   const lastPlanRef = useRef<PlanSummary | null>(null);
   const { t, locale } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
@@ -87,6 +89,9 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       handlePlan(initialPrompt);
     }
   }, [initialPrompt]);
+
+  // A request handed over by another part of the app is sent as if typed.
+  useEffect(() => { if (request?.text) handlePlan(request.text); }, [request?.n]);
 
   useEffect(() => {
     if (scrollRef.current) {

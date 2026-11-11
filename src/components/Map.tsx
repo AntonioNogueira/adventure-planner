@@ -21,6 +21,7 @@ import { useSettings, t as tr } from '../lib/settings';
 import { rentalUrl, type Nights } from '../lib/affiliate';
 import { buildPoints, MapPoint, PlacePopup, StopPopup, MapClickMenu, stopPinElement, refKey, positionMarker, setMarkerHeading, RIDE_COLORS, viaElement } from './mapShared';
 import { progressOn, splitAt } from '../lib/ride';
+import { raster, TOPO_STYLE } from '../lib/mapStyle';
 
 interface MapProps {
   onLoad: (map: unknown) => void;
@@ -58,22 +59,15 @@ interface MapProps {
 // Topo (survey-map look: contours, hill shading, forests), Satellite, and Hybrid (satellite + roads and names).
 type MapType = 'topo' | 'satellite' | 'hybrid';
 
-const OSM = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 // The vintage look is applied to the map imagery only (not the route, pins or labels, which stay bright):
 // topo is faded like an old printed sheet, satellite keeps most of its colour.
-const TOPO_PAINT = { 'raster-saturation': -0.38, 'raster-contrast': -0.08, 'raster-brightness-min': 0.05, 'raster-hue-rotate': -4 };
 const SATELLITE_PAINT = { 'raster-saturation': -0.12, 'raster-contrast': -0.03 };
-const raster = (tiles: string[], attribution: string, maxzoom: number, paint: Record<string, number>): StyleSpecification => ({
-  version: 8,
-  sources: { base: { type: 'raster', tiles, tileSize: 256, attribution, maxzoom } },
-  layers: [{ id: 'base', type: 'raster', source: 'base', paint }],
-});
 
 const SATELLITE_TILES = ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg'];
 const SATELLITE_CREDIT = '<a href="https://s2maps.eu">Sentinel-2 cloudless</a> by EOX (CC BY-NC-SA 4.0), contains Copernicus data';
 
 const STYLES: Record<Exclude<MapType, 'hybrid'>, string | StyleSpecification> = {
-  topo: raster(['https://tile.opentopomap.org/{z}/{x}/{y}.png'], `${OSM}, SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`, 17, TOPO_PAINT),
+  topo: TOPO_STYLE,
   satellite: raster(SATELLITE_TILES, SATELLITE_CREDIT, 15, SATELLITE_PAINT),
 };
 

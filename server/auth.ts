@@ -67,3 +67,19 @@ export async function readPlanRecord(caller: Caller, projectId: string, database
   planCache.set(caller.uid, { at: Date.now(), record });
   return record;
 }
+
+const adminCache = new Map<string, { at: number; admin: boolean }>();
+
+/** Is this user an admin? Admins are marked in Firestore by a document admins/{uid} (created by hand in the console),
+ *  which only that user may read: so it's read with their own token. */
+export async function isAdmin(caller: Caller, projectId: string, databaseId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  const hit = adminCache.get(caller.uid);
+  if (hit && Date.now() - hit.at < 300_000) return hit.admin;
+  let admin = false;
+  try {
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${encodeURIComponent(databaseId)}/documents/admins/${caller.uid}`;
+    admin = (await fetchImpl(url, { headers: { Authorization: `Bearer ${caller.token}` } })).ok;
+  } catch { /* not reachable: not an admin */ }
+  adminCache.set(caller.uid, { at: Date.now(), admin });
+  return admin;
+}

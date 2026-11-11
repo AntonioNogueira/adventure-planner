@@ -4,7 +4,7 @@ import { ApiError, GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 import Anthropic from '@anthropic-ai/sdk';
 import firebaseConfig from '../firebase-applet-config.json';
-import { verifyIdToken, readPlanRecord, Caller } from './auth';
+import { verifyIdToken, readPlanRecord, isAdmin, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 import { isLocalUrl, readLink, linkAsText } from './link';
 
@@ -631,6 +631,89 @@ export function decodeTextFile(base64: string) {
 // Simple per-visitor limit so a public deployment can't burn through the AI quota.
 // AI_REQUESTS_PER_HOUR in the environment overrides the default.
 const requestLog = new Map<string, number[]>();
+// ---- Importing a journey (admin): a travel story read into ordered stops ----
+
+const LEG_ENUM = ['ride', 'truck', 'bus', 'train', 'ferry', 'boat', 'flight', 'walk'];
+const KIND_ENUM = ['moto', 'bike', 'walk', '4x4', 'other'];
+
+export function buildJourneyPrompt(): string {
+  return `The attached text is a travel story: a blog post, an article, or a passage from a book about a journey.
+Read it into a journey for a map of inspiring adventures.
+
+- title: the journey's name (the book or series title if there is one, else a short descriptive name).
+- who: who travelled. when: when (e.g. "1952", "May–August 2007"; "" if unknown).
+- vehicle: what they travelled on or in (e.g. "Royal Enfield Bullet 500", "on foot", "Land Rover Defender"); "" if unknown.
+- kind: "moto", "bike", "walk", "4x4" or "other".
+- summary: 2-3 sentences in your own words: where it went and what made it special.
+- stops: the journey in travel order, 6 to 40 stops: the start, the places where something happened or that mark the
+  way, and the finish. For each:
+  - name: a short label for the map (a town, a landmark, "The Pamir Highway").
+  - place: where it is as a geocodable modern place name with its country, e.g. "Khorog, Tajikistan". Old names
+    become today's ("Constantinople" → "Istanbul, Turkey"; "Bombay" → "Mumbai, India"). For a road or a region, use the
+    town at its middle.
+  - date: when they were there if the text says ("12 May 2007", "June 1952"), else "".
+  - by: how they got there from the previous stop: "ride" (on their own vehicle, or by road in general), "walk",
+    "truck" (hitching or on a lorry), "bus", "train", "ferry", "boat", "flight". The first stop: "ride".
+  - text: 1-3 sentences in your own words about what happened there or what the place was like for them. You may
+    include at most one very short quote from the text (under 20 words, in quotation marks) when it's memorable.
+    Never copy longer passages: summarise.
+- sourceLabel: a short credit for the source, e.g. "Book: Jupiter's Travels by Ted Simon (1979)" or the site name and
+  article title.
+Only use places the text supports; don't invent stops or events.`;
+}
+
+const journeyStopProps = {
+  name: { type: 'string' }, place: { type: 'string' }, date: { type: 'string' },
+  by: { type: 'string', enum: LEG_ENUM }, text: { type: 'string' },
+};
+export const journeyJsonSchema = {
+  type: 'object',
+  properties: {
+    title: { type: 'string' }, who: { type: 'string' }, when: { type: 'string' }, vehicle: { type: 'string' },
+    kind: { type: 'string', enum: KIND_ENUM }, summary: { type: 'string' }, sourceLabel: { type: 'string' },
+    stops: { type: 'array', items: { type: 'object', properties: journeyStopProps, required: Object.keys(journeyStopProps), additionalProperties: false } },
+  },
+  required: ['title', 'who', 'when', 'vehicle', 'kind', 'summary', 'sourceLabel', 'stops'],
+  additionalProperties: false,
+};
+const journeyGeminiSchema = {
+  type: Type.OBJECT,
+  properties: {
+    title: { type: Type.STRING }, who: { type: Type.STRING }, when: { type: Type.STRING }, vehicle: { type: Type.STRING },
+    kind: { type: Type.STRING, enum: KIND_ENUM }, summary: { type: Type.STRING }, sourceLabel: { type: Type.STRING },
+    stops: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING }, place: { type: Type.STRING }, date: { type: Type.STRING },
+          by: { type: Type.STRING, enum: LEG_ENUM }, text: { type: Type.STRING },
+        },
+        required: ['name', 'place', 'date', 'by', 'text'],
+      },
+    },
+  },
+  required: ['title', 'who', 'when', 'vehicle', 'kind', 'summary', 'sourceLabel', 'stops'],
+};
+
+/** The AI's reading, trimmed to sensible sizes and values. */
+export function cleanJourney(raw: any, url = '') {
+  const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const stops = (Array.isArray(raw?.stops) ? raw.stops : [])
+    .map((s: any, i: number) => ({
+      name: str(s?.name, 80), place: str(s?.place, 120), date: str(s?.date, 40),
+      by: i > 0 && LEG_ENUM.includes(s?.by) ? s.by : 'ride', text: str(s?.text, 600),
+    }))
+    .filter((s: { name: string; place: string }) => s.name && s.place)
+    .slice(0, 40);
+  return {
+    title: str(raw?.title, 100) || 'Imported journey', who: str(raw?.who, 120), when: str(raw?.when, 60),
+    vehicle: str(raw?.vehicle, 80), kind: KIND_ENUM.includes(raw?.kind) ? raw.kind : 'other', summary: str(raw?.summary, 800),
+    sources: [{ label: str(raw?.sourceLabel, 160) || (url ? new URL(url).hostname : 'Pasted text'), url: url || '' }],
+    stops,
+  };
+}
+
 /** Keep only the style values that fit the trip; vehicle facts only with a named vehicle, and only sensible figures. */
 export function cleanStyle(intent: any) {
   const bike = ['road', 'gravel', 'mtb', 'emtb'];
@@ -670,7 +753,7 @@ const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage'];
+    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage', '/api/import-journey'];
     if (!req.url || !routes.includes(req.url)) return next();
     if (req.url === '/api/me') {
       if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
@@ -733,6 +816,34 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         }
         console.log(`[ai] understood: ${describeIntent(intent)}`);
         return sendJson(res, 200, { provider, plan: intent });
+      } catch (err) {
+        return sendTaskError(res, err);
+      }
+    }
+
+    // Admin only: a blog post or book passage read into a journey for the Inspiration map.
+    if (req.url === '/api/import-journey') {
+      if (!acct.caller || !(await isAdmin(acct.caller, firebaseConfig.projectId, firebaseConfig.firestoreDatabaseId))) {
+        return sendJson(res, 403, { error: 'Only admins can import journeys.' });
+      }
+      const url = String(body.url || '').trim().slice(0, 2000);
+      let source = String(body.text || '').trim().slice(0, 60_000);
+      if (url) {
+        if (!/^https?:\/\//i.test(url) || isLocalUrl(url)) return sendJson(res, 400, { error: 'That link can\'t be opened.' });
+        const info = await readLink(url, 40_000);
+        if (info.unreadable) return sendJson(res, 422, { error: 'That page could not be read (it may need a login). Paste the text instead.' });
+        source = linkAsText(info);
+      }
+      if (source.length < 200) return sendJson(res, 400, { error: 'Paste a link or a longer passage (a few paragraphs at least).' });
+      try {
+        const { provider, result } = await runTaskResult(env, {
+          name: 'import journey',
+          prompt: buildJourneyPrompt(),
+          geminiSchema: journeyGeminiSchema,
+          claudeSchema: journeyJsonSchema,
+          file: { mimeType: 'text/plain', data: '', text: source },
+        });
+        return sendJson(res, 200, { provider, journey: cleanJourney(result, url) });
       } catch (err) {
         return sendTaskError(res, err);
       }

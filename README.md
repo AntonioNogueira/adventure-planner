@@ -96,6 +96,23 @@ The app uses the Firebase project in `firebase-applet-config.json`. In the [Fire
 3. **Authentication → Settings → Authorized domains**: add `localhost` (for running on your PC) and the domain you deploy to (e.g. `adventure-planner.onrender.com`).
 4. **Authentication → Sign-in method**: enable **Email/Password** and **Google**. Facebook and Apple are optional (they need a Facebook developer app / an Apple Developer account); list the ones you enable in `AUTH_PROVIDERS` (default `email,google`).
 
+## Inspiration map and the import tool
+
+The **Inspire** tab shows famous journeys on a world map (Long Way Round, Long Way Down, Long Way Up, The Motorcycle
+Diaries, Jupiter's Travels), open to everyone. Each stop has a short text written for the app and a freely licensed
+photo from Wikimedia Commons (credited, linked to its source); any stretch on roads can be sent to the planner.
+
+- Built-in journeys: edit `scripts/inspiration/journeys.mjs`, then
+  `NODE_USE_ENV_PROXY=1 node scripts/inspiration/build.mjs` (finds places with Photon, routes roads with OSRM, picks
+  photos; slow on purpose to be polite to the free services). Output: `public/inspiration/*.json`.
+- **Import tool (admins only):** paste a blog post link or a book passage; the AI reads it into stops (in its own
+  words, short quotes only), the app maps and routes it, you check and edit it, then publish. Published journeys are
+  stored in Firestore (`inspiration`) and appear for everyone. To make yourself an admin:
+  1. Publish the updated `firestore.rules` (Firebase console → Firestore → Rules → paste the file → Publish).
+  2. Firebase console → Authentication → Users: copy your **User UID**.
+  3. Firestore → Data → Start collection `admins` → Document ID = your UID → any field (e.g. `note: "me"`) → Save.
+  4. Reload the app and open Inspire: "Import a journey" appears for you only.
+
 ## Deploying
 
 The app runs as one Node service: `npm run build`, then `npx vite preview` serves the page and the `/api` endpoints on `$PORT`. Keys are read at start-up, so the same build works anywhere.
