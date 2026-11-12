@@ -1,5 +1,6 @@
 // Elevation along routes (Valhalla's height service, VALHALLA_URL; Open-Meteo, ELEVATION_URL, as the backup) and climbing statistics.
 import { LatLng, downsample, evenlySpaced } from './geo';
+import { trackedFetch } from './serviceHealth';
 import { SERVICES } from './services';
 
 /** Flat-equivalent km added per 1000 m of climbing, per travel mode (hiking follows Naismith's rule). */
@@ -67,7 +68,7 @@ const cache = new Map<string, Promise<number[] | null>>();
 
 // Heights at the given points from Valhalla's height service (VALHALLA_URL).
 async function valhallaHeights(points: LatLng[]): Promise<number[]> {
-  const res = await fetch(`${SERVICES.valhalla}/height`, {
+  const res = await trackedFetch('valhalla', `${SERVICES.valhalla}/height`, {
     signal: AbortSignal.timeout(12000),
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

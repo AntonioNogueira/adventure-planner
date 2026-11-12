@@ -761,6 +761,10 @@ export function cleanStyle(intent: any) {
   return intent;
 }
 
+let healthCheck: { at: number; result: Promise<Record<string, unknown>> } | null = null;
+const healthSchema = { type: Type.OBJECT, properties: { ok: { type: Type.BOOLEAN } }, required: ['ok'] };
+const healthJsonSchema = { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'], additionalProperties: false };
+
 function overLimit(env: PlanEnv, req: IncomingMessage) {
   const perHour = Number(env.AI_REQUESTS_PER_HOUR) || 60;
   const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
@@ -776,12 +780,30 @@ const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage', '/api/import-journey'];
+    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage', '/api/import-journey', '/api/health'];
     if (!req.url || !routes.includes(req.url)) return next();
     if (req.url === '/api/me') {
       if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
       const a = await account(env, req);
       return sendJson(res, 200, { plan: a.plan, signedIn: Boolean(a.caller), limits: a.limits, usage: usageOf(a), enforced: a.enforced });
+    }
+    // Is the AI answering? A tiny request, at most once a minute for everyone (the service check uses it).
+    if (req.url === '/api/health') {
+      if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
+      if (!healthCheck || Date.now() - healthCheck.at > 60_000) {
+        healthCheck = { at: Date.now(), result: (async () => {
+          const started = Date.now();
+          try {
+            const { provider } = await runTaskResult(env, { name: 'health', prompt: 'Answer with {"ok": true}.', geminiSchema: healthSchema, claudeSchema: healthJsonSchema });
+            return { ok: true, provider, ms: Date.now() - started };
+          } catch (err) {
+            const details = err instanceof AllFailed ? err.details : [err instanceof Error ? err.message : String(err)];
+            const busy = details.some(d => /\b(503|429)\b|UNAVAILABLE|high demand|overloaded/i.test(d));
+            return { ok: false, busy, ms: Date.now() - started, error: err instanceof NoProvider ? 'No AI key configured' : details[0]?.slice(0, 160) };
+          }
+        })() };
+      }
+      return sendJson(res, 200, await healthCheck.result);
     }
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     if (req.url !== '/api/usage' && overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });

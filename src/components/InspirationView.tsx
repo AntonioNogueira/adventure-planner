@@ -88,7 +88,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   // The panel covers part of the map: keep the journey clear of it.
   const padding = () => (narrow()
     ? { top: 70, left: 30, right: 30, bottom: Math.round((container.current?.clientHeight || 800) * 0.5) }
-    : { top: 90, left: 420, right: 60, bottom: 50 });
+    : { top: 90, left: 410, right: 60, bottom: 50 });
 
   useEffect(() => {
     loadJourneys().then(setList).catch(() => setFailed(true));
@@ -127,7 +127,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     if (!container.current) return;
     const map = new maplibregl.Map({ container: container.current, style: TOPO_STYLE, center: [10, 25], zoom: narrow() ? 0.9 : 1.9, attributionControl: { compact: true } });
     // The globe sits beside the panel (desktop) or above the sheet (phones).
-    map.setPadding(narrow() ? { top: 60, bottom: Math.round((container.current.clientHeight || 800) * 0.45), left: 0, right: 0 } : { left: 400, top: 40, right: 0, bottom: 0 });
+    map.setPadding(narrow() ? { top: 60, bottom: Math.round((container.current.clientHeight || 800) * 0.45), left: 0, right: 0 } : { left: 380, top: 40, right: 0, bottom: 0 });
     // A globe: the journeys wrap round the world as they did. It turns slowly until the visitor touches it.
     map.on('style.load', () => map.setProjection({ type: 'globe' }));
     let spinning = true;
@@ -222,7 +222,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   return (
     <div className="absolute inset-0 z-[17] bg-[radial-gradient(ellipse_at_center,#1e3a4f_0%,#0b1622_70%)]">
       <div ref={container} className="h-full w-full" />
-      <aside className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4]/95 p-3 shadow-2xl backdrop-blur md:inset-x-auto md:bottom-4 md:left-4 md:top-20 md:max-h-none md:w-[380px] md:rounded-xl md:border">
+      <aside className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4] p-3 shadow-2xl md:inset-x-auto md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[380px] md:rounded-none md:border-0 md:border-r">
         {importing && uid ? (
           <ImportJourney uid={uid} preview={preview} onPreview={setPreview} onClose={() => setImporting(false)}
             onPublished={(j) => { setPublished(list => [j, ...list]); setPreview(null); setImporting(false); setJourney(j); }} />
@@ -274,11 +274,14 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
           </div>
         ) : (
           <div className="space-y-2.5">
-            <button onClick={() => { setJourney(null); mapRef.current?.easeTo({ zoom: narrow() ? 0.9 : 1.9, duration: 900 }); }} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"><ArrowLeft size={13} />{t('All journeys')}</button>
-            <div className="border-l-4 pl-2" style={{ borderColor: journey.color }}>
-              <h2 className="text-base font-bold leading-tight text-slate-900">{journey.title}</h2>
-              <p className="text-[11px] text-slate-600">{journey.who} · {journey.when}</p>
-              <p className="text-[11px] text-slate-500">{journey.vehicle} · {dist(journey.km, 0)} · {t('{n} stops', { n: journey.stops.length })}</p>
+            {/* Stays in view while the stops scroll: the way back and which journey this is. */}
+            <div className="sticky -top-3 z-10 -mx-3 -mt-3 space-y-1.5 border-b border-slate-200 bg-[#fffcf4] px-3 pb-2 pt-3">
+              <button onClick={() => { setJourney(null); mapRef.current?.easeTo({ zoom: narrow() ? 0.9 : 1.9, duration: 900 }); }} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"><ArrowLeft size={13} />{t('All journeys')}</button>
+              <div className="border-l-4 pl-2" style={{ borderColor: journey.color }}>
+                <h2 className="text-base font-bold leading-tight text-slate-900">{journey.title}</h2>
+                <p className="text-[11px] text-slate-600">{journey.who} · {journey.when}</p>
+                <p className="text-[11px] text-slate-500">{journey.vehicle} · {dist(journey.km, 0)} · {t('{n} stops', { n: journey.stops.length })}</p>
+              </div>
             </div>
             <p className="text-xs leading-relaxed text-slate-700">{journey.summary}</p>
             {journey.approximate && <p className="text-[10.5px] italic text-slate-500">{journey.approximate}</p>}

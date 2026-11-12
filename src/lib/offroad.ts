@@ -9,6 +9,7 @@
 // Each day is routed separately (short requests). The defaults, brouter.de and valhalla1.openstreetmap.de, are
 // free public services (fair use); BROUTER_URL / VALHALLA_URL point the app at its own or paid servers.
 import { LatLng, haversineKm, pathWithDistances, pointAt } from './geo';
+import { trackedFetch } from './serviceHealth';
 import { geocodeAddress } from './geocode';
 import { decodePolyline6, osmTrip } from './osrm';
 import type { RoutedLeg, RoutedStep, RoutedTrip, TripRequest } from './routing';
@@ -93,7 +94,7 @@ const UNPAVED = /surface=(gravel|fine_gravel|compacted|dirt|ground|unpaved|earth
 /** One day through BRouter: path, distance, a time from typical off-road speeds, and ferry/unpaved steps. */
 async function brouterLeg(points: LatLng[], profile: string, travelMode: string, params = ''): Promise<RoutedLeg> {
   const lonlats = points.map(p => `${p.lng.toFixed(6)},${p.lat.toFixed(6)}`).join('|');
-  const res = await fetch(`${BROUTER}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson${params}`, { signal: AbortSignal.timeout(45000) });
+  const res = await trackedFetch('brouter', `${BROUTER}?lonlats=${lonlats}&profile=${profile}&alternativeidx=0&format=geojson${params}`, { signal: AbortSignal.timeout(45000) });
   const text = await res.text();
   let data: any;
   try { data = JSON.parse(text); } catch { throw new Error(`BRouter: ${text.slice(0, 120)}`); }
@@ -129,7 +130,7 @@ async function brouterLeg(points: LatLng[], profile: string, travelMode: string,
 
 /** One hiking day through Valhalla: trails up to T2, preferring tracks and footpaths. */
 async function hikeLeg(points: LatLng[]): Promise<RoutedLeg> {
-  const res = await fetch(VALHALLA, {
+  const res = await trackedFetch('valhalla', VALHALLA, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal: AbortSignal.timeout(45000),

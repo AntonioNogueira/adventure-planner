@@ -1,6 +1,7 @@
 // Place names ↔ coordinates, cached, from Photon (OpenStreetMap), with Nominatim as the backup when Photon is
 // busy or unreachable (free public servers drop requests now and then). PHOTON_URL / NOMINATIM_URL pick the servers.
 import { SERVICES } from './services';
+import { isDown, report } from './serviceHealth';
 import { t } from './settings';
 import { searchTown } from './affiliate';
 import { LatLng, haversineKm } from './geo';
@@ -23,18 +24,31 @@ async function slot<T>(run: () => Promise<T>): Promise<T> {
 }
 
 export async function photon(path: string): Promise<PhotonFeature[]> {
+  // Photon not answering (it can hang for hours): callers go straight to their backup (Nominatim) instead of
+  // waiting on timeouts for every lookup.
+  if (isDown('photon')) throw new Error('Photon unavailable (skipping for now)');
   return slot(async () => {
+    if (isDown('photon')) throw new Error('Photon unavailable (skipping for now)');
     let lastError: unknown;
-    for (const delay of [0, 600, 1800]) {
+    // A busy answer (429/5xx) is retried once; a timeout is not (a hanging server would only hang again).
+    for (const delay of [0, 800]) {
       if (delay) await new Promise(r => setTimeout(r, delay));
+      const started = Date.now();
       try {
         // English names, to match the AI's place names ("Spain", not "España").
-        const res = await fetch(`${SERVICES.photon}${path}${path.includes('?') ? '&' : '?'}lang=en`, { signal: AbortSignal.timeout(8000) });
-        if (res.ok) return (await res.json()).features || [];
+        const res = await fetch(`${SERVICES.photon}${path}${path.includes('?') ? '&' : '?'}lang=en`, { signal: AbortSignal.timeout(6000) });
+        if (res.ok) {
+          const features = (await res.json()).features || [];
+          report('photon', true, Date.now() - started);
+          return features;
+        }
         lastError = new Error(`Photon ${res.status}`);
+        report('photon', res.status !== 429 && res.status < 500, Date.now() - started, `HTTP ${res.status}`);
         if (res.status !== 429 && res.status < 500) break;
       } catch (err) {
-        lastError = err; // network hiccup: retry
+        lastError = err;
+        report('photon', false, Date.now() - started, err instanceof Error ? `${err.name} ${err.message}` : String(err));
+        break;
       }
     }
     throw lastError;
@@ -59,9 +73,16 @@ export function nominatim<T>(path: string): Promise<T> {
     const wait = lastNominatim + 1100 - Date.now();
     if (wait > 0) await new Promise(r => setTimeout(r, wait));
     lastNominatim = Date.now();
-    const res = await fetch(`${SERVICES.nominatim}${path}${path.includes('?') ? '&' : '?'}format=jsonv2&accept-language=en`, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error(`Nominatim ${res.status}`);
-    return res.json() as Promise<T>;
+    const started = lastNominatim;
+    try {
+      const res = await fetch(`${SERVICES.nominatim}${path}${path.includes('?') ? '&' : '?'}format=jsonv2&accept-language=en`, { signal: AbortSignal.timeout(10000) });
+      report('nominatim', res.ok, Date.now() - started, res.ok ? undefined : `HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`Nominatim ${res.status}`);
+      return await (res.json() as Promise<T>);
+    } catch (err) {
+      if (!(err instanceof Error && err.message.startsWith('Nominatim '))) report('nominatim', false, Date.now() - started, err instanceof Error ? `${err.name} ${err.message}` : String(err));
+      throw err;
+    }
   };
   const next = nominatimQueue.then(run, run);
   nominatimQueue = next.catch(() => undefined);

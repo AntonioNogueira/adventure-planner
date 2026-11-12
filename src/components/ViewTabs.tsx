@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+const ServiceCheck = lazy(() => import('./ServiceCheck'));
 import { Route as RouteIcon, Wallet, FolderOpen, Settings, Navigation, Compass } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSettings, LANGUAGES, CURRENCIES, Units, Language } from '../lib/settings';
@@ -22,6 +23,7 @@ const SettingsMenu: React.FC = () => {
   const { settings, update, t } = useSettings();
   const account = useAccount();
   const [open, setOpen] = useState(false);
+  const [checking, setChecking] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -77,10 +79,14 @@ const SettingsMenu: React.FC = () => {
             <span><span className="font-semibold text-slate-600">{t('Plan')}:</span> {t(PLANS[account.plan].name)}</span>
             <button onClick={() => { setOpen(false); openPlans(); }} className="font-semibold text-emerald-700 hover:underline">{t('See plans')}</button>
           </div>
-          <button onClick={() => { setOpen(false); openPrivacy(); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Privacy and cookies')}</button>
+          <div className="flex items-center justify-between">
+            <button onClick={() => { setOpen(false); openPrivacy(); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Privacy and cookies')}</button>
+            <button onClick={() => { setOpen(false); setChecking(true); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Check map services')}</button>
+          </div>
           <InstallHint compact />
         </div>
       )}
+      {checking && <Suspense fallback={null}><ServiceCheck onClose={() => setChecking(false)} /></Suspense>}
     </div>
   );
 };
@@ -91,7 +97,9 @@ const ViewTabs: React.FC<{ view: AppView; onChange: (view: AppView) => void; doc
   return (
     <nav
       aria-label={t('Views')}
-      className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 gap-1 rounded-xl border border-white/20 bg-white/90 p-1 shadow-xl backdrop-blur-md md:top-6"
+      className={cn('absolute left-1/2 top-3 z-20 flex -translate-x-1/2 gap-1 rounded-xl border border-white/20 bg-white/90 p-1 shadow-xl backdrop-blur-md md:top-6',
+        // Inspire: centred over the globe, clear of the journeys panel on the left.
+        view === 'inspire' && 'md:left-[calc(50%+190px)]')}
     >
       {TABS.map(({ id, label, icon: Icon }) => (
         <button

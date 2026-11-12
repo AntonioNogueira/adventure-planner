@@ -5,6 +5,7 @@ import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent, TripStyle } from '../types';
 import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf } from '../lib/conversation';
 import { cn } from '../lib/utils';
+import { downServices, report, SERVICE_NAMES, SERVICE_ROLES } from '../lib/serviceHealth';
 
 export type { PlanSummary } from '../lib/conversation';
 
@@ -22,6 +23,13 @@ interface AIAgentProps {
   request?: { text: string; n: number } | null;
 }
 
+/** " Not answering right now: Photon (place names), Overpass (places near stops)." when services are failing. */
+function whoIsDown(): string {
+  const down = downServices();
+  if (!down.length) return '';
+  return `\n\n${tr('Not answering right now: {services}. Using backups where there are any.', { services: down.map(s => `${SERVICE_NAMES[s]} (${tr(SERVICE_ROLES[s])})`).join(', ') })}`;
+}
+
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
   // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
   const response = await authFetch('/api/plan', {
@@ -33,6 +41,7 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
   await checkLimit(response);
   refreshAccount();
   const data = await response.json().catch(() => ({}));
+  report('ai', response.ok || data.code !== 'busy', undefined, data.code === 'busy' ? 'busy' : undefined);
   if (!response.ok && data.code === 'busy') throw new Error(tr('The AI is very busy right now. Please try again in a minute.'));
   if (!response.ok) {
     // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
@@ -128,11 +137,11 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     const TOO_LONG = Symbol('too long');
     const plan = await Promise.race([onPlanTrip(intent), new Promise<typeof TOO_LONG>(r => setTimeout(() => r(TOO_LONG), 120_000))]);
     if (plan === TOO_LONG) {
-      say({ text: t('The map services are very slow right now, so this is taking longer than usual. The route will appear when they answer; or try again in a minute.') });
+      say({ text: `${t('The map services are very slow right now, so this is taking longer than usual. The route will appear when they answer; or try again in a minute.')}${whoIsDown()}` });
       return;
     }
     if (!plan) {
-      say({ text: t("I understood {from} → {to}, but the map couldn't draw that route. Try more specific place names.", { from: intent.origin, to: intent.destination }) });
+      say({ text: `${t("I understood {from} → {to}, but the map couldn't draw that route. Try more specific place names.", { from: intent.origin, to: intent.destination })}${whoIsDown()}` });
       return;
     }
     // The AI's answer belongs to the message it answered: not repeated when a quick reply re-plans.

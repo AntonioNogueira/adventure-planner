@@ -2,6 +2,7 @@
 // OVERPASS_URL in turn; if none answers, Photon (names, kinds and positions only), so places never go missing.
 // The free public servers are fair use and often busy or refuse cloud traffic: production sets its own.
 import { InterestCategory, InterestItem } from '../types';
+import { trackedFetch } from './serviceHealth';
 import { LatLng, haversineKm } from './geo';
 import { townAt, placeAt, photon, PhotonFeature, nominatim, NominatimPlace } from './geocode';
 import { SERVICES } from './services';
@@ -35,7 +36,7 @@ async function runQuery(query: string, budgetMs = 31000, servers = SERVICES.over
     if (left < 1500) break;
     const i = (preferred + k) % servers.length;
     try {
-      const res = await fetch(servers[i], {
+      const res = await trackedFetch('overpass', servers[i], {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `data=${encodeURIComponent(query)}`,
@@ -199,7 +200,13 @@ async function fetchSuggestions(center: LatLng, travelMode: string, lodging: Lod
     elements = await overpass(query);
   } catch (err) {
     console.warn('No Overpass server answered; places from Photon instead.', err);
-    return photonSuggestions(center, travelMode, lodging, count, vehicle);
+    try {
+      return await photonSuggestions(center, travelMode, lodging, count, vehicle);
+    } catch (photonErr) {
+      // Photon down too: Nominatim, one search per category (slower: it allows about one request a second).
+      console.warn('Photon unavailable too; places from Nominatim.', photonErr);
+      return nominatimSuggestions(center, travelMode, lodging, count, vehicle);
+    }
   }
   const byCategory: Record<CategoryId, { e: OsmElement; score: number; km: number }[]> = { stay: [], food: [], shop: [], water: [], sights: [] };
   for (const e of elements) {
@@ -284,6 +291,43 @@ async function photonSuggestions(center: LatLng, travelMode: string, lodging: Lo
     category: NAMES[category],
     items: (found[i].status === 'fulfilled' ? found[i].value : [])
       .map(e => ({ e, km: haversineKm(center, position(e)!) }))
+      .sort((a, b) => a.km - b.km)
+      .map(({ e }) => toItem(e, category))
+      .filter((x): x is InterestItem => x !== null)
+      .slice(0, count),
+  }));
+}
+
+// ---- Last resort: the same categories from Nominatim (a search per category in a small box around the stop) ----
+
+/** What to search for in each category, by kind of trip. */
+export function nominatimTerms(travelMode: string, lodging: LodgingPreference, vehicle = '', interests: Interest[] = []): [CategoryId, string][] {
+  const stay = lodging === 'camping' ? 'campsite' : lodging === 'hostel' ? 'hostel' : 'hotel';
+  const shop = travelMode === 'BICYCLING' ? 'bicycle shop' : travelMode === 'WALKING' ? 'outdoor shop'
+    : vehicle.startsWith('motorcycle') ? 'motorcycle shop' : 'car repair';
+  const water = travelMode === 'DRIVING' ? 'fuel' : 'drinking water';
+  const sights = interests.length === 1 ? { nature: 'viewpoint', history: 'castle', contemporary: 'museum' }[interests[0]] : 'attraction';
+  return [['stay', stay], ['food', 'restaurant'], ['shop', shop], ['water', water], ['sights', sights]];
+}
+
+async function nominatimSuggestions(center: LatLng, travelMode: string, lodging: LodgingPreference, count: number, vehicle = ''): Promise<InterestCategory[]> {
+  const km = travelMode === 'DRIVING' ? 8 : 5;
+  const d = km / 111;
+  const box = [center.lng - d * 1.3, center.lat + d, center.lng + d * 1.3, center.lat - d].map(n => n.toFixed(4)).join(',');
+  const plan = nominatimTerms(travelMode, lodging, vehicle, travelInterests());
+  const found = await Promise.allSettled(plan.map(([, term]) =>
+    nominatim<{ osm_type?: string; osm_id?: number; lat: string; lon: string; category?: string; type?: string; name?: string; address?: Record<string, string> }[]>(
+      `/search?q=${encodeURIComponent(term)}&viewbox=${box}&bounded=1&limit=${Math.max(count * 2, 6)}&addressdetails=1`)));
+  if (found.every(r => r.status === 'rejected')) throw (found[0] as PromiseRejectedResult).reason;
+  return plan.map(([category], i) => ({
+    category: NAMES[category],
+    items: (found[i].status === 'fulfilled' ? found[i].value : [])
+      .filter(r => r.name && r.category && r.type)
+      .map(r => ({
+        e: { type: (r.osm_type === 'way' || r.osm_type === 'relation' ? r.osm_type : 'node') as OsmElement['type'], id: Number(r.osm_id) || 0, lat: Number(r.lat), lon: Number(r.lon),
+          tags: { name: r.name!, [r.category!]: r.type!, ...(r.address?.road ? { 'addr:street': r.address.road } : {}), ...(r.address?.village || r.address?.town || r.address?.city ? { 'addr:city': r.address.village || r.address.town || r.address.city } : {}) } },
+        km: haversineKm(center, { lat: Number(r.lat), lng: Number(r.lon) }),
+      }))
       .sort((a, b) => a.km - b.km)
       .map(({ e }) => toItem(e, category))
       .filter((x): x is InterestItem => x !== null)
