@@ -94,7 +94,8 @@ export function buildPrompt(request: string, history: ChatMessage[], current?: u
     ? `CURRENT PLAN (what the map shows now, including choices the user made with buttons):
 ${JSON.stringify(current, null, 2)}
 
-The user is refining this plan unless they clearly ask for a different trip.
+The user is refining this plan unless they clearly ask for a different trip. (They may have built it with the app's
+form and buttons, not in this chat: a message like "max 40 km a day, camping" is about this trip.)
 - Keep every field as it is unless the new request changes it: origin, destination, travelMode, days, dailyKm, lodging, avoidFerries, offroad, vehicle, ride, party, interests, budgetStyle, maxStayPrice, vehicleModel, vehicleInfo and the existing route places.
 - A request about part of the trip (e.g. "Cádiz to Valencia along the coast instead of inland") changes only that part:
   keep the overall origin and destination, and add or replace route places for that stretch.
@@ -177,6 +178,9 @@ Return the complete plan:
 - coastFrom, coastTo: if the user wants the trip (or part of it) along the coast, the start and end of that coastal stretch
   (the whole trip: origin and destination). Otherwise empty strings. The app fills in the coastal towns itself.
 - summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.
+- startDate: when they start, if the request says ("next Monday", "on 3 May", "in two weeks"), as YYYY-MM-DD. Today is
+  ${new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })} (${new Date().toISOString().slice(0, 10)}).
+  Empty string if they don't say.
 - preferences: lasting preferences about how this traveller likes to travel that THIS request states, as short phrases
   in their words (e.g. "sections of 40 km max", "no main roads", "wild camping when possible", "travels with a dog").
   Only things that would apply to future trips too, not this trip's places or dates. Empty list if none.
@@ -190,7 +194,7 @@ Return the complete plan:
 - Write the summary, the reply and the vehicle notes in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'maxStayPrice', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply', 'preferences', 'fromProfile'];
+const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'maxStayPrice', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply', 'preferences', 'fromProfile', 'startDate'];
 const VEHICLE_ENUM = ['unknown', 'motorcycle', 'motorcycle_2up', 'car', 'suv', '4x4', 'campervan', 'truck'];
 const RIDE_ENUM = ['none', 'road', 'gravel', 'mtb', 'emtb', 'touring', 'adventure', 'enduro'];
 const PARTY_ENUM = ['none', 'solo', 'couple', 'family', 'group'];
@@ -237,6 +241,7 @@ const responseSchema = {
     reply: { type: Type.STRING },
     preferences: { type: Type.ARRAY, items: { type: Type.STRING } },
     fromProfile: { type: Type.ARRAY, items: { type: Type.STRING } },
+    startDate: { type: Type.STRING },
   },
   required: intentFields,
 };
@@ -267,7 +272,8 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "summary": string,
   "reply": string,
   "preferences": string[],
-  "fromProfile": string[]
+  "fromProfile": string[],
+  "startDate": string
 }`;
 
 // Plain JSON Schema for Claude structured outputs (every object closed with additionalProperties: false).
@@ -314,6 +320,7 @@ const planJsonSchema = {
     reply: { type: 'string' },
     preferences: { type: 'array', items: { type: 'string' } },
     fromProfile: { type: 'array', items: { type: 'string' } },
+    startDate: { type: 'string' },
   },
   required: intentFields,
   additionalProperties: false,
@@ -773,6 +780,7 @@ export function cleanStyle(intent: any) {
   const strings = (v: unknown, n: number, len: number) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim() !== '').map(x => x.trim().slice(0, len)).slice(0, n) : []);
   intent.preferences = strings(intent.preferences, 5, 120);
   intent.fromProfile = strings(intent.fromProfile, 12, 40);
+  intent.startDate = typeof intent.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(intent.startDate.trim()) ? intent.startDate.trim() : '';
   if (!PARTY_ENUM.includes(intent.party) || intent.party === 'none') intent.party = '';
   intent.interests = Array.isArray(intent.interests) ? [...new Set(intent.interests.filter((i: string) => INTEREST_ENUM.includes(i)))] : [];
   if (!BUDGET_ENUM.includes(intent.budgetStyle) || intent.budgetStyle === 'none') intent.budgetStyle = '';

@@ -365,7 +365,11 @@ const App: React.FC = () => {
     };
     setRouteOptions(options);
     const { waypoints: stops, targetKm, passThrough } = await planOvernightStops(intent, options);
-    const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [] }));
+    // Nights the planner picked are marked, so a later re-plan (new daily distance) can move them; the traveller's
+    // own stops (named in the request) stay.
+    const own = new Set(intent.route.filter(r => r.overnight).map(r => r.place.split(',')[0].trim().toLowerCase()));
+    const mappedWaypoints: Waypoint[] = stops.map(stop => ({ location: stop.name, position: stop.position, stopover: true, interests: [],
+      ...(own.has(stop.name.split(',')[0].trim().toLowerCase()) ? {} : { auto: true }) }));
     updateVias([]);
     // Named places to pass through (e.g. "via Monsaraz") shape the route while the stops stay as planned.
     passThroughRef.current = { stopsKey: mappedWaypoints.map(w => w.location).join('|'), via: passThrough };
@@ -917,7 +921,29 @@ const App: React.FC = () => {
   };
 
   // Manual planning: calculate, then fill in suggestions for stops that have none yet.
+  // What's on the map as a trip request (start, finish, stops, mode, options and the traveller's style), so a trip
+  // built with the fields and buttons is planned like one asked for in the chat, and the chat can refine it.
+  const mapIntent = useMemo((): TripIntent | null => {
+    if (!origin.trim() || !destination.trim()) return null;
+    const habits = getProfile().modes[travelMode as 'BICYCLING' | 'WALKING' | 'DRIVING'];
+    return {
+      origin, destination, travelMode: travelMode as string, days: 0,
+      dailyKm: lastIntentRef.current?.origin === origin && lastIntentRef.current?.destination === destination ? lastIntentRef.current.dailyKm : habits?.dailyKm || 0,
+      // The stops the traveller chose (typed, added on the map, from a link) are nights there; the planner's own picks
+      // are left out, so a new daily distance re-plans them.
+      route: waypoints.filter(w => w.location.trim() && !w.auto).map(w => ({ place: w.location, overnight: true })),
+      lodging, avoidFerries: routeOptions.avoidFerries, offroad: routeOptions.offroad, summary: '',
+      ...tripStyle, vehicle: (vehicle || '') as TripIntent['vehicle'],
+    };
+  }, [origin, destination, waypoints, travelMode, lodging, routeOptions, tripStyle, vehicle]);
+
   const handleCalculate = async () => {
+    // Bike and foot trips (and long drives) are split into days with nights in villages, exactly as a planned trip.
+    const intent = mapIntent;
+    if (intent && intent.travelMode !== 'TRANSIT') {
+      const plan = await handlePlanTrip(intent);
+      if (plan) return;
+    }
     const legs = await calculateRoute();
     if (!legs) return;
     const stops = allStops();
@@ -1252,6 +1278,7 @@ const App: React.FC = () => {
           onShowSaved={() => setShowSaved(true)}
           onAISummary={setAiSummary}
           onPlanTrip={handlePlanTrip}
+          mapIntent={mapIntent}
           routeInfo={routeInfo}
           aiSummary={aiSummary}
           error={error}

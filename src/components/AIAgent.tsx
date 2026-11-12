@@ -25,6 +25,8 @@ interface AIAgentProps {
   request?: { text: string; n: number } | null;
   /** Places near the stops loading in the background: shown as a progress bar under the planner's messages. */
   placesProgress?: { done: number; total: number; failed: number } | null;
+  /** The trip on the map, also when built with the form and buttons: the chat refines it rather than starting blind. */
+  mapIntent?: TripIntent | null;
 }
 
 /** " Not answering right now: Photon (place names), Overpass (places near stops)." when services are failing. */
@@ -87,7 +89,7 @@ interface Message {
   answer?: string;
 }
 
-const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange, request, placesProgress }) => {
+const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange, request, placesProgress, mapIntent }) => {
   const lastPlanRef = useRef<PlanSummary | null>(null);
   const { t, locale } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
@@ -196,10 +198,23 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     setIsPlanning(true);
     try {
       // The AI only reads the request (start, finish, mode, days or daily distance, places to pass).
-      const previous = intentRef.current;
+      // Start from the trip on the map: the one the chat planned, or one made with the form (or changed there since).
+      const fromChat = intentRef.current;
+      const sameTrip = fromChat && mapIntent && fromChat.origin === mapIntent.origin && fromChat.destination === mapIntent.destination;
+      const previous = sameTrip || !mapIntent ? fromChat : { ...mapIntent, ...(fromChat ? styleOf(fromChat) : {}) };
       startPlan();
       const understood: TripIntent = await requestPlan(messageToPlan, history, previous);
       stageDone('AI reading the request');
+      // A start date in the message ("next Monday", "on 3 May") goes straight into the itinerary.
+      if (understood.startDate && /^\d{4}-\d{2}-\d{2}$/.test(understood.startDate) && understood.startDate >= new Date().toISOString().slice(0, 10)) {
+        onStartDateChange(understood.startDate);
+        askedRef.current.add('date');
+      }
+      // No start or finish anywhere (not in the message, not on the map): ask, instead of failing on an empty place.
+      if (!understood.origin?.trim() || !understood.destination?.trim()) {
+        say({ text: t('Where does the trip start and end? For example: "Porto to Lisbon by bike, 40 km a day".') });
+        return;
+      }
       const newTrip = !previous || previous.origin !== understood.origin || previous.destination !== understood.destination;
       // A change to the current trip keeps the choices already made; a new trip starts fresh.
       const intent = newTrip ? understood : mergeIntent(previous, understood, messageToPlan);
@@ -210,6 +225,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       // Said in the message, read by the AI, or taken from their profile (the reply says so and invites changes).
       const fromProfile = new Set(understood.fromProfile || []);
       if (mentionsTravelMode(messageToPlan) || understood.travelModeStated || fromProfile.has('travelMode') || fromProfile.has('ride')) modeMentionedRef.current = true;
+      // Chosen with the form's buttons (the trip on the map) and kept: already settled, not a guess.
+      if (previous && !fromChat && previous.travelMode === understood.travelMode) modeMentionedRef.current = true;
       await runPlan(intent);
     } catch (error) {
       if (error instanceof LimitError) {

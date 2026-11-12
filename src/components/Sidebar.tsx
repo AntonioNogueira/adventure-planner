@@ -96,6 +96,8 @@ interface SidebarProps {
   initialPrompt?: string;
   plannerRequest?: { text: string; n: number } | null;
   placesProgress?: { done: number; total: number; failed: number } | null;
+  /** The trip on the map (also when built with the form), for the planner chat to start from. */
+  mapIntent?: TripIntent | null;
   /** Nights at each stop, for the booking links' dates. */
   stays?: Map<string, { checkIn: string; checkOut: string }>;
   /** The top tab; on phones the sheet drops to its smallest height for Budget and Documents. */
@@ -130,6 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   initialPrompt,
   plannerRequest,
   placesProgress,
+  mapIntent,
   view = 'route',
   stays,
   onRemoveItem,
@@ -290,7 +293,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <div className="mb-4">
-        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} request={plannerRequest} placesProgress={placesProgress} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} request={plannerRequest} placesProgress={placesProgress} mapIntent={mapIntent} />
       </div>
 
       {(aiSummary || weatherText) && (

@@ -341,6 +341,7 @@ export const PT: Record<string, string> = {
   'about {d}/day': 'cerca de {d}/dia',
   'Includes a ferry crossing of {d} on day {day} ({from} → {to}).': 'Inclui uma travessia de ferry de {d} no dia {day} ({from} → {to}).',
   'How are you travelling?': 'Como vai viajar?',
+  'Where does the trip start and end? For example: "Porto to Lisbon by bike, 40 km a day".': 'Onde começa e acaba a viagem? Por exemplo: "Porto a Lisboa de bicicleta, 40 km por dia".',
   'Your travel profile: the planner learns how you like to travel from your trips and uses it next time.': 'O seu perfil de viagem: o planeador aprende como gosta de viajar com as suas viagens e usa-o da próxima vez.',
   'Your travel profile': 'O seu perfil de viagem',
   '{d} a day': '{d} por dia',

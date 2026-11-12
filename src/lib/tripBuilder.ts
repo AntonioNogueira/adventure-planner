@@ -186,9 +186,15 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
       const nights = pickNights(splits, segmentKm[s], candidates, intent.travelMode);
       // Each night is in a village or town (not the whole municipality), and its pin is on the village itself:
       // the places to stay around it are shown as suggestions.
+      // A village off the route would add a detour there and back every night: it's used only when close (3 km on a
+      // bike or on foot, 8 km with a motor); otherwise the night stays on the route, "near" the village.
+      const maxOff = SLOW.has(intent.travelMode) ? 3 : 8;
       const towns = await Promise.all(nights.map(async (night, i) => {
-        const place = await settlementAt(night?.at || spots[i]);
-        return place ? { name: place.name, position: place.at } : null;
+        const spot = night?.at || spots[i];
+        const place = await settlementAt(spot);
+        if (!place) return null;
+        const off = progressOn(path, place.at, cum).offRouteKm;
+        return off <= maxOff ? { name: place.name, position: place.at } : { name: t('Near {place}', { place: place.name }), position: spot };
       }));
       stageDone('Villages for the nights');
       towns.forEach((found, i) => {

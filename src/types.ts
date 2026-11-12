@@ -73,6 +73,8 @@ export interface Story {
 
 export interface Waypoint {
   location: string;
+  /** A night the planner picked itself (not one the traveller chose): re-planning may move it. */
+  auto?: boolean;
   /** The traveller's text and photos about this stop. */
   story?: Story;
   /** Exact spot (from route splitting or a dragged pin); used for routing instead of geocoding the name. */
@@ -142,6 +144,8 @@ export interface TripIntent extends TripStyle {
   preferences?: string[];
   /** Fields the AI filled from the traveller's profile rather than the message. */
   fromProfile?: string[];
+  /** A start date the message gave ("next Monday"), as YYYY-MM-DD. */
+  startDate?: string;
   origin: string;
   destination: string;
   travelMode: string;
