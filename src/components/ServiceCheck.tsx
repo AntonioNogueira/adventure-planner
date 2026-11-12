@@ -6,6 +6,7 @@ import { CheckCircle2, Copy, Loader2, RefreshCw, X, XCircle, AlertTriangle } fro
 import { useSettings } from '../lib/settings';
 import { SERVICES } from '../lib/services';
 import { SERVICE_NAMES, SERVICE_ROLES, ServiceId, report } from '../lib/serviceHealth';
+import { lastPlan } from '../lib/planTimer';
 
 interface Result { id: string; service: ServiceId; label: string; status: 'checking' | 'ok' | 'slow' | 'down'; ms?: number; note?: string }
 
@@ -29,8 +30,11 @@ function probes(): { id: string; service: ServiceId; label: string; run: () => P
 }
 
 export function reportText(results: Result[]): string {
+  const plan = lastPlan();
   return [`Map services check, ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
-    ...results.map(r => `${r.label}: ${r.status}${r.ms != null ? ` (${(r.ms / 1000).toFixed(1)} s)` : ''}${r.note ? ` - ${r.note}` : ''}`)].join('\n');
+    ...results.map(r => `${r.label}: ${r.status}${r.ms != null ? ` (${(r.ms / 1000).toFixed(1)} s)` : ''}${r.note ? ` - ${r.note}` : ''}`),
+    ...(plan.stages.length ? ['', `Last plan: ${(plan.totalMs / 1000).toFixed(0)} s`, ...plan.stages.map(s => `  ${s.label}: ${(s.ms / 1000).toFixed(1)} s`)] : []),
+  ].join('\n');
 }
 
 const ServiceCheck: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -93,6 +97,16 @@ const ServiceCheck: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </li>
           ))}
         </ul>
+        {lastPlan().stages.length > 0 && (
+          <div className="mt-3 rounded-md border border-slate-200 p-2 text-[11px]">
+            <p className="mb-1 font-semibold text-slate-700">{t('Last plan: {s} s in total', { s: (lastPlan().totalMs / 1000).toFixed(0) })}</p>
+            <ul className="space-y-0.5 text-slate-600">
+              {lastPlan().stages.map((st, i) => (
+                <li key={i} className="flex justify-between gap-2"><span>{t(st.label)}</span><span className={st.ms > 20000 ? 'font-semibold text-red-600' : st.ms > 8000 ? 'text-amber-600' : ''}>{(st.ms / 1000).toFixed(1)} s</span></li>
+              ))}
+            </ul>
+          </div>
+        )}
         {done && (
           <p className="mt-3 rounded-md bg-slate-50 p-2 text-[11px] leading-relaxed text-slate-700">
             {down.length === 0 ? t('Everything is answering.')

@@ -300,3 +300,19 @@ perfect), no community yet, free map servers that can be slow.
 
 **Pricing check:** Explorer at €19/year is below most rivals (€30–60/year). Once hand-over to navigation apps and ride
 recording exist, €29–39/year is reasonable.
+
+## 14. Prompt to map: where it can fail, and how to reinforce it (Nov 2026)
+
+Measured on "cadiz to silves bikepacking, sections of 40 km max" (12 Nov 2026, Photon down, Gemini busy): 94 s.
+AI 44 s · named places 7 s · first route 3 s · elevation 1 s · places to stay 10 s · villages 24 s · final route 5 s.
+On a good day the same plan takes ~25–35 s. The app now times every plan (Settings → Check map services shows the
+last plan's stages and which services answer).
+
+| Weak point | What happens when it fails | Reinforcement (best first) | Cost |
+|---|---|---|---|
+| **AI (Gemini free tier)** | 503 "high demand" for minutes at peak times; plans fail or take 40 s+ | Turn on billing for the Gemini key (paid traffic is served first); add a second provider key as backup (ANTHROPIC_API_KEY or OPENAI_API_KEY, already supported) | ~$0.001 per plan on Flash-Lite; a few €/month |
+| **Photon (place names)** | Public server hangs for hours; app now skips it and uses Nominatim (slower: 1 request/s) | A geocoder with a free tier as second source (MapTiler ~100k/month free, Geoapify ~3k/day free, LocationIQ ~5k/day free); later own Photon (€20–40/month server) | €0 to start |
+| **Overpass (places near stops, stays for nights)** | Public servers busy; 10 s wait, then Photon/Nominatim with fewer details | Own Overpass (deploy/places-server, ~€10–20/month) or Geoapify Places (free tier) | €0–20/month |
+| **Routing (OSRM, BRouter, Valhalla)** | Rarely down; fine in tests | Keep; own OSRM only at scale | – |
+
+**Do first:** billing on the Gemini key (biggest delay today), then a MapTiler or Geoapify key as the place-name backup.

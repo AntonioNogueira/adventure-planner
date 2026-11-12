@@ -6,6 +6,7 @@ import { TripIntent, TripStyle } from '../types';
 import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf } from '../lib/conversation';
 import { cn } from '../lib/utils';
 import { downServices, report, SERVICE_NAMES, SERVICE_ROLES } from '../lib/serviceHealth';
+import { startPlan, stageDone } from '../lib/planTimer';
 
 export type { PlanSummary } from '../lib/conversation';
 
@@ -160,7 +161,9 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     try {
       // The AI only reads the request (start, finish, mode, days or daily distance, places to pass).
       const previous = intentRef.current;
+      startPlan();
       const understood: TripIntent = await requestPlan(messageToPlan, history, previous);
+      stageDone('AI reading the request');
       const newTrip = !previous || previous.origin !== understood.origin || previous.destination !== understood.destination;
       // A change to the current trip keeps the choices already made; a new trip starts fresh.
       const intent = newTrip ? understood : mergeIntent(previous, understood, messageToPlan);

@@ -20,6 +20,7 @@ import { downsample } from './lib/geo';
 import { placeTarget, type RideTarget } from './lib/ride';
 import type { TripStyle, Via, Story, StoryPhoto } from './types';
 import { pendingPhoto } from './lib/photos';
+import { stageDone } from './lib/planTimer';
 import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
@@ -370,6 +371,7 @@ const App: React.FC = () => {
     setHasChanges(true);
 
     const legs = await calculateRoute(intent.origin, intent.destination, mappedWaypoints, intent.travelMode, { origin: [], destination: [] }, options);
+    stageDone('Final route through the nights');
     if (!legs) return null;
     // Long trips: suggestions for the start and finish now, other stops on request ("Find places nearby"),
     // to keep Places searches (and their cost) down.

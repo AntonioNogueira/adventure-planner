@@ -3,6 +3,7 @@
 // Days are split by effort: distance plus climbing, so hilly days come out shorter.
 import { TripIntent } from '../types';
 import { defaultDailyKm } from './pace';
+import { stageDone } from './planTimer';
 import { t } from './settings';
 import { lodgingNear, settlementAt } from './overpass';
 import { progressOn } from './ride';
@@ -106,6 +107,7 @@ async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> 
 
 export async function planOvernightStops(original: TripIntent, options?: RouteOptions): Promise<OvernightPlan> {
   const intent = { ...original, route: await withoutDetours(original) };
+  stageDone('Finding the places named in the request');
   const overnightOnly = intent.route.filter(r => r.overnight).map(r => r.place);
   if (intent.travelMode === 'TRANSIT') return { waypoints: overnightOnly.map(name => ({ name })), targetKm: null, passThrough: [] };
 
@@ -118,6 +120,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
   });
   // Cycling/walking routes aren't available everywhere; driving distances are close enough to split days.
   const { legs } = await request(intent.travelMode).catch(() => request('DRIVING'));
+  stageDone('First route');
 
   // Group legs into segments that end at an overnight place (or the finish).
   const segments: { legs: RoutedLeg[]; end: string | null; vias: string[] }[] = [];
@@ -136,6 +139,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
   const kmPer1000m = EFFORT_KM_PER_1000M[intent.travelMode] ?? 0;
   const profiles = await Promise.all(segments.map(segment =>
     kmPer1000m ? elevationsAlong(segment.legs.flatMap(l => l.path), 256) : Promise.resolve(null)));
+  stageDone('Elevation');
   const segmentKm = segments.map(s => s.legs.reduce((sum, leg) => sum + leg.distanceMeters, 0) / 1000);
   const ferries = segments.map(s => ferryRanges(s.legs));
   const segmentEffort = segments.map((_, i) => effortKm(
@@ -178,6 +182,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
         const pr = progressOn(path, sp.at, cum);
         return { at: sp.at, along: pr.alongKm, off: pr.offRouteKm };
       });
+      stageDone('Places to stay along the route');
       const nights = pickNights(splits, segmentKm[s], candidates, intent.travelMode);
       // Each night is in a village or town (not the whole municipality), and its pin is on the village itself:
       // the places to stay around it are shown as suggestions.
@@ -185,6 +190,7 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
         const place = await settlementAt(night?.at || spots[i]);
         return place ? { name: place.name, position: place.at } : null;
       }));
+      stageDone('Villages for the nights');
       towns.forEach((found, i) => {
         addViasBefore(splits[i]);
         // No named place nearby (empty country): keep the night at the split point anyway.
