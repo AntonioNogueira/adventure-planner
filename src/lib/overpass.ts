@@ -313,17 +313,21 @@ export async function lodgingNear(points: LatLng[], lodging: LodgingPreference, 
   return spots.filter((x): x is LodgingSpot => x.at !== null);
 }
 
-/** The village or town a spot belongs to ("Grândola, Portugal"), not its whole municipality: a town or village within
- *  7 km first, a hamlet within 3 km if there's none; falls back to townAt. */
-export async function settlementAt(at: LatLng): Promise<string | null> {
+/** The village or town a spot belongs to ("Grândola, Portugal"), not its whole municipality, with the village's own
+ *  position (its centre): a town or village within 7 km first, a hamlet within 3 km if there's none. If neither is
+ *  found, townAt names the area and the spot keeps its own position. */
+export async function settlementAt(at: LatLng): Promise<{ name: string; at: LatLng } | null> {
   const nearest = async (kinds: string[], km: number) => {
     const tags = kinds.map(k => `osm_tag=${encodeURIComponent(`place:${k}`)}`).join('&');
     const [f] = await photon(`/reverse?lat=${at.lat}&lon=${at.lng}&radius=${km}&limit=1&${tags}`);
-    return f?.properties.name ? (f.properties.country ? `${f.properties.name}, ${f.properties.country}` : f.properties.name) : null;
+    if (!f?.properties.name) return null;
+    const [lng, lat] = f.geometry.coordinates;
+    return { name: f.properties.country ? `${f.properties.name}, ${f.properties.country}` : f.properties.name, at: { lat, lng } };
   };
+  const area = async () => { const name = await townAt(at); return name ? { name, at } : null; };
   try {
-    return (await nearest(['city', 'town', 'village'], 7)) || (await nearest(['hamlet'], 3)) || townAt(at);
+    return (await nearest(['city', 'town', 'village'], 7)) || (await nearest(['hamlet'], 3)) || await area();
   } catch {
-    return townAt(at);
+    return area();
   }
 }

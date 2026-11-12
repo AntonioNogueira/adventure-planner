@@ -33,6 +33,7 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
   await checkLimit(response);
   refreshAccount();
   const data = await response.json().catch(() => ({}));
+  if (!response.ok && data.code === 'busy') throw new Error(tr('The AI is very busy right now. Please try again in a minute.'));
   if (!response.ok) {
     // Show the first provider's reason (e.g. quota or billing) so setup problems are visible.
     const detail = Array.isArray(data.details) && data.details[0] ? ` ${String(data.details[0]).slice(0, 180)}` : '';

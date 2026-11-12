@@ -341,6 +341,7 @@ export const PT: Record<string, string> = {
   'about {d}/day': 'cerca de {d}/dia',
   'Includes a ferry crossing of {d} on day {day} ({from} → {to}).': 'Inclui uma travessia de ferry de {d} no dia {day} ({from} → {to}).',
   'How are you travelling?': 'Como vai viajar?',
+  'The AI is very busy right now. Please try again in a minute.': 'A IA está muito ocupada neste momento. Tente de novo dentro de um minuto.',
   'Send to app': 'Enviar para app',
   'For Organic Maps, OsmAnd, Garmin, Kurviger, Calimoto…': 'Para Organic Maps, OsmAnd, Garmin, Kurviger, Calimoto…',
   'Send the whole trip (one track per day) to Organic Maps, OsmAnd, Garmin, Komoot…': 'Enviar a viagem toda (um trajeto por dia) para Organic Maps, OsmAnd, Garmin, Komoot…',

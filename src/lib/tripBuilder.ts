@@ -179,11 +179,11 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
         return { at: sp.at, along: pr.alongKm, off: pr.offRouteKm };
       });
       const nights = pickNights(splits, segmentKm[s], candidates, intent.travelMode);
-      // Named after the village or town (not the whole municipality); the night keeps its exact spot.
+      // Each night is in a village or town (not the whole municipality), and its pin is on the village itself:
+      // the places to stay around it are shown as suggestions.
       const towns = await Promise.all(nights.map(async (night, i) => {
-        const at = night?.at || spots[i];
-        const name = await settlementAt(at);
-        return name ? { name, position: at } : null;
+        const place = await settlementAt(night?.at || spots[i]);
+        return place ? { name: place.name, position: place.at } : null;
       }));
       towns.forEach((found, i) => {
         addViasBefore(splits[i]);

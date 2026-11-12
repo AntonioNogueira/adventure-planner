@@ -356,8 +356,8 @@ async function runClaude(env: PlanEnv, task: string, prompt: string, schema: Rec
   return JSON.parse(text);
 }
 
-// Free-tier Gemini often returns 503 (overloaded) or 429 (rate limit) for a few seconds.
-// Retry briefly, then fall back to the other model, before giving up.
+// Gemini often returns 503 (overloaded) or 429 (rate limit), sometimes for a minute or two at busy times.
+// Retry with growing pauses, then fall back to the other model, before giving up.
 // Flash-Lite is the default: ~10-20 s per plan versus 30 s to several minutes for Flash when it's busy.
 const GEMINI_RETRYABLE = new Set([429, 500, 503]);
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -371,7 +371,7 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
 
   let lastError: unknown;
   for (const model of models) {
-    for (const delay of [0, 3000]) {
+    for (const delay of [0, 4000, 10000]) {
       if (delay) await sleep(delay);
       const started = Date.now();
       try {
@@ -501,7 +501,12 @@ function sendTaskError(res: ServerResponse, err: unknown) {
   if (err instanceof NoProvider) {
     return sendJson(res, 503, { error: 'No AI provider configured. Add GEMINI_API_KEY (or ANTHROPIC_API_KEY) to .env.local and restart.' });
   }
-  if (err instanceof AllFailed) return sendJson(res, 502, { error: err.message, details: err.details });
+  if (err instanceof AllFailed) {
+    // Busy servers (Google at peak times) are temporary: say so plainly instead of showing the raw error.
+    const busy = err.details.length > 0 && err.details.every(d => /\b(503|429)\b|UNAVAILABLE|high demand|overloaded|rate limit|fetch failed/i.test(d));
+    if (busy) return sendJson(res, 503, { error: 'The AI is very busy right now (its servers are overloaded). Please try again in a minute', code: 'busy' });
+    return sendJson(res, 502, { error: err.message, details: err.details });
+  }
   sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
 }
 
