@@ -3,7 +3,8 @@ import { CalendarDays, Map as MapIcon, Mountain, Download, BedDouble, Plus, X, A
 import { canSendFiles } from '../lib/gpx';
 import { RouteInfo } from '../types';
 import { ScheduleDay, BookingWarning, formatDate } from '../lib/schedule';
-import { forecastFor, describeWeather, WeatherResult } from '../lib/weather';
+import { describeWeather, TripDayWeather } from '../lib/weather';
+import type { TripWeather } from '../lib/useTripWeather';
 import { cn } from '../lib/utils';
 import { useSettings } from '../lib/settings';
 
@@ -16,6 +17,8 @@ interface ItineraryProps {
   onExportGpx: (legIndex: number | null) => void;
   warnings: BookingWarning[];
   costs: Record<string, number>;
+  /** Each day's weather (forecast or typical), in schedule order. */
+  weather?: TripWeather;
 }
 
 /** Elevation profile as a tiny SVG area chart. */
@@ -37,35 +40,28 @@ const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
   );
 };
 
-const WeatherChip: React.FC<{ at?: { lat: number; lng: number }; date?: string }> = ({ at, date }) => {
+/** The day's weather: the forecast (solid) or what those dates are typically like (dashed, "typical"). */
+const WeatherChip: React.FC<{ w?: TripDayWeather | null }> = ({ w }) => {
   const { t, speed, settings } = useSettings();
-  const [result, setResult] = useState<WeatherResult | null>(null);
-  useEffect(() => {
-    let live = true;
-    setResult(null);
-    if (at && date) forecastFor(at.lat, at.lng, date).then(r => { if (live) setResult(r); });
-    return () => { live = false; };
-  }, [at?.lat, at?.lng, date]);
-
-  if (!at || !date || !result) return null;
-  if (result.status === 'too-far') {
-    return <span className="text-[11px] text-muted-foreground" title={t('Forecasts reach 16 days ahead')}>{t('Forecast from {date}', { date: formatDate(result.availableFrom) })}</span>;
-  }
-  if (result.status !== 'ok') return null;
-  const { weather } = result;
+  if (!w) return null;
+  const { weather } = w;
   const { emoji, label } = describeWeather(weather.code);
+  const deg = (c: number) => (settings.units === 'imperial' ? Math.round(c * 9 / 5 + 32) : c);
+  const typical = w.kind === 'typical';
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-sky-50 px-1.5 py-0.5 text-[11px] text-sky-900" title={t(label)}>
-      <span>{emoji}</span>
-      {settings.units === 'imperial' ? `${Math.round(weather.tempMax * 9 / 5 + 32)}°/${Math.round(weather.tempMin * 9 / 5 + 32)}°F` : `${weather.tempMax}°/${weather.tempMin}°`}
-      {weather.rainChance != null && <span>· 💧{weather.rainChance}%</span>}
-      <span>· 💨{speed(weather.windMax)}</span>
+    <span className={cn('inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-sky-900', typical ? 'border border-dashed border-sky-300 bg-white' : 'bg-sky-50')}
+      title={typical ? t('{label}: typical for this date (the last 6 years)', { label: t(label) }) : t('{label}: forecast', { label: t(label) })}>
+      <span className="text-sm leading-none">{emoji}</span>
+      <span className="font-semibold">{deg(weather.tempMax)}°</span><span className="text-sky-700">/{deg(weather.tempMin)}°{settings.units === 'imperial' ? 'F' : ''}</span>
+      {weather.rainChance != null && weather.rainChance >= 10 && <span>· 💧{weather.rainChance}%</span>}
+      {weather.windMax >= 25 && <span>· 💨{speed(weather.windMax)}</span>}
+      {typical && <span className="text-[9.5px] text-sky-600">{t('typical')}</span>}
     </span>
   );
 };
 
 const Itinerary: React.FC<ItineraryProps> = ({
-  routeInfo, schedule, startDate, onStartDateChange, onRestDaysChange, onExportGpx, warnings, costs,
+  routeInfo, schedule, startDate, onStartDateChange, onRestDaysChange, onExportGpx, warnings, costs, weather,
 }) => {
   const { t, dist, elev, localizeText } = useSettings();
   const legs = routeInfo.legs || [];
@@ -98,7 +94,7 @@ const Itinerary: React.FC<ItineraryProps> = ({
           onChange={(e) => onStartDateChange(e.target.value)}
           className="h-8 rounded-md border border-emerald-100 bg-background px-2 text-xs"
         />
-        {!startDate && <span className="text-muted-foreground">{t('Add one for dates, weather and booking checks.')}</span>}
+        {!startDate && <span className="text-muted-foreground">{t('Add one for dates, the weather forecast and booking checks (typical weather is shown until then).')}</span>}
       </div>
 
       {costEntries.length > 0 && (
@@ -129,7 +125,7 @@ const Itinerary: React.FC<ItineraryProps> = ({
                 </span>
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <p className="font-medium">{t('Rest day in {place}', { place: stopName(stopIndex) })}{day.date && <span className="font-normal text-muted-foreground"> · {formatDate(day.date)}</span>}</p>
-                  <WeatherChip at={legs[stopIndex]?.end} date={day.date} />
+                  <WeatherChip w={weather?.days[n]} />
                 </div>
                 <button
                   onClick={() => onRestDaysChange(stopIndex, (routeInfo.waypoints[stopIndex]?.restDays || 1) - 1)}
@@ -162,7 +158,7 @@ const Itinerary: React.FC<ItineraryProps> = ({
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
                   {leg.profile && <Sparkline values={leg.profile} />}
-                  <WeatherChip at={leg.end} date={day.date} />
+                  <WeatherChip w={weather?.days[n]} />
                 </div>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">

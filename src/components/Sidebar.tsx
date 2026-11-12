@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapPin,
   Navigation,
@@ -27,6 +27,8 @@ import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
 import AIAgent from './AIAgent';
 import StopDetails from './StopDetails';
+import WeatherBrief from './WeatherBrief';
+import { useTripWeather } from '../lib/useTripWeather';
 import Itinerary from './Itinerary';
 import { ScheduleDay, BookingWarning } from '../lib/schedule';
 import { RouteOptions } from '../lib/routing';
@@ -148,6 +150,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onStopSharing,
   onFindPlaces,
 }) => {
+  // Each day's weather (forecast or typical), for the brief and the itinerary.
+  const dayEnds = useMemo(() => (schedule || []).map(d => routeInfo?.legs?.[d.kind === 'ride' ? d.legIndex! : d.stopIndex!]?.end), [schedule, routeInfo?.legs]);
+  const tripWeather = useTripWeather(schedule || [], dayEnds, startDate || '');
   const { t, localizeText } = useSettings();
   const account = useAccount();
   const reservationInput = useRef<HTMLInputElement>(null);
@@ -295,6 +300,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           <p className={cn("italic leading-relaxed opacity-90", !briefOpen && "line-clamp-2")}>{aiSummary}</p>
         </button>
       )}
+
+      {routeInfo?.legs?.length ? <WeatherBrief weather={tripWeather} /> : null}
 
       <div className="space-y-3">
         {hasRoute && (
@@ -532,6 +539,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             onExportGpx={onExportGpx}
             warnings={warnings}
             costs={costs}
+            weather={tripWeather}
           />
 
           <div className="space-y-3">

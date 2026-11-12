@@ -316,3 +316,7 @@ last plan's stages and which services answer).
 | **Routing (OSRM, BRouter, Valhalla)** | Rarely down; fine in tests | Keep; own OSRM only at scale | – |
 
 **Do first:** billing on the Gemini key (biggest delay today), then a MapTiler or Geoapify key as the place-name backup.
+
+**Weather (Open-Meteo):** the forecast and the "typical for these dates" figures come from Open-Meteo, free for
+non-commercial use and about 10,000 requests a day per device. Once the app earns money (paid plans, affiliate
+income), switch to their commercial API plan (roughly €30/month at the start) or run their open-source server.
