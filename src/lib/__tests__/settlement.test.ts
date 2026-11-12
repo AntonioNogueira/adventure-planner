@@ -22,3 +22,27 @@ describe('the village a night is in', () => {
     expect(place?.at).toEqual(spot);
   });
 });
+
+describe('when Photon is down', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('finds the village with Nominatim, on its centre', async () => {
+    const nominatimVillage = { lat: '38.1762', lon: '-8.5675', addresstype: 'town', address: { town: 'Grândola', country: 'Portugal' } };
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('nominatim')
+      ? new Response(JSON.stringify(nominatimVillage))
+      : new Response('down', { status: 503 }))));
+    const place = await settlementAt({ lat: 38.2, lng: -8.53 });
+    expect(place).toEqual({ name: 'Grândola, Portugal', at: { lat: 38.1762, lng: -8.5675 } });
+  }, 60000);
+});
+
+describe('when Nominatim answers with the parish', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('finds the village itself by name', async () => {
+    const parish = { lat: '38.13', lon: '-8.70', addresstype: 'municipality', address: { village: 'Melides', country: 'Portugal' } };
+    const village = [{ lat: '38.1473', lon: '-8.7286', addresstype: 'village' }];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('/reverse?') && String(url).includes('nominatim')
+      ? new Response(JSON.stringify(parish))
+      : String(url).includes('nominatim') ? new Response(JSON.stringify(village)) : new Response('down', { status: 503 }))));
+    expect(await settlementAt({ lat: 38.16, lng: -8.78 })).toEqual({ name: 'Melides, Portugal', at: { lat: 38.1473, lng: -8.7286 } });
+  }, 60000);
+});

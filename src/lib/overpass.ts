@@ -3,7 +3,7 @@
 // The free public servers are fair use and often busy or refuse cloud traffic: production sets its own.
 import { InterestCategory, InterestItem } from '../types';
 import { LatLng, haversineKm } from './geo';
-import { townAt, placeAt, photon, PhotonFeature } from './geocode';
+import { townAt, placeAt, photon, PhotonFeature, nominatim, NominatimPlace } from './geocode';
 import { SERVICES } from './services';
 import { CATEGORIES, travelInterests, type CategoryId, type LodgingPreference } from './places';
 import type { Interest } from '../types';
@@ -324,10 +324,25 @@ export async function settlementAt(at: LatLng): Promise<{ name: string; at: LatL
     const [lng, lat] = f.geometry.coordinates;
     return { name: f.properties.country ? `${f.properties.name}, ${f.properties.country}` : f.properties.name, at: { lat, lng } };
   };
+  // Backup when Photon is down: Nominatim's village-level answer, with the village's centre when it is one nearby.
+  const byNominatim = async () => {
+    const r = await nominatim<NominatimPlace>(`/reverse?lat=${at.lat}&lon=${at.lng}&zoom=13`).catch(() => null);
+    const a = r?.address;
+    const name = a && (a.village || a.town || a.city || a.hamlet);
+    if (!r || !name) return null;
+    const full = a!.country ? `${name}, ${a!.country}` : name;
+    const centre = { lat: Number(r.lat), lng: Number(r.lon) };
+    if (['village', 'town', 'city', 'hamlet'].includes(r.addresstype || '') && haversineKm(at, centre) <= 8) return { name: full, at: centre };
+    // The answer was the parish or district: find the village itself by name, if it's near.
+    const found = await nominatim<NominatimPlace[]>(`/search?q=${encodeURIComponent(full)}&featureType=settlement&limit=3`).catch(() => []);
+    const near = found.map(f => ({ lat: Number(f.lat), lng: Number(f.lon) })).filter(p => haversineKm(at, p) <= 10)
+      .sort((p, q) => haversineKm(at, p) - haversineKm(at, q))[0];
+    return { name: full, at: near || at };
+  };
   const area = async () => { const name = await townAt(at); return name ? { name, at } : null; };
   try {
-    return (await nearest(['city', 'town', 'village'], 7)) || (await nearest(['hamlet'], 3)) || await area();
+    return (await nearest(['city', 'town', 'village'], 7)) || (await nearest(['hamlet'], 3)) || await byNominatim() || await area();
   } catch {
-    return area();
+    return (await byNominatim()) || area();
   }
 }
