@@ -11,6 +11,11 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # Claude is tried first when its key is set (from platform.claude.com, billed separately from a Claude.ai plan).
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_MODEL
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: AI_REQUESTS_PER_HOUR
