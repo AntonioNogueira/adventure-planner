@@ -49,9 +49,33 @@ export async function maptilerSearch(address: string): Promise<Pt | null> {
   return pickMapTiler(await geocode(`${encodeURIComponent(address)}.json?limit=5`));
 }
 
-/** The town or village at a point ("Silves, Portugal"), with its own position. */
+const toRad = (d: number) => (d * Math.PI) / 180;
+const km = (a: Pt, b: Pt) => 2 * 6371 * Math.asin(Math.sqrt(Math.sin(toRad(b.lat - a.lat) / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(toRad(b.lng - a.lng) / 2) ** 2));
+
+/** The town or village at a point ("Melides, Portugal"), with its own centre. MapTiler's smallest "place" is often a
+ *  hamlet of a few houses, so the village level comes first (municipal district / locality), then a hamlet within
+ *  3 km, then the municipality. */
 export async function maptilerPlaceAt(at: Pt): Promise<{ name: string; at: Pt } | null> {
-  const [f] = await geocode(`${at.lng.toFixed(5)},${at.lat.toFixed(5)}.json?limit=1&types=${SETTLEMENT_TYPES.join(',')}`);
-  const name = f && named(f);
-  return name && f.center ? { name, at: { lat: f.center[1], lng: f.center[0] } } : null;
+  const point = `${at.lng.toFixed(5)},${at.lat.toFixed(5)}.json?limit=1&types=`;
+  const tries: [string, number][] = [['municipal_district,locality', 8], ['place', 3], ['municipality', 25]];
+  for (const [types, maxKm] of tries) {
+    const [f] = await geocode(point + types);
+    const name = f && named(f);
+    if (name && f.center) {
+      const centre = { lat: f.center[1], lng: f.center[0] };
+      if (km(at, centre) > maxKm) continue;
+      // A union of parishes ("Lagoa e Carvoeiro", "Longueira/Almograve"): the village at its centre is the seat.
+      if (f.text && UNION.test(f.text)) {
+        const [seat] = await geocode(`${centre.lng.toFixed(5)},${centre.lat.toFixed(5)}.json?limit=1&types=place,municipality`).catch(() => []);
+        const seatName = seat?.center && km(centre, { lat: seat.center[1], lng: seat.center[0] }) <= 2 ? seat.text : f.text.split(UNION)[0].trim();
+        const c = country(f);
+        return { name: c ? `${seatName}, ${c}` : seatName!, at: centre };
+      }
+      return { name, at: centre };
+    }
+  }
+  return null;
 }
+
+/** Names that join several parishes: "X e Y", "X/Y", "X y Y", "X et Y". */
+const UNION = /\s+e\s+|\s*\/\s*|\s+y\s+|\s+et\s+/i;
