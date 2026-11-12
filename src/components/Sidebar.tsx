@@ -27,7 +27,7 @@ import { ACCEPTED_FILES } from '../lib/attachments';
 import { cn } from '../lib/utils';
 import AIAgent from './AIAgent';
 import StopDetails from './StopDetails';
-import WeatherBrief from './WeatherBrief';
+import { useWeatherSentence } from './WeatherBrief';
 import { useTripWeather } from '../lib/useTripWeather';
 import Itinerary from './Itinerary';
 import { ScheduleDay, BookingWarning } from '../lib/schedule';
@@ -77,6 +77,8 @@ interface SidebarProps {
   onStyleChange?: (style: TripStyle) => void;
   /** Editing a stop's story (text and photos). */
   onStoryChange?: (ref: StopRef, story: Story | undefined) => void;
+  /** Show a stop on the map (clicking its card). */
+  onFocusStop?: (ref: StopRef) => void;
   onRestDaysChange: (stopIndex: number, restDays: number) => void;
   onExportGpx: (legIndex: number | null) => void;
   warnings: BookingWarning[];
@@ -93,6 +95,7 @@ interface SidebarProps {
   setExpeditionName: (val: string) => void;
   initialPrompt?: string;
   plannerRequest?: { text: string; n: number } | null;
+  placesProgress?: { done: number; total: number; failed: number } | null;
   /** Nights at each stop, for the booking links' dates. */
   stays?: Map<string, { checkIn: string; checkOut: string }>;
   /** The top tab; on phones the sheet drops to its smallest height for Budget and Documents. */
@@ -126,6 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   setExpeditionName,
   initialPrompt,
   plannerRequest,
+  placesProgress,
   view = 'route',
   stays,
   onRemoveItem,
@@ -137,6 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onVehicleChange,
   onStyleChange,
   onStoryChange,
+  onFocusStop,
   onRestDaysChange,
   onExportGpx,
   warnings,
@@ -153,6 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Each day's weather (forecast or typical), for the brief and the itinerary.
   const dayEnds = useMemo(() => (schedule || []).map(d => routeInfo?.legs?.[d.kind === 'ride' ? d.legIndex! : d.stopIndex!]?.end), [schedule, routeInfo?.legs]);
   const tripWeather = useTripWeather(schedule || [], dayEnds, startDate || '');
+  const weatherText = useWeatherSentence(tripWeather);
   const { t, localizeText } = useSettings();
   const account = useAccount();
   const reservationInput = useRef<HTMLInputElement>(null);
@@ -284,10 +290,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <div className="mb-4">
-        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} request={plannerRequest} />
+        <AIAgent onPlanTrip={onPlanTrip} initialPrompt={initialPrompt} startDate={startDate} onStartDateChange={onStartDateChange} onVehicleChange={onVehicleChange} onStyleChange={onStyleChange} request={plannerRequest} placesProgress={placesProgress} />
       </div>
 
-      {aiSummary && (
+      {(aiSummary || weatherText) && (
         <button
           onClick={() => setBriefOpen(o => !o)}
           className="mb-4 w-full rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-left text-xs text-emerald-900"
@@ -297,11 +303,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             <Sparkles size={12} />
             {t('Adventure brief')}
           </div>
-          <p className={cn("italic leading-relaxed opacity-90", !briefOpen && "line-clamp-2")}>{aiSummary}</p>
+          <p className={cn("leading-relaxed opacity-90", !briefOpen && "line-clamp-3")}>
+            {aiSummary && <span className="italic">{aiSummary}</span>}
+            {/* The weather for the trip's days, in the same brief: forecast or typical. */}
+            {weatherText && <span className="mt-1 block not-italic">🌤 {weatherText}</span>}
+          </p>
         </button>
       )}
-
-      {routeInfo?.legs?.length ? <WeatherBrief weather={tripWeather} /> : null}
 
       <div className="space-y-3">
         {hasRoute && (
@@ -587,6 +595,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onAttachFile={(file) => onAttachFile({ kind: 'start' }, file)}
               attaching={attachingKey === 'start'}
               story={routeInfo.originStory}
+              onFocus={onFocusStop && (() => onFocusStop({ kind: 'start' }))}
               onStoryChange={onStoryChange && ((s) => onStoryChange({ kind: 'start' }, s))}
             />
             {routeInfo.waypoints.map((wp, i) => (
@@ -606,6 +615,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onAttachFile={(file) => onAttachFile({ kind: 'stop', index: i }, file)}
                 attaching={attachingKey === `stop-${i}`}
                 story={wp.story}
+                onFocus={onFocusStop && (() => onFocusStop({ kind: 'stop', index: i }))}
                 onStoryChange={onStoryChange && ((s) => onStoryChange({ kind: 'stop', index: i }, s))}
               />
             ))}
@@ -618,6 +628,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onAttachFile={(file) => onAttachFile({ kind: 'end' }, file)}
               attaching={attachingKey === 'end'}
               story={routeInfo.destinationStory}
+              onFocus={onFocusStop && (() => onFocusStop({ kind: 'end' }))}
               onStoryChange={onStoryChange && ((s) => onStoryChange({ kind: 'end' }, s))}
             />
             </>)}

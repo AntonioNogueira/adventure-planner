@@ -22,6 +22,8 @@ interface AIAgentProps {
   onStyleChange?: (style: TripStyle) => void;
   /** A request from elsewhere in the app (e.g. "plan this stretch" on the Inspiration map); `n` changes each time. */
   request?: { text: string; n: number } | null;
+  /** Places near the stops loading in the background: shown as a progress bar under the planner's messages. */
+  placesProgress?: { done: number; total: number; failed: number } | null;
 }
 
 /** " Not answering right now: Photon (place names), Overpass (places near stops)." when services are failing. */
@@ -52,6 +54,29 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
   return data.plan;
 }
 
+/** "Finding places near your stops 4/12": fills as each stop's places arrive; starts again for new stops. */
+const PlacesProgress: React.FC<{ progress: { done: number; total: number; failed: number } }> = ({ progress }) => {
+  const { t } = useSettings();
+  const pct = Math.round((100 * progress.done) / Math.max(1, progress.total));
+  const finished = progress.done >= progress.total;
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-900" role="status" aria-live="polite">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          {finished ? <span aria-hidden>✓</span> : <Loader2 size={12} className="animate-spin" />}
+          {finished
+            ? (progress.failed ? t('Places found for {n} of {total} stops (tap "Find places nearby" on the others)', { n: progress.total - progress.failed, total: progress.total }) : t('Places found for all {total} stops', { total: progress.total }))
+            : t('Finding places near your stops: {done} of {total}', { done: progress.done, total: progress.total })}
+        </span>
+        <span className="tabular-nums text-emerald-700">{pct}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-emerald-100">
+        <div className="h-full rounded-full bg-emerald-600 transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+};
+
 interface Message {
   role: 'user' | 'model';
   text: string;
@@ -60,7 +85,7 @@ interface Message {
   answer?: string;
 }
 
-const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange, request }) => {
+const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange, request, placesProgress }) => {
   const lastPlanRef = useRef<PlanSummary | null>(null);
   const { t, locale } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
@@ -108,7 +133,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, Boolean(placesProgress)]);
 
   const say = (message: Omit<Message, 'role'>) => setMessages(prev => [...prev, { role: 'model', ...message }]);
 
@@ -232,7 +257,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
         <h3 className="text-sm font-bold uppercase tracking-tight">{t('AI trip planner')}</h3>
       </div>
       
-      {messages.length > 0 && (
+      {(messages.length > 0 || placesProgress) && (
         <div 
           ref={scrollRef}
           className="max-h-[320px] overflow-y-auto p-3 space-y-3 border-b border-emerald-200 dark:border-emerald-900/30"
@@ -287,6 +312,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
               {t('Planning your route and finding stops…')}
             </div>
           )}
+          {placesProgress && <PlacesProgress progress={placesProgress} />}
         </div>
       )}
 

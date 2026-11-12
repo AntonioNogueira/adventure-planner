@@ -167,6 +167,8 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
   );
 };
 
+const refKeyOf = (ref: StopRef) => (ref.kind === 'stop' ? `stop-${ref.index}` : ref.kind);
+
 // A trip's default name, the same in every language: "Tavira → Beja".
 const autoName = (from: string, to: string) => `${from.split(',')[0].trim()} → ${to.split(',')[0].trim()}`;
 // Names made by the app follow route changes; typed names stay.
@@ -230,6 +232,10 @@ const App: React.FC = () => {
   const [tripStyle, setTripStyle] = useState<TripStyle>({});
   // Points the route is dragged through (not stops); the ref lets a route calculation use them right away.
   const [vias, setVias] = useState<Via[]>([]);
+  // Places near stops loading: how many stops are done, for a progress bar in the planner's message.
+  const [placesProgress, setPlacesProgress] = useState<{ done: number; total: number; failed: number } | null>(null);
+  const placesBatchRef = useRef(0);
+  const placesRequestRef = useRef<Record<string, number>>({});
   const viasRef = useRef<Via[]>([]);
   const updateVias = (next: Via[]) => { viasRef.current = next; setVias(next); };
   // Category names that depend on the trip ("Bike shops", "Mechanics"…).
@@ -589,6 +595,16 @@ const App: React.FC = () => {
     setHasChanges(true);
   };
 
+  // Clicking a stop's card: the map flies there and opens it.
+  const [mapFocus, setMapFocus] = useState<{ ref: StopRef; at: LatLng; n: number } | null>(null);
+  const handleFocusStop = (ref: StopRef) => {
+    const legs = tripRef.current?.legs || [];
+    const at = ref.kind === 'start' ? legs[0]?.path[0]
+      : ref.kind === 'end' ? legs[legs.length - 1]?.path.slice(-1)[0]
+      : waypoints[ref.index!]?.position || legs[ref.index!]?.path.slice(-1)[0];
+    if (at) setMapFocus(f => ({ ref, at, n: (f?.n || 0) + 1 }));
+  };
+
   // A stop's story (the traveller's text and photos); undefined removes it.
   const handleStoryChange = (ref: StopRef, story: Story | undefined) => {
     if (ref.kind === 'stop') {
@@ -828,10 +844,28 @@ const App: React.FC = () => {
       return;
     }
     let failed = false;
+    // Progress for the planner's message: a new batch (stops moved, added, a new plan) starts the count again.
+    const batch = ++placesBatchRef.current;
+    let done = 0, misses = 0;
+    setPlacesProgress({ done: 0, total: refs.length, failed: 0 });
+    const settled = (ok: boolean) => {
+      if (placesBatchRef.current !== batch) return;
+      done++;
+      if (!ok) misses++;
+      setPlacesProgress({ done, total: refs.length, failed: misses });
+      if (done === refs.length) setTimeout(() => { if (placesBatchRef.current === batch) setPlacesProgress(null); }, 2500);
+    };
     refs.forEach((ref, i) => {
+      // Only the latest request for a stop counts (it may have moved since an earlier one was sent).
+      const key = refKeyOf(ref);
+      placesRequestRef.current[key] = batch;
       placeSuggestions(locations[i], mode, lodgingPref, 3, vehicle || '')
-        .then(fresh => { if (fresh.length) updateStopInterests(ref, cats => mergeSuggestions(cats, fresh)); })
+        .then(fresh => {
+          if (placesRequestRef.current[key] === batch && fresh.length) updateStopInterests(ref, cats => mergeSuggestions(cats, fresh));
+          settled(true);
+        })
         .catch(err => {
+          settled(false);
           console.error('Place suggestions failed:', err);
           if (!failed) {
             failed = true;
@@ -1211,6 +1245,7 @@ const App: React.FC = () => {
           setExpeditionName={(val) => { setExpeditionName(val); setHasChanges(true); }}
           initialPrompt={initialPrompt}
           plannerRequest={plannerRequest}
+          placesProgress={placesProgress}
           onRemoveItem={handleRemoveItem}
           onAttachFile={handleAttachFile}
           stays={stays}
@@ -1221,6 +1256,7 @@ const App: React.FC = () => {
           onVehicleChange={(v) => { setVehicle((v || undefined) as Vehicle | undefined); setHasChanges(true); }}
           onStyleChange={handleStyleChange}
           onStoryChange={handleStoryChange}
+          onFocusStop={handleFocusStop}
           onRestDaysChange={handleRestDaysChange}
           onExportGpx={handleExportGpx}
           warnings={warnings}
@@ -1294,6 +1330,7 @@ const App: React.FC = () => {
             onMoveStop={handleMoveStop}
             onAddStop={routeInfo ? handleAddStop : undefined}
             vias={vias}
+            focus={mapFocus}
             onStoryChange={view !== 'ride' ? handleStoryChange : undefined}
             onShapeRoute={routeInfo && view !== 'ride' ? handleShapeRoute : undefined}
             onMoveVia={handleMoveVia}

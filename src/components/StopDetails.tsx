@@ -84,13 +84,15 @@ interface StopDetailsProps {
   /** The traveller's text and photos about this stop; editable when onStoryChange is given. */
   story?: Story;
   onStoryChange?: (story: Story | undefined) => void;
+  /** Clicking the card (not its buttons or links): show this stop on the map. */
+  onFocus?: () => void;
 }
 
 const mapsLink = (query: string, at?: { lat: number; lng: number }) => mapSearchUrl(query, at);
 
 const StopDetails: React.FC<StopDetailsProps> = ({
   kind, badge, title, location, interests, distanceFromPrev, distanceToNext, compact,
-  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces, nights, rentalLink, story, onStoryChange,
+  onRemoveItem, onAttachFile, attaching, warnings, onRemoveStop, onFindPlaces, nights, rentalLink, story, onStoryChange, onFocus,
 }) => {
   const t = THEMES[kind];
   const { t: tr } = useSettings();
@@ -101,7 +103,9 @@ const StopDetails: React.FC<StopDetailsProps> = ({
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
-    <div className={cn('rounded-xl border p-3 font-sans', t.card, compact && 'border-0 bg-transparent p-0.5')}>
+    <div className={cn('rounded-xl border p-3 font-sans', t.card, compact && 'border-0 bg-transparent p-0.5', onFocus && 'cursor-pointer transition-shadow hover:shadow-md')}
+      onClick={onFocus ? (e) => { if (!(e.target as HTMLElement).closest('button, a, input, textarea, select, label')) onFocus(); } : undefined}
+      title={onFocus ? tr('Show on the map') : undefined}>
       <div className={cn('flex items-center gap-2 font-semibold', compact ? 'mb-1' : 'mb-2', t.title)}>
         <div className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', t.badge)}>
           {badge}

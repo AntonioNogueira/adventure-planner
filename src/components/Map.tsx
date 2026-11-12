@@ -37,6 +37,8 @@ interface MapProps {
   onMarkPlace?: (position: LatLng, category: CategoryId, name: string) => void;
   onRemoveStop?: (index: number) => void;
   onFindPlaces?: (ref: StopRef) => void;
+  /** Show this stop: fly to it and open its balloon (`n` changes with each request). */
+  focus?: { ref: StopRef; at: LatLng; n: number } | null;
   /** Editing a stop's story (text and photos) from its balloon. */
   onStoryChange?: (ref: StopRef, story: Story | undefined) => void;
   /** Points the route is pulled through (dragging the line); not stops. */
@@ -160,7 +162,7 @@ function drawRoute(map: maplibregl.Map, segments: { path: LatLng[] }[], active: 
 
 const MapView: React.FC<MapProps> = ({
   onLoad, segments = [], travelMode = 'DRIVING', waypoints = [], origin, destination, routeInfo,
-  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, attachingKey, stays, ride, vias, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange,
+  onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, attachingKey, stays, ride, vias, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, focus,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -168,6 +170,7 @@ const MapView: React.FC<MapProps> = ({
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const popupRootRef = useRef<Root | null>(null);
   const openStopRef = useRef<string | null>(null);
+  const openStopByKeyRef = useRef<(key: string) => void>(() => {});
   const lastBoundsKeyRef = useRef('');
   const skipFitRef = useRef(false);
   const activeSegmentRef = useRef(-1);
@@ -181,6 +184,14 @@ const MapView: React.FC<MapProps> = ({
   // The day whose details show in the banner (a banner, not a popup, so the map stays free to zoom and pan).
   const [openSegment, setOpenSegment] = useState<number | null>(null);
   useEffect(() => setOpenSegment(null), [segments]);
+
+  // A stop card clicked in the sidebar: fly there (keeping the zoom if already close) and open its balloon.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !focus) return;
+    map.flyTo({ center: [focus.at.lng, focus.at.lat], zoom: Math.max(map.getZoom(), 11), duration: 900 });
+    map.once('moveend', () => openStopByKeyRef.current(refKey(focus.ref)));
+  }, [focus?.n]);
 
   // The points the route was dragged through: small dots to drag again, or tap to remove.
   const viaMarkersRef = useRef<maplibregl.Marker[]>([]);
@@ -479,6 +490,9 @@ const MapView: React.FC<MapProps> = ({
         openStopRef.current = key;
       };
       const pinElements = new Map<string, HTMLElement>();
+      // So a stop card in the sidebar can open its balloon here.
+      const stopsByKey = new Map<string, { point: MapPoint; at: LatLng }>();
+      openStopByKeyRef.current = (key: string) => { const s = stopsByKey.get(key); if (s) openStop(s.point, s.at); };
       const pinHeight = (point: MapPoint) => pinElements.get(refKey(point.ref))?.offsetHeight || 38;
 
       allPoints.forEach((point, idx) => {
@@ -498,6 +512,7 @@ const MapView: React.FC<MapProps> = ({
           callbacksRef.current.onMoveStop?.(point.ref, { lat: p.lat, lng: p.lng });
         });
         markersRef.current.push(marker);
+        stopsByKey.set(refKey(point.ref), { point, at });
         // Keep an open stop card open (with fresh content) after edits.
         if (openStopRef.current === refKey(point.ref)) openStop(point, at);
 
