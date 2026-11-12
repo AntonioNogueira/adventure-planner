@@ -3,7 +3,8 @@ import { useSettings, getSettings, t as tr } from '../lib/settings';
 import { authFetch, checkLimit, LimitError, refreshAccount, openPlans } from '../lib/account';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent, TripStyle } from '../types';
-import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf } from '../lib/conversation';
+import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf, profileLine } from '../lib/conversation';
+import { profileForAI, rememberPlan } from '../lib/profile';
 import { cn } from '../lib/utils';
 import { downServices, report, SERVICE_NAMES, SERVICE_ROLES } from '../lib/serviceHealth';
 import { startPlan, stageDone } from '../lib/planTimer';
@@ -39,7 +40,8 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     // The current plan travels with the request, so the AI changes only what the user asks.
-    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language }),
+    // The traveller's habits from earlier trips: defaults for a new trip (the AI uses them only when starting fresh).
+    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language, profile: current ? undefined : profileForAI() }),
   });
   await checkLimit(response);
   refreshAccount();
@@ -152,10 +154,18 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     if (vehicle) describedVehicleRef.current = intent.vehicleModel!;
     say({
       // The AI's own answer (tips, answers to questions) first, then the plan in numbers and the next question.
-      text: [intent.reply, summaryText(intent, plan), vehicle, question ? question.text : t('All set! Drag the pins or ask me for any change.')]
+      text: [intent.reply, summaryText(intent, plan), profileLine(intent), vehicle, question ? question.text : t('All set! Drag the pins or ask me for any change.')]
         .filter(Boolean).join('\n\n'),
       question: question || undefined,
     });
+  };
+
+  // Each plan and answer teaches the traveller's profile (counted as one trip per start and finish).
+  const learnedTripRef = useRef('');
+  const learn = (intent: TripIntent) => {
+    const trip = `${intent.origin}|${intent.destination}`;
+    rememberPlan(intent, intent.preferences || [], learnedTripRef.current !== trip);
+    learnedTripRef.current = trip;
   };
 
   const runPlan = async (intent: TripIntent) => {
@@ -171,7 +181,8 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       return;
     }
     // The AI's answer belongs to the message it answered: not repeated when a quick reply re-plans.
-    intentRef.current = { ...intent, reply: '' };
+    intentRef.current = { ...intent, reply: '', fromProfile: [], preferences: [] };
+    learn(intent);
     reportPlan(intent, plan);
   };
 
@@ -196,7 +207,9 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
         askedRef.current = new Set();
         modeMentionedRef.current = false;
       }
-      if (mentionsTravelMode(messageToPlan) || understood.travelModeStated) modeMentionedRef.current = true;
+      // Said in the message, read by the AI, or taken from their profile (the reply says so and invites changes).
+      const fromProfile = new Set(understood.fromProfile || []);
+      if (mentionsTravelMode(messageToPlan) || understood.travelModeStated || fromProfile.has('travelMode') || fromProfile.has('ride')) modeMentionedRef.current = true;
       await runPlan(intent);
     } catch (error) {
       if (error instanceof LimitError) {
@@ -225,6 +238,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     const updated = question.topic === 'date' ? intent : applyAnswer(intent, question.topic, value);
     if (question.topic !== 'date' && !changesRoute(intent, updated, question.topic)) {
       intentRef.current = updated;
+      learn(updated);
       if (question.topic === 'vehicle') onVehicleChange?.(value);
       onStyleChange?.(styleOf(updated));
       const plan = lastPlanRef.current || { days: 0, stops: [], targetKm: null, longestKm: 0, totalKm: 0, averageKm: 0, ferryKm: 0 };

@@ -21,6 +21,7 @@ import { placeTarget, type RideTarget } from './lib/ride';
 import type { TripStyle, Via, Story, StoryPhoto } from './types';
 import { pendingPhoto } from './lib/photos';
 import { stageDone } from './lib/planTimer';
+import { adoptProfile, getProfile, onProfileChange } from './lib/profile';
 import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
@@ -279,6 +280,24 @@ const App: React.FC = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  // The traveller's profile follows the account: the newer of this browser's and the account's copy wins, and
+  // changes are saved back (a few seconds after the last one).
+  useEffect(() => {
+    if (!user) return;
+    let live = true;
+    getDoc(doc(db, 'users', user.uid)).then(snap => { if (live) adoptProfile(snap.data()?.profile); }).catch(() => {});
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const off = onProfileChange(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const profile = JSON.parse(JSON.stringify(getProfile()));
+        setDoc(doc(db, 'users', user.uid), { uid: user.uid, email: user.email || '', profile }, { merge: true })
+          .catch(err => console.warn('Could not save the travel profile to the account:', err));
+      }, 3000);
+    });
+    return () => { live = false; clearTimeout(timer); off(); };
+  }, [user?.uid]);
 
   useEffect(() => {
     if (!user) {

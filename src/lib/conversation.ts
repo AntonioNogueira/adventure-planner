@@ -97,6 +97,26 @@ export function vehicleNote(intent: TripIntent): string {
   return lines.join('\n');
 }
 
+const LODGING_NAMES: Record<string, string> = { camping: 'camping', hostel: 'hostels', hotel: 'hotels' };
+const PARTY_NAMES: Record<string, string> = { solo: 'on your own', couple: 'as a couple', family: 'with the family', group: 'with a group' };
+const BUDGET_NAMES: Record<string, string> = { shoestring: 'on a shoestring', mid: 'mid-range', comfort: 'comfort' };
+const INTEREST_NAMES: Record<string, string> = { nature: 'nature', history: 'history', contemporary: 'contemporary sights' };
+
+/** "Based on your past trips: gravel bike, 60 km a day, hostels." for the fields the AI took from the profile. */
+export function profileLine(intent: TripIntent): string {
+  const from = new Set(intent.fromProfile || []);
+  if (!from.size) return '';
+  const bits = [
+    (from.has('ride') || from.has('vehicle') || from.has('vehicleModel') || from.has('travelMode')) && modeName(intent).replace(/^(by|de|em) /, ''),
+    from.has('dailyKm') && intent.dailyKm && t('{d} a day', { d: n(intent.dailyKm) }),
+    from.has('lodging') && LODGING_NAMES[intent.lodging] && t(LODGING_NAMES[intent.lodging]),
+    from.has('party') && intent.party && t(PARTY_NAMES[intent.party]),
+    from.has('interests') && intent.interests?.length && intent.interests.map(i => t(INTEREST_NAMES[i])).join(', '),
+    from.has('budgetStyle') && intent.budgetStyle && t(BUDGET_NAMES[intent.budgetStyle]),
+  ].filter(Boolean);
+  return bits.length ? t('Based on your past trips: {list}. Tell me if this one is different.', { list: bits.join(', ') }) : '';
+}
+
 /** One or two short lines: where, how long, how far, ferry if any. */
 export function summaryText(intent: TripIntent, plan: PlanSummary): string {
   const lines = [

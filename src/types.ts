@@ -138,6 +138,10 @@ export interface TripStyle {
 export interface TripIntent extends TripStyle {
   /** The planner's own words for this message: answers to questions, tips and warnings for the trip. */
   reply?: string;
+  /** Lasting preferences this message stated ("sections of 40 km max"), for the traveller's profile. */
+  preferences?: string[];
+  /** Fields the AI filled from the traveller's profile rather than the message. */
+  fromProfile?: string[];
   origin: string;
   destination: string;
   travelMode: string;

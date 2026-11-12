@@ -7,6 +7,7 @@ import { useAccount, openPlans } from '../lib/account';
 import { PLANS } from '../lib/plans';
 import { openPrivacy } from './ConsentBanner';
 import InstallHint from './InstallHint';
+import TravelProfile from './TravelProfile';
 
 export type AppView = 'route' | 'budget' | 'documents' | 'ride' | 'inspire';
 
@@ -79,6 +80,7 @@ const SettingsMenu: React.FC = () => {
             <span><span className="font-semibold text-slate-600">{t('Plan')}:</span> {t(PLANS[account.plan].name)}</span>
             <button onClick={() => { setOpen(false); openPlans(); }} className="font-semibold text-emerald-700 hover:underline">{t('See plans')}</button>
           </div>
+          <TravelProfile />
           <div className="flex items-center justify-between">
             <button onClick={() => { setOpen(false); openPrivacy(); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Privacy and cookies')}</button>
             <button onClick={() => { setOpen(false); setChecking(true); }} className="text-[11px] font-semibold text-emerald-700 hover:underline">{t('Check map services')}</button>

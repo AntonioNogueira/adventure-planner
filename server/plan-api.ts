@@ -79,7 +79,14 @@ const CATEGORIES = ['Stay', 'Food', 'Shops & repairs', 'Utilities', 'Points of i
 
 const LANGUAGE_NAMES: Record<string, string> = { 'pt-PT': 'European Portuguese (Portugal)', 'pt-BR': 'Brazilian Portuguese' };
 
-function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string) {
+/** The traveller's habits from past trips, as compact JSON for the prompt (size-limited, plain values only). */
+export function profileText(profile: unknown): string {
+  if (!profile || typeof profile !== 'object') return '';
+  const text = JSON.stringify(profile, (k, v) => (typeof v === 'string' ? v.slice(0, 120) : v));
+  return text.length > 3000 ? '' : text;
+}
+
+export function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string, profile?: unknown) {
   const historyContext = history
     .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
     .join('\n');
@@ -94,9 +101,18 @@ The user is refining this plan unless they clearly ask for a different trip.
 - "Keep the plan but …" always means: start from the current plan and apply only the change.`
     : 'CURRENT PLAN: none yet (this is a new trip).';
 
+  const habits = profileText(profile);
+  const profileBlock = habits && !current ? `
+TRAVELLER PROFILE (learned from this traveller's earlier trips): ${habits}
+- Use it as the defaults for a NEW trip when the request doesn't say otherwise: if they don't say how they travel, use
+  usualTravelMode; then take that mode's habits (ride, dailyKm, lodging, party, interests, budgetStyle, maxStayPrice,
+  vehicle, vehicleModel, offroad) and follow their preferences. Anything the request says wins over the profile.
+- List in fromProfile the fields you filled from the profile (e.g. ["dailyKm", "lodging"]).
+` : '';
+
   return `You read trip requests for an adventure route planner (bikepacking, hiking, adventure motorcycling).
 The app calculates the route and picks overnight towns itself; your job is only to understand the request.
-
+${profileBlock}
 ${currentPlan}
 
 PREVIOUS CONVERSATION:
@@ -161,6 +177,10 @@ Return the complete plan:
 - coastFrom, coastTo: if the user wants the trip (or part of it) along the coast, the start and end of that coastal stretch
   (the whole trip: origin and destination). Otherwise empty strings. The app fills in the coastal towns itself.
 - summary: 1-2 sentences describing the trip (terrain, style, highlights). Don't invent distances.
+- preferences: lasting preferences about how this traveller likes to travel that THIS request states, as short phrases
+  in their words (e.g. "sections of 40 km max", "no main roads", "wild camping when possible", "travels with a dog").
+  Only things that would apply to future trips too, not this trip's places or dates. Empty list if none.
+- fromProfile: the fields you filled from the TRAVELLER PROFILE rather than from the request (empty list if none or no profile).
 - reply: your answer to the traveller, as a knowledgeable adventure-travel friend, in 1-4 short sentences (at most ~70
   words). First answer anything they asked (weather, season, gear, what to see, whether something is possible). Then add
   the one or two most useful, specific tips for this trip and style: heat or cold for the season, water and resupply,
@@ -170,7 +190,7 @@ Return the complete plan:
 - Write the summary, the reply and the vehicle notes in ${LANGUAGE_NAMES[language!]}. The user may write in Portuguese: read place names and requests the same way.` : ''}`;
 }
 
-const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'maxStayPrice', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply'];
+const intentFields = ['origin', 'destination', 'travelMode', 'travelModeStated', 'days', 'dailyKm', 'route', 'lodging', 'avoidFerries', 'offroad', 'vehicle', 'ride', 'party', 'interests', 'budgetStyle', 'maxStayPrice', 'vehicleModel', 'vehicleInfo', 'coastFrom', 'coastTo', 'summary', 'reply', 'preferences', 'fromProfile'];
 const VEHICLE_ENUM = ['unknown', 'motorcycle', 'motorcycle_2up', 'car', 'suv', '4x4', 'campervan', 'truck'];
 const RIDE_ENUM = ['none', 'road', 'gravel', 'mtb', 'emtb', 'touring', 'adventure', 'enduro'];
 const PARTY_ENUM = ['none', 'solo', 'couple', 'family', 'group'];
@@ -215,6 +235,8 @@ const responseSchema = {
     coastTo: { type: Type.STRING },
     summary: { type: Type.STRING },
     reply: { type: Type.STRING },
+    preferences: { type: Type.ARRAY, items: { type: Type.STRING } },
+    fromProfile: { type: Type.ARRAY, items: { type: Type.STRING } },
   },
   required: intentFields,
 };
@@ -243,7 +265,9 @@ const jsonShapeHint = `Respond with ONLY a JSON object of this shape:
   "coastFrom": string,
   "coastTo": string,
   "summary": string,
-  "reply": string
+  "reply": string,
+  "preferences": string[],
+  "fromProfile": string[]
 }`;
 
 // Plain JSON Schema for Claude structured outputs (every object closed with additionalProperties: false).
@@ -288,6 +312,8 @@ const planJsonSchema = {
     coastTo: { type: 'string' },
     summary: { type: 'string' },
     reply: { type: 'string' },
+    preferences: { type: 'array', items: { type: 'string' } },
+    fromProfile: { type: 'array', items: { type: 'string' } },
   },
   required: intentFields,
   additionalProperties: false,
@@ -744,6 +770,9 @@ export function cleanStyle(intent: any) {
   const motorcycle = intent.travelMode === 'DRIVING' && (!intent.vehicle || String(intent.vehicle).startsWith('motorcycle'));
   intent.ride = (intent.travelMode === 'BICYCLING' && bike.includes(ride)) || (motorcycle && moto.includes(ride)) ? ride : '';
   intent.reply = typeof intent.reply === 'string' ? intent.reply.trim().slice(0, 700) : '';
+  const strings = (v: unknown, n: number, len: number) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim() !== '').map(x => x.trim().slice(0, len)).slice(0, n) : []);
+  intent.preferences = strings(intent.preferences, 5, 120);
+  intent.fromProfile = strings(intent.fromProfile, 12, 40);
   if (!PARTY_ENUM.includes(intent.party) || intent.party === 'none') intent.party = '';
   intent.interests = Array.isArray(intent.interests) ? [...new Set(intent.interests.filter((i: string) => INTEREST_ENUM.includes(i)))] : [];
   if (!BUDGET_ENUM.includes(intent.budgetStyle) || intent.budgetStyle === 'none') intent.budgetStyle = '';
@@ -833,7 +862,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       try {
         const { provider, result: intent } = await runTaskResult(env, {
           name: 'plan',
-          prompt: buildPrompt(request, history, current, language),
+          prompt: buildPrompt(request, history, current, language, body.profile),
           geminiSchema: responseSchema,
           claudeSchema: planJsonSchema,
           allowOpenAI: true,

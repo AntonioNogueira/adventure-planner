@@ -35,7 +35,9 @@ service cloud.firestore {
              data.email is string && data.email.size() < 256 &&
              (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 128)) &&
              (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 1024)) &&
-             (!('createdAt' in data) || data.createdAt is number);
+             (!('createdAt' in data) || data.createdAt is number) &&
+             // The traveller's profile (habits learned from their trips), kept small.
+             (!('profile' in data) || (data.profile is map && data.profile.size() <= 6));
     }
 
     function isValidTrip(data) {
