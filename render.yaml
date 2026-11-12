@@ -50,3 +50,6 @@ services:
         sync: false
       - key: ELEVATION_URL
         sync: false
+      # MapTiler browser key: second place-name service (restrict it to this site in MapTiler Cloud).
+      - key: MAPTILER_KEY
+        sync: false

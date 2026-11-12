@@ -2,7 +2,8 @@
 // OVERPASS_URL in turn; if none answers, Photon (names, kinds and positions only), so places never go missing.
 // The free public servers are fair use and often busy or refuse cloud traffic: production sets its own.
 import { InterestCategory, InterestItem } from '../types';
-import { trackedFetch } from './serviceHealth';
+import { trackedFetch, isDown } from './serviceHealth';
+import { maptilerKey, maptilerPlaceAt } from './maptiler';
 import { LatLng, haversineKm } from './geo';
 import { townAt, placeAt, photon, PhotonFeature, nominatim, NominatimPlace } from './geocode';
 import { SERVICES } from './services';
@@ -387,6 +388,9 @@ export async function settlementAt(at: LatLng): Promise<{ name: string; at: LatL
   try {
     return (await nearest(['city', 'town', 'village'], 7)) || (await nearest(['hamlet'], 3)) || await byNominatim() || await area();
   } catch {
+    // Photon down: MapTiler (if set up) gives the village and its centre at full speed; then Nominatim.
+    const viaMapTiler = maptilerKey() && !isDown('maptiler') ? await maptilerPlaceAt(at).catch(() => null) : null;
+    if (viaMapTiler && haversineKm(at, viaMapTiler.at) <= 10) return viaMapTiler;
     return (await byNominatim()) || area();
   }
 }

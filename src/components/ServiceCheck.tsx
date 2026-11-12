@@ -7,6 +7,7 @@ import { useSettings } from '../lib/settings';
 import { SERVICES } from '../lib/services';
 import { SERVICE_NAMES, SERVICE_ROLES, ServiceId, report } from '../lib/serviceHealth';
 import { lastPlan } from '../lib/planTimer';
+import { maptilerKey } from '../lib/maptiler';
 
 interface Result { id: string; service: ServiceId; label: string; status: 'checking' | 'ok' | 'slow' | 'down'; ms?: number; note?: string }
 
@@ -18,6 +19,7 @@ function probes(): { id: string; service: ServiceId; label: string; run: () => P
   return [
     { id: 'ai', service: 'ai', label: SERVICE_NAMES.ai, run: () => fetch('/api/health', { signal: t(60000) }) },
     { id: 'photon', service: 'photon', label: 'Photon', run: () => fetch(`${SERVICES.photon}/api/?q=Lisbon&limit=1`, { signal: t(8000) }) },
+    ...(maptilerKey() ? [{ id: 'maptiler', service: 'maptiler' as ServiceId, label: 'MapTiler', run: () => fetch(`https://api.maptiler.com/geocoding/Lisbon.json?limit=1&key=${maptilerKey()}`, { signal: t(8000) }) }] : []),
     { id: 'nominatim', service: 'nominatim', label: 'Nominatim', run: () => fetch(`${SERVICES.nominatim}/search?q=Lisbon&format=jsonv2&limit=1`, { signal: t(10000) }) },
     ...SERVICES.overpass.map((url, i) => ({
       id: `overpass-${i}`, service: 'overpass' as ServiceId, label: `Overpass (${new URL(url).host})`,
@@ -112,7 +114,7 @@ const ServiceCheck: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {down.length === 0 ? t('Everything is answering.')
               : [
                 down.some(r => r.service === 'ai') && t('The AI is not answering: planning from a message will fail until it does (often a few minutes at busy times).'),
-                down.some(r => r.service === 'photon') && t('Photon is down: place names come from Nominatim instead (slower).'),
+                down.some(r => r.service === 'photon') && (maptilerKey() && !down.some(r => r.service === 'maptiler') ? t('Photon is down: place names come from MapTiler instead.') : t('Photon is down: place names come from Nominatim instead (slower).')),
                 !overpassUp && t('No Overpass server answered: places near stops come from Photon or Nominatim (fewer details).'),
                 down.some(r => ['osrm', 'valhalla', 'brouter'].includes(r.service)) && t('A routing service is down: some routes may fail or fall back to another router.'),
               ].filter(Boolean).join(' ')}

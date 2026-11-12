@@ -8,6 +8,8 @@ declare global {
     checkout?: Record<string, string>;
     affiliates?: { booking?: string; getyourguide?: string; hostels?: string; campsites?: string; rentals?: string };
     services?: { overpass?: string | string[]; photon?: string; nominatim?: string; osrm?: string; valhalla?: string; brouter?: string };
+    /** MapTiler's browser key (restricted to the app's sites in MapTiler Cloud): a second place-name service. */
+    maptilerKey?: string;
   } }
 }
 

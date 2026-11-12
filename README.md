@@ -24,7 +24,7 @@ One version, built on OpenStreetMap. Google is used for sign-in, the Gemini AI p
 | Road routes | [OSRM](https://routing.openstreetmap.de) (car, bike, foot); [Valhalla](https://valhalla1.openstreetmap.de) when avoiding highways, tolls or ferries | `OSRM_URL`, `VALHALLA_URL` |
 | Off-road routes | [BRouter](https://brouter.de) (gravel, hiking, adventure-moto profiles) | `BROUTER_URL` |
 | Elevation, surfaces, voice directions | Valhalla (`/height`, `/trace_attributes`, `/trace_route`); [Open-Meteo](https://open-meteo.com/en/docs/elevation-api) elevation if Valhalla fails | `VALHALLA_URL`, `ELEVATION_URL` |
-| Place names | [Photon](https://photon.komoot.io) | `PHOTON_URL` |
+| Place names | [Photon](https://photon.komoot.io); [MapTiler](https://www.maptiler.com/cloud/geocoding/) when Photon is down (optional key); Nominatim last | `PHOTON_URL`, `MAPTILER_KEY` |
 | Places near stops | [Overpass](https://overpass-api.de), several servers tried in order; Photon if none answers | `OVERPASS_URL` |
 
 The defaults are free public servers with fair-use limits: fine for testing, but busy or refusing at times

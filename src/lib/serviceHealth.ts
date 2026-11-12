@@ -2,11 +2,12 @@
 // successes and failures; one that keeps failing is treated as down for a couple of minutes, so callers go straight
 // to their backup instead of waiting on timeouts, and the planner can say which service is the problem.
 
-export type ServiceId = 'photon' | 'nominatim' | 'overpass' | 'osrm' | 'valhalla' | 'brouter' | 'ai';
+export type ServiceId = 'photon' | 'maptiler' | 'nominatim' | 'overpass' | 'osrm' | 'valhalla' | 'brouter' | 'ai';
 
 /** What each service does, for messages ("Photon (place names)"). */
 export const SERVICE_ROLES: Record<ServiceId, string> = {
   photon: 'place names',
+  maptiler: 'place names, second source',
   nominatim: 'place names, backup',
   overpass: 'places near stops',
   osrm: 'road routes',
@@ -15,7 +16,7 @@ export const SERVICE_ROLES: Record<ServiceId, string> = {
   ai: 'AI planner',
 };
 export const SERVICE_NAMES: Record<ServiceId, string> = {
-  photon: 'Photon', nominatim: 'Nominatim', overpass: 'Overpass', osrm: 'OSRM', valhalla: 'Valhalla', brouter: 'BRouter', ai: 'AI (Gemini)',
+  photon: 'Photon', maptiler: 'MapTiler', nominatim: 'Nominatim', overpass: 'Overpass', osrm: 'OSRM', valhalla: 'Valhalla', brouter: 'BRouter', ai: 'AI (Gemini)',
 };
 
 const DOWN_MS = 2 * 60_000;

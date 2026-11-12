@@ -341,6 +341,8 @@ export const PT: Record<string, string> = {
   'about {d}/day': 'cerca de {d}/dia',
   'Includes a ferry crossing of {d} on day {day} ({from} → {to}).': 'Inclui uma travessia de ferry de {d} no dia {day} ({from} → {to}).',
   'How are you travelling?': 'Como vai viajar?',
+  'Photon is down: place names come from MapTiler instead.': 'O Photon está em baixo: os nomes dos lugares vêm do MapTiler.',
+  'place names, second source': 'nomes de lugares, segunda fonte',
   'Weather forecast': 'Previsão do tempo',
   'Typical weather for {months} (add a start date for the forecast)': 'Tempo típico de {months} (indique a data de início para ter a previsão)',
   'Typical weather for {months}': 'Tempo típico de {months}',

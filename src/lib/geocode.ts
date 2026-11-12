@@ -2,6 +2,7 @@
 // busy or unreachable (free public servers drop requests now and then). PHOTON_URL / NOMINATIM_URL pick the servers.
 import { SERVICES } from './services';
 import { isDown, report } from './serviceHealth';
+import { maptilerKey, maptilerPlaceAt, maptilerSearch } from './maptiler';
 import { t } from './settings';
 import { searchTown } from './affiliate';
 import { LatLng, haversineKm } from './geo';
@@ -135,6 +136,11 @@ async function lookup(address: string): Promise<LatLng | null> {
     }
   } catch (error) {
     photonError = error;
+    // Photon down: MapTiler (if set up) answers at full speed before the slower Nominatim.
+    if (maptilerKey() && !isDown('maptiler')) {
+      const found = await maptilerSearch(address).catch(() => null);
+      if (found) return found;
+    }
   }
   // Photon failed or found nothing: ask Nominatim.
   try {
@@ -174,7 +180,11 @@ export function geocodeAddress(address: string): Promise<LatLng | null> {
 export async function townAt(position: LatLng): Promise<string | null> {
   try {
     const [f] = await photon(`/reverse?lat=${position.lat}&lon=${position.lng}&limit=1`).catch(async err => {
-      // Photon unavailable: Nominatim names the place instead.
+      // Photon unavailable: MapTiler (if set up), then Nominatim, names the place instead.
+      if (maptilerKey() && !isDown('maptiler')) {
+        const place = await maptilerPlaceAt(position).catch(() => null);
+        if (place) throw new NamedBy(place.name);
+      }
       const name = nominatimTown(await nominatim<NominatimPlace>(`/reverse?lat=${position.lat}&lon=${position.lng}&zoom=14`).catch(() => null));
       if (name) throw new NamedBy(name);
       throw err;
