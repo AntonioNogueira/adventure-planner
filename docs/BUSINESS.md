@@ -259,6 +259,28 @@ Always: store only the route, places, dates and a 1–2 sentence summary in our 
 photos; a link to the original on every journey and stop; a "remove my trip" link honoured quickly. The import
 tool proposes; a person checks before anything is published.
 
+### Backup task: seed Inspire from the 101 example trips (not started, Nov 2026)
+
+The welcome box's examples (`src/lib/examples.ts`) are 101 well-known routes on every continent and in every way
+of travelling. Each can become a "classic route" journey, like the Camino Francés, Tour Divide and TransAmerica
+already on the map. Plan, one route at a time, without hurrying:
+
+1. **The line:** take the route's OpenStreetMap route relation where one exists (most named trails and cycle
+   routes have one: Caminos, EuroVelo, PCT, AT, GR20, TMB, West Highland Way, TransAm, Great Divide). That gives
+   the real line without guessing. Where there isn't one (most moto and 4x4 trips), use the most common version:
+   the official or guidebook stages, else the roads most trip reports take, routed with OSRM or BRouter. Mark it
+   "approximate", as now.
+2. **The stops:** the usual overnight towns or stages, about 10–30 per route.
+3. **Each stop's text:** for each stop, look for the most recent public trip report that passes there (a blog, a
+   bikepacking.com route guide, a Horizons Unlimited or ADVrider report where the rules allow). Write a 1–2
+   sentence note in our own words, and link the report as the stop's source. If no recent report turns up, write a
+   general note and link the route's official page or Wikipedia.
+4. **Check, then publish:** build with `scripts/inspiration/build.mjs`, look at it on the globe, then publish.
+
+Same rules as above: route, places, dates and a short summary in our own words; no copied text or photos; a link
+to every source. Cost: almost nothing beyond time (the build tools are free; AI help is cents per route). With
+100+ journeys the index file grows to ~1 MB, which is still fine; vector tiles are only needed past ~2–3,000.
+
 ## 13. The market: who else is out there, and where we fit (Nov 2026)
 
 Prices are rough, from memory: check before quoting them.

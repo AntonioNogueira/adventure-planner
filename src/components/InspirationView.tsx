@@ -163,9 +163,10 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
+    // While a journey is open only its detailed line shows: the rough overview lines (its own and the others',
+    // several of which follow the same roads) would run beside it as shortcuts. They come back when it's closed.
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
-      // The chosen journey is drawn in detail below: its rough overview line would show as a shortcut.
-      all.filter(j => j.id !== shown?.id).map(j => feature(j.overview, { id: j.id, color: j.color, dim: Boolean(shown) })),
+      shown ? [] : all.map(j => feature(j.overview, { id: j.id, color: j.color, dim: false })),
     ));
   }, [ready, all, shown]);
 
