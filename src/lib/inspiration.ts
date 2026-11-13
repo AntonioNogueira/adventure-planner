@@ -13,6 +13,8 @@ export interface JourneyStop {
   /** How they got here from the previous stop (default: rode). */
   by?: LegKind;
   photo?: JourneyPhoto;
+  /** A recent trip report or guide that passes here (classic routes). */
+  source?: { label: string; url: string };
 }
 export interface JourneyLeg { by: LegKind; km: number; line: [number, number][] }
 export interface JourneySummary {

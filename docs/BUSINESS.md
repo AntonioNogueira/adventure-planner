@@ -259,7 +259,13 @@ Always: store only the route, places, dates and a 1–2 sentence summary in our 
 photos; a link to the original on every journey and stop; a "remove my trip" link honoured quickly. The import
 tool proposes; a person checks before anything is published.
 
-### Backup task: seed Inspire from the 101 example trips (not started, Nov 2026)
+### Backup task: seed Inspire from the 101 example trips (in progress, Nov 2026)
+
+Progress: batch 1 done, 10 routes in `scripts/inspiration/classics.mjs` (Camino Portugués coastal, West Highland
+Way, Tour du Mont Blanc, Pacific Crest Trail, North Coast 500, Ha Giang Loop, Annapurna Circuit, Gibb River Road,
+Lagunas Route, Morocco Atlas–Sahara). Lessons: give `at` coordinates for places with accents or that share a name
+(Vietnamese and Nepali villages, Campo CA); BRouter has no path over some high passes (Thorong La), so those legs
+are straight lines.
 
 The welcome box's examples (`src/lib/examples.ts`) are 101 well-known routes on every continent and in every way
 of travelling. Each can become a "classic route" journey, like the Camino Francés, Tour Divide and TransAmerica

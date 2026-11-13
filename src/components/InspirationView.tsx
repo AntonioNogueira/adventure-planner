@@ -53,6 +53,11 @@ const StopCard: React.FC<{ journey: Journey; index: number; onPlan: (prompt: str
         <p className="text-[11px] text-slate-500">{[stop.date, stop.by && LEG_WORDS[stop.by] && t(`Arrived ${LEG_WORDS[stop.by]}`)].filter(Boolean).join(' · ')}</p>
       )}
       <p className="text-xs leading-relaxed text-slate-700">{stop.text}</p>
+      {stop.source && (
+        <a href={stop.source.url} target="_blank" rel="noopener noreferrer" className="block truncate text-[10.5px] font-semibold text-emerald-800 underline">
+          {t('Read more')}: {stop.source.label} ↗
+        </a>
+      )}
       {nextByRoad && (
         <button onClick={() => onPlan(sectionPrompt(journey, stop, next))}
           className="flex w-full items-center justify-center gap-1.5 rounded-md bg-emerald-700 px-2 py-1.5 text-xs font-bold text-white hover:bg-emerald-800">
@@ -208,7 +213,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
       el.addEventListener('click', (e) => { e.stopPropagation(); openStop(i, false); });
       markers.current.push(new maplibregl.Marker({ element: el }).setLngLat([stop.at[1], stop.at[0]]).addTo(map));
     });
-    map.fitBounds([[journey.bbox[0], journey.bbox[1]], [journey.bbox[2], journey.bbox[3]]], { padding: padding(), duration: 900, maxZoom: 7 });
+    map.fitBounds([[journey.bbox[0], journey.bbox[1]], [journey.bbox[2], journey.bbox[3]]], { padding: padding(), duration: 900, maxZoom: 11 });
   }, [ready, journey_?.id, journey_?.legs]);
 
   const remove = async (j: Journey) => {

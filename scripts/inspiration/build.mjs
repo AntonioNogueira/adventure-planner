@@ -1,17 +1,23 @@
 // Builds the Inspiration map's journeys (public/inspiration/*.json) from journeys.mjs:
 //  - finds each stop (Photon), unless it gives `at`
-//  - routes the legs on roads (OSRM car) for ride/truck/bus; ferry, boat, train and flight legs are straight lines
+//  - routes the legs: on foot on trails (BRouter hiking), bikes on cycle routes and tracks (BRouter trekking),
+//    motor vehicles on roads (OSRM car); ferry, boat, train and flight legs are straight lines.
+//    A journey can set `route: 'foot' | 'bike' | 'car'` (default from its kind), and a stop can override it.
 //  - simplifies the lines (about 1 km detail) to keep the files small
 //  - picks a free-licence photo for each stop from its Wikipedia article (pageimages, pilicense=free), with credit
 // Run: NODE_USE_ENV_PROXY=1 node scripts/inspiration/build.mjs [journey-id ...]
 // Polite to the free services: one request at a time, with pauses, and a client name for Wikipedia.
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
-import { JOURNEYS } from './journeys.mjs';
+import { JOURNEYS as FAMOUS } from './journeys.mjs';
+import { CLASSICS } from './classics.mjs';
+
+// Famous journeys first, then the classic routes.
+const JOURNEYS = [...FAMOUS, ...CLASSICS];
 
 const OUT = new URL('../../public/inspiration/', import.meta.url);
 const CACHE = process.env.INSPIRATION_CACHE || new URL('./.cache.json', import.meta.url).pathname;
 const UA = 'AdventurePlannerInspiration/1.0 (journey map builder)';
-const ROAD = new Set(['ride', 'truck', 'bus']);
+const ROAD = new Set(['ride', 'walk', 'truck', 'bus']);
 
 const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {};
 const saveCache = () => writeFileSync(CACHE, JSON.stringify(cache));
@@ -32,10 +38,16 @@ async function get(url, tries = 4) {
 async function locate(q) {
   const key = `geo|${q}`;
   if (!cache[key]) {
-    const data = await get(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&lang=en`);
+    const data = await get(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&lang=en`, 2);
     const f = data?.features?.[0];
-    if (!f) throw new Error(`Not found: ${q}`);
-    cache[key] = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+    if (f) cache[key] = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+    else {
+      // Photon is often busy: Nominatim as the backup (one request a second, by its rules).
+      await sleep(1100);
+      const [n] = (await get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=1`)) || [];
+      if (!n) throw new Error(`Not found: ${q}`);
+      cache[key] = [Number(n.lat), Number(n.lon)];
+    }
     saveCache();
     await sleep(1100);
   }
@@ -77,6 +89,21 @@ async function road(a, b) {
   }
   return cache[key];
 }
+
+/** On foot or by bike: BRouter, which follows footpaths, trails, tracks and cycle routes. */
+async function trail(a, b, profile) {
+  const key = `brouter|${profile}|${a}|${b}`;
+  if (!cache[key]) {
+    const data = await get(`https://brouter.de/brouter?lonlats=${a[1]},${a[0]}|${b[1]},${b[0]}&profile=${profile}&alternativeidx=0&format=geojson`, 3);
+    const f = data?.features?.[0];
+    cache[key] = f ? { km: Number(f.properties['track-length']) / 1000, line: f.geometry.coordinates.map(([lng, lat]) => [lat, lng]) } : null;
+    saveCache();
+    await sleep(1500);
+  }
+  return cache[key];
+}
+const PROFILE = { foot: 'hiking-mountain', bike: 'trekking' };
+const routeOf = kind => (kind === 'walk' ? 'foot' : kind === 'bike' ? 'bike' : 'car');
 
 /** Douglas–Peucker in degrees (~0.01° ≈ 1 km). */
 function simplify(points, tol = 0.01) {
@@ -157,29 +184,32 @@ async function build(journey) {
   const legs = [];
   let total = 0;
   for (let i = 1; i < stops.length; i++) {
-    const a = stops[i - 1].at, b = stops[i].at, by = stops[i].by || 'ride';
+    const a = stops[i - 1].at, b = stops[i].at, by = stops[i].by || (journey.kind === 'walk' ? 'walk' : 'ride');
+    const how = stops[i].route || journey.route || routeOf(journey.kind);
     const straight = km(a, b);
     let line = arc(a, b, Math.max(2, Math.min(48, Math.round(straight / 100)))), dist = straight, exact = false;
     if (ROAD.has(by)) {
-      const r = await road(a, b);
+      const r = how === 'car' ? await road(a, b) : (await trail(a, b, PROFILE[how])) || await road(a, b);
       // Short hops can wind a lot through mountains (Torres del Paine → El Calafate); long legs shouldn't.
-      if (r && r.km < straight * (straight < 300 ? 6 : 3)) { line = r.line; dist = r.km; exact = true; }
+      // A route can't be shorter than the straight line: that means the router snapped to the wrong path.
+      if (r && r.km >= straight * 0.9 && r.km < straight * (straight < 300 ? 6 : 3)) { line = r.line; dist = r.km; exact = true; }
       else console.log(`  no road ${stops[i - 1].name} → ${stops[i].name} (${Math.round(straight)} km straight)`);
     }
     total += dist;
-    legs.push({ by, km: Math.round(dist), line: round(simplify(line, exact ? 0.01 : 0.05)) });
+    // Trails wind more than roads and are seen closer up: more detail (~300 m) for walks and rides on paths.
+    legs.push({ by, km: Math.round(dist), line: round(simplify(line, exact ? (how === 'car' ? 0.01 : 0.003) : 0.05)) });
     console.log(`  ${stops[i - 1].name} → ${stops[i].name}: ${by} ${Math.round(dist)} km`);
   }
   const all = legs.flatMap(l => l.line);
   const lats = all.map(p => p[0]), lngs = all.map(p => p[1]);
-  const { stops: _drop, ...meta } = journey;
+  const { stops: _drop, route: _route, ...meta } = journey;
   const full = {
     ...meta,
     km: Math.round(total),
     bbox: [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
     stops: stops.map(s => ({
       name: s.name, place: s.q || s.name, at: [Math.round(s.at[0] * 1e4) / 1e4, Math.round(s.at[1] * 1e4) / 1e4],
-      ...(s.date ? { date: s.date } : {}), text: s.text, ...(s.by ? { by: s.by } : {}),
+      ...(s.date ? { date: s.date } : {}), text: s.text, ...(s.by ? { by: s.by } : {}), ...(s.source ? { source: s.source } : {}),
       ...(pics[s.wiki] ? { photo: pics[s.wiki] } : {}),
     })),
     legs,
