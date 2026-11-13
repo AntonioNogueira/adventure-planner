@@ -21,6 +21,7 @@ import { placeTarget, type RideTarget } from './lib/ride';
 import type { TripStyle, Via, Story, StoryPhoto } from './types';
 import { pendingPhoto } from './lib/photos';
 import { stageDone } from './lib/planTimer';
+import { randomExample } from './lib/examples';
 import { adoptProfile, getProfile, onProfileChange } from './lib/profile';
 import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryId, categoryLabel } from './lib/places';
@@ -79,8 +80,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 }
 
 const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: () => void }> = ({ onStart, onInspire }) => {
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
   const [prompt, setPrompt] = useState('');
+  // A different famous trip as the hint each visit, changing every few seconds (src/lib/examples.ts).
+  const [example, setExample] = useState(() => randomExample(settings.language));
+  useEffect(() => {
+    setExample(randomExample(settings.language));
+    const interval = setInterval(() => setExample(randomExample(settings.language)), 6000);
+    return () => clearInterval(interval);
+  }, [settings.language]);
   const [isLocating, setIsLocating] = useState(false);
 
   const handleStart = () => {
@@ -136,7 +144,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
               autoFocus
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={t('e.g., Bikepacking from Cádiz to Silves, about 70 km per day, camping where possible...')}
+              placeholder={t('e.g., {example}', { example })}
               className="min-h-[120px] w-full rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900 dark:bg-emerald-900/20"
             />
           </div>

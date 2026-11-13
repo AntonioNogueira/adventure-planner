@@ -8,6 +8,7 @@ import { profileForAI, rememberPlan } from '../lib/profile';
 import { cn } from '../lib/utils';
 import { downServices, report, SERVICE_NAMES, SERVICE_ROLES } from '../lib/serviceHealth';
 import { startPlan, stageDone } from '../lib/planTimer';
+import { randomExample } from '../lib/examples';
 
 export type { PlanSummary } from '../lib/conversation';
 
@@ -91,7 +92,7 @@ interface Message {
 
 const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate, onStartDateChange, onVehicleChange, onStyleChange, request, placesProgress, mapIntent }) => {
   const lastPlanRef = useRef<PlanSummary | null>(null);
-  const { t, locale } = useSettings();
+  const { t, locale, settings } = useSettings();
   const [prompt, setPrompt] = useState(initialPrompt || '');
   const [isPlanning, setIsPlanning] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -104,22 +105,15 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
   // The named vehicle already described in the chat (said once per vehicle).
   const describedVehicleRef = useRef('');
 
-  const placeholders = [
-    t('e.g., Bikepacking from Paris to Rome, about 80 km per day...'),
-    t('e.g., 5-day moto adventure in the Pyrenees, include off-road trails'),
-    t('e.g., Hiking the West Highland Way, suggest wild camping spots'),
-    t('e.g., Road trip through Portugal, save the camping X in Porto stop'),
-    t('e.g., Mountain bike tour in Moab, include bike shops and repair stations'),
-    t('e.g., Surf trip along the Basque coast, find the best breaks and hostels'),
-  ];
-
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const placeholder = placeholders[placeholderIndex];
+  // A different famous trip as the hint every few seconds (100 examples, every mode and continent).
+  const [example, setExample] = useState(() => randomExample(settings.language));
+  const placeholder = t('e.g., {example}', { example });
 
   useEffect(() => {
-    const interval = setInterval(() => setPlaceholderIndex(i => (i + 1) % placeholders.length), 5000);
+    setExample(randomExample(settings.language));
+    const interval = setInterval(() => setExample(randomExample(settings.language)), 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [settings.language]);
 
   useEffect(() => {
     if (initialPrompt && messages.length === 0 && !hasAutoPlanned.current) {
