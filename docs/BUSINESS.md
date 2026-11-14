@@ -265,7 +265,9 @@ Progress: batch 1 done, 10 routes in `scripts/inspiration/classics.mjs` (Camino 
 Way, Tour du Mont Blanc, Pacific Crest Trail, North Coast 500, Ha Giang Loop, Annapurna Circuit, Gibb River Road,
 Lagunas Route, Morocco Atlas–Sahara). Batch 2 done (India and Africa): Manali–Leh, Spiti circuit, Rajasthan, South
 India's Western Ghats, Kilimanjaro Machame, Namibia, Botswana, Cape Town–Garden Route by bike, Congo Nile Trail,
-Lisbon–Dakar. Lessons: give `at` coordinates for places with accents or that share a name
+Lisbon–Dakar. Batch 3 done: Kumano Kodo, Lycian Way, Iceland Ring Road by bike, Danube Passau–Budapest, Route 66,
+Great Ocean Road, Transfăgărășan–Transalpina, Georgia (Kazbegi and Svaneti), Utah's Mighty Five, Torres del Paine W.
+71 left. Lessons: give `at` coordinates for places with accents or that share a name
 (Vietnamese and Nepali villages, Campo CA); BRouter has no path over some high passes (Thorong La), so those legs
 are straight lines, and so are park roads the routers don't have (Etosha, Moremi): `route: 'line'`. The
 build now looks places up with Nominatim first, after checking them with a quick search script.
