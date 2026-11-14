@@ -2,7 +2,8 @@
 //  - finds each stop (Photon), unless it gives `at`
 //  - routes the legs: on foot on trails (BRouter hiking), bikes on cycle routes and tracks (BRouter trekking),
 //    motor vehicles on roads (OSRM car); ferry, boat, train and flight legs are straight lines.
-//    A journey can set `route: 'foot' | 'bike' | 'car'` (default from its kind), and a stop can override it.
+//    A journey can set `route: 'foot' | 'bike' | 'car'` (default from its kind), and a stop can override it
+//    (also with 'line': a straight line, for park roads the routers don't have).
 //  - simplifies the lines (about 1 km detail) to keep the files small
 //  - picks a free-licence photo for each stop from its Wikipedia article (pageimages, pilicense=free), with credit
 // Run: NODE_USE_ENV_PROXY=1 node scripts/inspiration/build.mjs [journey-id ...]
@@ -38,15 +39,15 @@ async function get(url, tries = 4) {
 async function locate(q) {
   const key = `geo|${q}`;
   if (!cache[key]) {
-    const data = await get(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&lang=en`, 2);
-    const f = data?.features?.[0];
-    if (f) cache[key] = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+    // Nominatim first: it matches names with accents or shared by several places better (one request a second, by
+    // its rules); Photon when it finds nothing.
+    const [n] = (await get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=1`, 2)) || [];
+    if (n) cache[key] = [Number(n.lat), Number(n.lon)];
     else {
-      // Photon is often busy: Nominatim as the backup (one request a second, by its rules).
-      await sleep(1100);
-      const [n] = (await get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=1`)) || [];
-      if (!n) throw new Error(`Not found: ${q}`);
-      cache[key] = [Number(n.lat), Number(n.lon)];
+      const data = await get(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&lang=en`, 2);
+      const f = data?.features?.[0];
+      if (!f) throw new Error(`Not found: ${q}`);
+      cache[key] = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
     }
     saveCache();
     await sleep(1100);
@@ -188,7 +189,8 @@ async function build(journey) {
     const how = stops[i].route || journey.route || routeOf(journey.kind);
     const straight = km(a, b);
     let line = arc(a, b, Math.max(2, Math.min(48, Math.round(straight / 100)))), dist = straight, exact = false;
-    if (ROAD.has(by)) {
+    // route: 'line' — roads the routers don't know (inside some parks): a straight line, as it nearly is.
+    if (ROAD.has(by) && how !== 'line') {
       const r = how === 'car' ? await road(a, b) : (await trail(a, b, PROFILE[how])) || await road(a, b);
       // Short hops can wind a lot through mountains (Torres del Paine → El Calafate); long legs shouldn't.
       // A route can't be shorter than the straight line: that means the router snapped to the wrong path.

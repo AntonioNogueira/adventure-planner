@@ -442,6 +442,7 @@ export const PT: Record<string, string> = {
   'Bicycle': 'Bicicleta',
   'On foot': 'A pé',
   '4x4 & overland': '4x4 e overland',
+  'Road trip': 'Viagem de carro',
   'Any time': 'Qualquer época',
   'Before 1990': 'Antes de 1990',
   'Since 1990': 'Desde 1990',

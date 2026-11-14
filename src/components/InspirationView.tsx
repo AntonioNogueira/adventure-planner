@@ -243,7 +243,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
               <input value={words} onChange={(e) => setWords(e.target.value)} placeholder={t('Search: a place, a rider, a bike…')} aria-label={t('Search journeys')}
                 className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs focus:border-emerald-400 focus:outline-none" />
               <div className="flex flex-wrap gap-1">
-                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland']] as const).map(([id, label]) => (
+                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Road trip']] as const).map(([id, label]) => (
                   <button key={id || 'all'} onClick={() => setKind(id)} aria-pressed={kind === id}
                     className={cn('rounded-full border px-2 py-0.5 text-[10.5px] font-semibold', kind === id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50')}>{t(label)}</button>
                 ))}

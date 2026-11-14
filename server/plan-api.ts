@@ -689,7 +689,7 @@ const requestLog = new Map<string, number[]>();
 // ---- Importing a journey (admin): a travel story read into ordered stops ----
 
 const LEG_ENUM = ['ride', 'truck', 'bus', 'train', 'ferry', 'boat', 'flight', 'walk'];
-const KIND_ENUM = ['moto', 'bike', 'walk', '4x4', 'other'];
+const KIND_ENUM = ['moto', 'bike', 'walk', '4x4', 'car', 'other'];
 
 export function buildJourneyPrompt(): string {
   return `The attached text is a travel story: a blog post, an article, or a passage from a book about a journey.
