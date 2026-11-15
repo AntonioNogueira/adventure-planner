@@ -6,7 +6,7 @@ export const DAKAR = [
   "id": "dakar-1979",
   "title": "1979 Paris–Dakar Rally",
   "who": "Won by Alain Génestier (Range Rover) and Cyril Neveu (Yamaha XT500)",
-  "when": "1979",
+  "when": "26 December 1978 – 14 January 1979",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
@@ -27,7 +27,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1979 Paris–Dakar Rally."
+    "date": "26 Dec 1978",
+    "text": "The start of the first Paris–Dakar: 182 competitors (80 cars, 90 bikes, 12 trucks) leave the Place du Trocadéro on Boxing Day."
    },
    {
     "q": "Montlhéry",
@@ -37,7 +38,8 @@ export const DAKAR = [
      2.2711
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "26 Dec 1978",
+    "text": "Bivouac after stage 1's short opening special at the Montlhéry circuit, 3.6 km."
    },
    {
     "q": "Marseille",
@@ -47,7 +49,8 @@ export const DAKAR = [
      5.3778
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 27 December 1978."
+    "date": "27 Dec 1978",
+    "text": "A liaison south through France to the port; then three days' transport across the Mediterranean."
    },
    {
     "q": "Algiers",
@@ -58,7 +61,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "31 Dec 1978",
+    "text": "Back on land in Africa: stage 2 starts with a long liaison south into the Sahara."
    },
    {
     "q": "Reggane",
@@ -68,7 +72,8 @@ export const DAKAR = [
      0.1752
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "31 Dec 1978",
+    "text": "Bivouac on stage 2, deep in the Algerian Sahara."
    },
    {
     "q": "In Salah",
@@ -78,7 +83,8 @@ export const DAKAR = [
      3.5212
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1 January 1979."
+    "date": "1 Jan 1979",
+    "text": "New Year's Day: a 270 km special from Reggane to In Salah, still stage 2."
    },
    {
     "q": "Tamanrasset",
@@ -88,7 +94,8 @@ export const DAKAR = [
      4.3208
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2 January 1979."
+    "date": "2 Jan 1979",
+    "text": "A liaison down to Tamanrasset in the Hoggar mountains, the end of stage 2."
    },
    {
     "q": "In Guezzam",
@@ -98,7 +105,8 @@ export const DAKAR = [
      4.6766
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 1979",
+    "text": "Stage 3 begins: a 373 km special to In Guezzam, the last Algerian post before Niger."
    },
    {
     "q": "Assamaka",
@@ -108,7 +116,8 @@ export const DAKAR = [
      5.7731
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "4 Jan 1979",
+    "text": "Across the border: the day's 230 km special starts at the Niger frontier post."
    },
    {
     "q": "Arlit",
@@ -118,7 +127,8 @@ export const DAKAR = [
      7.3933
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4 January 1979."
+    "date": "4 Jan 1979",
+    "text": "Bivouac at the uranium-mining town of Arlit, still stage 3."
    },
    {
     "q": "Agadez",
@@ -128,7 +138,8 @@ export const DAKAR = [
      7.9907
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5 January 1979."
+    "date": "5 Jan 1979",
+    "text": "The 231 km Arlit–Agadez special, where about a quarter of the field got lost, early leader Christophe Neveu among them."
    },
    {
     "q": "Niamey",
@@ -138,7 +149,8 @@ export const DAKAR = [
      2.1098
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "6 Jan 1979",
+    "text": "Stage 4: 230 km timed on the way south-west to Niger's capital."
    },
    {
     "q": "Gao",
@@ -148,7 +160,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "7 Jan 1979",
+    "text": "Stage 5 into Mali; its special was cancelled. A rest day in Gao followed."
    },
    {
     "q": "Mopti",
@@ -158,7 +171,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "9 Jan 1979",
+    "text": "Stage 6: a 600 km special along the Niger, won among the cars by Alain Génestier."
    },
    {
     "q": "Bamako",
@@ -168,7 +182,8 @@ export const DAKAR = [
      -8.0003
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10 January 1979."
+    "date": "10 Jan 1979",
+    "text": "A liaison to Mali's capital to end stage 6."
    },
    {
     "q": "Nioro du Sahel",
@@ -178,7 +193,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "11 Jan 1979",
+    "text": "Stage 7: 417 km to Nioro du Sahel, a stage so hard its time limit was extended."
    },
    {
     "q": "Kayes",
@@ -188,7 +204,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "12 Jan 1979",
+    "text": "Stage 8 begins with a 270 km special to Kayes."
    },
    {
     "q": "Bakel",
@@ -198,7 +215,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13 January 1979."
+    "date": "13 Jan 1979",
+    "text": "Across the Senegal river into Senegal for the last night."
    },
    {
     "q": "Dakar",
@@ -208,7 +226,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1979 Paris–Dakar Rally (after stage 14 January 1979)."
+    "date": "14 Jan 1979",
+    "text": "The finish after a final 96 km special. 74 of 182 starters made it; Cyril Neveu won on a Yamaha XT500 without winning a single stage."
    }
   ]
  },
@@ -216,12 +235,16 @@ export const DAKAR = [
   "id": "dakar-1980",
   "title": "1980 Dakar Rally",
   "who": "Won by Freddy Kottulinsky (Volkswagen Iltis) and Cyril Neveu (Yamaha)",
-  "when": "1980",
+  "when": "1–23 January 1980",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1980 edition of the Dakar Rally, in its African era: 20 stage towns and bivouacs through France, Algeria, Mali, Burkina Faso, Senegal. Winners — Cars: Freddy Kottulinsky (Volkswagen Iltis); Bikes: Cyril Neveu (Yamaha).",
   "sources": [
+   {
+    "label": "The Drive: why VW entered its Iltis in the Paris–Dakar",
+    "url": "https://www.thedrive.com/accelerator/36348/vw-entered-its-iltis-suv-in-the-paris-dakar-rally-to-attract-orders-from-the-french-military"
+   },
    {
     "label": "Wikipedia: 1980 Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1980_Dakar_Rally"
@@ -237,7 +260,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1980 Dakar Rally."
+    "date": "1 Jan 1980",
+    "text": "The start of the second Paris–Dakar, with 216 competitors."
    },
    {
     "q": "Olivet",
@@ -247,7 +271,8 @@ export const DAKAR = [
      1.9016
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage P."
+    "date": "1 Jan 1980",
+    "text": "Bivouac after the 4 km prologue near Orléans."
    },
    {
     "q": "Marseille",
@@ -257,7 +282,8 @@ export const DAKAR = [
      5.3778
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2 January."
+    "date": "2 Jan 1980",
+    "text": "A liaison south to Marseille; then three days' transport to Algeria."
    },
    {
     "q": "Algiers",
@@ -268,7 +294,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "6 Jan 1980",
+    "text": "Stage 1 starts in Algiers after the crossing."
    },
    {
     "q": "In Salah",
@@ -278,6 +305,7 @@ export const DAKAR = [
      3.5212
     ],
     "route": "line",
+    "date": "6 Jan 1980",
     "text": "Bivouac at the end of stage 1."
    },
    {
@@ -288,7 +316,8 @@ export const DAKAR = [
      0.1752
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "7 Jan 1980",
+    "text": "Stage 2 begins: 270 km timed to Reggane."
    },
    {
     "q": "Bordj Badji Mokhtar",
@@ -298,7 +327,8 @@ export const DAKAR = [
      0.1276
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8 January."
+    "date": "8 Jan 1980",
+    "text": "A huge 630 km special south across the Tanezrouft to the Malian border."
    },
    {
     "q": "Gao",
@@ -308,7 +338,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9 January."
+    "date": "9 Jan 1980",
+    "text": "Another 675 km special into Mali, won by Freddy Kottulinsky's VW Iltis, then a rest day in Gao."
    },
    {
     "q": "Mopti",
@@ -318,7 +349,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "11 Jan 1980",
+    "text": "Stage 3 begins: 595 km to Mopti, Kottulinsky again fastest."
    },
    {
     "q": "Niono",
@@ -328,7 +360,8 @@ export const DAKAR = [
      -5.9783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12 January."
+    "date": "12 Jan 1980",
+    "text": "A liaison west to Niono."
    },
    {
     "q": "Tombouctou",
@@ -338,7 +371,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13 January."
+    "date": "13 Jan 1980",
+    "text": "A 570 km special north to Timbuktu."
    },
    {
     "q": "Gao",
@@ -348,7 +382,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14 January."
+    "date": "14 Jan 1980",
+    "text": "Back east along the Niger to Gao, the end of stage 3."
    },
    {
     "q": "Bobo-Dioulasso",
@@ -358,7 +393,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "15 Jan 1980",
+    "text": "Stage 4: a liaison south into Upper Volta (today Burkina Faso)."
    },
    {
     "q": "Kolokani",
@@ -368,7 +404,8 @@ export const DAKAR = [
      -8.0332
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "16 Jan 1980",
+    "text": "Stage 5 back into Mali, then a rest day."
    },
    {
     "q": "Nioro du Sahel",
@@ -378,7 +415,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "18 Jan 1980",
+    "text": "Stage 6 begins with 280 km timed."
    },
    {
     "q": "Kayes",
@@ -388,7 +426,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 19 January."
+    "date": "19 Jan 1980",
+    "text": "A 247 km special to Kayes to end stage 6."
    },
    {
     "q": "Bakel",
@@ -398,7 +437,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "20 Jan 1980",
+    "text": "Stage 7: a liaison across the river into Senegal."
    },
    {
     "q": "Linguère",
@@ -408,7 +448,8 @@ export const DAKAR = [
      -15.1153
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 21 January."
+    "date": "21 Jan 1980",
+    "text": "Liaison on across the Senegalese savanna."
    },
    {
     "q": "Lompoul",
@@ -418,7 +459,8 @@ export const DAKAR = [
      -16.7287
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 22 January."
+    "date": "22 Jan 1980",
+    "text": "An 87 km special to the dunes of Lompoul near the Atlantic."
    },
    {
     "q": "Dakar",
@@ -428,7 +470,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1980 Dakar Rally (after stage 23 January)."
+    "date": "23 Jan 1980",
+    "text": "The finish. Cyril Neveu won on a Yamaha for the second year running, Kottulinsky the cars in a VW Iltis, and Zohra Ataouat the first truck class."
    }
   ]
  },
