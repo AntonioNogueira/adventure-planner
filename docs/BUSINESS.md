@@ -272,6 +272,9 @@ Rally editions generated from Wikipedia's stage tables (scripts/inspiration/daka
 Batch 5 (Brazil and South America first): Estrada Real, Caminho da Fé, Rota das Emoções, Jalapão, Transpantaneira,
 Serra Catarinense, Vale do Pati, Transamazônica, Salkantay, Huayhuash, Quilotoa, Ruta 40, Colombia, Death Road, Pacific
 Coast by bike, Mongolia, Oman, Wild Atlantic Way, Sardinia, Uzbekistan. 104 journeys in all.
+Batch 6: Via Francigena, Alta Via 1, Everest Base Camp, Overland Track, John Muir Trail, Fishermen's Trail, Loire à
+Vélo, Hebridean Way, Round Taiwan, Tour Aotearoa, Icefields Parkway, Alpine passes, Norway's fjords, Albania, Mae Hong Son,
+Blue Ridge and the Dragon, Dalton Highway, Cape York, Karakoram Highway, Iceland's Highlands. 124 journeys.
 
 Daily check (scheduled task "Inspire: daily trip-report check", 03:17 Lisbon): a fresh session takes the ~10 journeys
 checked least recently (scripts/inspiration/checked.json), looks for newer trip reports and confirming sources, updates
