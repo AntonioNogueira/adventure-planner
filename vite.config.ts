@@ -14,13 +14,15 @@ export default defineConfig(({ mode, command }) => {
     .map(id => [id, (env[`CHECKOUT_URL_${id.toUpperCase()}`] || '').trim()])
     .filter(([, url]) => /^https:\/\//.test(url)));
   // Affiliate IDs for the booking links in place popups (empty = links without commission).
-  const ids = ([['booking', 'BOOKING_AID'], ['getyourguide', 'GETYOURGUIDE_PARTNER_ID']] as const)
+  const ids = ([['booking', 'BOOKING_AID'], ['getyourguide', 'GETYOURGUIDE_PARTNER_ID'], ['amazon', 'AMAZON_TAG'], ['bookshop', 'BOOKSHOP_AFFILIATE_ID']] as const)
     .map(([key, name]) => [key, (env[name] || '').replace(/[^\w-]/g, '')]);
   // Partner link templates (https only) with {q} {name} {town} {checkin} {checkout}.
   const templates = ([['hostels', 'AFFILIATE_HOSTELS_URL'], ['campsites', 'AFFILIATE_CAMPSITES_URL'], ['rentals', 'AFFILIATE_RENTALS_URL']] as const)
     .map(([key, name]) => [key, (env[name] || '').trim()])
     .map(([key, url]) => [key, /^https:\/\/[^\s"<>]+$/.test(url) ? url : '']);
-  const affiliates = Object.fromEntries([...ids, ...templates].filter(([, v]) => v));
+  // The Amazon store books and gear link to (amazon.es serves Portugal and Spain); not a tracking id.
+  const amazonDomain = /^amazon\.[a-z.]{2,8}$/.test((env.AMAZON_DOMAIN || '').trim()) ? env.AMAZON_DOMAIN.trim() : '';
+  const affiliates = Object.fromEntries([...ids, ...templates, ['amazonDomain', amazonDomain]].filter(([, v]) => v));
   // OpenStreetMap servers (https only): own or paid ones in production; empty = the free public servers.
   const https = (v?: string) => (v || '').split(',').map(s => s.trim()).filter(u => /^https:\/\/[^\s"<>]+$/.test(u));
   const services = Object.fromEntries(([

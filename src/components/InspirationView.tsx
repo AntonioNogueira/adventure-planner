@@ -5,12 +5,13 @@ import * as maplibregl from 'maplibre-gl';
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
-import { ArrowLeft, Bike, Compass, ExternalLink, Loader2, MapPinned, Sparkles, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, Bike, BookOpen, Compass, ExternalLink, Loader2, MapPinned, PlayCircle, Sparkles, Trash2, Upload } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { checkAdmin, loadPublished, summarize, unpublishJourney } from '../lib/inspirationStore';
 import ImportJourney from './ImportJourney';
-import { TOPO_STYLE } from '../lib/mapStyle';
+import { GLOBE_STYLE } from '../lib/mapStyle';
+import { mediaLinks } from '../lib/affiliate';
 import { useSettings } from '../lib/settings';
 import { Journey, JourneyStop, JourneySummary, LEG_WORDS, ON_ROAD, loadJourney, loadJourneys, sectionPrompt } from '../lib/inspiration';
 import { cn } from '../lib/utils';
@@ -29,6 +30,25 @@ const feature = (line: Line, properties: Record<string, unknown>) => ({
   type: 'Feature' as const, properties, geometry: { type: 'LineString' as const, coordinates: line.map(([lat, lng]) => [lng, lat]) },
 });
 const collection = (features: ReturnType<typeof feature>[]) => ({ type: 'FeatureCollection' as const, features });
+
+/** Only the first Dakar (1979) shows by default; the other editions stay under the Rally filter or a search. */
+const archived = (j: { id: string }) => j.id.startsWith('dakar-') && j.id !== 'dakar-1979';
+
+/** Points every ~1° along the journeys' overview lines, for the heatmap seen from far away. */
+function heatPoints(lines: Line[]) {
+  const pts: { type: 'Feature'; properties: Record<string, never>; geometry: { type: 'Point'; coordinates: [number, number] } }[] = [];
+  for (const line of lines) {
+    for (let i = 1; i < line.length; i++) {
+      const [a, b] = [line[i - 1], line[i]];
+      const steps = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1])));
+      for (let k = 0; k < steps; k++) {
+        const f = k / steps;
+        pts.push({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [a[1] + (b[1] - a[1]) * f, a[0] + (b[0] - a[0]) * f] } });
+      }
+    }
+  }
+  return { type: 'FeatureCollection' as const, features: pts };
+}
 
 /** A stop's balloon: photo with credit, where and when, the story, and "plan this stretch". */
 const StopCard: React.FC<{ journey: Journey; index: number; onPlan: (prompt: string) => void }> = ({ journey, index, onPlan }) => {
@@ -60,6 +80,12 @@ const StopCard: React.FC<{ journey: Journey; index: number; onPlan: (prompt: str
           {t('Read more')}: {stop.source.label} ↗
         </a>
       )}
+      {stop.video && (
+        <a href={stop.video.url} target="_blank" rel="noopener noreferrer"
+          className="flex w-full items-center justify-center gap-1.5 rounded-md bg-red-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-red-700">
+          <PlayCircle size={13} />{t('Watch episode')}: <span className="truncate font-semibold">{stop.video.label}</span>
+        </a>
+      )}
       {nextByRoad && (
         <button onClick={() => onPlan(sectionPrompt(journey, stop, next))}
           className="flex w-full items-center justify-center gap-1.5 rounded-md bg-emerald-700 px-2 py-1.5 text-xs font-bold text-white hover:bg-emerald-800">
@@ -71,7 +97,7 @@ const StopCard: React.FC<{ journey: Journey; index: number; onPlan: (prompt: str
 };
 
 const InspirationView: React.FC<Props> = ({ onPlan }) => {
-  const { t, dist } = useSettings();
+  const { t, dist, locale } = useSettings();
   const [list, setList] = useState<JourneySummary[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [journey, setJourney] = useState<Journey | null>(null);
@@ -114,6 +140,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   const all = useMemo(() => every.filter(j => {
     const year = Number(j.when.match(/\d{4}/)?.[0] || 0);
     if (kind && j.kind !== kind) return false;
+    if (kind !== 'rally' && !words.trim() && archived(j)) return false;
     if (era === 'old' && !(year && year < 1990)) return false;
     if (era === 'new' && !(year >= 1990)) return false;
     const q = words.trim().toLowerCase();
@@ -132,7 +159,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   // The map, once.
   useEffect(() => {
     if (!container.current) return;
-    const map = new maplibregl.Map({ container: container.current, style: TOPO_STYLE, center: [10, 25], zoom: narrow() ? 0.9 : 1.9, attributionControl: { compact: true } });
+    const map = new maplibregl.Map({ container: container.current, style: GLOBE_STYLE, center: [10, 25], zoom: narrow() ? 0.9 : 1.9, attributionControl: { compact: true } });
     // The globe sits beside the panel (desktop) or above the sheet (phones).
     map.setPadding(narrow() ? { top: 60, bottom: Math.round((container.current.clientHeight || 800) * 0.45), left: 0, right: 0 } : { left: 380, top: 40, right: 0, bottom: 0 });
     // A globe: the journeys wrap round the world as they did. It turns slowly until the visitor touches it.
@@ -151,11 +178,20 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     map.on('load', () => {
       map.addSource('overview', { type: 'geojson', data: collection([]) });
       map.addSource('journey', { type: 'geojson', data: collection([]) });
-      map.addLayer({ id: 'overview-casing', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': 6, 'line-opacity': ['case', ['get', 'dim'], 0.15, 0.9] } });
-      map.addLayer({ id: 'overview-line', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 3.5, 'line-opacity': ['case', ['get', 'dim'], 0.25, 0.95] } });
-      map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': 8, 'line-opacity': 0.9 } });
-      map.addLayer({ id: 'journey-road', type: 'line', source: 'journey', filter: ['get', 'road'], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4.5 } });
-      map.addLayer({ id: 'journey-other', type: 'line', source: 'journey', filter: ['!', ['get', 'road']], layout: { 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-dasharray': [1.5, 1.5] } });
+      map.addSource('heat', { type: 'geojson', data: heatPoints([]) });
+      // From far away: a glow where the journeys are; zoom in and it gives way to the individual (thin) lines.
+      map.addLayer({ id: 'heat', type: 'heatmap', source: 'heat', maxzoom: 5, paint: {
+        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 5, 2, 10, 4, 20],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 4, 1.2],
+        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 2.4, 0.85, 3.8, 0],
+        'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.15, 'rgba(253,224,71,0.45)', 0.4, 'rgba(251,146,60,0.75)', 0.7, '#f97316', 1, '#dc2626'],
+      } });
+      const fade = (low: number, high: number) => ['interpolate', ['linear'], ['zoom'], 1.8, low, 3.4, high] as unknown as number;
+      map.addLayer({ id: 'overview-casing', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 1.5, 6, 3.5], 'line-opacity': fade(0.05, 0.55) } });
+      map.addLayer({ id: 'overview-line', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.8, 6, 2], 'line-opacity': fade(0.2, 0.95) } });
+      map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 3, 8, 5.5], 'line-opacity': 0.85 } });
+      map.addLayer({ id: 'journey-road', type: 'line', source: 'journey', filter: ['get', 'road'], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.6, 8, 3.2] } });
+      map.addLayer({ id: 'journey-other', type: 'line', source: 'journey', filter: ['!', ['get', 'road']], layout: { 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.4, 8, 2.6], 'line-dasharray': [1.5, 1.5] } });
       const pick = (e: maplibregl.MapLayerMouseEvent) => { const id = e.features?.[0]?.properties?.id; if (id) selectRef.current(String(id)); };
       map.on('click', 'overview-line', pick);
       map.on('mouseenter', 'overview-line', () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -175,6 +211,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
       shown ? [] : all.map(j => feature(j.overview, { id: j.id, color: j.color, dim: false })),
     ));
+    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.map(j => j.overview)));
   }, [ready, all, shown]);
 
   const openStop = (index: number, fly = true) => {
@@ -258,6 +295,11 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
                 ))}
               </div>
               {list && all.length === 0 && <p className="text-xs text-slate-500">{t('No journey matches these filters yet.')}</p>}
+              {list && kind !== 'rally' && !words.trim() && every.some(archived) && (
+                <button onClick={() => setKind('rally')} className="text-[10.5px] font-semibold text-emerald-700 hover:underline">
+                  {t('+{n} more Dakar Rally editions under Rally', { n: every.filter(archived).length })}
+                </button>
+              )}
             </div>
             {admin && (
               <button onClick={() => { setJourney(null); setImporting(true); }}
@@ -304,6 +346,25 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
                 <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 font-semibold text-emerald-700 hover:underline">{s.label}<ExternalLink size={10} /></a>
               ))}
             </p>
+            {journey.media && journey.media.length > 0 && (
+              <div className="rounded-md border border-slate-200 bg-white p-2">
+                <p className="mb-1 flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-wide text-slate-600"><BookOpen size={11} />{t('Books, films & more')}</p>
+                <ul className="space-y-1">
+                  {journey.media.map(m => (
+                    <li key={m.kind + m.title} className="text-[11px] leading-snug">
+                      <span className="font-semibold text-slate-800">{m.title}</span>{m.by && <span className="text-slate-500"> · {m.by}</span>}
+                      {m.note && <span className="block text-[10px] text-slate-500">{m.note}</span>}
+                      <span className="mt-0.5 flex flex-wrap gap-x-2">
+                        {mediaLinks(m, locale.startsWith('pt') ? 'pt' : 'us').map(l => (
+                          <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex items-center gap-0.5 font-semibold text-emerald-700 hover:underline">{t(l.label)}<ExternalLink size={9} /></a>
+                        ))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1 text-[9.5px] text-slate-400">{t('Some links may earn us a small commission, at no extra cost to you.')}</p>
+              </div>
+            )}
             <ol className="space-y-1">
               {journey.stops.map((stop, i) => (
                 <li key={i}>
@@ -311,7 +372,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 bg-white text-[9px] font-bold" style={{ borderColor: journey.color, color: journey.color }}>{i + 1}</span>
                     {stop.photo && <img src={stop.photo.url} alt="" loading="lazy" className="h-10 w-10 shrink-0 rounded object-cover" />}
                     <span className="min-w-0">
-                      <span className="block text-xs font-semibold text-slate-800">{stop.name}</span>
+                      <span className="flex items-center gap-1 text-xs font-semibold text-slate-800">{stop.name}{stop.video && <PlayCircle size={11} className="text-red-600" aria-label={t('Has an episode')} />}</span>
                       <span className={cn('block text-[10.5px] text-slate-500', 'line-clamp-2')}>
                         {[stop.date, stop.by && LEG_WORDS[stop.by] && t(`Arrived ${LEG_WORDS[stop.by]}`)].filter(Boolean).join(' · ')}{(stop.date || (stop.by && LEG_WORDS[stop.by])) ? ' · ' : ''}{stop.text}
                       </span>

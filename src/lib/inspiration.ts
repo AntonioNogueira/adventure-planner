@@ -15,6 +15,8 @@ export interface JourneyStop {
   photo?: JourneyPhoto;
   /** A recent trip report or guide that passes here (classic routes). */
   source?: { label: string; url: string };
+  /** The video episode filmed here (travellers' channels). */
+  video?: { label: string; url: string };
 }
 export interface JourneyLeg { by: LegKind; km: number; line: [number, number][] }
 export interface JourneySummary {
@@ -28,6 +30,8 @@ export interface JourneySummary {
   summary: string;
   sources: { label: string; url: string }[];
   approximate?: string;
+  /** Books, films, free texts, shops and channels about this journey. */
+  media?: import('./affiliate').MediaItem[];
   km: number;
   bbox: [number, number, number, number];
   stopCount: number;

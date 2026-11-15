@@ -212,7 +212,7 @@ async function build(journey) {
     bbox: [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
     stops: stops.map(s => ({
       name: s.name, place: s.q || s.name, at: [Math.round(s.at[0] * 1e4) / 1e4, Math.round(s.at[1] * 1e4) / 1e4],
-      ...(s.date ? { date: s.date } : {}), text: s.text, ...(s.by ? { by: s.by } : {}), ...(s.source ? { source: s.source } : {}),
+      ...(s.date ? { date: s.date } : {}), text: s.text, ...(s.by ? { by: s.by } : {}), ...(s.source ? { source: s.source } : {}), ...(s.video ? { video: s.video } : {}),
       ...(pics[s.wiki] ? { photo: pics[s.wiki] } : {}),
     })),
     legs,
@@ -224,8 +224,20 @@ async function build(journey) {
 }
 
 mkdirSync(OUT, { recursive: true });
-const only = process.argv.slice(2);
-for (const j of JOURNEYS) if (!only.length || only.includes(j.id)) await build(j);
+// --meta: update only the descriptive fields (title, summary, sources, media, ...) of already-built journeys,
+// without geocoding or routing again (so nothing moves).
+const metaOnly = process.argv.includes('--meta');
+const only = process.argv.slice(2).filter(a => !a.startsWith('--'));
+for (const j of JOURNEYS) {
+  if (only.length && !only.includes(j.id)) continue;
+  const file = new URL(`${j.id}.json`, OUT);
+  if (metaOnly && existsSync(file)) {
+    const old = JSON.parse(readFileSync(file, 'utf8'));
+    const { stops: _s, route: _r, ...meta } = j;
+    writeFileSync(file, JSON.stringify({ ...old, ...meta, km: old.km, bbox: old.bbox, stops: old.stops, legs: old.legs }));
+    console.log(`meta updated: ${j.id}`);
+  } else if (!metaOnly) await build(j);
+}
 // The list the map loads first: what each journey is, with a light line for the overview.
 const index = JOURNEYS.filter(j => existsSync(new URL(`${j.id}.json`, OUT))).map(j => {
   const full = JSON.parse(readFileSync(new URL(`${j.id}.json`, OUT), 'utf8'));
