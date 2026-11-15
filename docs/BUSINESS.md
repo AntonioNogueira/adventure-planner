@@ -268,7 +268,15 @@ India's Western Ghats, Kilimanjaro Machame, Namibia, Botswana, Cape Town–Garde
 Lisbon–Dakar. Batch 3 done: Kumano Kodo, Lycian Way, Iceland Ring Road by bike, Danube Passau–Budapest, Route 66,
 Great Ocean Road, Transfăgărășan–Transalpina, Georgia (Kazbegi and Svaneti), Utah's Mighty Five, Torres del Paine W.
 71 left. Batch 4: Capelo & Ivens (De Angola à Contra-Costa), Livingstone 1853–56, Baja 1000 (2025), and 37 Dakar
-Rally editions generated from Wikipedia's stage tables (scripts/inspiration/dakar/); missing: 1983–89, 1991, 1993, 1994. Lessons: give `at` coordinates for places with accents or that share a name
+Rally editions generated from Wikipedia's stage tables (scripts/inspiration/dakar/); missing: 1983–89, 1991, 1993, 1994.
+Batch 5 (Brazil and South America first): Estrada Real, Caminho da Fé, Rota das Emoções, Jalapão, Transpantaneira,
+Serra Catarinense, Vale do Pati, Transamazônica, Salkantay, Huayhuash, Quilotoa, Ruta 40, Colombia, Death Road, Pacific
+Coast by bike, Mongolia, Oman, Wild Atlantic Way, Sardinia, Uzbekistan. 104 journeys in all.
+
+Daily check (scheduled task "Inspire: daily trip-report check", 03:17 Lisbon): a fresh session takes the ~10 journeys
+checked least recently (scripts/inspiration/checked.json), looks for newer trip reports and confirming sources, updates
+sources/dates/facts and opens or updates the pull request "Inspire: trip-report updates" on branch inspire-updates.
+Nothing goes live until the PR is merged. Lessons: give `at` coordinates for places with accents or that share a name
 (Vietnamese and Nepali villages, Campo CA); BRouter has no path over some high passes (Thorong La), so those legs
 are straight lines, and so are park roads the routers don't have (Etosha, Moremi): `route: 'line'`. The
 build now looks places up with Nominatim first, after checking them with a quick search script.
