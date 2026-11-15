@@ -11,9 +11,10 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { JOURNEYS as FAMOUS } from './journeys.mjs';
 import { CLASSICS } from './classics.mjs';
+import { DAKAR } from './dakar.mjs';
 
-// Famous journeys first, then the classic routes.
-const JOURNEYS = [...FAMOUS, ...CLASSICS];
+// Famous journeys first, then the classic routes, then the Dakar Rally editions.
+const JOURNEYS = [...FAMOUS, ...CLASSICS, ...DAKAR];
 
 const OUT = new URL('../../public/inspiration/', import.meta.url);
 const CACHE = process.env.INSPIRATION_CACHE || new URL('./.cache.json', import.meta.url).pathname;

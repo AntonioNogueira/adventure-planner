@@ -99,6 +99,6 @@ export function loadJourney(id: string): Promise<Journey> {
 
 /** The planner request for riding one stretch of a journey yourself. */
 export function sectionPrompt(journey: Pick<Journey, 'title' | 'kind'>, from: JourneyStop, to: JourneyStop): string {
-  const how = journey.kind === 'moto' ? 'by adventure motorcycle' : journey.kind === 'bike' ? 'by bike' : journey.kind === 'walk' ? 'on foot' : journey.kind === 'car' ? 'by car' : 'by 4x4';
+  const how = journey.kind === 'moto' ? 'by adventure motorcycle' : journey.kind === 'bike' ? 'by bike' : journey.kind === 'walk' ? 'on foot' : journey.kind === 'car' ? 'by car' : journey.kind === 'rally' ? 'by adventure motorcycle or 4x4' : 'by 4x4';
   return `${from.place || from.name} to ${to.place || to.name} ${how}, following ${journey.title}`;
 }

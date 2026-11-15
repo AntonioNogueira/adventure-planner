@@ -23,6 +23,8 @@ interface Props {
 }
 
 type Line = [number, number][];
+/** Journeys drawn in straight lines between a few known places (their real path was much longer). */
+const STRAIGHT = new Set(['capelo-ivens', 'livingstone-zambezi']);
 const feature = (line: Line, properties: Record<string, unknown>) => ({
   type: 'Feature' as const, properties, geometry: { type: 'LineString' as const, coordinates: line.map(([lat, lng]) => [lng, lat]) },
 });
@@ -223,6 +225,8 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     setJourney(null);
   };
 
+  // Rallies (bivouac to bivouac) and old explorations with only a few known places are drawn in straight lines: say so, so it isn't read as the race distance.
+  const kmLabel = (j: { id: string; km: number }) => (j.id.startsWith('dakar-') || STRAIGHT.has(j.id) ? t('{d} straight line', { d: dist(j.km, 0) }) : dist(j.km, 0));
   const totalKm = useMemo(() => all.reduce((n, j) => n + j.km, 0), [all]);
 
   return (
@@ -243,7 +247,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
               <input value={words} onChange={(e) => setWords(e.target.value)} placeholder={t('Search: a place, a rider, a bike…')} aria-label={t('Search journeys')}
                 className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs focus:border-emerald-400 focus:outline-none" />
               <div className="flex flex-wrap gap-1">
-                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Road trip']] as const).map(([id, label]) => (
+                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Road trip'], ['rally', 'Rally']] as const).map(([id, label]) => (
                   <button key={id || 'all'} onClick={() => setKind(id)} aria-pressed={kind === id}
                     className={cn('rounded-full border px-2 py-0.5 text-[10.5px] font-semibold', kind === id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50')}>{t(label)}</button>
                 ))}
@@ -272,7 +276,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
                     {j.title}{loading === j.id && <Loader2 size={13} className="animate-spin text-slate-400" />}
                   </p>
                   <p className="text-[11px] text-slate-600">{j.who} · {j.when}</p>
-                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-500"><Bike size={11} />{j.vehicle} · {dist(j.km, 0)} · {t('{n} stops', { n: j.stopCount })}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-500"><Bike size={11} />{j.vehicle} · {kmLabel(j)} · {t('{n} stops', { n: j.stopCount })}</p>
                 </div>
               </button>
             ))}
@@ -286,7 +290,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
               <div className="border-l-4 pl-2" style={{ borderColor: journey.color }}>
                 <h2 className="text-base font-bold leading-tight text-slate-900">{journey.title}</h2>
                 <p className="text-[11px] text-slate-600">{journey.who} · {journey.when}</p>
-                <p className="text-[11px] text-slate-500">{journey.vehicle} · {dist(journey.km, 0)} · {t('{n} stops', { n: journey.stops.length })}</p>
+                <p className="text-[11px] text-slate-500">{journey.vehicle} · {kmLabel(journey)} · {t('{n} stops', { n: journey.stops.length })}</p>
               </div>
             </div>
             <p className="text-xs leading-relaxed text-slate-700">{journey.summary}</p>

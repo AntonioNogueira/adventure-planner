@@ -267,7 +267,8 @@ Lagunas Route, Morocco Atlas–Sahara). Batch 2 done (India and Africa): Manali�
 India's Western Ghats, Kilimanjaro Machame, Namibia, Botswana, Cape Town–Garden Route by bike, Congo Nile Trail,
 Lisbon–Dakar. Batch 3 done: Kumano Kodo, Lycian Way, Iceland Ring Road by bike, Danube Passau–Budapest, Route 66,
 Great Ocean Road, Transfăgărășan–Transalpina, Georgia (Kazbegi and Svaneti), Utah's Mighty Five, Torres del Paine W.
-71 left. Lessons: give `at` coordinates for places with accents or that share a name
+71 left. Batch 4: Capelo & Ivens (De Angola à Contra-Costa), Livingstone 1853–56, Baja 1000 (2025), and 37 Dakar
+Rally editions generated from Wikipedia's stage tables (scripts/inspiration/dakar/); missing: 1983–89, 1991, 1993, 1994. Lessons: give `at` coordinates for places with accents or that share a name
 (Vietnamese and Nepali villages, Campo CA); BRouter has no path over some high passes (Thorong La), so those legs
 are straight lines, and so are park roads the routers don't have (Etosha, Moremi): `route: 'line'`. The
 build now looks places up with Nominatim first, after checking them with a quick search script.
