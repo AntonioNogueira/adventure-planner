@@ -28,3 +28,13 @@ export const GLOBE_STYLE: StyleSpecification = {
     { id: 'base', type: 'raster', source: 'base', minzoom: 4, paint: { ...TOPO_PAINT, 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6.5, 1] } },
   ],
 };
+
+/** Close-up satellite for the Inspiration map: MapTiler's when a key is set (sharp to street level; check your
+ *  MapTiler plan allows commercial use), else EOX's Sentinel-2 cloudless 2016 (CC BY 4.0, ~10 m). */
+export function closeSatellite(maptilerKey?: string) {
+  return maptilerKey
+    ? { type: 'raster' as const, tiles: [`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${maptilerKey}`], tileSize: 512, maxzoom: 20,
+        attribution: '<a href="https://www.maptiler.com/copyright/">© MapTiler</a>' }
+    : { type: 'raster' as const, tiles: ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg'], tileSize: 256, maxzoom: 15,
+        attribution: '<a href="https://s2maps.eu">Sentinel-2 cloudless 2016</a> by EOX (contains modified Copernicus Sentinel data)' };
+}

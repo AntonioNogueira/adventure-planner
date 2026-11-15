@@ -445,6 +445,7 @@ export const PT: Record<string, string> = {
   'Road trip': 'Viagem de carro',
   'Rally': 'Rali',
   'Watch episode': 'Ver episódio',
+  'Map style when zoomed in': 'Estilo do mapa de perto',
   'Has an episode': 'Tem episódio',
   'Books, films & more': 'Livros, filmes e mais',
   'Some links may earn us a small commission, at no extra cost to you.': 'Alguns links podem dar-nos uma pequena comissão, sem custo extra para si.',

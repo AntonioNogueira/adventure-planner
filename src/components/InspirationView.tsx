@@ -10,7 +10,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { checkAdmin, loadPublished, summarize, unpublishJourney } from '../lib/inspirationStore';
 import ImportJourney from './ImportJourney';
-import { GLOBE_STYLE } from '../lib/mapStyle';
+import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
+import { maptilerKey } from '../lib/maptiler';
 import { mediaLinks } from '../lib/affiliate';
 import { useSettings } from '../lib/settings';
 import { Journey, JourneyStop, JourneySummary, LEG_WORDS, ON_ROAD, loadJourney, loadJourneys, sectionPrompt } from '../lib/inspiration';
@@ -103,6 +104,10 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   const [journey, setJourney] = useState<Journey | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  // Close-up basemap: topographic (default) or satellite; remembered on this device.
+  const [basemap, setBasemap] = useState<'topo' | 'satellite'>(() => {
+    try { return localStorage.getItem('adventure-planner.inspire-basemap') === 'satellite' ? 'satellite' : 'topo'; } catch { return 'topo'; }
+  });
   // Journeys published with the import tool, and whether this user may import (admins only).
   const [published, setPublished] = useState<Journey[]>([]);
   const [uid, setUid] = useState<string | null>(null);
@@ -178,6 +183,9 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     map.on('load', () => {
       map.addSource('overview', { type: 'geojson', data: collection([]) });
       map.addSource('journey', { type: 'geojson', data: collection([]) });
+      map.addSource('satClose', closeSatellite(maptilerKey()));
+      map.addLayer({ id: 'satClose', type: 'raster', source: 'satClose', minzoom: 4, layout: { visibility: 'none' },
+        paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6.5, 1] } });
       map.addSource('heat', { type: 'geojson', data: heatPoints([]) });
       // From far away: a glow where the journeys are; zoom in and it gives way to the individual (thin) lines.
       map.addLayer({ id: 'heat', type: 'heatmap', source: 'heat', maxzoom: 5, paint: {
@@ -201,6 +209,14 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     });
     return () => { popup.current?.root.unmount(); map.remove(); mapRef.current = null; };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    map.setLayoutProperty('satClose', 'visibility', basemap === 'satellite' ? 'visible' : 'none');
+    map.setLayoutProperty('base', 'visibility', basemap === 'satellite' ? 'none' : 'visible');
+    try { localStorage.setItem('adventure-planner.inspire-basemap', basemap); } catch { /* not remembered */ }
+  }, [ready, basemap]);
 
   // All journeys (the chosen one bright, the others faint).
   useEffect(() => {
@@ -269,6 +285,12 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   return (
     <div className="absolute inset-0 z-[17] bg-[radial-gradient(ellipse_at_center,#1e3a4f_0%,#0b1622_70%)]">
       <div ref={container} className="h-full w-full" />
+      <div className="absolute right-2.5 top-[84px] z-10 flex overflow-hidden rounded-md border border-slate-300 bg-white text-[10.5px] font-semibold shadow" role="group" aria-label={t('Map style when zoomed in')}>
+        {(['topo', 'satellite'] as const).map(b => (
+          <button key={b} onClick={() => setBasemap(b)} aria-pressed={basemap === b}
+            className={cn('px-2 py-1', basemap === b ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-emerald-50')}>{t(b === 'topo' ? 'Topo' : 'Satellite')}</button>
+        ))}
+      </div>
       <aside className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4] p-3 shadow-2xl md:inset-x-auto md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[380px] md:rounded-none md:border-0 md:border-r">
         {importing && uid ? (
           <ImportJourney uid={uid} preview={preview} onPreview={setPreview} onClose={() => setImporting(false)}
