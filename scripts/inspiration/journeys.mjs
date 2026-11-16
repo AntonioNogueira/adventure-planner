@@ -13,6 +13,7 @@ export const JOURNEYS = [
     vehicle: 'BMW R1150GS Adventure',
     kind: 'moto',
     color: '#d97706',
+    media: [{"kind": "book", "title": "Long Way Round", "by": "Ewan McGregor & Charley Boorman"}, {"kind": "series", "title": "Long Way Round", "note": "TV series, 2004"}],
     summary: 'London to New York the long way: east across Europe, the Kazakh and Mongolian steppe, Siberia and the Road of Bones to Magadan, then across Alaska, Canada and the US. About 30,000 km in under four months, filmed as a TV series that inspired a generation of adventure riders.',
     sources: [
       { label: 'Eugene Kaspersky: two attempts at the abandoned Road of Bones (2026)', url: 'https://eugene.kaspersky.com/2026/04/09/two-attempts-at-the-infamous-abandoned-road-of-bones-in-siberia/' },
@@ -58,6 +59,7 @@ export const JOURNEYS = [
     vehicle: 'BMW R1200GS Adventure',
     kind: 'moto',
     color: '#b91c1c',
+    media: [{"kind": "book", "title": "Long Way Down", "by": "Ewan McGregor & Charley Boorman"}, {"kind": "series", "title": "Long Way Down", "note": "TV series, 2007"}],
     summary: 'From the northern tip of Scotland to Cape Town: down through Europe, across the Mediterranean to North Africa, then the whole length of Africa through eighteen countries, from the Sahara and the Nile to the Rift Valley and the Cape.',
     sources: [
       { label: 'Horizons Unlimited: a classic Cairo to Cape ride tale', url: 'https://horizonsunlimited.com/hubb/ride-tales/a-classic-cairo-to-cape-66602?nojs=1' },
@@ -106,6 +108,7 @@ export const JOURNEYS = [
     vehicle: 'Harley-Davidson LiveWire (electric)',
     kind: 'moto',
     color: '#0e7490',
+    media: [{"kind": "series", "title": "Long Way Up", "note": "TV series, Apple TV+, 2020"}],
     summary: 'From Ushuaia at the tip of South America to Los Angeles on prototype electric motorcycles: Patagonia, the Andes and the Atacama, the salt flats of Bolivia, Peru, Ecuador and Colombia, then up through Central America and Mexico. About 21,000 km, with range anxiety all the way.',
     sources: [
       { label: 'Overland Expo: takeaways from the 13,000-mile all-electric journey', url: 'https://www.overlandexpo.com/compass/rivian-r1t-13000-mile-long-way-up' },
@@ -175,6 +178,7 @@ export const JOURNEYS = [
     vehicle: '1939 Norton 500 "La Poderosa II"',
     kind: 'moto',
     color: '#4d7c0f',
+    media: [{"kind": "book", "title": "The Motorcycle Diaries", "by": "Ernesto Che Guevara"}, {"kind": "film", "title": "The Motorcycle Diaries", "note": "Film by Walter Salles, 2004"}],
     summary: 'Two young Argentines set off from Buenos Aires on an old Norton to see the continent. The bike died in Chile; they carried on by truck, ship, raft and plane through the Andes, the Atacama, Machu Picchu and the Amazon, a trip that changed one of them for ever.',
     sources: [
       { label: 'Motorcycle Classics: the route ridden again on period Norton 500s', url: 'https://www.motorcycleclassics.com/classic-motorcycle-touring/norton-500-zm0z12mazbea/' },
@@ -218,6 +222,7 @@ export const JOURNEYS = [
     vehicle: 'Triumph Tiger 100 (500 cc)',
     kind: 'moto',
     color: '#7c3aed',
+    media: [{"kind": "book", "title": "Jupiter's Travels", "by": "Ted Simon"}, {"kind": "book", "title": "Dreaming of Jupiter", "by": "Ted Simon", "note": "The same journey again, 27 years later"}],
     summary: 'A journalist rides alone round the world: four years, about 126,000 km and 45 countries, the length of Africa, South and North America, Australia and Asia. The book became the bible of round-the-world motorcycling.',
     sources: [
       { label: 'Adventure Bike Rider: an interview with Ted Simon', url: 'https://www.adventurebikerider.com/an-interview-with-ted-simon/' },
@@ -261,6 +266,7 @@ export const JOURNEYS = [
     vehicle: 'On foot, horse and camel caravans; home by sea',
     kind: 'other',
     color: '#92400e',
+    media: [{"kind": "book", "title": "The Travels of Marco Polo", "by": "Marco Polo"}, {"kind": "free", "title": "The Travels of Marco Polo", "note": "Old translations, free on Project Gutenberg", "url": "https://www.gutenberg.org/ebooks/search/?query=travels+of+marco+polo"}],
     summary: 'A young Venetian sets out with his merchant father and uncle along the Silk Road to the court of Kublai Khan, serves him for years, and returns by sea through Southeast Asia and India. His book opened Asia to European imagination for centuries.',
     sources: [
       { label: 'Britannica: Marco Polo', url: 'https://www.britannica.com/biography/Marco-Polo' },
@@ -299,6 +305,7 @@ export const JOURNEYS = [
     vehicle: 'On foot (and the odd lift)',
     kind: 'walk',
     color: '#9f1239',
+    media: [{"kind": "book", "title": "A Time of Gifts", "by": "Patrick Leigh Fermor"}, {"kind": "book", "title": "Between the Woods and the Water", "by": "Patrick Leigh Fermor"}, {"kind": "book", "title": "The Broken Road", "by": "Patrick Leigh Fermor"}],
     summary: 'At eighteen, Patrick Leigh Fermor walks from the Hook of Holland to Constantinople, sleeping in barns, monasteries and castles across a Europe on the eve of war. His books, written decades later, are among the finest travel writing ever.',
     sources: [
       { label: 'Intrepid Times: interview with Nick Hunt, who walked the route again', url: 'https://intrepidtimes.com/2016/08/nick-hunt/' },
@@ -331,6 +338,7 @@ export const JOURNEYS = [
     vehicle: 'Columbia penny-farthing (high-wheeler)',
     kind: 'bike',
     color: '#475569',
+    media: [{"kind": "free", "title": "Around the World on a Bicycle", "by": "Thomas Stevens", "note": "1887, free on Project Gutenberg", "url": "https://www.gutenberg.org/ebooks/search/?query=around+the+world+on+a+bicycle+stevens"}],
     summary: 'The first person to cycle round the world, on a high-wheeled penny-farthing with no gears and solid tyres: across the American West, Europe, Turkey and Persia, then India, China and Japan. The bikepacking pioneer.',
     sources: [
       { label: 'Berkhamsted Local History: Thomas Stevens crosses America by bicycle', url: 'https://berkhamsted-history.org.uk/thomas-stevens-a-berkhamsted-pioneer-crosses-america-by-bicycle/' },
@@ -364,6 +372,7 @@ export const JOURNEYS = [
     vehicle: 'Mountain or gravel bike',
     kind: 'bike',
     color: '#15803d',
+    media: [{"kind": "film", "title": "Ride the Divide", "note": "Documentary, 2010"}],
     summary: 'About 4,400 km of mostly gravel along the Rocky Mountains, from Banff in Canada to the Mexican border, crossing the Continental Divide again and again. The world\'s best-known bikepacking route: the race record is under two weeks; most riders take two months.',
     sources: [{ label: 'Wikipedia: Tour Divide', url: 'https://en.wikipedia.org/wiki/Tour_Divide' }, { label: 'Wikipedia: Great Divide Mountain Bike Route', url: 'https://en.wikipedia.org/wiki/Great_Divide_Mountain_Bike_Route' }],
     approximate: 'Towns on the route; the line between them follows roads, not the exact gravel tracks (use the official maps to ride it).',
@@ -534,6 +543,7 @@ export const JOURNEYS = [
     vehicle: 'On foot, with porters',
     kind: 'walk',
     color: '#166534',
+    media: [{"kind": "free", "title": "De Angola à Contra-Costa", "by": "Capelo & Ivens", "note": "1886, digitised copies on the Internet Archive", "url": "https://archive.org/search?query=De+Angola+%C3%A0+Contra-Costa"}],
     summary: 'Two Portuguese naval officers cross Africa from the Atlantic to the Indian Ocean, from Moçâmedes in Angola to Quelimane in Mozambique: about 8,300 km in some 14 months, a third of it through land no European had mapped. The expedition backed Portugal\'s "Pink Map" claim to the lands between its colonies, and their book "De Angola à Contra-Costa" (1886) became a classic of exploration.',
     sources: [
       { label: 'Wikipedia: Hermenegildo Capelo', url: 'https://en.wikipedia.org/wiki/Hermenegildo_Capelo' },
@@ -558,6 +568,7 @@ export const JOURNEYS = [
     vehicle: 'On foot and by canoe, with Makololo companions',
     kind: 'walk',
     color: '#78350f',
+    media: [{"kind": "book", "title": "Missionary Travels and Researches in South Africa", "by": "David Livingstone"}, {"kind": "free", "title": "Missionary Travels and Researches in South Africa", "note": "1857, free on Project Gutenberg", "url": "https://www.gutenberg.org/ebooks/search/?query=missionary+travels+livingstone"}],
     summary: 'The Scottish missionary sets out from the Makololo capital Linyanti to find a route to the coast: west to Luanda on the Atlantic, back again, then east down the Zambezi past the falls he named Victoria to Quelimane on the Indian Ocean. The first documented crossing of southern Africa by a European, told in his bestseller "Missionary Travels".',
     sources: [
       { label: 'History Today: Livingstone reaches the Victoria Falls', url: 'https://www.historytoday.com/archive/david-livingstone-reaches-victoria-falls' },

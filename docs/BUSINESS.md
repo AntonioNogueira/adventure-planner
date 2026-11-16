@@ -73,6 +73,19 @@ Affiliate links fit better than ads: the popups already have a named place, its 
 - Build plan: links generated from place name + town + nights, affiliate IDs in server settings (BOOKING_AID,
   GETYOURGUIDE_PARTNER_ID, …); without IDs the links still work, just without commission.
 
+### Books, films and creators (Inspiration journeys)
+
+- Journeys can list `media`: books (Amazon search links with AMAZON_TAG, store AMAZON_DOMAIN, default amazon.es;
+  Bookshop.org with BOOKSHOP_AFFILIATE_ID when the book has an ISBN), films/series (JustWatch "where to watch", no
+  commission), free classics (Gutenberg / Internet Archive) and creators' shops or channels. Tracking ids only after
+  cookie consent; a disclosure line under the links. Typical book commission ~4.5% (Amazon; rates were cut for some
+  publishers in 2025–26, check Associates Central for amazon.es), ~10% Bookshop.org (US/UK).
+- YouTube does not pay for referred traffic. Ways to earn from sending viewers to creators: partnerships once traffic
+  is measurable, creators' own affiliate or merch programmes, gear affiliate networks (Awin, AvantLink).
+- Stops can carry a `video` (episode link, "Watch episode" in the balloon). Ongoing travellers (Itchy Boots first)
+  need a YouTube Data API key in the environment (network secret for www.googleapis.com, header X-Goog-Api-Key);
+  map only published episodes, never a live position.
+
 ## 6. When does it pay? (rough model, per monthly active user)
 
 | | Free user on OpenStreetMap data | Free user on Google Places |

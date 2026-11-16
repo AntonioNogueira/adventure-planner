@@ -13,6 +13,9 @@ export interface AffiliateConfig {
   hostels?: string;
   campsites?: string;
   rentals?: string;
+  amazon?: string;
+  bookshop?: string;
+  amazonDomain?: string;
 }
 
 const configured = (): AffiliateConfig =>
@@ -97,4 +100,32 @@ export function offerFor(category: string | undefined, source?: string): 'stay' 
   if (source === 'reservation' || source === 'mine') return null;
   const id = categoryId(category || '');
   return id === 'stay' ? 'stay' : id === 'sights' && category ? 'tours' : null;
+}
+
+// ---- Books, films and products on Inspiration journeys ----
+
+export interface MediaItem { kind: 'book' | 'film' | 'series' | 'free' | 'shop' | 'channel'; title: string; by?: string; isbn?: string; url?: string; note?: string }
+export interface MediaLink { label: string; url: string; paid: boolean }
+
+/** Where to get a book, film or product: Amazon and Bookshop.org for books (with the affiliate ids when set up
+ *  and accepted), JustWatch for films, and the item's own link for free texts, shops and channels. */
+export function mediaLinks(m: MediaItem, country = 'pt', ids: AffiliateConfig = partners()): MediaLink[] {
+  const q = [m.title, m.by].filter(Boolean).join(' ');
+  if (m.kind === 'book') {
+    const domain = configured().amazonDomain || 'amazon.es';
+    const amazon = new URLSearchParams({ k: q, i: 'stripbooks' });
+    if (ids.amazon) amazon.set('tag', ids.amazon);
+    const bookshop = m.isbn
+      ? (ids.bookshop ? `https://bookshop.org/a/${ids.bookshop}/${m.isbn}` : `https://bookshop.org/book/${m.isbn}`)
+      : `https://bookshop.org/search?${new URLSearchParams({ keywords: q })}`;
+    return [
+      ...(m.url ? [{ label: 'Publisher', url: m.url, paid: false }] : []),
+      { label: 'Amazon', url: `https://www.${domain}/s?${amazon}`, paid: Boolean(ids.amazon) },
+      { label: 'Bookshop.org', url: bookshop, paid: Boolean(ids.bookshop && m.isbn) },
+    ];
+  }
+  if (m.kind === 'film' || m.kind === 'series') {
+    return [{ label: 'Where to watch', url: `https://www.justwatch.com/${country}/search?${new URLSearchParams({ q: m.title })}`, paid: false }];
+  }
+  return m.url ? [{ label: m.kind === 'free' ? 'Read free' : m.kind === 'channel' ? 'Watch' : 'Shop', url: m.url, paid: false }] : [];
 }
