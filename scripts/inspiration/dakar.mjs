@@ -479,12 +479,16 @@ export const DAKAR = [
   "id": "dakar-1981",
   "title": "1981 Paris–Dakar Rally",
   "who": "Won by René Metge (Range Rover) and Hubert Auriol (BMW)",
-  "when": "1981",
+  "when": "1–20 January 1981",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 1981 edition of the Dakar Rally, in its African era: 18 stage towns and bivouacs through France, Algeria, Mali, Burkina Faso, Ivory Coast, Senegal. Winners — Cars: René Metge (Range Rover); Bikes: Hubert Auriol (BMW).",
   "sources": [
+   {
+    "label": "BMW Group Classic: the BMW R80 G/S Paris–Dakar",
+    "url": "https://www.bmwgroup-classic.com/en/museum/bmw-motorcycle-racing/popup/bmw-r80-gs-paris-dakar.html"
+   },
    {
     "label": "Wikipedia: 1981 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1981_Paris%E2%80%93Dakar_Rally"
@@ -500,7 +504,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1981 Paris–Dakar Rally."
+    "date": "1 Jan 1981",
+    "text": "The start of the third Paris–Dakar."
    },
    {
     "q": "Olivet",
@@ -510,7 +515,8 @@ export const DAKAR = [
      1.9016
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 1981",
+    "text": "Bivouac at the end of stage 1, about 120 km from Paris."
    },
    {
     "q": "Sète",
@@ -520,7 +526,8 @@ export const DAKAR = [
      3.696
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1981",
+    "text": "Stage 2 runs about 625 km south to the port of Sète; then a day's transport to Algeria."
    },
    {
     "q": "Algiers",
@@ -531,7 +538,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 1981",
+    "text": "Stage 3 starts in Algiers, with the first night in Africa at Moudjbara to the south."
    },
    {
     "q": "Bordj Omar Driss",
@@ -541,7 +549,8 @@ export const DAKAR = [
      6.8208
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "5 Jan 1981",
+    "text": "A 949 km stage 4 deep into the Algerian Sahara."
    },
    {
     "q": "Tit",
@@ -551,7 +560,8 @@ export const DAKAR = [
      1.491
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "6 Jan 1981",
+    "text": "Stage 5: 605 km south to Tit in the Hoggar."
    },
    {
     "q": "Timiaouine",
@@ -561,7 +571,8 @@ export const DAKAR = [
      1.8125
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "7 Jan 1981",
+    "text": "Stage 6: 540 km to Timiaouine near the Malian border."
    },
    {
     "q": "Gao",
@@ -571,7 +582,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "8 Jan 1981",
+    "text": "Stage 7: 740 km into Mali, then a rest day in Gao."
    },
    {
     "q": "Tombouctou",
@@ -581,7 +593,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "10 Jan 1981",
+    "text": "Stage 8: 412 km up the Niger to Timbuktu."
    },
    {
     "q": "Niono",
@@ -591,7 +604,8 @@ export const DAKAR = [
      -5.9783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "11 Jan 1981",
+    "text": "Stage 9: 570 km south-west to Niono."
    },
    {
     "q": "Bobo-Dioulasso",
@@ -601,7 +615,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "12 Jan 1981",
+    "text": "Stage 10, the longest at about 1,080 km, into Upper Volta (today Burkina Faso)."
    },
    {
     "q": "Bouna",
@@ -611,7 +626,8 @@ export const DAKAR = [
      -2.999
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "13 Jan 1981",
+    "text": "Stage 11: 828 km into Côte d'Ivoire."
    },
    {
     "q": "Korhogo",
@@ -621,7 +637,8 @@ export const DAKAR = [
      -5.6316
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "14 Jan 1981",
+    "text": "Stage 12: 326 km across northern Côte d'Ivoire."
    },
    {
     "q": "Kolokani",
@@ -631,7 +648,8 @@ export const DAKAR = [
      -8.0332
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "15 Jan 1981",
+    "text": "Stage 13 back into Mali, then a rest day."
    },
    {
     "q": "Nioro du Sahel",
@@ -641,7 +659,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "17 Jan 1981",
+    "text": "Stage 14: 297 km to Nioro du Sahel."
    },
    {
     "q": "Bakel",
@@ -651,7 +670,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "18 Jan 1981",
+    "text": "Stage 15: 325 km into Senegal."
    },
    {
     "q": "Louga",
@@ -661,7 +681,8 @@ export const DAKAR = [
      -15.6779
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "19 Jan 1981",
+    "text": "Stage 16 across the Senegalese savanna."
    },
    {
     "q": "Dakar",
@@ -671,7 +692,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1981 Paris–Dakar Rally (after stage 17)."
+    "date": "20 Jan 1981",
+    "text": "The finish after a 96 km last stage. René Metge won the cars in a Range Rover despite gearbox trouble, and Hubert Auriol the bikes on a BMW R80 G/S."
    }
   ]
  },
@@ -679,12 +701,16 @@ export const DAKAR = [
   "id": "dakar-1982",
   "title": "1982 Paris–Dakar Rally",
   "who": "Won by Claude and Bernard Marreau (Renault 20) and Cyril Neveu (Honda)",
-  "when": "1982",
+  "when": "1–20 January 1982",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1982 edition of the Dakar Rally, in its African era: 18 stage towns and bivouacs through France, Algeria, Mali, Senegal. Winners — Cars: Claude and Bernard Marreau (Renault 20); Bikes: Cyril Neveu (Honda).",
   "sources": [
+   {
+    "label": "The Drive: five of the most heroic Dakar-winning cars",
+    "url": "https://www.thedrive.com/news/38732/here-are-five-of-the-most-heroic-dakar-rally-winning-cars-ever"
+   },
    {
     "label": "Wikipedia: 1982 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1982_Paris%E2%80%93Dakar_Rally"
@@ -700,7 +726,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1982 Paris–Dakar Rally."
+    "date": "1 Jan 1982",
+    "text": "The start of the fourth Paris–Dakar."
    },
    {
     "q": "Olivet",
@@ -710,6 +737,7 @@ export const DAKAR = [
      1.9016
     ],
     "route": "line",
+    "date": "1 Jan 1982",
     "text": "Bivouac at the end of stage 1."
    },
    {
@@ -720,7 +748,8 @@ export const DAKAR = [
      3.696
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1982",
+    "text": "Stage 2 south to the port of Sète; then a day's transport to Algeria."
    },
    {
     "q": "Algiers",
@@ -731,7 +760,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 1982",
+    "text": "Stage 3 starts in Algiers after the crossing."
    },
    {
     "q": "Ouled Djellal",
@@ -741,7 +771,8 @@ export const DAKAR = [
      4.8203
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "4 Jan 1982",
+    "text": "Bivouac after a 470 km stage 3, on the edge of the Sahara."
    },
    {
     "q": "Hassi Messaoud",
@@ -751,7 +782,8 @@ export const DAKAR = [
      6.0604
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "5 Jan 1982",
+    "text": "Stage 4 to the oil town of Hassi Messaoud."
    },
    {
     "q": "Bordj Omar Driss",
@@ -761,7 +793,8 @@ export const DAKAR = [
      6.8208
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "6 Jan 1982",
+    "text": "Stage 5: 414 km into the deep desert."
    },
    {
     "q": "Tit",
@@ -771,7 +804,8 @@ export const DAKAR = [
      1.491
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "7 Jan 1982",
+    "text": "Stage 6: 568 km south to Tit in the Hoggar."
    },
    {
     "q": "Timiaouine",
@@ -781,7 +815,8 @@ export const DAKAR = [
      1.8125
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "8 Jan 1982",
+    "text": "Stage 7: 538 km to Timiaouine. Somewhere near the Malian border Mark Thatcher, son of the British prime minister, went missing for days with his Peugeot."
    },
    {
     "q": "Gao",
@@ -791,7 +826,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "9 Jan 1982",
+    "text": "Stage 8: 740 km into Mali, then a rest day in Gao."
    },
    {
     "q": "Mopti",
@@ -801,7 +837,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "11 Jan 1982",
+    "text": "Stage 9: 538 km along the Niger to Mopti."
    },
    {
     "q": "Gao",
@@ -811,7 +848,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "12 Jan 1982",
+    "text": "Stage 10: back to Gao, and another rest day."
    },
    {
     "q": "Tombouctou",
@@ -821,7 +859,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "14 Jan 1982",
+    "text": "Stage 11: 424 km to Timbuktu."
    },
    {
     "q": "Niono",
@@ -831,7 +870,8 @@ export const DAKAR = [
      -5.9783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "15 Jan 1982",
+    "text": "Stage 12: 558 km to Niono."
    },
    {
     "q": "Nioro du Sahel",
@@ -841,7 +881,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "16 Jan 1982",
+    "text": "Stage 13: 517 km west to Nioro du Sahel."
    },
    {
     "q": "Tambacounda",
@@ -851,7 +892,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "17 Jan 1982",
+    "text": "Stage 14: 310 km into Senegal."
    },
    {
     "q": "Dahra",
@@ -861,7 +903,8 @@ export const DAKAR = [
      -15.4783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "18 Jan 1982",
+    "text": "Stage 15 to Dahra, then on via Tiougoune."
    },
    {
     "q": "Dakar",
@@ -871,7 +914,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1982 Paris–Dakar Rally (after stage 17)."
+    "date": "20 Jan 1982",
+    "text": "The finish. The Marreau brothers won the cars in their own Renault 20 Turbo 4x4, and Cyril Neveu the bikes for Honda, his third win."
    }
   ]
  },

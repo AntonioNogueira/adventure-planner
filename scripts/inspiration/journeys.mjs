@@ -373,8 +373,12 @@ export const JOURNEYS = [
     kind: 'bike',
     color: '#15803d',
     media: [{"kind": "film", "title": "Ride the Divide", "note": "Documentary, 2010"}],
-    summary: 'About 4,400 km of mostly gravel along the Rocky Mountains, from Banff in Canada to the Mexican border, crossing the Continental Divide again and again. The world\'s best-known bikepacking route: the race record is under two weeks; most riders take two months.',
-    sources: [{ label: 'Wikipedia: Tour Divide', url: 'https://en.wikipedia.org/wiki/Tour_Divide' }, { label: 'Wikipedia: Great Divide Mountain Bike Route', url: 'https://en.wikipedia.org/wiki/Great_Divide_Mountain_Bike_Route' }],
+    summary: 'About 4,400 km of mostly gravel along the Rocky Mountains, from Banff in Canada to the Mexican border, crossing the Continental Divide again and again. The world\'s best-known bikepacking route: the fastest racers now finish in under twelve days; most riders take two months.',
+    sources: [
+      { label: 'bikepacking.com: Robin Gemperle wins the 2025 Tour Divide', url: 'https://bikepacking.com/news/robin-gemperle-wins-the-2025-tour-divide/' },
+      { label: 'Wikipedia: Tour Divide', url: 'https://en.wikipedia.org/wiki/Tour_Divide' },
+      { label: 'Wikipedia: Great Divide Mountain Bike Route', url: 'https://en.wikipedia.org/wiki/Great_Divide_Mountain_Bike_Route' },
+    ],
     approximate: 'Towns on the route; the line between them follows roads, not the exact gravel tracks (use the official maps to ride it).',
     stops: [
       { q: 'Banff, Alberta', name: 'Banff', wiki: 'Banff, Alberta', text: 'The start in the Canadian Rockies, in June, often with snow still on the passes.' },
@@ -410,7 +414,11 @@ export const JOURNEYS = [
     kind: 'bike',
     color: '#be123c',
     summary: 'About 6,800 km coast to coast on quiet roads, from the Pacific in Oregon to the Atlantic in Virginia, through the Cascades, Yellowstone, the Rockies, the plains, the Ozarks and Appalachia. Created for America\'s bicentennial, when thousands rode it.',
-    sources: [{ label: 'Wikipedia: TransAmerica Trail (bicycle)', url: 'https://en.wikipedia.org/wiki/TransAmerica_Trail_(bicycle)' }],
+    sources: [
+      { label: 'National Geographic: 50 years of the TransAmerica Bike Trail', url: 'https://www.nationalgeographic.com/travel/article/transamerica-trail-united-states' },
+      { label: 'Adventure Cycling: TransAm westbound in segments', url: 'https://www.adventurecycling.org/companion/transam-westbound-in-segments/' },
+      { label: 'Wikipedia: TransAmerica Bicycle Trail', url: 'https://en.wikipedia.org/wiki/TransAmerica_Bicycle_Trail' },
+    ],
     approximate: 'Towns on the route; the line between them is approximate (use the official maps to ride it).',
     stops: [
       { q: 'Astoria, Oregon', name: 'Astoria', wiki: 'Astoria, Oregon', text: 'Dip your wheel in the Pacific at the mouth of the Columbia River.' },
@@ -440,7 +448,11 @@ export const JOURNEYS = [
     kind: 'bike',
     color: '#0369a1',
     summary: 'About 1,200 km of Chile\'s Route 7 through northern Patagonia: rainforest, fjords, glaciers and turquoise rivers, with ferries and long gravel stretches. A dream ride for cyclists and riders alike.',
-    sources: [{ label: 'Wikipedia: Carretera Austral', url: 'https://en.wikipedia.org/wiki/Carretera_Austral' }],
+    sources: [
+      { label: 'CycleBlaze: six weeks on the Carretera Austral (2024)', url: 'https://cycleblaze.com/journals/CarreteraAustral2024' },
+      { label: 'bikepacking.com: Touristas, pieces of the Carretera Austral', url: 'https://bikepacking.com/plog/touristas-carretera-austral/' },
+      { label: 'Wikipedia: Carretera Austral', url: 'https://en.wikipedia.org/wiki/Carretera_Austral' },
+    ],
     approximate: 'Main places on the road; ferry timetables change, so check before you go.',
     stops: [
       { q: 'Puerto Montt, Chile', name: 'Puerto Montt', wiki: 'Puerto Montt', text: 'The start of Route 7 at kilometre zero.' },
@@ -453,7 +465,7 @@ export const JOURNEYS = [
       { q: 'Villa Cerro Castillo, Chile', name: 'Cerro Castillo', wiki: 'Cerro Castillo National Park', text: 'A castle of rock above the road.' },
       { q: 'Puerto Río Tranquilo, Chile', name: 'Río Tranquilo', wiki: 'Marble Caves', text: 'The marble caves of General Carrera Lake.' },
       { q: 'Cochrane, Chile', name: 'Cochrane', wiki: 'Cochrane, Chile', text: 'Wild, empty valleys of Patagonia.' },
-      { q: 'Villa O\'Higgins, Chile', name: 'Villa O\'Higgins', wiki: 'Villa O\'Higgins', text: 'The end of the road. Hardy cyclists continue by boat and on foot into Argentina.' },
+      { q: 'Villa O\'Higgins, Chile', name: 'Villa O\'Higgins', wiki: 'Villa O\'Higgins', text: 'The end of the road. Hardy cyclists continue by boat and on foot into Argentina.', source: { label: 'CycleBlaze (2024)', url: 'https://cycleblaze.com/journals/carreteraaustral2024/day-29-villa-ohiggins-to-argentina' } },
     ],
   },
 
@@ -467,7 +479,11 @@ export const JOURNEYS = [
     kind: 'walk',
     color: '#ca8a04',
     summary: 'About 780 km across northern Spain to the cathedral of Santiago de Compostela, following a pilgrimage walked for over a thousand years: the Pyrenees, Rioja, the high Meseta and green Galicia. Usually five weeks on foot, two by bike.',
-    sources: [{ label: 'Wikipedia: French Way', url: 'https://en.wikipedia.org/wiki/French_Way' }],
+    sources: [
+      { label: 'Follow the Camino: Camino statistics for 2025', url: 'https://followthecamino.com/en/camino-statistics-for-2025-the-year-a-pilgrimage-confirmed-its-global-dimension/' },
+      { label: 'American Pilgrims on the Camino: statistics', url: 'https://www.americanpilgrims.org/statistics' },
+      { label: 'Wikipedia: French Way', url: 'https://en.wikipedia.org/wiki/French_Way' },
+    ],
     approximate: 'Main stages; the walking path is drawn on nearby roads.',
     stops: [
       { q: 'Saint-Jean-Pied-de-Port, France', name: 'Saint-Jean-Pied-de-Port', wiki: 'Saint-Jean-Pied-de-Port', text: 'The traditional start on the French side of the Pyrenees.' },
@@ -493,13 +509,17 @@ export const JOURNEYS = [
     kind: 'moto',
     color: '#7c2d12',
     summary: 'About 1,200 km across the "Roof of the World" from Osh in Kyrgyzstan to Dushanbe in Tajikistan, over passes above 4,600 m, past high lakes and along the Afghan border on the Panj river. One of the great overland roads.',
-    sources: [{ label: 'Wikipedia: Pamir Highway', url: 'https://en.wikipedia.org/wiki/Pamir_Highway' }],
+    sources: [
+      { label: 'OPEN Cycle: The Pamir Ballad (2025)', url: 'https://opencycle.com/blog/the-pamir-ballad-an-absurd-and-beautiful-ride' },
+      { label: 'bikepacking.com: A Journey Beyond II, bikepacking the Pamir Highway', url: 'https://bikepacking.com/plog/bikepacking-pamir-highway/' },
+      { label: 'Wikipedia: Pamir Highway', url: 'https://en.wikipedia.org/wiki/Pamir_Highway' },
+    ],
     approximate: 'Main places on the road; the line between them is approximate. Permits (GBAO) are needed.',
     stops: [
       { q: 'Osh, Kyrgyzstan', name: 'Osh', wiki: 'Osh', text: 'An ancient Silk Road town and the usual start.' },
       { at: [39.73, 73.25], name: 'Sary-Tash', wiki: 'Alay Valley', text: 'The Alay valley with the Pamir wall rising ahead.' },
       { at: [39.02, 73.55], name: 'Karakul', wiki: 'Karakul (Tajikistan)', text: 'Over the Kyzyl-Art pass to a huge lake at almost 4,000 m.' },
-      { at: [38.17, 73.96], name: 'Murghab', wiki: 'Murghob', text: 'Over Ak-Baital, at about 4,650 m the highest pass, to a high-plateau town.' },
+      { at: [38.17, 73.96], name: 'Murghab', wiki: 'Murghob', text: 'Over Ak-Baital, at about 4,650 m the highest pass, to a high-plateau town.', source: { label: 'OPEN Cycle (2025)', url: 'https://opencycle.com/blog/the-pamir-ballad-an-absurd-and-beautiful-ride' } },
       { q: 'Khorog, Tajikistan', name: 'Khorog', wiki: 'Khorog', text: 'Down to the Panj river and the Afghan border.' },
       { q: 'Rushan, Tajikistan', name: 'The Panj valley', wiki: 'Panj River', text: 'Afghanistan just across the river, close enough to wave.' },
       { q: 'Qalai Khumb, Tajikistan', name: 'Kalai-Khumb', wiki: 'Darvoz District', text: 'Rough road through deep gorges.' },
@@ -515,7 +535,11 @@ export const JOURNEYS = [
     kind: 'moto',
     color: '#166534',
     summary: 'Portugal\'s longest road, 739 km from Chaves near Spain to Faro on the Algarve, through vineyards of the Douro, the forests of the centre and the open plains of the Alentejo. Known as Portugal\'s Route 66.',
-    sources: [{ label: 'Wikipedia: Estrada Nacional 2', url: 'https://en.wikipedia.org/wiki/Estrada_Nacional_2' }],
+    sources: [
+      { label: 'Portugal Resident: EN2 named International Route of the Year (2025)', url: 'https://www.portugalresident.com/portugals-iconic-en2-route-named-international-route-of-the-year-in-spain/' },
+      { label: 'Julie Dawn Fox: N2, the ultimate Portugal road trip', url: 'https://juliedawnfox.com/n2-the-ultimate-portugal-road-trip-from-north-to-south/' },
+      { label: 'Wikipedia: Estrada Nacional 2', url: 'https://en.wikipedia.org/wiki/Estrada_Nacional_2' },
+    ],
     approximate: 'Main towns on the road; the line follows today\'s roads.',
     stops: [
       { q: 'Chaves, Portugal', name: 'Chaves', wiki: 'Chaves, Portugal', text: 'Kilometre zero, by a Roman bridge.' },
@@ -548,6 +572,7 @@ export const JOURNEYS = [
     sources: [
       { label: 'Wikipedia: Hermenegildo Capelo', url: 'https://en.wikipedia.org/wiki/Hermenegildo_Capelo' },
       { label: 'Wikipedia: Roberto Ivens', url: 'https://en.wikipedia.org/wiki/Roberto_Ivens' },
+      { label: 'LNEG: Capelo and Ivens geological samples revisited (1884–1885)', url: 'https://repositorio.lneg.pt/bitstreams/9c851bad-5457-4220-be90-77b00c6c0d4c/download' },
     ],
     approximate: 'Only the main known places; the expedition\'s real path wound far more, and the straight lines between places are a rough guide only.',
     stops: [
@@ -573,6 +598,7 @@ export const JOURNEYS = [
     sources: [
       { label: 'History Today: Livingstone reaches the Victoria Falls', url: 'https://www.historytoday.com/archive/david-livingstone-reaches-victoria-falls' },
       { label: 'Princeton University Library: David Livingstone, 1813–1873', url: 'https://static-prod.lib.princeton.edu/visual_materials/maps/websites/africa/livingstone/livingstone.html' },
+      { label: 'David Livingstone Birthplace: timeline', url: 'https://www.david-livingstone-birthplace.org/files/learning-topics-timeline-r2.pdf' },
     ],
     approximate: 'Main places and dates from his account; dates differ slightly between sources, and the straight lines are a rough guide.',
     stops: [
