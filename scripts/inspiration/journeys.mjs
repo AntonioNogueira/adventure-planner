@@ -626,6 +626,7 @@ export const JOURNEYS = [
     sources: [
       { label: '131 Offroad: 2025 Baja 1000 course', url: 'https://131offroad.com/2025/10/04/2025-baja-1000-course' },
       { label: 'SCORE Journal, October 2025', url: 'https://read.uberflip.com/i/1540550-score-journal-oct-2025/25' },
+      { label: 'RACER: Menzies and Polvoorde win the 2025 Baja 1000', url: 'https://racer.com/2025/11/16/menzies-polvoorde-storm-to-score-baja-1000-redemption' },
     ],
     approximate: 'Main points and race-mile checkpoints; the course runs on desert tracks, not the roads shown.',
     stops: [
@@ -634,7 +635,7 @@ export const JOURNEYS = [
       { q: 'San Ignacio, Baja California Sur', name: 'San Ignacio (RM 365)', at: [27.2837, -112.8979], wiki: 'San Ignacio, Baja California Sur', text: 'An oasis town of date palms; the southern turn of the loop at race mile 365.' },
       { q: 'San Felipe, Baja California', name: 'San Felipe', wiki: 'San Felipe, Baja California', text: 'North up the Sea of Cortez side.' },
       { q: 'San Matías, Baja California', name: 'San Matías (RM 717)', at: [31.3345, -115.5464], wiki: 'Sierra de San Pedro Mártir', text: 'The pass between the sierras, last checkpoint at race mile 717.' },
-      { q: 'Ensenada, Baja California', name: 'Ensenada finish', wiki: 'Baja 1000', text: 'Back to Ensenada after 854 race miles.' },
+      { q: 'Ensenada, Baja California', name: 'Ensenada finish', wiki: 'Baja 1000', text: 'Back to Ensenada after 854 race miles. Christopher Polvoorde and Bryce Menzies won overall in a Trophy Truck; the SLR Honda team of Tyler Lynn, David Kamo and Carter Klein won the bikes in 17 h 55 min.', source: { label: 'Cycle News: 2025 Baja 1000 motorcycle results', url: 'https://www.cyclenews.com/2025/11/article/2025-score-baja-1000-motorcycle-results/' } },
     ],
   },
 ];

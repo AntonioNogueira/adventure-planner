@@ -74,6 +74,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Patrick Lam: TMB trip report, July–August 2025', 'https://patricklam.ca/post/20250824-tmb'),
       REPORT('Kenji Saito: TMB day by day (September 2025)', 'https://kenjisaito.com/tour-du-mont-blanc-tmb-day-2'),
+      REPORT('Mon Tour du Mont Blanc: booking a refuge, the complete guide', 'https://montourdumontblanc.com/en/actualites/booking-a-refuge-the-complete-guide'),
     ],
     approximate: 'The classic anticlockwise stages; the line follows mountain paths near the official route.',
     stops: [
@@ -103,6 +104,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Halfway Anywhere: PCT best moments, class of 2025', 'https://www.halfwayanywhere.com/trails/pacific-crest-trail/pct-best-moments-2025/'),
       REPORT('Halfway Anywhere: PCT tips from the class of 2025', 'https://www.halfwayanywhere.com/trails/pacific-crest-trail/pacific-crest-trail-tips-2025-2026/'),
+      REPORT('KUOW: new monument marks the northern end of the fire-blocked PCT (2026)', 'https://www.kuow.org/climate/2026-08-14/new-monument-marks-northern-end-of-fire-blocked-pacific-crest-trail'),
     ],
     approximate: 'The usual resupply towns and landmarks; the line follows trails near the PCT where they were found.',
     stops: [
@@ -129,7 +131,7 @@ export const CLASSICS = [
       { q: 'Packwood, Washington', name: 'Goat Rocks', wiki: 'Goat Rocks', text: 'The Knife\'s Edge in the Goat Rocks, with Mount Rainier close.' },
       { q: 'Snoqualmie Pass, Washington', name: 'Snoqualmie Pass', wiki: 'Snoqualmie Pass', text: 'Into the steep, wet North Cascades.' },
       { q: 'Stehekin, Washington', name: 'Stehekin', wiki: 'Stehekin, Washington', text: 'A village reached only by boat, plane or trail, with a famous bakery.' },
-      { q: 'Manning Park, British Columbia', name: 'Northern Terminus', wiki: 'E. C. Manning Provincial Park', text: 'The monument at the Canadian border, and on to Manning Park: about 4,265 km from Mexico.' },
+      { q: 'Manning Park, British Columbia', name: 'Northern Terminus', wiki: 'E. C. Manning Provincial Park', text: 'The monument at the Canadian border, and on to Manning Park: about 4,265 km from Mexico. Wildfire closures in the North Cascades have often stopped hikers short of it; in 2026 they finished at a temporary monument near Rainy Pass.', source: REPORT('KUOW (2026)', 'https://www.kuow.org/climate/2026-08-14/new-monument-marks-northern-end-of-fire-blocked-pacific-crest-trail') },
     ],
   },
   {
@@ -169,10 +171,11 @@ export const CLASSICS = [
     vehicle: 'Motorbike or with an easy rider, 3–4 days',
     kind: 'moto',
     color: '#c2410c',
-    summary: 'A loop of 350–450 km through the karst mountains on the Chinese border: the Ma Pi Leng pass above the Nho Que river, Hmong villages and markets, terraced valleys and homestays. Most go anticlockwise from Ha Giang; many ride pillion with a local driver.',
+    summary: 'A loop of 350–450 km through the karst mountains on the Chinese border: the Ma Pi Leng pass above the Nho Que river, Hmong villages and markets, terraced valleys and homestays. Most go anticlockwise from Ha Giang; many ride pillion with a local driver. Riding yourself needs a valid motorbike licence: police checks and fines were stepped up in 2026.',
     sources: [
       REPORT('Kreier: the Ha Giang Loop a second time (2025)', 'https://kreier.github.io/quartz/Travel/2025/Ha-Giang-loop-a-second-time-in-2025'),
       REPORT('Team-BHP travelogue: Ha Giang Loop (May 2025)', 'https://www.team-bhp.com/forum/travelogues/294466-ha-giang-loop-vietnam.html'),
+      REPORT('Lonely Planet: how to tackle the Ha Giang Loop (2026)', 'https://www.lonelyplanet.com/articles/ultimate-itinerary-ha-giang-loop-vietnam'),
     ],
     approximate: 'The usual anticlockwise loop and overnight villages.',
     stops: [

@@ -923,12 +923,16 @@ export const DAKAR = [
   "id": "dakar-1990",
   "title": "1990 Paris–Dakar Rally",
   "who": "Won by Ari Vatanen (Peugeot) and Edi Orioli (Cagiva)",
-  "when": "1990",
+  "when": "25 December 1989 – 16 January 1990",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1990 edition of the Dakar Rally, in its African era: 21 stage towns and bivouacs through France, Libya, Niger, Chad, Mali, Mauritania, Senegal. Winners — Cars: Ari Vatanen (Peugeot); Bikes: Edi Orioli (Cagiva).",
   "sources": [
+   {
+    "label": "Autosport: review of the Paris–Dakar 1990",
+    "url": "https://www.autosport.com/reviews/news/138798/review-parisdakar-1990-dvd"
+   },
    {
     "label": "Wikipedia: 1990 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1990_Paris%E2%80%93Dakar_Rally"
@@ -944,7 +948,8 @@ export const DAKAR = [
      2.3469
     ],
     "route": "line",
-    "text": "Start of the 1990 Paris–Dakar Rally."
+    "date": "25 Dec 1989",
+    "text": "A 5 km prologue near Paris for the 12th Dakar, with 465 competitors."
    },
    {
     "q": "Marseille",
@@ -954,7 +959,8 @@ export const DAKAR = [
      5.3778
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "26 Dec 1989",
+    "text": "A second short prologue, 3.5 km, before the crossing to Libya."
    },
    {
     "q": "Tripoli",
@@ -965,7 +971,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "29 Dec 1989",
+    "text": "Stage 1 starts in Tripoli, the first Dakar to run through Libya."
    },
    {
     "q": "Ghadamès",
@@ -975,7 +982,8 @@ export const DAKAR = [
      9.4901
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "29 Dec 1989",
+    "text": "Stage 1: 273 km timed, in the dunes where the Mitsubishis lost ground to Peugeot."
    },
    {
     "q": "Ghat",
@@ -985,7 +993,8 @@ export const DAKAR = [
      10.434
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "30 Dec 1989",
+    "text": "Stage 2: a 609 km special south along the Algerian border."
    },
    {
     "q": "Sabha",
@@ -995,7 +1004,8 @@ export const DAKAR = [
      14.429
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "31 Dec 1989",
+    "text": "Stage 3: 446 km timed to Sabha."
    },
    {
     "q": "Tumu",
@@ -1005,7 +1015,8 @@ export const DAKAR = [
      14.15
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "1 Jan 1990",
+    "text": "Stage 4: 641 km to the Libya–Niger border."
    },
    {
     "q": "Dirkou",
@@ -1015,7 +1026,8 @@ export const DAKAR = [
      12.8937
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "2 Jan 1990",
+    "text": "Stage 5: 504 km through the Ténéré to the Dirkou oasis."
    },
    {
     "q": "N'Gourti",
@@ -1025,7 +1037,8 @@ export const DAKAR = [
      13.1961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "3 Jan 1990",
+    "text": "Stage 6: 497 km south towards Lake Chad."
    },
    {
     "q": "N'Djamena",
@@ -1035,7 +1048,8 @@ export const DAKAR = [
      15.0503
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "4 Jan 1990",
+    "text": "Stage 7: 499 km into Chad, to the capital."
    },
    {
     "q": "N'Guigmi",
@@ -1045,7 +1059,8 @@ export const DAKAR = [
      13.1135
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "5 Jan 1990",
+    "text": "Stage 8: 425 km back into Niger."
    },
    {
     "q": "Agadez",
@@ -1055,7 +1070,8 @@ export const DAKAR = [
      7.9907
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "6 Jan 1990",
+    "text": "Stage 9, at 780 km the longest special, then a rest day in Agadez."
    },
    {
     "q": "Tahoua",
@@ -1065,7 +1081,8 @@ export const DAKAR = [
      5.2621
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "8 Jan 1990",
+    "text": "Stage 10: 198 km timed."
    },
    {
     "q": "Niamey",
@@ -1075,7 +1092,8 @@ export const DAKAR = [
      2.1098
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "9 Jan 1990",
+    "text": "Stage 11: 222 km timed to Niger's capital."
    },
    {
     "q": "Gao",
@@ -1085,7 +1103,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "10 Jan 1990",
+    "text": "Stage 12: 492 km into Mali."
    },
    {
     "q": "Tombouctou",
@@ -1095,7 +1114,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "11 Jan 1990",
+    "text": "Stage 13: 412 km up the Niger to Timbuktu."
    },
    {
     "q": "Néma",
@@ -1105,7 +1125,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "12 Jan 1990",
+    "text": "Stage 14: 674 km into Mauritania."
    },
    {
     "q": "Tidjikja",
@@ -1115,7 +1136,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "13 Jan 1990",
+    "text": "Stage 15: 458 km across the Mauritanian desert."
    },
    {
     "q": "Kayes",
@@ -1125,7 +1147,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "14 Jan 1990",
+    "text": "Stage 16: 485 km south into Mali."
    },
    {
     "q": "Saint Louis",
@@ -1135,7 +1158,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 17."
+    "date": "15 Jan 1990",
+    "text": "Stage 17 into Senegal, 838 km in all."
    },
    {
     "q": "Dakar",
@@ -1145,7 +1169,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1990 Paris–Dakar Rally (after stage 18)."
+    "date": "16 Jan 1990",
+    "text": "The finish after a 40 km last special. Ari Vatanen led a Peugeot 1-2-3 in the 405 T16, his third win in four years; Edi Orioli won the bikes on a Cagiva Elefant."
    }
   ]
  },
@@ -1153,12 +1178,16 @@ export const DAKAR = [
   "id": "dakar-1992",
   "title": "1992 Paris–Cape Town Rally",
   "who": "Won by Hubert Auriol (Mitsubishi) and Stéphane Peterhansel (Yamaha)",
-  "when": "1992",
+  "when": "23 December 1991 – 16 January 1992",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1992 edition of the Dakar Rally, in its African era: 24 stage towns and bivouacs through France, Libya, Niger, Chad, Central African Republic, Cameroon, Gabon, Congo-Brazzaville, Angola, Namibia, South Africa. Winners — Cars: Hubert Auriol (Mitsubishi); Bikes: Stéphane Peterhansel (Yamaha).",
   "sources": [
+   {
+    "label": "Cycle World, April 1992: race report",
+    "url": "https://magazine.cycleworld.com/article/1992/4/1/clipboard"
+   },
    {
     "label": "Wikipedia: 1992 Paris–Cape Town Rally",
     "url": "https://en.wikipedia.org/wiki/1992_Paris%E2%80%93Cape_Town_Rally"
@@ -1174,7 +1203,8 @@ export const DAKAR = [
      1.094
     ],
     "route": "line",
-    "text": "Start of the 1992 Paris–Cape Town Rally."
+    "date": "23 Dec 1991",
+    "text": "A 3.6 km prologue at Rouen opens the first rally to run all the way to Cape Town instead of Dakar."
    },
    {
     "q": "Paris",
@@ -1184,7 +1214,8 @@ export const DAKAR = [
      2.32
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "24 Dec 1991",
+    "text": "Stage 1, a 130 km liaison to Paris."
    },
    {
     "q": "Sète",
@@ -1194,7 +1225,8 @@ export const DAKAR = [
      3.696
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "25 Dec 1991",
+    "text": "Stage 2: 820 km south to the port of Sète, then across to Libya."
    },
    {
     "q": "Sirte",
@@ -1205,7 +1237,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "Bivouac at the end of stage 3."
+    "date": "26 Dec 1991",
+    "text": "Stage 3 from Misrata, with 204 km timed."
    },
    {
     "q": "Sabha",
@@ -1215,7 +1248,8 @@ export const DAKAR = [
      14.429
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "27 Dec 1991",
+    "text": "Stage 4: 375 km timed to Sabha."
    },
    {
     "q": "Waw al-Kabir",
@@ -1225,7 +1259,8 @@ export const DAKAR = [
      16.7153
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "28 Dec 1991",
+    "text": "Stage 5: 546 km to the Waw al-Kabir oasis."
    },
    {
     "q": "Tumu",
@@ -1235,7 +1270,8 @@ export const DAKAR = [
      14.15
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "29 Dec 1991",
+    "text": "Stage 6: 520 km to the border with Niger."
    },
    {
     "q": "Dirkou",
@@ -1245,7 +1281,8 @@ export const DAKAR = [
      12.8937
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "30 Dec 1991",
+    "text": "Stage 7: 738 km through the Ténéré to Dirkou."
    },
    {
     "q": "N'Guigmi",
@@ -1255,7 +1292,8 @@ export const DAKAR = [
      13.1135
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "31 Dec 1991",
+    "text": "Stage 8: 601 km towards Lake Chad."
    },
    {
     "q": "N'Djamena",
@@ -1265,7 +1303,8 @@ export const DAKAR = [
      15.0503
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "1 Jan 1992",
+    "text": "Stage 9, a liaison into Chad."
    },
    {
     "q": "Sarh",
@@ -1275,7 +1314,8 @@ export const DAKAR = [
      18.3938
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "2 Jan 1992",
+    "text": "Stage 10: 695 km south, 331 km of it timed."
    },
    {
     "q": "Bouar",
@@ -1285,7 +1325,8 @@ export const DAKAR = [
      15.5922
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "3 Jan 1992",
+    "text": "Stage 11 into the Central African Republic."
    },
    {
     "q": "Yaoundé",
@@ -1295,7 +1336,8 @@ export const DAKAR = [
      11.5213
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "4 Jan 1992",
+    "text": "Stage 12 into Cameroon's capital."
    },
    {
     "q": "Oyem",
@@ -1305,7 +1347,8 @@ export const DAKAR = [
      11.5751
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "5 Jan 1992",
+    "text": "Stage 13 into the rainforest of Gabon."
    },
    {
     "q": "Franceville",
@@ -1315,7 +1358,8 @@ export const DAKAR = [
      13.5895
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "6 Jan 1992",
+    "text": "Stage 14: 793 km, 619 km of it timed, across Gabon."
    },
    {
     "q": "Pointe-Noire",
@@ -1325,7 +1369,8 @@ export const DAKAR = [
      11.8503
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "7 Jan 1992",
+    "text": "Stage 15 to the Congolese coast; then two rest days and a transfer to Angola."
    },
    {
     "q": "Lobito",
@@ -1335,7 +1380,8 @@ export const DAKAR = [
      13.5464
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "10 Jan 1992",
+    "text": "Stage 16 starts at Lobito on the Angolan coast."
    },
    {
     "q": "Namibe",
@@ -1345,7 +1391,8 @@ export const DAKAR = [
      12.1458
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "10 Jan 1992",
+    "text": "End of stage 16, on the coast of southern Angola."
    },
    {
     "q": "Ruacana",
@@ -1355,7 +1402,8 @@ export const DAKAR = [
      14.3625
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 17."
+    "date": "11 Jan 1992",
+    "text": "Stage 17 into Namibia at the Ruacana falls."
    },
    {
     "q": "Grootfontein",
@@ -1365,7 +1413,8 @@ export const DAKAR = [
      18.1041
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 18."
+    "date": "12 Jan 1992",
+    "text": "Stage 18: 600 km to Grootfontein."
    },
    {
     "q": "Gobabis",
@@ -1375,7 +1424,8 @@ export const DAKAR = [
      18.9725
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 19."
+    "date": "13 Jan 1992",
+    "text": "Stage 19 east towards the Kalahari."
    },
    {
     "q": "Keetmanshoop",
@@ -1385,7 +1435,8 @@ export const DAKAR = [
      18.1342
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 20."
+    "date": "14 Jan 1992",
+    "text": "Stage 20 south through Namibia."
    },
    {
     "q": "Springbok",
@@ -1395,7 +1446,8 @@ export const DAKAR = [
      17.8831
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 21."
+    "date": "15 Jan 1992",
+    "text": "Stage 21 into South Africa."
    },
    {
     "q": "Cape Town",
@@ -1405,7 +1457,8 @@ export const DAKAR = [
      18.4172
     ],
     "route": "line",
-    "text": "Finish of the 1992 Paris–Cape Town Rally (after stage 22)."
+    "date": "16 Jan 1992",
+    "text": "The finish in Cape Town. Hubert Auriol won the cars in a Mitsubishi Pajero, adding to his two bike wins; Stéphane Peterhansel won the bikes on a Yamaha."
    }
   ]
  },
