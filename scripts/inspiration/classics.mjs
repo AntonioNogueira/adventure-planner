@@ -232,6 +232,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Andy & Ness: the Gibb River Road, part III (September 2025)', 'https://andyandnessas-allaussieadventures.blogspot.com/2025/09/the-gibb-river-road-part-iii.html'),
       REPORT('Australia.com: Gibb River Road itinerary', 'https://australia.com/en/trips-and-itineraries/broome-and-surrounds/the-gibb-river-road-itinerary.html'),
+      REPORT('Main Roads WA: Gibb River Road upgrades and sealing', 'https://www.mainroads.wa.gov.au/projects-initiatives/all-projects/regional/gibb-river-road'),
     ],
     approximate: 'The usual west-to-east stops; the line follows the road where the router found it.',
     stops: [
@@ -258,6 +259,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Bikepacking.com: Lagunas y Salares route', 'https://bikepacking.com/routes/lagunas-y-salares/'),
       REPORT('Itchy Boots: 10 tips for the Ruta de las Lagunas', 'https://www.itchyboots.com/bikers-guide/10-tips-for-riding-the-ruta-de-las-lagunas-in-bolivia'),
+      REPORT('Mad or Nomad: how to ride the Ruta de las Lagunas on a motorcycle', 'https://www.madornomad.com/how-to-ride-bolivias-ruta-de-las-lagunas-on-a-motorcycle/'),
     ],
     approximate: 'The usual villages, lagoons and refuges; the tracks shift every season, so the line is a guide only.',
     stops: [
@@ -305,7 +307,7 @@ export const CLASSICS = [
     id: 'manali-leh',
     title: 'Manali to Leh',
     who: 'Classic route · the Himalayan highway by motorcycle',
-    when: 'Mid-June to September, when the passes are open',
+    when: 'June to September; the road usually opens in May or June',
     vehicle: 'Royal Enfield or any adventure bike, 4–6 days',
     kind: 'moto',
     color: '#ea580c',
@@ -313,6 +315,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Notes from Chetan: Manali to Leh by bicycle, July 2025', 'https://notesfromchetan.blogspot.com/2025/12'),
       REPORT('Vargis Khan: Pang to Manali by motorcycle', 'https://vargiskhan.com/log/pang-to-manali/'),
+      REPORT('Discover with Dheeraj: Manali–Leh highway status 2026', 'https://discoverwithdheeraj.com/manali-leh-highway-status-2026/'),
     ],
     approximate: 'The usual overnight stops; the line follows the Manali–Leh highway.',
     stops: [
@@ -341,6 +344,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Walk with Vicky: Chennai to Spiti (October 2025)', 'https://walkwithvicky.blogspot.com/2025/10/chennai-to-spiti-ultimate-himalayan-adventure.html'),
       REPORT('Discover with Dheeraj: Kinnaur–Spiti circuit itinerary', 'https://discoverwithdheeraj.com/kinnaur-spiti-circuit-itinerary-2026/'),
+      REPORT('Travel Coffee: Spiti Valley road status (May 2026)', 'https://travelcoffee.in/blog/spiti-valley-road-status'),
     ],
     approximate: 'The common clockwise loop and overnight villages.',
     stops: [
@@ -394,6 +398,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Vintage Rides: The Spices Route, a travel story', 'https://www.vintagerides.com/gb/blog/the-spices-route-a-travel-story-by-paul-ollett/'),
       REPORT('xBHP: the southern escapade, riding solo across 5 states', 'https://www.xbhp.com/talkies/tourer/30136-the-southern-escapade-riding-solo-across-5-states'),
+      REPORT('Bike India: Coorg–Ooty–Munnar crowned the world\'s ultimate riding wonder', 'https://bikeindia.in/india-route-crowned-the-worlds-ultimate-riding-wonder/'),
     ],
     approximate: 'A common loop of hill stations; the roads are the router\'s choice.',
     stops: [

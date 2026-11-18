@@ -1466,12 +1466,16 @@ export const DAKAR = [
   "id": "dakar-1995",
   "title": "1995 Granada–Dakar Rally",
   "who": "Won by Pierre Lartigue / Michel Perin (Citroën) and Stéphane Peterhansel (Yamaha)",
-  "when": "1995",
+  "when": "1–15 January 1995",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 1995 edition of the Dakar Rally, in its African era: 14 stage towns and bivouacs through Spain, Morocco, Mauritania, Senegal, Guinea. Winners — Cars: Pierre Lartigue / Michel Perin (Citroën); Bikes: Stéphane Peterhansel (Yamaha); Trucks: Karel Loprais / Radomír Stachura / Josef Kalina (Tatra 815).",
   "sources": [
+   {
+    "label": "ESPN Deportes: Dakar winners through the years",
+    "url": "https://espndeportes.espn.com/deportemotor/noticias/ganadohis030119.html"
+   },
    {
     "label": "Wikipedia: 1995 Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1995_Granada%E2%80%93Dakar_Rally"
@@ -1487,7 +1491,8 @@ export const DAKAR = [
      -3.5208
     ],
     "route": "line",
-    "text": "Start of the 1995 Granada–Dakar Rally."
+    "date": "1 Jan 1995",
+    "text": "The first Dakar to start outside France: stage 1 left Granada and ran 275 km, 170 km of it timed, down to the coast here before the crossing to Morocco."
    },
    {
     "q": "Errachidia",
@@ -1498,7 +1503,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "2 Jan 1995",
+    "text": "Stage 2 from Nador: 619 km to the edge of the Sahara."
    },
    {
     "q": "Ouarzazate",
@@ -1508,7 +1514,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "3 Jan 1995",
+    "text": "Stage 3: 574 km over the Atlas, 405 km of it timed."
    },
    {
     "q": "Guelmim",
@@ -1518,7 +1525,8 @@ export const DAKAR = [
      -10.0574
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "4 Jan 1995",
+    "text": "Stage 4: 646 km to the gateway of the Sahara."
    },
    {
     "q": "Smara",
@@ -1528,7 +1536,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "5 Jan 1995",
+    "text": "Stage 5 into Western Sahara, 408 km timed."
    },
    {
     "q": "Aousserd",
@@ -1538,7 +1547,8 @@ export const DAKAR = [
      -14.4452
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "6 Jan 1995",
+    "text": "Stage 6: 577 km of special stage, almost all of the day."
    },
    {
     "q": "Zouérat",
@@ -1548,7 +1558,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "7 Jan 1995",
+    "text": "Stage 7: 625 km timed into Mauritania, then a rest day."
    },
    {
     "q": "Chinguetti",
@@ -1558,7 +1569,8 @@ export const DAKAR = [
      -12.3665
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "9 Jan 1995",
+    "text": "Stage 8: 504 km timed to the old caravan town of Chinguetti."
    },
    {
     "q": "Tidjikja",
@@ -1568,7 +1580,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "10 Jan 1995",
+    "text": "Stage 9: 347 km timed across the Mauritanian desert."
    },
    {
     "q": "Ayoun El Atrous",
@@ -1578,7 +1591,8 @@ export const DAKAR = [
      -9.6179
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "11 Jan 1995",
+    "text": "Stage 10: 375 km timed to the south of Mauritania."
    },
    {
     "q": "Bakel",
@@ -1588,7 +1602,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "12 Jan 1995",
+    "text": "Stage 11: 393 km timed into Senegal."
    },
    {
     "q": "Labe",
@@ -1598,7 +1613,8 @@ export const DAKAR = [
      -12.0119
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "13 Jan 1995",
+    "text": "Stage 12: 626 km timed into the hills of Guinea."
    },
    {
     "q": "Tambacounda",
@@ -1608,7 +1624,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "14 Jan 1995",
+    "text": "Stage 13: 820 km back into Senegal."
    },
    {
     "q": "Dakar",
@@ -1618,7 +1635,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1995 Granada–Dakar Rally."
+    "date": "15 Jan 1995",
+    "text": "The finish. Pierre Lartigue and Michel Périn won the cars in a Citroën ZX, Stéphane Peterhansel his fourth bike title on a Yamaha, and Karel Loprais the trucks in a Tatra."
    }
   ]
  },
@@ -1626,12 +1644,16 @@ export const DAKAR = [
   "id": "dakar-1996",
   "title": "1996 Granada–Dakar Rally",
   "who": "Won by Pierre Lartigue / Michel Perin (Citroën) and Edi Orioli (Yamaha)",
-  "when": "1996",
+  "when": "29 December 1995 – 14 January 1996",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1996 edition of the Dakar Rally, in its African era: 17 stage towns and bivouacs through Spain, Morocco, Mauritania, Mali, Guinea, Senegal. Winners — Cars: Pierre Lartigue / Michel Perin (Citroën); Bikes: Edi Orioli (Yamaha); Trucks: Viktor Moskovskikh / Anatoliy Kouzmine (Kamaz 49252).",
   "sources": [
+   {
+    "label": "Citroënët: Citroën in the Dakar in the 1990s",
+    "url": "https://citroenet.org.uk/sport/sport-90.html"
+   },
    {
     "label": "Wikipedia: 1996 Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1996_Granada%E2%80%93Dakar_Rally"
@@ -1647,7 +1669,8 @@ export const DAKAR = [
      -3.5995
     ],
     "route": "line",
-    "text": "Start of the 1996 Granada–Dakar Rally."
+    "date": "29 Dec 1995",
+    "text": "A short prologue in Granada opens the 18th Dakar, again starting away from Paris."
    },
    {
     "q": "Málaga",
@@ -1657,7 +1680,8 @@ export const DAKAR = [
      -4.4422
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "30 Dec 1995",
+    "text": "Stage 1 down to the coast, then the crossing to Morocco."
    },
    {
     "q": "Nador",
@@ -1668,7 +1692,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "31 Dec 1995",
+    "text": "Stage 2 starts in Nador after the crossing."
    },
    {
     "q": "Oujda",
@@ -1678,7 +1703,8 @@ export const DAKAR = [
      -1.9293
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "31 Dec 1995",
+    "text": "End of stage 2, with 149 km timed."
    },
    {
     "q": "Er-Rachidia",
@@ -1688,7 +1714,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "1 Jan 1996",
+    "text": "Stage 3: 328 km timed, south to the edge of the Sahara."
    },
    {
     "q": "Fam El Hisn",
@@ -1698,7 +1725,8 @@ export const DAKAR = [
      -8.8868
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "2 Jan 1996",
+    "text": "Stage 4: 540 km timed to Fam El Hisn."
    },
    {
     "q": "Smara",
@@ -1708,7 +1736,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "3 Jan 1996",
+    "text": "Stage 5: 474 km timed into Western Sahara."
    },
    {
     "q": "Zouerat",
@@ -1718,7 +1747,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "4 Jan 1996",
+    "text": "Stage 6: 603 km timed into Mauritania."
    },
    {
     "q": "Atar",
@@ -1728,7 +1758,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "5 Jan 1996",
+    "text": "Stage 7: 365 km timed to Atar."
    },
    {
     "q": "Zouerat",
@@ -1738,7 +1769,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "6 Jan 1996",
+    "text": "Stage 8: a 511 km loop back to Zouérat, then a rest day."
    },
    {
     "q": "El Mreiti",
@@ -1748,7 +1780,8 @@ export const DAKAR = [
      -7.8425
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "8 Jan 1996",
+    "text": "Stage 9: 629 km timed into the empty north-east of Mauritania."
    },
    {
     "q": "Tichit",
@@ -1758,7 +1791,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "9 Jan 1996",
+    "text": "Stage 10: 632 km timed to the old desert town of Tichit."
    },
    {
     "q": "Kiffa",
@@ -1768,7 +1802,8 @@ export const DAKAR = [
      -11.4002
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "10 Jan 1996",
+    "text": "Stage 11: 530 km timed to Kiffa."
    },
    {
     "q": "Kayes",
@@ -1778,7 +1813,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "11 Jan 1996",
+    "text": "Stage 12: 275 km timed into Mali."
    },
    {
     "q": "Labe",
@@ -1788,7 +1824,8 @@ export const DAKAR = [
      -12.0119
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "12 Jan 1996",
+    "text": "Stage 13: 516 km timed into Guinea."
    },
    {
     "q": "Tambacounda",
@@ -1798,7 +1835,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "13 Jan 1996",
+    "text": "Stage 14: 620 km timed into Senegal."
    },
    {
     "q": "Dakar",
@@ -1808,7 +1846,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1996 Granada–Dakar Rally (after stage 15)."
+    "date": "14 Jan 1996",
+    "text": "The finish after a 20 km last special. Lartigue and Périn won the cars for Citroën for the third year running; Edi Orioli won the bikes on a Yamaha after Peterhansel lost time with refuelling problems."
    }
   ]
  },
