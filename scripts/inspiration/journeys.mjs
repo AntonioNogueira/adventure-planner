@@ -2318,4 +2318,115 @@ export const JOURNEYS = [
     }
    ]
   },
+  {
+   "id": "tiffany-coates",
+   "title": "Tiffany Coates and Thelma",
+   "who": "Tiffany Coates (with Becky Lincoln, then Maggie)",
+   "when": "From 1997, about five years for the first big ride",
+   "vehicle": "BMW R80GS \"Thelma\" (1992)",
+   "kind": "moto",
+   "color": "#ca8a04",
+   "summary": "Two friends with no riding experience and £2,500 between them buy a second-hand BMW to ride to India; nine months turn into years. After Australia, Becky goes home to university and Tiffany ships Thelma to Cape Town, where her friend Maggie flies in to ride up Africa with her, the classic Cape to Cairo with detours. Later she rides the length of the Americas and across northern Asia to Mongolia: more than 200,000 miles on the same bike, much of it solo. Today she leads motorcycle tours and is a Churchill Fellow.",
+   "sources": [
+    {
+     "label": "Overland Expo: Community Spotlight, Tiffany Coates",
+     "url": "https://www.overlandexpo.com/compass/communitycoates"
+    },
+    {
+     "label": "Exploring Overland: Tiffany Coates' R80GS, Thelma",
+     "url": "https://exploringoverland.com/overland-tech-travel/2012/3/2/no-poseur-machine-tiffany-coates-r80gs-thelma.html"
+    },
+    {
+     "label": "Team Motorcycle: interview",
+     "url": "https://www.teammotorcycle.com/blog/tiffany-coates-motorcycle-interview"
+    },
+    {
+     "label": "Churchill Fellowship: Tiffany Coates",
+     "url": "https://www.churchillfellowship.org/ideas-experts/fellows-directory/tiffany-coates/"
+    }
+   ],
+   "approximate": "Only the countries and regions named in interviews; the order of the later rides and the roads are approximate.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "England",
+     "date": "1997",
+     "wiki": "BMW R80GS",
+     "text": "Becky and Tiffany set off for India on a second-hand R80GS they call Thelma."
+    },
+    {
+     "q": "Lahore, Pakistan",
+     "name": "Pakistan",
+     "by": "unknown",
+     "wiki": "Lahore",
+     "text": "Their favourite part of the trip."
+    },
+    {
+     "q": "Delhi, India",
+     "name": "India",
+     "wiki": "Delhi",
+     "text": "The original goal, reached."
+    },
+    {
+     "q": "Perth, Western Australia",
+     "name": "Australia",
+     "by": "boat",
+     "wiki": "Perth",
+     "text": "Across Australia, working to pay for the road. Becky goes home to university."
+    },
+    {
+     "q": "Cape Town, South Africa",
+     "name": "Cape Town",
+     "by": "boat",
+     "wiki": "Cape Town",
+     "text": "Thelma shipped to Africa; Maggie flies in from Ireland to join."
+    },
+    {
+     "q": "Nairobi, Kenya",
+     "name": "East Africa",
+     "wiki": "Nairobi",
+     "text": "North up the classic Cape to Cairo route, with diversions."
+    },
+    {
+     "q": "Cairo, Egypt",
+     "name": "Cairo",
+     "wiki": "Cairo",
+     "text": "The top of Africa."
+    },
+    {
+     "q": "Anchorage, Alaska",
+     "name": "Alaska",
+     "by": "unknown",
+     "wiki": "Anchorage, Alaska",
+     "text": "Later: the length of the Americas, north to south."
+    },
+    {
+     "q": "Panama City, Panama",
+     "at": [8.9824, -79.5199],
+     "name": "Panama",
+     "wiki": "Panama City",
+     "text": "Through Central America to the Darién Gap."
+    },
+    {
+     "q": "Cartagena, Colombia",
+     "name": "Colombia",
+     "by": "boat",
+     "wiki": "Cartagena, Colombia",
+     "text": "Around the gap by sea, into South America."
+    },
+    {
+     "q": "Ushuaia, Argentina",
+     "name": "Tierra del Fuego",
+     "wiki": "Ushuaia",
+     "text": "To the bottom of South America."
+    },
+    {
+     "q": "Ulaanbaatar, Mongolia",
+     "name": "Mongolia",
+     "by": "unknown",
+     "wiki": "Ulaanbaatar",
+     "text": "Another ride, across northern Asia to Outer Mongolia."
+    }
+   ]
+  },
 ];
