@@ -2357,4 +2357,80 @@ export const CLASSICS = [
       { q: 'Foum Zguid, Morocco', name: 'Foum Zguid', route: 'line', wiki: 'Foum Zguid', text: 'Tarmac again, and a cold drink.' },
     ],
   },
+  {
+   "id": "ho-chi-minh-road",
+   "title": "Ho Chi Minh Road by motorbike",
+   "who": "Classic route · along the old Ho Chi Minh Trail, Vietnam",
+   "when": "February to April (dry, before the heat); avoid typhoon season, October–November",
+   "vehicle": "Motorbike, 10–14 days",
+   "kind": "moto",
+   "color": "#15803d",
+   "summary": "Vietnam's highway along the Truong Son mountains, built over the network of jungle tracks that was the Ho Chi Minh Trail in the Vietnam War: from Hanoi past the caves of Phong Nha, the old battlefield of Khe Sanh, an empty western branch through wild forest near the Laos border, the coffee highlands of Kon Tum and Buon Ma Thuot, and Dalat, to Saigon. Far quieter than Highway 1 on the coast.",
+   "sources": [
+    {
+     "label": "Matador Network: motorcycling the Ho Chi Minh Road",
+     "url": "https://matadornetwork.com/read/motorcycle-ho-chi-minh-road-vietnam"
+    },
+    {
+     "label": "Wikipedia: Ho Chi Minh trail",
+     "url": "https://en.wikipedia.org/wiki/Ho_Chi_Minh_trail"
+    }
+   ],
+   "approximate": "Main towns on the modern road; the wartime trail itself ran mostly through Laos and Cambodia.",
+   "stops": [
+    {
+     "q": "Hanoi, Vietnam",
+     "name": "Hanoi",
+     "text": "Bikes bought in the Old Quarter; out south-west."
+    },
+    {
+     "q": "Xuan Mai, Hanoi",
+     "name": "Xuan Mai",
+     "text": "Where the Ho Chi Minh Road begins."
+    },
+    {
+     "q": "Phong Nha, Quang Binh",
+     "name": "Phong Nha",
+     "text": "Huge caves in the karst, including Son Doong, the world's largest."
+    },
+    {
+     "q": "Khe Sanh, Quang Tri",
+     "name": "Khe Sanh",
+     "text": "The old US combat base, scene of a 77-day siege in 1968."
+    },
+    {
+     "q": "A Luoi, Hue",
+     "name": "A Luoi",
+     "text": "Down the western branch through near-empty forest by the Laos border."
+    },
+    {
+     "q": "Kham Duc, Quang Nam",
+     "at": [15.4458, 107.7944],
+     "name": "Kham Duc",
+     "text": "Mountain passes and jungle, the best riding of the road."
+    },
+    {
+     "q": "Kon Tum, Vietnam",
+     "at": [14.3497, 108.0005],
+     "name": "Kon Tum",
+     "text": "The Central Highlands and their minority villages."
+    },
+    {
+     "q": "Buon Ma Thuot, Vietnam",
+     "name": "Buon Ma Thuot",
+     "text": "Vietnam's coffee capital."
+    },
+    {
+     "q": "Da Lat, Vietnam",
+     "name": "Dalat",
+     "text": "A cool hill station of pine forests."
+    },
+    {
+     "q": "Ho Chi Minh City, Vietnam",
+     "at": [10.7769, 106.7009],
+     "name": "Saigon",
+     "text": "Down to the delta city, end of the road."
+    }
+   ]
+  },
 ];
