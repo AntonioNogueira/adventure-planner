@@ -1592,27 +1592,32 @@ export const JOURNEYS = [
     {
      "q": "Oakes, North Dakota",
      "name": "Oakes",
-     "text": "Flat prairie and thunderstorms on the first day."
+     "text": "Flat prairie and thunderstorms on the first day.",
+     "wiki": "Oakes, North Dakota"
     },
     {
      "q": "Ellendale, North Dakota",
      "name": "Ellendale",
-     "text": "Breakfast stop on day two, the start of the long talks about \"Quality\"."
+     "text": "Breakfast stop on day two, the start of the long talks about \"Quality\".",
+     "wiki": "Ellendale, North Dakota"
     },
     {
      "q": "Lemmon, South Dakota",
      "name": "Lemmon",
-     "text": "Across the open Dakotas."
+     "text": "Across the open Dakotas.",
+     "wiki": "Lemmon, South Dakota"
     },
     {
      "q": "Miles City, Montana",
      "name": "Miles City",
-     "text": "The engine runs rich with the altitude: new jets and a valve adjustment, the famous lesson in fixing your own machine."
+     "text": "The engine runs rich with the altitude: new jets and a valve adjustment, the famous lesson in fixing your own machine.",
+     "wiki": "Miles City, Montana"
     },
     {
      "q": "Laurel, Montana",
      "name": "Laurel",
-     "text": "Towards the mountains."
+     "text": "Towards the mountains.",
+     "wiki": "Laurel, Montana"
     },
     {
      "q": "Bozeman, Montana",
@@ -1623,7 +1628,8 @@ export const JOURNEYS = [
     {
      "q": "Missoula, Montana",
      "name": "Missoula",
-     "text": "Father and son continue alone."
+     "text": "Father and son continue alone.",
+     "wiki": "Missoula, Montana"
     },
     {
      "q": "Lolo Pass, Idaho",
@@ -1632,27 +1638,32 @@ export const JOURNEYS = [
       -114.58
      ],
      "name": "Lolo Pass",
-     "text": "A night camped on a logging road at the pass."
+     "text": "A night camped on a logging road at the pass.",
+     "wiki": "Lolo Pass, Idaho"
     },
     {
      "q": "Cambridge, Idaho",
      "name": "Cambridge",
-     "text": "South through Idaho towards Oregon."
+     "text": "South through Idaho towards Oregon.",
+     "wiki": "Cambridge, Idaho"
     },
     {
      "q": "Bend, Oregon",
      "name": "Bend",
-     "text": "Across the high desert of central Oregon."
+     "text": "Across the high desert of central Oregon.",
+     "wiki": "Bend, Oregon"
     },
     {
      "q": "Eureka, California",
      "name": "Eureka",
-     "text": "Down to the Pacific coast of northern California."
+     "text": "Down to the Pacific coast of northern California.",
+     "wiki": "Eureka, California"
     },
     {
      "q": "San Francisco, California",
      "name": "San Francisco",
-     "text": "The end of the ride and of the book, on the coast road south to the Bay."
+     "text": "The end of the ride and of the book, on the coast road south to the Bay.",
+     "wiki": "San Francisco, California"
     }
    ]
   },
@@ -1700,73 +1711,87 @@ export const JOURNEYS = [
     {
      "q": "Bangor, Maine",
      "name": "Bangor",
-     "text": "North through New England, closed summer shops and terse farmers."
+     "text": "North through New England, closed summer shops and terse farmers.",
+     "wiki": "Bangor, Maine"
     },
     {
      "q": "Deer Isle, Maine",
      "name": "Deer Isle",
-     "text": "The best lobster he ever ate, and a cat named George."
+     "text": "The best lobster he ever ate, and a cat named George.",
+     "wiki": "Deer Isle, Maine"
     },
     {
      "q": "Presque Isle, Maine",
      "name": "Northern Maine",
-     "text": "A night with French-Canadian potato pickers, sharing wine."
+     "text": "A night with French-Canadian potato pickers, sharing wine.",
+     "wiki": "Presque Isle, Maine"
     },
     {
      "q": "Niagara Falls, New York",
      "name": "Niagara Falls",
-     "text": "Turned back at the Canadian border: Charley lacks his papers."
+     "text": "Turned back at the Canadian border: Charley lacks his papers.",
+     "wiki": "Niagara Falls, New York"
     },
     {
      "q": "Chicago, Illinois",
      "name": "Chicago",
-     "text": "A break with his wife Elaine in a hotel."
+     "text": "A break with his wife Elaine in a hotel.",
+     "wiki": "Chicago, Illinois"
     },
     {
      "q": "Sauk Centre, Minnesota",
      "name": "Sauk Centre",
-     "text": "Sinclair Lewis's home town, where nobody remembers him."
+     "text": "Sinclair Lewis's home town, where nobody remembers him.",
+     "wiki": "Sauk Centre, Minnesota"
     },
     {
      "q": "Fargo, North Dakota",
      "name": "North Dakota",
-     "text": "Across the plains."
+     "text": "Across the plains.",
+     "wiki": "Fargo, North Dakota"
     },
     {
      "q": "Missoula, Montana",
      "name": "Montana",
-     "text": "The state he fell for, and the Great Divide."
+     "text": "The state he fell for, and the Great Divide.",
+     "wiki": "Missoula, Montana"
     },
     {
      "q": "Seattle, Washington",
      "name": "Seattle",
-     "text": "\"I wonder why progress looks so much like destruction.\""
+     "text": "\"I wonder why progress looks so much like destruction.\"",
+     "wiki": "Seattle, Washington"
     },
     {
      "q": "Pacific Grove, California",
      "name": "Monterey",
-     "text": "Down the coast through Oregon (a flat tyre in the rain), to his old country. Farewell from Fremont Peak."
+     "text": "Down the coast through Oregon (a flat tyre in the rain), to his old country. Farewell from Fremont Peak.",
+     "wiki": "Pacific Grove, California"
     },
     {
      "q": "Barstow, California",
      "name": "Mojave",
-     "text": "Dog food for two coyotes instead of a bullet."
+     "text": "Dog food for two coyotes instead of a bullet.",
+     "wiki": "Barstow, California"
     },
     {
      "q": "Amarillo, Texas",
      "name": "Amarillo",
-     "text": "Thanksgiving on a cattle ranch."
+     "text": "Thanksgiving on a cattle ranch.",
+     "wiki": "Amarillo, Texas"
     },
     {
      "q": "New Orleans, Louisiana",
      "name": "New Orleans",
-     "text": "The mothers screaming at a newly integrated school depress him deeply."
+     "text": "The mothers screaming at a newly integrated school depress him deeply.",
+     "wiki": "New Orleans, Louisiana"
     },
     {
      "q": "New York City",
      "name": "New York",
      "date": "Dec 1960",
-     "text": "Home; he gets lost in his own city."
+     "text": "Home; he gets lost in his own city.",
+     "wiki": "New York City"
     }
    ]
   },
@@ -1799,22 +1824,26 @@ export const JOURNEYS = [
      "q": "London, UK",
      "name": "London",
      "date": "1932",
-     "text": "Off on a borrowed idea: ride round the world and study its buildings."
+     "text": "Off on a borrowed idea: ride round the world and study its buildings.",
+     "wiki": "London"
     },
     {
      "q": "Vienna, Austria",
      "name": "Vienna",
-     "text": "Where he had studied architecture."
+     "text": "Where he had studied architecture.",
+     "wiki": "Vienna"
     },
     {
      "q": "Istanbul, Turkey",
      "name": "Turkey",
-     "text": "A night in a Turkish jail."
+     "text": "A night in a Turkish jail.",
+     "wiki": "Istanbul"
     },
     {
      "q": "Baghdad, Iraq",
      "name": "Iraq",
-     "text": "Across the desert, dodging bandits."
+     "text": "Across the desert, dodging bandits.",
+     "wiki": "Baghdad"
     },
     {
      "q": "Khyber Pass",
@@ -1823,19 +1852,22 @@ export const JOURNEYS = [
       71.2096
      ],
      "name": "Khyber Pass",
-     "text": "Almost shot at by Pashtun tribesmen."
+     "text": "Almost shot at by Pashtun tribesmen.",
+     "wiki": "Khyber Pass"
     },
     {
      "q": "Delhi, India",
      "name": "India",
-     "text": "Guest of rajahs."
+     "text": "Guest of rajahs.",
+     "wiki": "Delhi"
     },
     {
      "q": "Tokyo, Japan",
      "name": "Tokyo",
      "by": "unknown",
      "date": "1933",
-     "text": "The end, with the film that became his lecture tour."
+     "text": "The end, with the film that became his lecture tour.",
+     "wiki": "Tokyo"
     }
    ]
   },
@@ -1876,54 +1908,63 @@ export const JOURNEYS = [
      "q": "Beijing, China",
      "name": "Peking",
      "date": "Feb 1935",
-     "text": "They set off together, against all advice."
+     "text": "They set off together, against all advice.",
+     "wiki": "Beijing"
     },
     {
      "q": "Lanzhou, China",
      "name": "Lanchow",
      "by": "train",
-     "text": "By train and lorry into the northwest."
+     "text": "By train and lorry into the northwest.",
+     "wiki": "Lanzhou"
     },
     {
      "q": "Xining, China",
      "name": "Sining",
-     "text": "Last town before the high plateau."
+     "text": "Last town before the high plateau.",
+     "wiki": "Xining"
     },
     {
      "q": "Golmud, China",
      "name": "Tsaidam",
      "route": "line",
      "by": "unknown",
-     "text": "Months with caravans across the Tsaidam basin."
+     "text": "Months with caravans across the Tsaidam basin.",
+     "wiki": "Golmud"
     },
     {
      "q": "Qiemo, Xinjiang",
      "name": "Cherchen",
      "route": "line",
-     "text": "Into the oases on the southern edge of the Taklamakan."
+     "text": "Into the oases on the southern edge of the Taklamakan.",
+     "wiki": "Qiemo"
     },
     {
      "q": "Hotan, Xinjiang",
      "name": "Khotan",
      "route": "line",
-     "text": "Oasis to oasis on horseback."
+     "text": "Oasis to oasis on horseback.",
+     "wiki": "Hotan"
     },
     {
      "q": "Kashgar, Xinjiang",
      "name": "Kashgar",
-     "text": "Guests of the British consulate."
+     "text": "Guests of the British consulate.",
+     "wiki": "Kashgar"
     },
     {
      "q": "Gilgit, Pakistan",
      "name": "Gilgit",
      "route": "line",
-     "text": "Over the passes through Hunza."
+     "text": "Over the passes through Hunza.",
+     "wiki": "Gilgit"
     },
     {
      "q": "Srinagar, India",
      "name": "Srinagar",
      "date": "Sept 1935",
-     "text": "Kashmir after seven months."
+     "text": "Kashmir after seven months.",
+     "wiki": "Srinagar"
     }
    ]
   },
@@ -1979,7 +2020,8 @@ export const JOURNEYS = [
      "q": "London, UK",
      "name": "England",
      "date": "1992",
-     "text": "Leaves with very little riding experience, for \"a year in Africa\"."
+     "text": "Leaves with very little riding experience, for \"a year in Africa\".",
+     "wiki": "London"
     },
     {
      "q": "Tamanrasset, Algeria",
@@ -1989,13 +2031,15 @@ export const JOURNEYS = [
      ],
      "name": "Sahara",
      "by": "unknown",
-     "text": "Across the Sahara."
+     "text": "Across the Sahara.",
+     "wiki": "Tassili n'Ajjer"
     },
     {
      "q": "Nairobi, Kenya",
      "name": "East Africa",
      "by": "unknown",
-     "text": "Through East Africa."
+     "text": "Through East Africa.",
+     "wiki": "Nairobi"
     },
     {
      "q": "Sossusvlei, Namibia",
@@ -2005,41 +2049,48 @@ export const JOURNEYS = [
      ],
      "name": "Namib",
      "by": "unknown",
-     "text": "The Namib Desert in the south."
+     "text": "The Namib Desert in the south.",
+     "wiki": "Sossusvlei"
     },
     {
      "q": "Sydney, Australia",
      "name": "Sydney",
      "by": "boat",
-     "text": "A container ship to Australia and a battle with port officials."
+     "text": "A container ship to Australia and a battle with port officials.",
+     "wiki": "Sydney"
     },
     {
      "q": "Jakarta, Indonesia",
      "name": "Indonesia",
      "by": "unknown",
-     "text": "Island hopping, and a memorable bus ride."
+     "text": "Island hopping, and a memorable bus ride.",
+     "wiki": "Jakarta"
     },
     {
      "q": "Bangkok, Thailand",
      "name": "Thailand",
      "by": "unknown",
-     "text": "Dengue fever."
+     "text": "Dengue fever.",
+     "wiki": "Bangkok"
     },
     {
      "q": "Delhi, India",
      "name": "India",
      "by": "unknown",
-     "text": "Many adventures in India."
+     "text": "Many adventures in India.",
+     "wiki": "Delhi"
     },
     {
      "q": "Tehran, Iran",
      "name": "Iran",
-     "text": "Back west through Iran."
+     "text": "Back west through Iran.",
+     "wiki": "Tehran"
     },
     {
      "q": "Istanbul, Turkey",
      "name": "Turkey",
-     "text": "And Turkey, towards home, before South and North America."
+     "text": "And Turkey, towards home, before South and North America.",
+     "wiki": "Istanbul"
     }
    ]
   },
@@ -2072,7 +2123,8 @@ export const JOURNEYS = [
      "q": "Lüderitz, Namibia",
      "name": "Lüderitz",
      "date": "12 June 1984",
-     "text": "Pushes off alone from the Namibian coast."
+     "text": "Pushes off alone from the Namibian coast.",
+     "wiki": "Lüderitz"
     },
     {
      "q": "Itacimirim, Camaçari",
@@ -2116,48 +2168,57 @@ export const JOURNEYS = [
      "q": "Miranda do Douro, Portugal",
      "name": "Miranda do Douro",
      "date": "Oct 1979",
-     "text": "\"From northeast to northwest, hard and golden\": in through Trás-os-Montes."
+     "text": "\"From northeast to northwest, hard and golden\": in through Trás-os-Montes.",
+     "wiki": "Miranda do Douro"
     },
     {
      "q": "Bragança, Portugal",
      "name": "Bragança",
-     "text": "The northeast."
+     "text": "The northeast.",
+     "wiki": "Bragança"
     },
     {
      "q": "Braga, Portugal",
      "name": "Braga",
-     "text": "Over to the green Minho."
+     "text": "Over to the green Minho.",
+     "wiki": "Braga"
     },
     {
      "q": "Aveiro, Portugal",
      "name": "Aveiro",
-     "text": "\"Low lands, neighbours of the sea\"."
+     "text": "\"Low lands, neighbours of the sea\".",
+     "wiki": "Aveiro"
     },
     {
      "q": "Guarda, Portugal",
      "name": "Guarda",
-     "text": "\"Gentle Beiras of stone, patience\"."
+     "text": "\"Gentle Beiras of stone, patience\".",
+     "wiki": "Guarda"
     },
     {
      "q": "Coimbra, Portugal",
      "name": "Coimbra",
-     "text": "\"Between Mondego and Sado, stop everywhere\"."
+     "text": "\"Between Mondego and Sado, stop everywhere\".",
+     "wiki": "Coimbra"
     },
     {
      "q": "Lisboa, Portugal",
      "name": "Lisboa",
-     "text": "The capital and the Tagus."
+     "text": "The capital and the Tagus.",
+     "wiki": "Lisbon"
     },
     {
      "q": "Évora, Portugal",
      "name": "Évora",
-     "text": "\"The great and burning land of Alentejo\"."
+     "text": "\"The great and burning land of Alentejo\".",
+     "wiki": "Évora"
     },
     {
      "q": "Faro, Portugal",
      "name": "Algarve",
      "date": "July 1980",
-     "text": "\"Of Algarve and sun, dry bread and soft bread\"."
+     "text": "\"Of Algarve and sun, dry bread and soft bread\".",
+     "wiki": "Faro"
     }
    ]
   },
@@ -2189,61 +2250,71 @@ export const JOURNEYS = [
      "q": "Paterson, New Jersey",
      "name": "Paterson",
      "date": "July 1947",
-     "text": "Leaves his aunt's house with fifty dollars."
+     "text": "Leaves his aunt's house with fifty dollars.",
+     "wiki": "Paterson, New Jersey"
     },
     {
      "q": "Chicago, Illinois",
      "name": "Chicago",
      "by": "bus",
-     "text": "Bebop in the Loop."
+     "text": "Bebop in the Loop.",
+     "wiki": "Chicago, Illinois"
     },
     {
      "q": "Des Moines, Iowa",
      "name": "Des Moines",
      "by": "unknown",
-     "text": "Hitching west across Iowa."
+     "text": "Hitching west across Iowa.",
+     "wiki": "Des Moines, Iowa"
     },
     {
      "q": "Cheyenne, Wyoming",
      "name": "Cheyenne",
      "by": "unknown",
-     "text": "Rodeo week."
+     "text": "Rodeo week.",
+     "wiki": "Cheyenne, Wyoming"
     },
     {
      "q": "Denver, Colorado",
      "name": "Denver",
      "by": "unknown",
-     "text": "Dean, Carlo and the parties, and a trip to Central City."
+     "text": "Dean, Carlo and the parties, and a trip to Central City.",
+     "wiki": "Denver, Colorado"
     },
     {
      "q": "San Francisco, California",
      "name": "San Francisco",
      "by": "bus",
-     "text": "A job as a night watchman."
+     "text": "A job as a night watchman.",
+     "wiki": "San Francisco, California"
     },
     {
      "q": "Los Angeles, California",
      "name": "Los Angeles",
      "by": "bus",
-     "text": "With Terry."
+     "text": "With Terry.",
+     "wiki": "Los Angeles, California"
     },
     {
      "q": "Bakersfield, California",
      "name": "San Joaquin Valley",
      "by": "bus",
-     "text": "Picking cotton, and finding he is not made for it."
+     "text": "Picking cotton, and finding he is not made for it.",
+     "wiki": "Bakersfield, California"
     },
     {
      "q": "Pittsburgh, Pennsylvania",
      "name": "Pittsburgh",
      "by": "bus",
-     "text": "A bus back east."
+     "text": "A bus back east.",
+     "wiki": "Pittsburgh, Pennsylvania"
     },
     {
      "q": "Times Square, New York",
      "name": "New York",
      "by": "unknown",
-     "text": "Hitched to Times Square, broke."
+     "text": "Hitched to Times Square, broke.",
+     "wiki": "Times Square, New York"
     }
    ]
   },

@@ -2461,31 +2461,36 @@ export const CLASSICS = [
     {
      "q": "Tangier, Morocco",
      "name": "Tangier",
-     "text": "Ferry from Spain into Africa."
+     "text": "Ferry from Spain into Africa.",
+     "wiki": "Tangier"
     },
     {
      "q": "Marrakech, Morocco",
      "name": "Marrakech",
-     "text": "Over the Atlas."
+     "text": "Over the Atlas.",
+     "wiki": "Marrakech"
     },
     {
      "q": "Dakhla, Western Sahara",
-    "at": [
-     23.6848,
-     -15.958
-    ],
      "name": "Dakhla",
-     "text": "A thousand kilometres of desert coast; kitesurfers in the lagoon."
+     "text": "A thousand kilometres of desert coast; kitesurfers in the lagoon.",
+     "at": [
+      23.6848,
+      -15.958
+     ],
+     "wiki": "Dakhla"
     },
     {
      "q": "Nouadhibou, Mauritania",
      "name": "Nouadhibou",
-     "text": "Through no man's land into Mauritania, near the iron-ore train."
+     "text": "Through no man's land into Mauritania, near the iron-ore train.",
+     "wiki": "Nouadhibou"
     },
     {
      "q": "Nouakchott, Mauritania",
      "name": "Nouakchott",
-     "text": "Down the desert to the capital."
+     "text": "Down the desert to the capital.",
+     "wiki": "Nouakchott"
     },
     {
      "q": "Saint-Louis, Senegal",
@@ -2496,42 +2501,50 @@ export const CLASSICS = [
     {
      "q": "Dakar, Senegal",
      "name": "Dakar",
-     "text": "The old rally finish, and visas for the road south."
+     "text": "The old rally finish, and visas for the road south.",
+     "wiki": "Dakar"
     },
     {
      "q": "Banjul, Gambia",
      "name": "Banjul",
-     "text": "The Gambia, by ferry across the river."
+     "text": "The Gambia, by ferry across the river.",
+     "wiki": "Banjul"
     },
     {
      "q": "Bissau, Guinea-Bissau",
      "name": "Bissau",
-     "text": "Portuguese-speaking Guinea-Bissau."
+     "text": "Portuguese-speaking Guinea-Bissau.",
+     "wiki": "Bissau"
     },
     {
      "q": "Labé, Guinea",
      "name": "Fouta Djallon",
-     "text": "The cool highlands of Guinea on rough roads."
+     "text": "The cool highlands of Guinea on rough roads.",
+     "wiki": "Labé"
     },
     {
      "q": "Freetown, Sierra Leone",
      "name": "Freetown",
-     "text": "Beaches under the mountains."
+     "text": "Beaches under the mountains.",
+     "wiki": "Freetown"
     },
     {
      "q": "Monrovia, Liberia",
      "name": "Monrovia",
-     "text": "Along the rainforest coast."
+     "text": "Along the rainforest coast.",
+     "wiki": "Monrovia"
     },
     {
      "q": "Abidjan, Ivory Coast",
      "name": "Abidjan",
-     "text": "Côte d'Ivoire's big lagoon city."
+     "text": "Côte d'Ivoire's big lagoon city.",
+     "wiki": "Abidjan"
     },
     {
      "q": "Accra, Ghana",
      "name": "Accra",
-     "text": "End of the road for most overland trucks."
+     "text": "End of the road for most overland trucks.",
+     "wiki": "Accra"
     }
    ]
   },
@@ -2567,12 +2580,14 @@ export const CLASSICS = [
     {
      "q": "Swakopmund, Namibia",
      "name": "Swakopmund",
-     "text": "Stock up in the German seaside town."
+     "text": "Stock up in the German seaside town.",
+     "wiki": "Swakopmund"
     },
     {
      "q": "Henties Bay, Namibia",
      "name": "Henties Bay",
-     "text": "North on the salt road; the Zeila wreck south of town."
+     "text": "North on the salt road; the Zeila wreck south of town.",
+     "wiki": "Henties Bay"
     },
     {
      "q": "Torra Bay, Namibia",
@@ -2581,7 +2596,8 @@ export const CLASSICS = [
       13.238
      ],
      "name": "Torra Bay",
-     "text": "Through the Ugab gate into the Skeleton Coast park."
+     "text": "Through the Ugab gate into the Skeleton Coast park.",
+     "wiki": "Torra Bay"
     },
     {
      "q": "Terrace Bay, Namibia",
@@ -2590,12 +2606,14 @@ export const CLASSICS = [
       13.034
      ],
      "name": "Terrace Bay",
-     "text": "The northernmost point you can drive; dunes begin beyond."
+     "text": "The northernmost point you can drive; dunes begin beyond.",
+     "wiki": "Terrace Bay"
     },
     {
      "q": "Sesfontein, Namibia",
      "name": "Sesfontein",
-     "text": "Inland through the Springbokwasser gate to an old fort."
+     "text": "Inland through the Springbokwasser gate to an old fort.",
+     "wiki": "Sesfontein"
     },
     {
      "q": "Purros, Namibia",
@@ -2605,12 +2623,14 @@ export const CLASSICS = [
      ],
      "name": "Purros",
      "route": "line",
-     "text": "Along the sandy Hoarusib riverbed, desert elephant country."
+     "text": "Along the sandy Hoarusib riverbed, desert elephant country.",
+     "wiki": "Purros"
     },
     {
      "q": "Opuwo, Namibia",
      "name": "Opuwo",
-     "text": "Kaokoland's only town: last fuel."
+     "text": "Kaokoland's only town: last fuel.",
+     "wiki": "Opuwo"
     },
     {
      "q": "Epupa Falls, Namibia",
@@ -2619,7 +2639,8 @@ export const CLASSICS = [
       13.246
      ],
      "name": "Epupa Falls",
-     "text": "Palms and waterfalls on the Kunene, Angola across the river."
+     "text": "Palms and waterfalls on the Kunene, Angola across the river.",
+     "wiki": "Epupa Falls"
     },
     {
      "q": "Okangwati, Namibia",
@@ -2628,7 +2649,8 @@ export const CLASSICS = [
       13.272
      ],
      "name": "Okangwati",
-     "text": "Himba villages."
+     "text": "Himba villages.",
+     "wiki": "Okangwati"
     },
     {
      "q": "Van Zyl's Pass, Namibia",
@@ -2648,7 +2670,8 @@ export const CLASSICS = [
      ],
      "name": "Marienfluss",
      "route": "line",
-     "text": "Grass, fairy circles and silence down to the Kunene."
+     "text": "Grass, fairy circles and silence down to the Kunene.",
+     "wiki": "Marienfluss"
     }
    ]
   },
@@ -2672,7 +2695,8 @@ export const CLASSICS = [
     {
      "q": "Underberg, South Africa",
      "name": "Underberg",
-     "text": "Foot of the Drakensberg."
+     "text": "Foot of the Drakensberg.",
+     "wiki": "Underberg"
     },
     {
      "q": "Sani Top, Lesotho",
@@ -2681,16 +2705,18 @@ export const CLASSICS = [
       29.2878
      ],
      "name": "Sani Top",
-     "text": "Up the pass to the border post and the mountain pub."
+     "text": "Up the pass to the border post and the mountain pub.",
+     "wiki": "Sani Top"
     },
     {
      "q": "Mokhotlong, Lesotho",
-    "at": [
-     -29.2885,
-     29.0644
-    ],
      "name": "Mokhotlong",
-     "text": "Across the high plateau."
+     "text": "Across the high plateau.",
+     "at": [
+      -29.2885,
+      29.0644
+     ],
+     "wiki": "Mokhotlong"
     },
     {
      "q": "Katse Dam, Lesotho",
@@ -2699,17 +2725,20 @@ export const CLASSICS = [
       28.506
      ],
      "name": "Katse Dam",
-     "text": "The great highland water scheme."
+     "text": "The great highland water scheme.",
+     "wiki": "Katse Dam"
     },
     {
      "q": "Semonkong, Lesotho",
      "name": "Semonkong",
-     "text": "Maletsunyane Falls, almost 200 m drop."
+     "text": "Maletsunyane Falls, almost 200 m drop.",
+     "wiki": "Semonkong"
     },
     {
      "q": "Maseru, Lesotho",
      "name": "Maseru",
-     "text": "Down to the capital."
+     "text": "Down to the capital.",
+     "wiki": "Maseru"
     }
    ]
   },
@@ -2745,37 +2774,44 @@ export const CLASSICS = [
     {
      "q": "Istanbul, Turkey",
      "name": "Istanbul",
-     "text": "Where Europe ends."
+     "text": "Where Europe ends.",
+     "wiki": "Istanbul"
     },
     {
      "q": "Göreme, Turkey",
      "name": "Cappadocia",
-     "text": "Caravanserais and fairy chimneys."
+     "text": "Caravanserais and fairy chimneys.",
+     "wiki": "Göreme"
     },
     {
      "q": "Erzurum, Turkey",
      "name": "Erzurum",
-     "text": "High eastern Anatolia."
+     "text": "High eastern Anatolia.",
+     "wiki": "Erzurum"
     },
     {
      "q": "Tabriz, Iran",
      "name": "Tabriz",
-     "text": "Its great covered bazaar was a Silk Road hub."
+     "text": "Its great covered bazaar was a Silk Road hub.",
+     "wiki": "Tabriz"
     },
     {
      "q": "Tehran, Iran",
      "name": "Tehran",
-     "text": "Visas for what comes next."
+     "text": "Visas for what comes next.",
+     "wiki": "Tehran"
     },
     {
      "q": "Mashhad, Iran",
      "name": "Mashhad",
-     "text": "Last city before Turkmenistan."
+     "text": "Last city before Turkmenistan.",
+     "wiki": "Mashhad"
     },
     {
      "q": "Ashgabat, Turkmenistan",
      "name": "Ashgabat",
-     "text": "White marble capital."
+     "text": "White marble capital.",
+     "wiki": "Ashgabat"
     },
     {
      "q": "Mary, Turkmenistan",
@@ -2786,7 +2822,8 @@ export const CLASSICS = [
     {
      "q": "Bukhara, Uzbekistan",
      "name": "Bukhara",
-     "text": "Madrasas and minarets."
+     "text": "Madrasas and minarets.",
+     "wiki": "Bukhara"
     },
     {
      "q": "Samarkand, Uzbekistan",
@@ -2797,25 +2834,28 @@ export const CLASSICS = [
     {
      "q": "Tashkent, Uzbekistan",
      "name": "Tashkent",
-     "text": "Through the Fergana side."
+     "text": "Through the Fergana side.",
+     "wiki": "Tashkent"
     },
     {
      "q": "Osh, Kyrgyzstan",
-    "at": [
-     40.5133,
-     72.8161
-    ],
      "name": "Osh",
-     "text": "Into the mountains."
+     "text": "Into the mountains.",
+     "at": [
+      40.5133,
+      72.8161
+     ],
+     "wiki": "Osh"
     },
     {
      "q": "Naryn, Kyrgyzstan",
-    "at": [
-     41.4287,
-     75.9911
-    ],
      "name": "Naryn",
-     "text": "Towards the Chinese border."
+     "text": "Towards the Chinese border.",
+     "at": [
+      41.4287,
+      75.9911
+     ],
+     "wiki": "Naryn"
     },
     {
      "q": "Torugart Pass",
@@ -2824,12 +2864,14 @@ export const CLASSICS = [
       75.39
      ],
      "name": "Torugart Pass",
-     "text": "Nearly 3,800 m border crossing."
+     "text": "Nearly 3,800 m border crossing.",
+     "wiki": "Torugart Pass"
     },
     {
      "q": "Kashgar, Xinjiang",
      "name": "Kashgar",
-     "text": "The Sunday market at the end of the road."
+     "text": "The Sunday market at the end of the road.",
+     "wiki": "Kashgar"
     }
    ]
   },
@@ -2861,67 +2903,80 @@ export const CLASSICS = [
     {
      "q": "Saint-Gingolph, France",
      "name": "Saint-Gingolph",
-     "text": "Official start on Lake Geneva's French shore."
+     "text": "Official start on Lake Geneva's French shore.",
+     "wiki": "Saint-Gingolph"
     },
     {
      "q": "Thonon-les-Bains, France",
      "name": "Thonon",
-     "text": "Along the lake."
+     "text": "Along the lake.",
+     "wiki": "Thonon-les-Bains"
     },
     {
      "q": "Genève, Switzerland",
      "name": "Geneva",
-     "text": "Where the Rhône leaves the lake."
+     "text": "Where the Rhône leaves the lake.",
+     "wiki": "Geneva"
     },
     {
      "q": "Seyssel, Haute-Savoie",
      "name": "Seyssel",
-     "text": "Into the gorges."
+     "text": "Into the gorges.",
+     "wiki": "Seyssel, Haute-Savoie"
     },
     {
      "q": "Belley, France",
      "name": "Belley",
-     "text": "Lakes and marshes of the upper Rhône."
+     "text": "Lakes and marshes of the upper Rhône.",
+     "wiki": "Belley"
     },
     {
      "q": "Lyon, France",
      "name": "Lyon",
-     "text": "Where the Saône joins; take the train to Givors if the temporary section is bad."
+     "text": "Where the Saône joins; take the train to Givors if the temporary section is bad.",
+     "wiki": "Lyon"
     },
     {
      "q": "Vienne, Isère",
      "name": "Vienne",
-     "text": "Roman temple and vineyards."
+     "text": "Roman temple and vineyards.",
+     "wiki": "Vienne, Isère"
     },
     {
      "q": "Valence, Drôme",
      "name": "Valence",
-     "text": "Gateway to Provence."
+     "text": "Gateway to Provence.",
+     "wiki": "Valence, Drôme"
     },
     {
      "q": "Orange, Vaucluse",
      "name": "Orange",
-     "text": "Roman theatre."
+     "text": "Roman theatre.",
+     "wiki": "Orange, Vaucluse"
     },
     {
      "q": "Avignon, France",
      "name": "Avignon",
-     "text": "Palace of the Popes and the broken bridge."
+     "text": "Palace of the Popes and the broken bridge.",
+     "wiki": "Avignon"
     },
     {
      "q": "Arles, France",
      "name": "Arles",
-     "text": "Van Gogh's town."
+     "text": "Van Gogh's town.",
+     "wiki": "Arles"
     },
     {
      "q": "Aigues-Mortes, France",
      "name": "Aigues-Mortes",
-     "text": "Walled town in the Camargue salt flats."
+     "text": "Walled town in the Camargue salt flats.",
+     "wiki": "Aigues-Mortes"
     },
     {
      "q": "Sète, France",
      "name": "Sète",
-     "text": "The Mediterranean."
+     "text": "The Mediterranean.",
+     "wiki": "Sète"
     }
    ]
   },
@@ -2953,52 +3008,62 @@ export const CLASSICS = [
     {
      "q": "Royan, France",
      "name": "Royan",
-     "text": "Start at the Atlantic."
+     "text": "Start at the Atlantic.",
+     "wiki": "Royan"
     },
     {
      "q": "Bordeaux, France",
      "name": "Bordeaux",
-     "text": "Up the Gironde estuary through wine country."
+     "text": "Up the Gironde estuary through wine country.",
+     "wiki": "Bordeaux"
     },
     {
      "q": "Langon, Gironde",
      "name": "Langon",
-     "text": "Sauternes and the start of the Garonne Canal path."
+     "text": "Sauternes and the start of the Garonne Canal path.",
+     "wiki": "Langon, Gironde"
     },
     {
      "q": "Agen, France",
      "name": "Agen",
-     "text": "The canal bridge over the Garonne."
+     "text": "The canal bridge over the Garonne.",
+     "wiki": "Agen"
     },
     {
      "q": "Moissac, France",
      "name": "Moissac",
-     "text": "Romanesque cloister."
+     "text": "Romanesque cloister.",
+     "wiki": "Moissac"
     },
     {
      "q": "Toulouse, France",
      "name": "Toulouse",
-     "text": "Pink city; start of the Canal du Midi."
+     "text": "Pink city; start of the Canal du Midi.",
+     "wiki": "Toulouse"
     },
     {
      "q": "Castelnaudary, France",
      "name": "Castelnaudary",
-     "text": "Cassoulet capital."
+     "text": "Cassoulet capital.",
+     "wiki": "Castelnaudary"
     },
     {
      "q": "Carcassonne, France",
      "name": "Carcassonne",
-     "text": "The medieval Cité."
+     "text": "The medieval Cité.",
+     "wiki": "Carcassonne"
     },
     {
      "q": "Béziers, France",
      "name": "Béziers",
-     "text": "The nine locks of Fonseranes."
+     "text": "The nine locks of Fonseranes.",
+     "wiki": "Béziers"
     },
     {
      "q": "Sète, France",
      "name": "Sète",
-     "text": "Mediterranean finish."
+     "text": "Mediterranean finish.",
+     "wiki": "Sète"
     }
    ]
   },
@@ -3022,27 +3087,32 @@ export const CLASSICS = [
     {
      "q": "Cádiz, Spain",
      "name": "Cádiz",
-     "text": "Start of EuroVelo 8."
+     "text": "Start of EuroVelo 8.",
+     "wiki": "Cádiz"
     },
     {
      "q": "Tarifa, Spain",
      "name": "Tarifa",
-     "text": "Africa across the strait; the signed section starts here."
+     "text": "Africa across the strait; the signed section starts here.",
+     "wiki": "Tarifa"
     },
     {
      "q": "Algeciras, Spain",
      "name": "Algeciras",
-     "text": "Past Gibraltar to Guadiaro."
+     "text": "Past Gibraltar to Guadiaro.",
+     "wiki": "Algeciras"
     },
     {
      "q": "Marbella, Spain",
      "name": "Marbella",
-     "text": "Costa del Sol."
+     "text": "Costa del Sol.",
+     "wiki": "Marbella"
     },
     {
      "q": "Málaga, Spain",
      "name": "Málaga",
-     "text": "Picasso's city."
+     "text": "Picasso's city.",
+     "wiki": "Málaga"
     },
     {
      "q": "Granada, Spain",
@@ -3053,22 +3123,26 @@ export const CLASSICS = [
     {
      "q": "Almería, Spain",
      "name": "Almería",
-     "text": "Desert coast and Cabo de Gata."
+     "text": "Desert coast and Cabo de Gata.",
+     "wiki": "Almería"
     },
     {
      "q": "Cartagena, Spain",
      "name": "Cartagena",
-     "text": "Roman and naval port."
+     "text": "Roman and naval port.",
+     "wiki": "Cartagena"
     },
     {
      "q": "Alicante, Spain",
      "name": "Alicante",
-     "text": "Costa Blanca."
+     "text": "Costa Blanca.",
+     "wiki": "Alicante"
     },
     {
      "q": "Valencia, Spain",
      "name": "Valencia",
-     "text": "Paella at the end; the route goes on to Barcelona and France."
+     "text": "Paella at the end; the route goes on to Barcelona and France.",
+     "wiki": "Valencia"
     }
    ]
   },
@@ -3092,62 +3166,74 @@ export const CLASSICS = [
     {
      "q": "Le Perthus, France",
      "name": "Le Perthus",
-     "text": "In from Spain over the Panissars pass."
+     "text": "In from Spain over the Panissars pass.",
+     "wiki": "Le Perthus"
     },
     {
      "q": "Argelès-sur-Mer, France",
      "name": "Argelès",
-     "text": "The Catalan coast."
+     "text": "The Catalan coast.",
+     "wiki": "Argelès-sur-Mer"
     },
     {
      "q": "Leucate, France",
      "name": "Leucate",
-     "text": "Lagoons and kite beaches."
+     "text": "Lagoons and kite beaches.",
+     "wiki": "Leucate"
     },
     {
      "q": "Narbonne, France",
      "name": "Narbonne",
-     "text": "Along the Canal de la Robine."
+     "text": "Along the Canal de la Robine.",
+     "wiki": "Narbonne"
     },
     {
      "q": "Béziers, France",
      "name": "Béziers",
-     "text": "Crossing the Canal du Midi."
+     "text": "Crossing the Canal du Midi.",
+     "wiki": "Béziers"
     },
     {
      "q": "Sète, France",
      "name": "Sète",
-     "text": "Between lagoon and sea."
+     "text": "Between lagoon and sea.",
+     "wiki": "Sète"
     },
     {
      "q": "La Grande-Motte, France",
      "name": "La Grande-Motte",
-     "text": "Pyramids of the 1960s resort."
+     "text": "Pyramids of the 1960s resort.",
+     "wiki": "La Grande-Motte"
     },
     {
      "q": "Cavaillon, France",
      "name": "Cavaillon",
-     "text": "Into Provence."
+     "text": "Into Provence.",
+     "wiki": "Cavaillon"
     },
     {
      "q": "Apt, France",
      "name": "Apt",
-     "text": "The Luberon."
+     "text": "The Luberon.",
+     "wiki": "Apt, Vaucluse"
     },
     {
      "q": "Forcalquier, France",
      "name": "Forcalquier",
-     "text": "Haute-Provence hills."
+     "text": "Haute-Provence hills.",
+     "wiki": "Forcalquier"
     },
     {
      "q": "Nice, France",
      "name": "Nice",
-     "text": "Down to the Riviera."
+     "text": "Down to the Riviera.",
+     "wiki": "Nice"
     },
     {
      "q": "Menton, France",
      "name": "Menton",
-     "text": "Italy next door."
+     "text": "Italy next door.",
+     "wiki": "Menton"
     }
    ]
   },
@@ -3171,12 +3257,14 @@ export const CLASSICS = [
     {
      "q": "Thonon-les-Bains, France",
      "name": "Thonon",
-     "text": "Start on Lake Geneva."
+     "text": "Start on Lake Geneva.",
+     "wiki": "Thonon-les-Bains"
     },
     {
      "q": "Les Gets, France",
      "name": "Les Gets",
-     "text": "First climb."
+     "text": "First climb.",
+     "wiki": "Les Gets"
     },
     {
      "q": "Col de la Colombière, France",
@@ -3185,7 +3273,8 @@ export const CLASSICS = [
       6.4697
      ],
      "name": "Col de la Colombière",
-     "text": "1,613 m."
+     "text": "1,613 m.",
+     "wiki": "Col de la Colombière"
     },
     {
      "q": "Col des Aravis, France",
@@ -3194,7 +3283,8 @@ export const CLASSICS = [
       6.465
      ],
      "name": "Col des Aravis",
-     "text": "Mont Blanc view."
+     "text": "Mont Blanc view.",
+     "wiki": "Col des Aravis"
     },
     {
      "q": "Col des Saisies, France",
@@ -3203,17 +3293,20 @@ export const CLASSICS = [
       6.5361
      ],
      "name": "Col des Saisies",
-     "text": "Down to Beaufort and its cheese."
+     "text": "Down to Beaufort and its cheese.",
+     "wiki": "Col des Saisies"
     },
     {
      "q": "Bourg-Saint-Maurice, France",
      "name": "Bourg-Saint-Maurice",
-     "text": "Up the Tarentaise."
+     "text": "Up the Tarentaise.",
+     "wiki": "Bourg-Saint-Maurice"
     },
     {
      "q": "Val-d'Isère, France",
      "name": "Val-d'Isère",
-     "text": "Ski town."
+     "text": "Ski town.",
+     "wiki": "Val-d'Isère"
     },
     {
      "q": "Col de l'Iseran, France",
@@ -3222,12 +3315,14 @@ export const CLASSICS = [
       7.0306
      ],
      "name": "Col de l'Iseran",
-     "text": "2,764 m: the highest paved pass in the Alps."
+     "text": "2,764 m: the highest paved pass in the Alps.",
+     "wiki": "Col de l'Iseran"
     },
     {
      "q": "Modane, France",
      "name": "Modane",
-     "text": "Down the Maurienne."
+     "text": "Down the Maurienne.",
+     "wiki": "Modane"
     },
     {
      "q": "Col du Galibier, France",
@@ -3236,12 +3331,14 @@ export const CLASSICS = [
       6.4078
      ],
      "name": "Col du Galibier",
-     "text": "Via the Télégraphe; Tour de France legend."
+     "text": "Via the Télégraphe; Tour de France legend.",
+     "wiki": "Col du Galibier"
     },
     {
      "q": "Briançon, France",
      "name": "Briançon",
-     "text": "Over the Lautaret to the fortified town."
+     "text": "Over the Lautaret to the fortified town.",
+     "wiki": "Briançon"
     },
     {
      "q": "Col d'Izoard, France",
@@ -3250,7 +3347,8 @@ export const CLASSICS = [
       6.735
      ],
      "name": "Col d'Izoard",
-     "text": "The lunar Casse Déserte."
+     "text": "The lunar Casse Déserte.",
+     "wiki": "Col d'Izoard"
     },
     {
      "q": "Col de Vars, France",
@@ -3259,12 +3357,14 @@ export const CLASSICS = [
       6.7036
      ],
      "name": "Col de Vars",
-     "text": "Towards the Ubaye."
+     "text": "Towards the Ubaye.",
+     "wiki": "Col de Vars"
     },
     {
      "q": "Barcelonnette, France",
      "name": "Barcelonnette",
-     "text": "Mexican-style villas of returned emigrants."
+     "text": "Mexican-style villas of returned emigrants.",
+     "wiki": "Barcelonnette"
     },
     {
      "q": "Col de la Bonette, France",
@@ -3273,7 +3373,8 @@ export const CLASSICS = [
       6.8072
      ],
      "name": "Col de la Bonette",
-     "text": "2,802 m via the Cime loop."
+     "text": "2,802 m via the Cime loop.",
+     "wiki": "Col de la Bonette"
     },
     {
      "q": "Col de Turini, France",
@@ -3282,12 +3383,14 @@ export const CLASSICS = [
       7.3911
      ],
      "name": "Col de Turini",
-     "text": "Monte Carlo Rally hairpins."
+     "text": "Monte Carlo Rally hairpins.",
+     "wiki": "Col de Turini"
     },
     {
      "q": "Menton, France",
      "name": "Menton",
-     "text": "The sea, end of the road."
+     "text": "The sea, end of the road.",
+     "wiki": "Menton"
     }
    ]
   },
@@ -3319,7 +3422,8 @@ export const CLASSICS = [
     {
      "q": "Torino, Italy",
      "name": "Turin",
-     "text": "Start in the city."
+     "text": "Start in the city.",
+     "wiki": "Turin"
     },
     {
      "q": "Colle delle Finestre, Italy",
@@ -3328,7 +3432,8 @@ export const CLASSICS = [
       7.0533
      ],
      "name": "Colle delle Finestre",
-     "text": "Giro climb, gravel at the top."
+     "text": "Giro climb, gravel at the top.",
+     "wiki": "Colle delle Finestre"
     },
     {
      "q": "Colle dell'Assietta, Italy",
@@ -3338,12 +3443,14 @@ export const CLASSICS = [
      ],
      "name": "Strada dell'Assietta",
      "route": "line",
-     "text": "Old military road along a ridge, 2,472 m."
+     "text": "Old military road along a ridge, 2,472 m.",
+     "wiki": "Colle dell'Assietta"
     },
     {
      "q": "Sestriere, Italy",
      "name": "Sestriere",
-     "text": "Down the ridge."
+     "text": "Down the ridge.",
+     "wiki": "Sestriere"
     },
     {
      "q": "Col d'Izoard, France",
@@ -3352,7 +3459,8 @@ export const CLASSICS = [
       6.735
      ],
      "name": "Col d'Izoard",
-     "text": "Into France."
+     "text": "Into France.",
+     "wiki": "Col d'Izoard"
     },
     {
      "q": "Col Agnel",
@@ -3361,7 +3469,8 @@ export const CLASSICS = [
       6.9792
      ],
      "name": "Col Agnel",
-     "text": "Back to Italy at 2,744 m."
+     "text": "Back to Italy at 2,744 m.",
+     "wiki": "Col Agnel"
     },
     {
      "q": "Colle di Sampeyre, Italy",
@@ -3370,7 +3479,8 @@ export const CLASSICS = [
       7.1158
      ],
      "name": "Colle di Sampeyre",
-     "text": "Between the Varaita and Maira valleys."
+     "text": "Between the Varaita and Maira valleys.",
+     "wiki": "Colle di Sampeyre"
     },
     {
      "q": "Colle Fauniera, Italy",
@@ -3380,7 +3490,8 @@ export const CLASSICS = [
      ],
      "name": "Strada dei Cannoni",
      "route": "line",
-     "text": "High gravel roads above the valleys."
+     "text": "High gravel roads above the valleys.",
+     "wiki": "Colle Fauniera"
     },
     {
      "q": "Col de Turini, France",
@@ -3389,12 +3500,14 @@ export const CLASSICS = [
       7.3911
      ],
      "name": "Col de Turini",
-     "text": "The last big climb."
+     "text": "The last big climb.",
+     "wiki": "Col de Turini"
     },
     {
      "q": "Nice, France",
      "name": "Nice",
-     "text": "Promenade des Anglais."
+     "text": "Promenade des Anglais.",
+     "wiki": "Nice"
     }
    ]
   },
@@ -3422,17 +3535,20 @@ export const CLASSICS = [
     {
      "q": "Teruel, Spain",
      "name": "Teruel",
-     "text": "Mudéjar towers, start and finish."
+     "text": "Mudéjar towers, start and finish.",
+     "wiki": "Teruel"
     },
     {
      "q": "Albarracín, Spain",
      "name": "Albarracín",
-     "text": "Pink medieval town in the Rodeno pines."
+     "text": "Pink medieval town in the Rodeno pines.",
+     "wiki": "Albarracín"
     },
     {
      "q": "Griegos, Spain",
      "name": "Montes Universales",
-     "text": "High plateau."
+     "text": "High plateau.",
+     "wiki": "Griegos"
     },
     {
      "q": "Nacimiento del Río Tajo",
@@ -3446,27 +3562,32 @@ export const CLASSICS = [
     {
      "q": "Beteta, Spain",
      "name": "Beteta",
-     "text": "Serranía de Cuenca gorges."
+     "text": "Serranía de Cuenca gorges.",
+     "wiki": "Beteta"
     },
     {
      "q": "Tragacete, Spain",
      "name": "Tragacete",
-     "text": "Source of the Júcar."
+     "text": "Source of the Júcar.",
+     "wiki": "Tragacete"
     },
     {
      "q": "Camarena de la Sierra, Spain",
      "name": "Javalambre",
-     "text": "The Sierra de Javalambre."
+     "text": "The Sierra de Javalambre.",
+     "wiki": "Camarena de la Sierra"
     },
     {
      "q": "Alcalá de la Selva, Spain",
      "name": "Gúdar",
-     "text": "Sierra de Gúdar pinewoods."
+     "text": "Sierra de Gúdar pinewoods.",
+     "wiki": "Alcalá de la Selva"
     },
     {
      "q": "Teruel, Spain",
      "name": "Teruel",
-     "text": "Back to the start."
+     "text": "Back to the start.",
+     "wiki": "Teruel"
     }
    ]
   },
@@ -3498,42 +3619,50 @@ export const CLASSICS = [
     {
      "q": "Roses, Spain",
      "name": "Roses",
-     "text": "Start at the Mediterranean."
+     "text": "Start at the Mediterranean.",
+     "wiki": "Roses, Girona"
     },
     {
      "q": "Camprodon, Spain",
      "name": "Camprodon",
-     "text": "Stage 1."
+     "text": "Stage 1.",
+     "wiki": "Camprodon"
     },
     {
      "q": "La Seu d'Urgell, Spain",
      "name": "La Seu d'Urgell",
-     "text": "Near Andorra."
+     "text": "Near Andorra.",
+     "wiki": "La Seu d'Urgell"
     },
     {
      "q": "El Pont de Suert, Spain",
      "name": "El Pont de Suert",
-     "text": "Into the high Pyrenees."
+     "text": "Into the high Pyrenees.",
+     "wiki": "El Pont de Suert"
     },
     {
      "q": "Aínsa, Spain",
      "name": "Aínsa",
-     "text": "Medieval village under Monte Perdido."
+     "text": "Medieval village under Monte Perdido.",
+     "wiki": "Aínsa"
     },
     {
      "q": "Jaca, Spain",
      "name": "Jaca",
-     "text": "Aragon."
+     "text": "Aragon.",
+     "wiki": "Jaca"
     },
     {
      "q": "Burguete, Navarra",
      "name": "Auritz",
-     "text": "Navarre beech forests near Roncesvalles."
+     "text": "Navarre beech forests near Roncesvalles.",
+     "wiki": "Burguete"
     },
     {
      "q": "Hondarribia, Spain",
      "name": "Hondarribia",
-     "text": "Finish at the Atlantic marina."
+     "text": "Finish at the Atlantic marina.",
+     "wiki": "Hondarribia"
     }
    ]
   },
