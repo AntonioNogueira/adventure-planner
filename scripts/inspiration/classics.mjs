@@ -2433,4 +2433,1108 @@ export const CLASSICS = [
     }
    ]
   },
+  {
+   "id": "west-africa-overland",
+   "title": "West Africa overland: Morocco to Ghana",
+   "who": "Classic overland route",
+   "when": "Best November–March (dry season)",
+   "vehicle": "Motorcycle, 4x4 or overland truck, 2–3 months",
+   "kind": "4x4",
+   "color": "#c2410c",
+   "summary": "The great West African coast run: down through Morocco and the Western Sahara, the iron-ore train country of Mauritania, Senegal, then the green coast through the Gambia, Guinea-Bissau, Guinea, Sierra Leone, Liberia and Côte d'Ivoire to Accra. The old inland route via Mali and Burkina Faso is today avoided for security reasons; check current advice and visas before going.",
+   "sources": [
+    {
+     "label": "Local Adventures: Fes to Ghana overland (81 days)",
+     "url": "https://localadventures.travel/tours/fes-morocco-to-ghana-group-overland-tour-qbisemz"
+    },
+    {
+     "label": "Horizons Unlimited: Ghana to Morocco solo by motorcycle",
+     "url": "https://www.horizonsunlimited.com/hubb/route-planning/ghana-to-morocco-moto-solo-88081?nojs=1"
+    },
+    {
+     "label": "Horizons Unlimited: West Africa route thread",
+     "url": "https://horizonsunlimited.com/hubb/sub-saharan-africa/west-africa-103429"
+    }
+   ],
+   "approximate": "Usual corridor from overland tours and rider reports; roads approximate.",
+   "stops": [
+    {
+     "q": "Tangier, Morocco",
+     "name": "Tangier",
+     "text": "Ferry from Spain into Africa."
+    },
+    {
+     "q": "Marrakech, Morocco",
+     "name": "Marrakech",
+     "text": "Over the Atlas."
+    },
+    {
+     "q": "Dakhla, Western Sahara",
+    "at": [
+     23.6848,
+     -15.958
+    ],
+     "name": "Dakhla",
+     "text": "A thousand kilometres of desert coast; kitesurfers in the lagoon."
+    },
+    {
+     "q": "Nouadhibou, Mauritania",
+     "name": "Nouadhibou",
+     "text": "Through no man's land into Mauritania, near the iron-ore train."
+    },
+    {
+     "q": "Nouakchott, Mauritania",
+     "name": "Nouakchott",
+     "text": "Down the desert to the capital."
+    },
+    {
+     "q": "Saint-Louis, Senegal",
+     "name": "Saint-Louis",
+     "wiki": "Saint-Louis, Senegal",
+     "text": "Colonial island town at the mouth of the Senegal River."
+    },
+    {
+     "q": "Dakar, Senegal",
+     "name": "Dakar",
+     "text": "The old rally finish, and visas for the road south."
+    },
+    {
+     "q": "Banjul, Gambia",
+     "name": "Banjul",
+     "text": "The Gambia, by ferry across the river."
+    },
+    {
+     "q": "Bissau, Guinea-Bissau",
+     "name": "Bissau",
+     "text": "Portuguese-speaking Guinea-Bissau."
+    },
+    {
+     "q": "Labé, Guinea",
+     "name": "Fouta Djallon",
+     "text": "The cool highlands of Guinea on rough roads."
+    },
+    {
+     "q": "Freetown, Sierra Leone",
+     "name": "Freetown",
+     "text": "Beaches under the mountains."
+    },
+    {
+     "q": "Monrovia, Liberia",
+     "name": "Monrovia",
+     "text": "Along the rainforest coast."
+    },
+    {
+     "q": "Abidjan, Ivory Coast",
+     "name": "Abidjan",
+     "text": "Côte d'Ivoire's big lagoon city."
+    },
+    {
+     "q": "Accra, Ghana",
+     "name": "Accra",
+     "text": "End of the road for most overland trucks."
+    }
+   ]
+  },
+  {
+   "id": "skeleton-coast-kaokoland",
+   "title": "Skeleton Coast & Kaokoland 4x4",
+   "who": "Classic 4x4 route",
+   "when": "Best May–October",
+   "vehicle": "4x4 in a convoy, 10–14 days",
+   "kind": "4x4",
+   "color": "#92400e",
+   "summary": "Namibia's wildest drive: north up the fog-bound Skeleton Coast past shipwrecks and seal colonies, inland through the desert-elephant rivers to Purros, then into Kaokoland, land of the Himba, to Epupa Falls on the Kunene and down the notorious Van Zyl's Pass into the empty Marienfluss valley. Take two vehicles, lots of fuel and water.",
+   "sources": [
+    {
+     "label": "Wikipedia: Skeleton Coast",
+     "url": "https://en.wikipedia.org/wiki/Skeleton_Coast"
+    },
+    {
+     "label": "Getaway: how to do the wildest 4x4 trip in Namibia",
+     "url": "https://getaway.co.za/?p=15337724"
+    },
+    {
+     "label": "Wikivoyage: Kaokoland",
+     "url": "https://en.wikivoyage.org/wiki/Kaokoland"
+    },
+    {
+     "label": "Tracks4Africa: Van Zyl's Pass",
+     "url": "https://tracks4africa.co.za/listings/item/w207682/van-zyls-pass/"
+    }
+   ],
+   "approximate": "Usual loop from 4x4 reports; the off-road tracks are drawn as straight lines.",
+   "stops": [
+    {
+     "q": "Swakopmund, Namibia",
+     "name": "Swakopmund",
+     "text": "Stock up in the German seaside town."
+    },
+    {
+     "q": "Henties Bay, Namibia",
+     "name": "Henties Bay",
+     "text": "North on the salt road; the Zeila wreck south of town."
+    },
+    {
+     "q": "Torra Bay, Namibia",
+     "at": [
+      -20.312,
+      13.238
+     ],
+     "name": "Torra Bay",
+     "text": "Through the Ugab gate into the Skeleton Coast park."
+    },
+    {
+     "q": "Terrace Bay, Namibia",
+     "at": [
+      -19.995,
+      13.034
+     ],
+     "name": "Terrace Bay",
+     "text": "The northernmost point you can drive; dunes begin beyond."
+    },
+    {
+     "q": "Sesfontein, Namibia",
+     "name": "Sesfontein",
+     "text": "Inland through the Springbokwasser gate to an old fort."
+    },
+    {
+     "q": "Purros, Namibia",
+     "at": [
+      -18.737,
+      12.944
+     ],
+     "name": "Purros",
+     "route": "line",
+     "text": "Along the sandy Hoarusib riverbed, desert elephant country."
+    },
+    {
+     "q": "Opuwo, Namibia",
+     "name": "Opuwo",
+     "text": "Kaokoland's only town: last fuel."
+    },
+    {
+     "q": "Epupa Falls, Namibia",
+     "at": [
+      -16.999,
+      13.246
+     ],
+     "name": "Epupa Falls",
+     "text": "Palms and waterfalls on the Kunene, Angola across the river."
+    },
+    {
+     "q": "Okangwati, Namibia",
+     "at": [
+      -17.416,
+      13.272
+     ],
+     "name": "Okangwati",
+     "text": "Himba villages."
+    },
+    {
+     "q": "Van Zyl's Pass, Namibia",
+     "at": [
+      -17.633,
+      12.735
+     ],
+     "name": "Van Zyl's Pass",
+     "route": "line",
+     "text": "The steep rocky descent, east to west only."
+    },
+    {
+     "q": "Marienfluss, Namibia",
+     "at": [
+      -17.3,
+      12.47
+     ],
+     "name": "Marienfluss",
+     "route": "line",
+     "text": "Grass, fairy circles and silence down to the Kunene."
+    }
+   ]
+  },
+  {
+   "id": "sani-pass-lesotho",
+   "title": "Sani Pass and the Lesotho highlands",
+   "who": "Classic 4x4 and motorcycle route",
+   "when": "Best March–May and September–November",
+   "vehicle": "4x4 or adventure motorcycle, 5–7 days",
+   "kind": "4x4",
+   "color": "#15803d",
+   "summary": "Up the switchbacks of the Sani Pass from South Africa to the \"highest pub in Africa\" at nearly 2,900 m, then across the roof of Lesotho: high passes, Basotho horsemen in blankets, the Katse Dam and Semonkong's huge waterfall, before dropping to Maseru.",
+   "sources": [
+    {
+     "label": "Wikipedia: Sani Pass",
+     "url": "https://en.wikipedia.org/wiki/Sani_Pass"
+    }
+   ],
+   "approximate": "Classic loop; roads in Lesotho are approximate.",
+   "stops": [
+    {
+     "q": "Underberg, South Africa",
+     "name": "Underberg",
+     "text": "Foot of the Drakensberg."
+    },
+    {
+     "q": "Sani Top, Lesotho",
+     "at": [
+      -29.5869,
+      29.2878
+     ],
+     "name": "Sani Top",
+     "text": "Up the pass to the border post and the mountain pub."
+    },
+    {
+     "q": "Mokhotlong, Lesotho",
+    "at": [
+     -29.2885,
+     29.0644
+    ],
+     "name": "Mokhotlong",
+     "text": "Across the high plateau."
+    },
+    {
+     "q": "Katse Dam, Lesotho",
+     "at": [
+      -29.336,
+      28.506
+     ],
+     "name": "Katse Dam",
+     "text": "The great highland water scheme."
+    },
+    {
+     "q": "Semonkong, Lesotho",
+     "name": "Semonkong",
+     "text": "Maletsunyane Falls, almost 200 m drop."
+    },
+    {
+     "q": "Maseru, Lesotho",
+     "name": "Maseru",
+     "text": "Down to the capital."
+    }
+   ]
+  },
+  {
+   "id": "silk-road-overland",
+   "title": "Silk Road overland: Istanbul to Kashgar",
+   "who": "Classic overland route",
+   "when": "Best May–September",
+   "vehicle": "Motorcycle or 4x4, 6–10 weeks",
+   "kind": "moto",
+   "color": "#b45309",
+   "summary": "The ancient caravan road by motorcycle: across Anatolia and Iran, through Turkmenistan to the blue domes of Merv, Bukhara and Samarkand, over the Kyrgyz mountains and the Torugart Pass to Kashgar. Paperwork is the hard part: Iran often needs a guide, Turkmenistan a transit visa and a carnet, and China special permits.",
+   "sources": [
+    {
+     "label": "Wikipedia: Silk Road",
+     "url": "https://en.wikipedia.org/wiki/Silk_Road"
+    },
+    {
+     "label": "Adventure Bike Rider: Chasing the Silk Road",
+     "url": "https://www.adventurebikerider.com/article/chasing-the-silk-road/"
+    },
+    {
+     "label": "Mad or Nomad: motorcycle guide to Turkmenistan",
+     "url": "https://www.madornomad.com/motorcycle-travel-guide-turkmenistan/"
+    },
+    {
+     "label": "Horizons Unlimited: Central Asia in two months",
+     "url": "https://www.horizonsunlimited.com/hubb/northern-and-central-asia/central-asia-2-months-101695-print?pp=100"
+    }
+   ],
+   "approximate": "Usual corridor from rider reports; roads approximate.",
+   "stops": [
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Istanbul",
+     "text": "Where Europe ends."
+    },
+    {
+     "q": "Göreme, Turkey",
+     "name": "Cappadocia",
+     "text": "Caravanserais and fairy chimneys."
+    },
+    {
+     "q": "Erzurum, Turkey",
+     "name": "Erzurum",
+     "text": "High eastern Anatolia."
+    },
+    {
+     "q": "Tabriz, Iran",
+     "name": "Tabriz",
+     "text": "Its great covered bazaar was a Silk Road hub."
+    },
+    {
+     "q": "Tehran, Iran",
+     "name": "Tehran",
+     "text": "Visas for what comes next."
+    },
+    {
+     "q": "Mashhad, Iran",
+     "name": "Mashhad",
+     "text": "Last city before Turkmenistan."
+    },
+    {
+     "q": "Ashgabat, Turkmenistan",
+     "name": "Ashgabat",
+     "text": "White marble capital."
+    },
+    {
+     "q": "Mary, Turkmenistan",
+     "name": "Merv",
+     "wiki": "Merv",
+     "text": "Ruins of one of the largest cities of the 12th century."
+    },
+    {
+     "q": "Bukhara, Uzbekistan",
+     "name": "Bukhara",
+     "text": "Madrasas and minarets."
+    },
+    {
+     "q": "Samarkand, Uzbekistan",
+     "name": "Samarkand",
+     "wiki": "Registan",
+     "text": "The Registan."
+    },
+    {
+     "q": "Tashkent, Uzbekistan",
+     "name": "Tashkent",
+     "text": "Through the Fergana side."
+    },
+    {
+     "q": "Osh, Kyrgyzstan",
+    "at": [
+     40.5133,
+     72.8161
+    ],
+     "name": "Osh",
+     "text": "Into the mountains."
+    },
+    {
+     "q": "Naryn, Kyrgyzstan",
+    "at": [
+     41.4287,
+     75.9911
+    ],
+     "name": "Naryn",
+     "text": "Towards the Chinese border."
+    },
+    {
+     "q": "Torugart Pass",
+     "at": [
+      40.565,
+      75.39
+     ],
+     "name": "Torugart Pass",
+     "text": "Nearly 3,800 m border crossing."
+    },
+    {
+     "q": "Kashgar, Xinjiang",
+     "name": "Kashgar",
+     "text": "The Sunday market at the end of the road."
+    }
+   ]
+  },
+  {
+   "id": "viarhona",
+   "title": "ViaRhôna: Lake Geneva to the Mediterranean",
+   "who": "EuroVelo 17 · classic cycle route",
+   "when": "Best April–October",
+   "vehicle": "Bicycle, 10–14 days",
+   "kind": "bike",
+   "color": "#0284c7",
+   "summary": "About 800 km down the Rhône from Lake Geneva to the sea, mostly on greenways and quiet roads: Alpine lakes, Lyon, Côtes-du-Rhône vineyards, Roman Orange, the Pont d'Avignon, Arles and the Camargue, ending at Sète. Mostly flat or downhill with the mistral at your back.",
+   "sources": [
+    {
+     "label": "ViaRhôna official site",
+     "url": "https://en.viarhona.com/the-route/a-truly-european-cycle-route"
+    },
+    {
+     "label": "France Vélo Tourisme: ViaRhôna",
+     "url": "https://en.francevelotourisme.com/itineraire/viarhona"
+    },
+    {
+     "label": "Freewheeling France: the ViaRhôna",
+     "url": "https://freewheelingfrance.com/bike-routes-in-france/via-rhona-bike-route.html"
+    }
+   ],
+   "approximate": "Main towns on the route; the path follows cycleways only approximately.",
+   "stops": [
+    {
+     "q": "Saint-Gingolph, France",
+     "name": "Saint-Gingolph",
+     "text": "Official start on Lake Geneva's French shore."
+    },
+    {
+     "q": "Thonon-les-Bains, France",
+     "name": "Thonon",
+     "text": "Along the lake."
+    },
+    {
+     "q": "Genève, Switzerland",
+     "name": "Geneva",
+     "text": "Where the Rhône leaves the lake."
+    },
+    {
+     "q": "Seyssel, Haute-Savoie",
+     "name": "Seyssel",
+     "text": "Into the gorges."
+    },
+    {
+     "q": "Belley, France",
+     "name": "Belley",
+     "text": "Lakes and marshes of the upper Rhône."
+    },
+    {
+     "q": "Lyon, France",
+     "name": "Lyon",
+     "text": "Where the Saône joins; take the train to Givors if the temporary section is bad."
+    },
+    {
+     "q": "Vienne, Isère",
+     "name": "Vienne",
+     "text": "Roman temple and vineyards."
+    },
+    {
+     "q": "Valence, Drôme",
+     "name": "Valence",
+     "text": "Gateway to Provence."
+    },
+    {
+     "q": "Orange, Vaucluse",
+     "name": "Orange",
+     "text": "Roman theatre."
+    },
+    {
+     "q": "Avignon, France",
+     "name": "Avignon",
+     "text": "Palace of the Popes and the broken bridge."
+    },
+    {
+     "q": "Arles, France",
+     "name": "Arles",
+     "text": "Van Gogh's town."
+    },
+    {
+     "q": "Aigues-Mortes, France",
+     "name": "Aigues-Mortes",
+     "text": "Walled town in the Camargue salt flats."
+    },
+    {
+     "q": "Sète, France",
+     "name": "Sète",
+     "text": "The Mediterranean."
+    }
+   ]
+  },
+  {
+   "id": "canal-des-deux-mers",
+   "title": "Canal des Deux Mers by bike",
+   "who": "V80 · classic cycle route",
+   "when": "Best April–June and September–October",
+   "vehicle": "Bicycle, 10–14 days",
+   "kind": "bike",
+   "color": "#059669",
+   "summary": "Atlantic to Mediterranean across the south of France, about 750 km: from Royan along the Gironde to Bordeaux, then the towpaths of the Garonne Canal and the 17th-century Canal du Midi under plane trees, via Toulouse and Carcassonne to Sète. Flat; ride west to east for the wind.",
+   "sources": [
+    {
+     "label": "France Vélo Tourisme: Canal des 2 Mers by bike",
+     "url": "https://en.francevelotourisme.com/cycle-route/canal-des-2-mers-by-bike-atlantic-mediterranean-sea"
+    },
+    {
+     "label": "Freewheeling France: Canal des Deux Mers",
+     "url": "https://freewheelingfrance.com/where-to-go/canal-des-deux-mers.html"
+    },
+    {
+     "label": "Wikipedia: Canal du Midi",
+     "url": "https://en.wikipedia.org/wiki/Canal_du_Midi"
+    }
+   ],
+   "approximate": "Main towns; the path follows towpaths only approximately.",
+   "stops": [
+    {
+     "q": "Royan, France",
+     "name": "Royan",
+     "text": "Start at the Atlantic."
+    },
+    {
+     "q": "Bordeaux, France",
+     "name": "Bordeaux",
+     "text": "Up the Gironde estuary through wine country."
+    },
+    {
+     "q": "Langon, Gironde",
+     "name": "Langon",
+     "text": "Sauternes and the start of the Garonne Canal path."
+    },
+    {
+     "q": "Agen, France",
+     "name": "Agen",
+     "text": "The canal bridge over the Garonne."
+    },
+    {
+     "q": "Moissac, France",
+     "name": "Moissac",
+     "text": "Romanesque cloister."
+    },
+    {
+     "q": "Toulouse, France",
+     "name": "Toulouse",
+     "text": "Pink city; start of the Canal du Midi."
+    },
+    {
+     "q": "Castelnaudary, France",
+     "name": "Castelnaudary",
+     "text": "Cassoulet capital."
+    },
+    {
+     "q": "Carcassonne, France",
+     "name": "Carcassonne",
+     "text": "The medieval Cité."
+    },
+    {
+     "q": "Béziers, France",
+     "name": "Béziers",
+     "text": "The nine locks of Fonseranes."
+    },
+    {
+     "q": "Sète, France",
+     "name": "Sète",
+     "text": "Mediterranean finish."
+    }
+   ]
+  },
+  {
+   "id": "ev8-southern-spain",
+   "title": "EuroVelo 8 in southern Spain",
+   "who": "EuroVelo 8 · Mediterranean Route",
+   "when": "Best October–May",
+   "vehicle": "Bicycle, 2–3 weeks",
+   "kind": "bike",
+   "color": "#ea580c",
+   "summary": "The start of the long Mediterranean route: from Cádiz past Tarifa and Gibraltar, along the Costa del Sol, inland to Granada and the Alhambra, the desert coast of Almería, Murcia and on to Valencia. In Spain the route is still mostly unsigned and on roads, so plan your own way.",
+   "sources": [
+    {
+     "label": "Wikipedia: EV8 The Mediterranean Route",
+     "url": "https://en.wikipedia.org/wiki/EV8_The_Mediterranean_Route"
+    }
+   ],
+   "approximate": "The towns the EuroVelo plan passes; most of it is not yet built, so the way is approximate.",
+   "stops": [
+    {
+     "q": "Cádiz, Spain",
+     "name": "Cádiz",
+     "text": "Start of EuroVelo 8."
+    },
+    {
+     "q": "Tarifa, Spain",
+     "name": "Tarifa",
+     "text": "Africa across the strait; the signed section starts here."
+    },
+    {
+     "q": "Algeciras, Spain",
+     "name": "Algeciras",
+     "text": "Past Gibraltar to Guadiaro."
+    },
+    {
+     "q": "Marbella, Spain",
+     "name": "Marbella",
+     "text": "Costa del Sol."
+    },
+    {
+     "q": "Málaga, Spain",
+     "name": "Málaga",
+     "text": "Picasso's city."
+    },
+    {
+     "q": "Granada, Spain",
+     "name": "Granada",
+     "wiki": "Alhambra",
+     "text": "Inland to the Alhambra."
+    },
+    {
+     "q": "Almería, Spain",
+     "name": "Almería",
+     "text": "Desert coast and Cabo de Gata."
+    },
+    {
+     "q": "Cartagena, Spain",
+     "name": "Cartagena",
+     "text": "Roman and naval port."
+    },
+    {
+     "q": "Alicante, Spain",
+     "name": "Alicante",
+     "text": "Costa Blanca."
+    },
+    {
+     "q": "Valencia, Spain",
+     "name": "Valencia",
+     "text": "Paella at the end; the route goes on to Barcelona and France."
+    }
+   ]
+  },
+  {
+   "id": "mediterranee-a-velo",
+   "title": "La Méditerranée à vélo (EV8 France)",
+   "who": "EuroVelo 8 · classic cycle route",
+   "when": "Best April–June and September–October",
+   "vehicle": "Bicycle, 10–14 days",
+   "kind": "bike",
+   "color": "#0891b2",
+   "summary": "About 800 km across the French Mediterranean, fully signed: over the Pyrenees at Le Perthus, along the lagoons of the Languedoc and the Canal de la Robine, through the Camargue, inland through the Luberon villages and Haute-Provence, then down to Nice and Menton on the Italian border.",
+   "sources": [
+    {
+     "label": "Wikipedia: EV8 The Mediterranean Route",
+     "url": "https://en.wikipedia.org/wiki/EV8_The_Mediterranean_Route"
+    }
+   ],
+   "approximate": "The towns the route passes; the path is approximate.",
+   "stops": [
+    {
+     "q": "Le Perthus, France",
+     "name": "Le Perthus",
+     "text": "In from Spain over the Panissars pass."
+    },
+    {
+     "q": "Argelès-sur-Mer, France",
+     "name": "Argelès",
+     "text": "The Catalan coast."
+    },
+    {
+     "q": "Leucate, France",
+     "name": "Leucate",
+     "text": "Lagoons and kite beaches."
+    },
+    {
+     "q": "Narbonne, France",
+     "name": "Narbonne",
+     "text": "Along the Canal de la Robine."
+    },
+    {
+     "q": "Béziers, France",
+     "name": "Béziers",
+     "text": "Crossing the Canal du Midi."
+    },
+    {
+     "q": "Sète, France",
+     "name": "Sète",
+     "text": "Between lagoon and sea."
+    },
+    {
+     "q": "La Grande-Motte, France",
+     "name": "La Grande-Motte",
+     "text": "Pyramids of the 1960s resort."
+    },
+    {
+     "q": "Cavaillon, France",
+     "name": "Cavaillon",
+     "text": "Into Provence."
+    },
+    {
+     "q": "Apt, France",
+     "name": "Apt",
+     "text": "The Luberon."
+    },
+    {
+     "q": "Forcalquier, France",
+     "name": "Forcalquier",
+     "text": "Haute-Provence hills."
+    },
+    {
+     "q": "Nice, France",
+     "name": "Nice",
+     "text": "Down to the Riviera."
+    },
+    {
+     "q": "Menton, France",
+     "name": "Menton",
+     "text": "Italy next door."
+    }
+   ]
+  },
+  {
+   "id": "route-des-grandes-alpes",
+   "title": "Route des Grandes Alpes",
+   "who": "Classic road route since 1913",
+   "when": "Best late June–September",
+   "vehicle": "Motorcycle, car or road bike, 5–10 days",
+   "kind": "moto",
+   "color": "#7c3aed",
+   "summary": "About 720 km from Lake Geneva to the Riviera over every great pass of the French Alps: Colombière, Aravis, Iseran (the highest paved pass in the Alps), Galibier, Izoard, Vars, Bonette and Turini. Opened in 1913; the high cols are clear only from mid-June.",
+   "sources": [
+    {
+     "label": "Wikipedia: Route des Grandes Alpes",
+     "url": "https://en.wikipedia.org/wiki/Route_des_Grandes_Alpes"
+    }
+   ],
+   "approximate": "The passes and towns of the official route.",
+   "stops": [
+    {
+     "q": "Thonon-les-Bains, France",
+     "name": "Thonon",
+     "text": "Start on Lake Geneva."
+    },
+    {
+     "q": "Les Gets, France",
+     "name": "Les Gets",
+     "text": "First climb."
+    },
+    {
+     "q": "Col de la Colombière, France",
+     "at": [
+      45.9958,
+      6.4697
+     ],
+     "name": "Col de la Colombière",
+     "text": "1,613 m."
+    },
+    {
+     "q": "Col des Aravis, France",
+     "at": [
+      45.8722,
+      6.465
+     ],
+     "name": "Col des Aravis",
+     "text": "Mont Blanc view."
+    },
+    {
+     "q": "Col des Saisies, France",
+     "at": [
+      45.7578,
+      6.5361
+     ],
+     "name": "Col des Saisies",
+     "text": "Down to Beaufort and its cheese."
+    },
+    {
+     "q": "Bourg-Saint-Maurice, France",
+     "name": "Bourg-Saint-Maurice",
+     "text": "Up the Tarentaise."
+    },
+    {
+     "q": "Val-d'Isère, France",
+     "name": "Val-d'Isère",
+     "text": "Ski town."
+    },
+    {
+     "q": "Col de l'Iseran, France",
+     "at": [
+      45.417,
+      7.0306
+     ],
+     "name": "Col de l'Iseran",
+     "text": "2,764 m: the highest paved pass in the Alps."
+    },
+    {
+     "q": "Modane, France",
+     "name": "Modane",
+     "text": "Down the Maurienne."
+    },
+    {
+     "q": "Col du Galibier, France",
+     "at": [
+      45.0641,
+      6.4078
+     ],
+     "name": "Col du Galibier",
+     "text": "Via the Télégraphe; Tour de France legend."
+    },
+    {
+     "q": "Briançon, France",
+     "name": "Briançon",
+     "text": "Over the Lautaret to the fortified town."
+    },
+    {
+     "q": "Col d'Izoard, France",
+     "at": [
+      44.8203,
+      6.735
+     ],
+     "name": "Col d'Izoard",
+     "text": "The lunar Casse Déserte."
+    },
+    {
+     "q": "Col de Vars, France",
+     "at": [
+      44.5389,
+      6.7036
+     ],
+     "name": "Col de Vars",
+     "text": "Towards the Ubaye."
+    },
+    {
+     "q": "Barcelonnette, France",
+     "name": "Barcelonnette",
+     "text": "Mexican-style villas of returned emigrants."
+    },
+    {
+     "q": "Col de la Bonette, France",
+     "at": [
+      44.3264,
+      6.8072
+     ],
+     "name": "Col de la Bonette",
+     "text": "2,802 m via the Cime loop."
+    },
+    {
+     "q": "Col de Turini, France",
+     "at": [
+      43.9775,
+      7.3911
+     ],
+     "name": "Col de Turini",
+     "text": "Monte Carlo Rally hairpins."
+    },
+    {
+     "q": "Menton, France",
+     "name": "Menton",
+     "text": "The sea, end of the road."
+    }
+   ]
+  },
+  {
+   "id": "torino-nice-rally",
+   "title": "Torino–Nice Rally",
+   "who": "Classic bikepacking route",
+   "when": "Mass start the first Friday of September; ride July–September",
+   "vehicle": "Gravel or mountain bike, 7–10 days",
+   "kind": "bike",
+   "color": "#dc2626",
+   "summary": "About 700 km and 15,500 m of climbing from Turin to Nice, half on high military gravel roads: the Colle delle Finestre, the Strada dell'Assietta ridge above 2,000 m, the Strada dei Cannoni, plus Izoard and Agnel. An unsupported group ride every September; the route is open all summer.",
+   "sources": [
+    {
+     "label": "Café du Cycliste: Tracing the Torino-Nice Rally",
+     "url": "https://www.cafeducycliste.com/en/blogs/rouler/tracing-the-torino-nice-rally"
+    },
+    {
+     "label": "bikepacking.com: Torino-Nice 2024 (video)",
+     "url": "https://bikepacking.com/plog/torino-nice-rally-2024-josh-ibbett/"
+    },
+    {
+     "label": "Rough Ride Guide: Torino to Nice",
+     "url": "https://www.roughrideguide.co.uk/route-details/2874"
+    }
+   ],
+   "approximate": "Main climbs named in reports; the rally line changes each year.",
+   "stops": [
+    {
+     "q": "Torino, Italy",
+     "name": "Turin",
+     "text": "Start in the city."
+    },
+    {
+     "q": "Colle delle Finestre, Italy",
+     "at": [
+      45.0717,
+      7.0533
+     ],
+     "name": "Colle delle Finestre",
+     "text": "Giro climb, gravel at the top."
+    },
+    {
+     "q": "Colle dell'Assietta, Italy",
+     "at": [
+      45.0739,
+      6.9958
+     ],
+     "name": "Strada dell'Assietta",
+     "route": "line",
+     "text": "Old military road along a ridge, 2,472 m."
+    },
+    {
+     "q": "Sestriere, Italy",
+     "name": "Sestriere",
+     "text": "Down the ridge."
+    },
+    {
+     "q": "Col d'Izoard, France",
+     "at": [
+      44.8203,
+      6.735
+     ],
+     "name": "Col d'Izoard",
+     "text": "Into France."
+    },
+    {
+     "q": "Col Agnel",
+     "at": [
+      44.6839,
+      6.9792
+     ],
+     "name": "Col Agnel",
+     "text": "Back to Italy at 2,744 m."
+    },
+    {
+     "q": "Colle di Sampeyre, Italy",
+     "at": [
+      44.5539,
+      7.1158
+     ],
+     "name": "Colle di Sampeyre",
+     "text": "Between the Varaita and Maira valleys."
+    },
+    {
+     "q": "Colle Fauniera, Italy",
+     "at": [
+      44.3844,
+      7.1219
+     ],
+     "name": "Strada dei Cannoni",
+     "route": "line",
+     "text": "High gravel roads above the valleys."
+    },
+    {
+     "q": "Col de Turini, France",
+     "at": [
+      43.9775,
+      7.3911
+     ],
+     "name": "Col de Turini",
+     "text": "The last big climb."
+    },
+    {
+     "q": "Nice, France",
+     "name": "Nice",
+     "text": "Promenade des Anglais."
+    }
+   ]
+  },
+  {
+   "id": "montanas-vacias",
+   "title": "Montañas Vacías",
+   "who": "Classic bikepacking route · by Ernesto Pastor",
+   "when": "Best May–June and September–October",
+   "vehicle": "Gravel or mountain bike, 8–10 days",
+   "kind": "bike",
+   "color": "#a855f7",
+   "summary": "A loop of about 680 km and 12,500 m of climbing from Teruel through the \"Spanish Lapland\", the emptiest mountains in Europe: Albarracín, the source of the Tagus, the Serranía de Cuenca, the Montes Universales, Javalambre and Gúdar. Gravel forest roads, almost no shops: carry food. Made to bring attention to rural depopulation.",
+   "sources": [
+    {
+     "label": "bikepacking.com: Montañas Vacías",
+     "url": "https://bikepacking.com/routes/montanas-vacias/"
+    },
+    {
+     "label": "bikepacking.com: Of Resilience, Hope, and a Slice of Heaven",
+     "url": "https://bikepacking.com/plog/of-resilience-hope-and-a-slice-of-heaven"
+    }
+   ],
+   "approximate": "Mountain areas the loop links; the gravel line is approximate.",
+   "stops": [
+    {
+     "q": "Teruel, Spain",
+     "name": "Teruel",
+     "text": "Mudéjar towers, start and finish."
+    },
+    {
+     "q": "Albarracín, Spain",
+     "name": "Albarracín",
+     "text": "Pink medieval town in the Rodeno pines."
+    },
+    {
+     "q": "Griegos, Spain",
+     "name": "Montes Universales",
+     "text": "High plateau."
+    },
+    {
+     "q": "Nacimiento del Río Tajo",
+     "at": [
+      40.3317,
+      -1.6931
+     ],
+     "name": "Source of the Tagus",
+     "text": "The river that ends in Lisbon starts here."
+    },
+    {
+     "q": "Beteta, Spain",
+     "name": "Beteta",
+     "text": "Serranía de Cuenca gorges."
+    },
+    {
+     "q": "Tragacete, Spain",
+     "name": "Tragacete",
+     "text": "Source of the Júcar."
+    },
+    {
+     "q": "Camarena de la Sierra, Spain",
+     "name": "Javalambre",
+     "text": "The Sierra de Javalambre."
+    },
+    {
+     "q": "Alcalá de la Selva, Spain",
+     "name": "Gúdar",
+     "text": "Sierra de Gúdar pinewoods."
+    },
+    {
+     "q": "Teruel, Spain",
+     "name": "Teruel",
+     "text": "Back to the start."
+    }
+   ]
+  },
+  {
+   "id": "transpyr-mtb",
+   "title": "Transpyr: Pyrenees coast to coast by MTB",
+   "who": "Classic mountain-bike route and race",
+   "when": "Race in June; ride June–September",
+   "vehicle": "Mountain bike, 7 days",
+   "kind": "bike",
+   "color": "#16a34a",
+   "summary": "Mediterranean to Atlantic along the Spanish side of the Pyrenees, about 750–800 km and 18,000–20,000 m of climbing in seven stages: Costa Brava, Catalan valleys, Aragon's Aínsa and Jaca, Navarre's beech forests and down to the Basque marina at Hondarribia.",
+   "sources": [
+    {
+     "label": "Transpyr: the mission",
+     "url": "https://transpyr.com/en/the-mission"
+    },
+    {
+     "label": "Track the Race: Transpyr Gran Raid MTB 2019 stages",
+     "url": "https://tracktherace.com/transpyr-gran-raid-mtb-2019"
+    },
+    {
+     "label": "Transpirenaica in MTB",
+     "url": "https://travesiapirenaica.com/en/transpirenaica-in-mtb/"
+    }
+   ],
+   "approximate": "Stage towns of the 2019 edition; the trail line is approximate.",
+   "stops": [
+    {
+     "q": "Roses, Spain",
+     "name": "Roses",
+     "text": "Start at the Mediterranean."
+    },
+    {
+     "q": "Camprodon, Spain",
+     "name": "Camprodon",
+     "text": "Stage 1."
+    },
+    {
+     "q": "La Seu d'Urgell, Spain",
+     "name": "La Seu d'Urgell",
+     "text": "Near Andorra."
+    },
+    {
+     "q": "El Pont de Suert, Spain",
+     "name": "El Pont de Suert",
+     "text": "Into the high Pyrenees."
+    },
+    {
+     "q": "Aínsa, Spain",
+     "name": "Aínsa",
+     "text": "Medieval village under Monte Perdido."
+    },
+    {
+     "q": "Jaca, Spain",
+     "name": "Jaca",
+     "text": "Aragon."
+    },
+    {
+     "q": "Burguete, Navarra",
+     "name": "Auritz",
+     "text": "Navarre beech forests near Roncesvalles."
+    },
+    {
+     "q": "Hondarribia, Spain",
+     "name": "Hondarribia",
+     "text": "Finish at the Atlantic marina."
+    }
+   ]
+  },
 ];

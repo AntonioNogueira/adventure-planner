@@ -1544,4 +1544,707 @@ export const JOURNEYS = [
     }
    ]
   },
+  {
+   "id": "pirsig-zen-1968",
+   "title": "Pirsig: Zen and the Art of Motorcycle Maintenance",
+   "who": "Robert M. Pirsig and his son Chris",
+   "when": "July 1968, 17 days",
+   "vehicle": "Honda CB77 Super Hawk",
+   "kind": "moto",
+   "color": "#0f766e",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Zen and the Art of Motorcycle Maintenance",
+     "by": "Robert M. Pirsig"
+    },
+    {
+     "kind": "book",
+     "title": "Zen and Now",
+     "by": "Mark Richardson",
+     "note": "Retraces the ride forty years on"
+    }
+   ],
+   "summary": "The most-read motorcycle book ever is really a philosophy book. Pirsig and his 11-year-old son ride from Minnesota across the Dakotas and Montana, where their friends the Sutherlands turn back, then over the Rockies and through Idaho and Oregon to the California coast. Along the way: carburettor jets at altitude, the \"classical\" and \"romantic\" ways of seeing, and the ghost of his former self, Phaedrus. The Honda is now in the Smithsonian.",
+   "sources": [
+    {
+     "label": "Wikipedia: Zen and the Art of Motorcycle Maintenance",
+     "url": "https://en.wikipedia.org/wiki/Zen_and_the_Art_of_Motorcycle_Maintenance"
+    },
+    {
+     "label": "Psybertron: the ZMM route in detail",
+     "url": "https://www.psybertron.org/zammroutedetails.html"
+    },
+    {
+     "label": "Mark Richardson, Zen and Now (extract with route map)",
+     "url": "https://cdn.shopify.com/s/files/1/0542/4573/files/Zen_and_Now_Extract.pdf?4631"
+    }
+   ],
+   "approximate": "Towns from route studies of the book; roads between them are approximate.",
+   "stops": [
+    {
+     "q": "Saint Paul, Minnesota",
+     "name": "St Paul",
+     "date": "July 1968",
+     "wiki": "Honda CB77",
+     "text": "Father, son and the Sutherlands on a BMW leave the Twin Cities heading west on back roads."
+    },
+    {
+     "q": "Oakes, North Dakota",
+     "name": "Oakes",
+     "text": "Flat prairie and thunderstorms on the first day."
+    },
+    {
+     "q": "Ellendale, North Dakota",
+     "name": "Ellendale",
+     "text": "Breakfast stop on day two, the start of the long talks about \"Quality\"."
+    },
+    {
+     "q": "Lemmon, South Dakota",
+     "name": "Lemmon",
+     "text": "Across the open Dakotas."
+    },
+    {
+     "q": "Miles City, Montana",
+     "name": "Miles City",
+     "text": "The engine runs rich with the altitude: new jets and a valve adjustment, the famous lesson in fixing your own machine."
+    },
+    {
+     "q": "Laurel, Montana",
+     "name": "Laurel",
+     "text": "Towards the mountains."
+    },
+    {
+     "q": "Bozeman, Montana",
+     "name": "Bozeman",
+     "wiki": "Montana State University",
+     "text": "Where Phaedrus once taught writing at the college. The Sutherlands head home from Montana."
+    },
+    {
+     "q": "Missoula, Montana",
+     "name": "Missoula",
+     "text": "Father and son continue alone."
+    },
+    {
+     "q": "Lolo Pass, Idaho",
+     "at": [
+      46.635,
+      -114.58
+     ],
+     "name": "Lolo Pass",
+     "text": "A night camped on a logging road at the pass."
+    },
+    {
+     "q": "Cambridge, Idaho",
+     "name": "Cambridge",
+     "text": "South through Idaho towards Oregon."
+    },
+    {
+     "q": "Bend, Oregon",
+     "name": "Bend",
+     "text": "Across the high desert of central Oregon."
+    },
+    {
+     "q": "Eureka, California",
+     "name": "Eureka",
+     "text": "Down to the Pacific coast of northern California."
+    },
+    {
+     "q": "San Francisco, California",
+     "name": "San Francisco",
+     "text": "The end of the ride and of the book, on the coast road south to the Bay."
+    }
+   ]
+  },
+  {
+   "id": "steinbeck-charley-1960",
+   "title": "Steinbeck: Travels with Charley",
+   "who": "John Steinbeck and Charley the poodle",
+   "when": "September–December 1960",
+   "vehicle": "GMC pickup camper \"Rocinante\"",
+   "kind": "car",
+   "color": "#9a3412",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Travels with Charley: In Search of America",
+     "by": "John Steinbeck"
+    },
+    {
+     "kind": "book",
+     "title": "Dogging Steinbeck",
+     "by": "Bill Steigerwald",
+     "note": "Fact-checks the trip"
+    }
+   ],
+   "summary": "At 58, Steinbeck sets out to rediscover the country he writes about: almost 10,000 miles round the edge of the United States in a camper named after Don Quixote's horse, with his wife's poodle. Maine potato fields, the Great Lakes, Montana which he loved, the Pacific Northwest, a farewell to his Salinas Valley, a Texas Thanksgiving and the ugly school protests of New Orleans. Later research showed he was rarely alone and tidied up the story.",
+   "sources": [
+    {
+     "label": "Wikipedia: Travels with Charley",
+     "url": "https://en.wikipedia.org/wiki/Travels_with_Charley"
+    },
+    {
+     "label": "Bill Steigerwald, \"Sorry, Charley\" (Reason, 2011)",
+     "url": "http://reason.com/archives/2011/04/04/sorry-charley"
+    }
+   ],
+   "approximate": "Places named in the book; the roads are approximate.",
+   "stops": [
+    {
+     "q": "Sag Harbor, New York",
+     "name": "Sag Harbor",
+     "date": "Sept 1960",
+     "wiki": "Rocinante",
+     "text": "Delayed two weeks by Hurricane Donna, he leaves his Long Island summer home."
+    },
+    {
+     "q": "Bangor, Maine",
+     "name": "Bangor",
+     "text": "North through New England, closed summer shops and terse farmers."
+    },
+    {
+     "q": "Deer Isle, Maine",
+     "name": "Deer Isle",
+     "text": "The best lobster he ever ate, and a cat named George."
+    },
+    {
+     "q": "Presque Isle, Maine",
+     "name": "Northern Maine",
+     "text": "A night with French-Canadian potato pickers, sharing wine."
+    },
+    {
+     "q": "Niagara Falls, New York",
+     "name": "Niagara Falls",
+     "text": "Turned back at the Canadian border: Charley lacks his papers."
+    },
+    {
+     "q": "Chicago, Illinois",
+     "name": "Chicago",
+     "text": "A break with his wife Elaine in a hotel."
+    },
+    {
+     "q": "Sauk Centre, Minnesota",
+     "name": "Sauk Centre",
+     "text": "Sinclair Lewis's home town, where nobody remembers him."
+    },
+    {
+     "q": "Fargo, North Dakota",
+     "name": "North Dakota",
+     "text": "Across the plains."
+    },
+    {
+     "q": "Missoula, Montana",
+     "name": "Montana",
+     "text": "The state he fell for, and the Great Divide."
+    },
+    {
+     "q": "Seattle, Washington",
+     "name": "Seattle",
+     "text": "\"I wonder why progress looks so much like destruction.\""
+    },
+    {
+     "q": "Pacific Grove, California",
+     "name": "Monterey",
+     "text": "Down the coast through Oregon (a flat tyre in the rain), to his old country. Farewell from Fremont Peak."
+    },
+    {
+     "q": "Barstow, California",
+     "name": "Mojave",
+     "text": "Dog food for two coyotes instead of a bullet."
+    },
+    {
+     "q": "Amarillo, Texas",
+     "name": "Amarillo",
+     "text": "Thanksgiving on a cattle ranch."
+    },
+    {
+     "q": "New Orleans, Louisiana",
+     "name": "New Orleans",
+     "text": "The mothers screaming at a newly integrated school depress him deeply."
+    },
+    {
+     "q": "New York City",
+     "name": "New York",
+     "date": "Dec 1960",
+     "text": "Home; he gets lost in his own city."
+    }
+   ]
+  },
+  {
+   "id": "fulton-one-man-caravan",
+   "title": "Robert Fulton Jr: One Man Caravan",
+   "who": "Robert Edison Fulton Jr",
+   "when": "1932–1933, 18 months",
+   "vehicle": "Douglas twin motorcycle",
+   "kind": "moto",
+   "color": "#78350f",
+   "media": [
+    {
+     "kind": "book",
+     "title": "One Man Caravan",
+     "by": "Robert Edison Fulton Jr",
+     "isbn": "1884313051"
+    }
+   ],
+   "summary": "A 23-year-old Harvard architecture graduate rides from London to Tokyo, about 25,000 miles, filming 40,000 feet of the world on the way. A night in a Turkish jail, Iraqi bandits avoided, almost shot at in the Khyber Pass, a guest of Indian rajahs. He later invented the Skyhook rescue system.",
+   "sources": [
+    {
+     "label": "Wikipedia: Robert Edison Fulton Jr.",
+     "url": "https://en.wikipedia.org/wiki/Robert_Edison_Fulton_Jr."
+    }
+   ],
+   "approximate": "Only the main places of the book; the roads and the Asian legs are approximate.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "London",
+     "date": "1932",
+     "text": "Off on a borrowed idea: ride round the world and study its buildings."
+    },
+    {
+     "q": "Vienna, Austria",
+     "name": "Vienna",
+     "text": "Where he had studied architecture."
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Turkey",
+     "text": "A night in a Turkish jail."
+    },
+    {
+     "q": "Baghdad, Iraq",
+     "name": "Iraq",
+     "text": "Across the desert, dodging bandits."
+    },
+    {
+     "q": "Khyber Pass",
+     "at": [
+      34.0786,
+      71.2096
+     ],
+     "name": "Khyber Pass",
+     "text": "Almost shot at by Pashtun tribesmen."
+    },
+    {
+     "q": "Delhi, India",
+     "name": "India",
+     "text": "Guest of rajahs."
+    },
+    {
+     "q": "Tokyo, Japan",
+     "name": "Tokyo",
+     "by": "unknown",
+     "date": "1933",
+     "text": "The end, with the film that became his lecture tour."
+    }
+   ]
+  },
+  {
+   "id": "maillart-fleming-1935",
+   "title": "Maillart & Fleming: Peking to Kashmir",
+   "who": "Ella Maillart and Peter Fleming",
+   "when": "February–September 1935",
+   "vehicle": "Train, lorry, horse, camel and on foot",
+   "kind": "other",
+   "color": "#a16207",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Forbidden Journey",
+     "by": "Ella Maillart"
+    },
+    {
+     "kind": "book",
+     "title": "News from Tartary",
+     "by": "Peter Fleming"
+    }
+   ],
+   "summary": "A Swiss sailor-skier and a Times correspondent cross China from Peking to Srinagar, 3,500 miles in seven months, to see what was happening in closed Xinjiang after the Kumul rebellion. Deserts, the Tsaidam marshes, caravans and Himalayan passes; two books of the same journey that read very differently.",
+   "sources": [
+    {
+     "label": "Wikipedia: Ella Maillart",
+     "url": "https://en.wikipedia.org/wiki/Ella_Maillart"
+    },
+    {
+     "label": "Wikipedia: News from Tartary",
+     "url": "https://en.wikipedia.org/wiki/News_from_Tartary"
+    }
+   ],
+   "approximate": "Main towns of the journey; the tracks across the deserts are drawn as straight lines.",
+   "stops": [
+    {
+     "q": "Beijing, China",
+     "name": "Peking",
+     "date": "Feb 1935",
+     "text": "They set off together, against all advice."
+    },
+    {
+     "q": "Lanzhou, China",
+     "name": "Lanchow",
+     "by": "train",
+     "text": "By train and lorry into the northwest."
+    },
+    {
+     "q": "Xining, China",
+     "name": "Sining",
+     "text": "Last town before the high plateau."
+    },
+    {
+     "q": "Golmud, China",
+     "name": "Tsaidam",
+     "route": "line",
+     "by": "unknown",
+     "text": "Months with caravans across the Tsaidam basin."
+    },
+    {
+     "q": "Qiemo, Xinjiang",
+     "name": "Cherchen",
+     "route": "line",
+     "text": "Into the oases on the southern edge of the Taklamakan."
+    },
+    {
+     "q": "Hotan, Xinjiang",
+     "name": "Khotan",
+     "route": "line",
+     "text": "Oasis to oasis on horseback."
+    },
+    {
+     "q": "Kashgar, Xinjiang",
+     "name": "Kashgar",
+     "text": "Guests of the British consulate."
+    },
+    {
+     "q": "Gilgit, Pakistan",
+     "name": "Gilgit",
+     "route": "line",
+     "text": "Over the passes through Hunza."
+    },
+    {
+     "q": "Srinagar, India",
+     "name": "Srinagar",
+     "date": "Sept 1935",
+     "text": "Kashmir after seven months."
+    }
+   ]
+  },
+  {
+   "id": "manicom-rtw",
+   "title": "Sam Manicom: eight years round the world",
+   "who": "Sam Manicom",
+   "when": "1992–2000",
+   "vehicle": "BMW R80 GS",
+   "kind": "moto",
+   "color": "#be185d",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Into Africa",
+     "by": "Sam Manicom"
+    },
+    {
+     "kind": "book",
+     "title": "Under Asian Skies",
+     "by": "Sam Manicom",
+     "isbn": "9780955657306"
+    },
+    {
+     "kind": "book",
+     "title": "Distant Suns",
+     "by": "Sam Manicom"
+    },
+    {
+     "kind": "book",
+     "title": "Tortillas to Totems",
+     "by": "Sam Manicom"
+    }
+   ],
+   "summary": "He had ridden for three months when he left to cross Africa; he came back eight years and some 200,000 miles later, after 55 countries. Into Africa covers the Sahara to the Namib; Under Asian Skies runs from a container ship to Australia up through Southeast Asia and India and home via Iran and Turkey. Distant Suns (South America) and Tortillas to Totems (Mexico to North America) finish the story; those two are not mapped yet.",
+   "sources": [
+    {
+     "label": "Mad or Nomad: Sam Manicom, 8 lessons from 8 years",
+     "url": "https://www.madornomad.com/sam-manicom-8-lessons-from-8-years-on-the-road/"
+    },
+    {
+     "label": "webBikeWorld: Into Africa & Under Asian Skies review",
+     "url": "https://www.webbikeworld.com/into-africa-under-asian-skies/"
+    },
+    {
+     "label": "Wanderlust Journal: interview",
+     "url": "https://wanderlust-journal.com/2019/08/22/an-interview-with-sam-manicom/"
+    }
+   ],
+   "approximate": "Only the regions named in reviews of the first two books; the order and roads in between are unknown.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "England",
+     "date": "1992",
+     "text": "Leaves with very little riding experience, for \"a year in Africa\"."
+    },
+    {
+     "q": "Tamanrasset, Algeria",
+     "at": [
+      22.785,
+      5.523
+     ],
+     "name": "Sahara",
+     "by": "unknown",
+     "text": "Across the Sahara."
+    },
+    {
+     "q": "Nairobi, Kenya",
+     "name": "East Africa",
+     "by": "unknown",
+     "text": "Through East Africa."
+    },
+    {
+     "q": "Sossusvlei, Namibia",
+     "at": [
+      -24.7275,
+      15.3428
+     ],
+     "name": "Namib",
+     "by": "unknown",
+     "text": "The Namib Desert in the south."
+    },
+    {
+     "q": "Sydney, Australia",
+     "name": "Sydney",
+     "by": "boat",
+     "text": "A container ship to Australia and a battle with port officials."
+    },
+    {
+     "q": "Jakarta, Indonesia",
+     "name": "Indonesia",
+     "by": "unknown",
+     "text": "Island hopping, and a memorable bus ride."
+    },
+    {
+     "q": "Bangkok, Thailand",
+     "name": "Thailand",
+     "by": "unknown",
+     "text": "Dengue fever."
+    },
+    {
+     "q": "Delhi, India",
+     "name": "India",
+     "by": "unknown",
+     "text": "Many adventures in India."
+    },
+    {
+     "q": "Tehran, Iran",
+     "name": "Iran",
+     "text": "Back west through Iran."
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Turkey",
+     "text": "And Turkey, towards home, before South and North America."
+    }
+   ]
+  },
+  {
+   "id": "amyr-klink-1984",
+   "title": "Amyr Klink: Cem dias entre céu e mar",
+   "who": "Amyr Klink",
+   "when": "12 June – 19 September 1984",
+   "vehicle": "Rowing boat IAT",
+   "kind": "other",
+   "color": "#0369a1",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Cem Dias entre Céu e Mar",
+     "by": "Amyr Klink",
+     "isbn": "8535906428"
+    }
+   ],
+   "summary": "The first solo row across the South Atlantic: a young Brazilian from São Paulo rows 7,000 km in a hundred days from Namibia to Bahia. His book about it is a Brazilian classic, read in schools, and launched a life of polar and ocean voyages.",
+   "sources": [
+    {
+     "label": "Wikipédia: Amyr Klink",
+     "url": "https://pt.wikipedia.org/wiki/Amyr_Klink"
+    }
+   ],
+   "approximate": "Start and finish only; the line across the ocean is straight.",
+   "stops": [
+    {
+     "q": "Lüderitz, Namibia",
+     "name": "Lüderitz",
+     "date": "12 June 1984",
+     "text": "Pushes off alone from the Namibian coast."
+    },
+    {
+     "q": "Itacimirim, Camaçari",
+     "at": [
+      -12.62,
+      -38.05
+     ],
+     "name": "Praia da Espera",
+     "by": "boat",
+     "route": "line",
+     "date": "19 Sept 1984",
+     "text": "Lands at Praia da Espera near Salvador, the last chapter's title."
+    }
+   ]
+  },
+  {
+   "id": "saramago-viagem-portugal",
+   "title": "Saramago: Viagem a Portugal",
+   "who": "José Saramago",
+   "when": "October 1979 – July 1980",
+   "vehicle": "Car",
+   "kind": "car",
+   "color": "#4d7c0f",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Viagem a Portugal",
+     "by": "José Saramago"
+    }
+   ],
+   "summary": "Before the Nobel, Saramago drove the whole of mainland Portugal, region by region, writing about churches, paintings, landscapes and people he met. The book's six parts go from the hard northeast to the Algarve; in 2022 RTP made a series with Fábio Porchat visiting the same places.",
+   "sources": [
+    {
+     "label": "Wikipédia: Viagem a Portugal",
+     "url": "https://pt.wikipedia.org/wiki/Viagem_a_Portugal"
+    }
+   ],
+   "approximate": "One town per part of the book; the real itinerary had many more stops.",
+   "stops": [
+    {
+     "q": "Miranda do Douro, Portugal",
+     "name": "Miranda do Douro",
+     "date": "Oct 1979",
+     "text": "\"From northeast to northwest, hard and golden\": in through Trás-os-Montes."
+    },
+    {
+     "q": "Bragança, Portugal",
+     "name": "Bragança",
+     "text": "The northeast."
+    },
+    {
+     "q": "Braga, Portugal",
+     "name": "Braga",
+     "text": "Over to the green Minho."
+    },
+    {
+     "q": "Aveiro, Portugal",
+     "name": "Aveiro",
+     "text": "\"Low lands, neighbours of the sea\"."
+    },
+    {
+     "q": "Guarda, Portugal",
+     "name": "Guarda",
+     "text": "\"Gentle Beiras of stone, patience\"."
+    },
+    {
+     "q": "Coimbra, Portugal",
+     "name": "Coimbra",
+     "text": "\"Between Mondego and Sado, stop everywhere\"."
+    },
+    {
+     "q": "Lisboa, Portugal",
+     "name": "Lisboa",
+     "text": "The capital and the Tagus."
+    },
+    {
+     "q": "Évora, Portugal",
+     "name": "Évora",
+     "text": "\"The great and burning land of Alentejo\"."
+    },
+    {
+     "q": "Faro, Portugal",
+     "name": "Algarve",
+     "date": "July 1980",
+     "text": "\"Of Algarve and sun, dry bread and soft bread\"."
+    }
+   ]
+  },
+  {
+   "id": "kerouac-on-the-road",
+   "title": "Kerouac: On the Road, first trip",
+   "who": "Jack Kerouac (Sal Paradise)",
+   "when": "July 1947",
+   "vehicle": "Buses and hitch-hiking",
+   "kind": "other",
+   "color": "#334155",
+   "media": [
+    {
+     "kind": "book",
+     "title": "On the Road",
+     "by": "Jack Kerouac"
+    }
+   ],
+   "summary": "The founding text of the road trip. Part one of the novel follows Kerouac's own first crossing of America with $50: buses and hitched rides to Denver and Dean Moriarty, on to San Francisco, cotton fields in California, then back east. Later parts add New Orleans and a car to Mexico City.",
+   "sources": [
+    {
+     "label": "Wikipedia: On the Road",
+     "url": "https://en.wikipedia.org/wiki/On_the_Road"
+    }
+   ],
+   "approximate": "Places from the novel's first part; the roads are approximate.",
+   "stops": [
+    {
+     "q": "Paterson, New Jersey",
+     "name": "Paterson",
+     "date": "July 1947",
+     "text": "Leaves his aunt's house with fifty dollars."
+    },
+    {
+     "q": "Chicago, Illinois",
+     "name": "Chicago",
+     "by": "bus",
+     "text": "Bebop in the Loop."
+    },
+    {
+     "q": "Des Moines, Iowa",
+     "name": "Des Moines",
+     "by": "unknown",
+     "text": "Hitching west across Iowa."
+    },
+    {
+     "q": "Cheyenne, Wyoming",
+     "name": "Cheyenne",
+     "by": "unknown",
+     "text": "Rodeo week."
+    },
+    {
+     "q": "Denver, Colorado",
+     "name": "Denver",
+     "by": "unknown",
+     "text": "Dean, Carlo and the parties, and a trip to Central City."
+    },
+    {
+     "q": "San Francisco, California",
+     "name": "San Francisco",
+     "by": "bus",
+     "text": "A job as a night watchman."
+    },
+    {
+     "q": "Los Angeles, California",
+     "name": "Los Angeles",
+     "by": "bus",
+     "text": "With Terry."
+    },
+    {
+     "q": "Bakersfield, California",
+     "name": "San Joaquin Valley",
+     "by": "bus",
+     "text": "Picking cotton, and finding he is not made for it."
+    },
+    {
+     "q": "Pittsburgh, Pennsylvania",
+     "name": "Pittsburgh",
+     "by": "bus",
+     "text": "A bus back east."
+    },
+    {
+     "q": "Times Square, New York",
+     "name": "New York",
+     "by": "unknown",
+     "text": "Hitched to Times Square, broke."
+    }
+   ]
+  },
 ];
