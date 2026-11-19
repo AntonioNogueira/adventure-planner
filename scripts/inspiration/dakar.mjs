@@ -1855,12 +1855,16 @@ export const DAKAR = [
   "id": "dakar-1997",
   "title": "1997 Paris–Dakar Rally",
   "who": "Won by Kenjiro Shinozuka / Henri Magne (Mitsubishi) and Stéphane Peterhansel (Yamaha)",
-  "when": "1997",
+  "when": "4–19 January 1997",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 1997 edition of the Dakar Rally, in its African era: 15 stage towns and bivouacs through Senegal, Mali, Niger, Mauritania. Winners — Cars: Kenjiro Shinozuka / Henri Magne (Mitsubishi); Bikes: Stéphane Peterhansel (Yamaha); Trucks: Peter Reif / Johann Deinhofer (Hino Ranger).",
   "sources": [
+   {
+    "label": "Wikipedia: Kenjiro Shinozuka",
+    "url": "https://en.wikipedia.org/wiki/Kenjiro_Shinozuka"
+   },
    {
     "label": "Wikipedia: 1997 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1997_Paris%E2%80%93Dakar_Rally"
@@ -1876,7 +1880,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Start of the 1997 Paris–Dakar Rally."
+    "date": "4 Jan 1997",
+    "text": "The first Dakar run entirely in Africa: a loop from Dakar to Agadez in Niger and back."
    },
    {
     "q": "Tambacounda",
@@ -1886,7 +1891,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "4 Jan 1997",
+    "text": "Stage 1: 587 km east across Senegal."
    },
    {
     "q": "Kayes",
@@ -1896,7 +1902,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "5 Jan 1997",
+    "text": "Stage 2: 594 km into Mali."
    },
    {
     "q": "Nara",
@@ -1906,7 +1913,8 @@ export const DAKAR = [
      -7.4711
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "6 Jan 1997",
+    "text": "Stage 3: 592 km north-east to Nara."
    },
    {
     "q": "Timbuktu",
@@ -1916,7 +1924,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "7 Jan 1997",
+    "text": "Stage 4: 658 km to Timbuktu."
    },
    {
     "q": "Gao",
@@ -1926,7 +1935,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "8 Jan 1997",
+    "text": "Stage 5: 482 km down the Niger to Gao."
    },
    {
     "q": "Ménaka",
@@ -1936,7 +1946,8 @@ export const DAKAR = [
      2.8263
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "9 Jan 1997",
+    "text": "Stage 6: 332 km to Ménaka."
    },
    {
     "q": "Tahoua",
@@ -1946,7 +1957,8 @@ export const DAKAR = [
      5.2621
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "10 Jan 1997",
+    "text": "Stage 7: 396 km into Niger."
    },
    {
     "q": "Agadez",
@@ -1956,7 +1968,8 @@ export const DAKAR = [
      7.9907
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "11 Jan 1997",
+    "text": "Stage 8: 820 km, the longest day, then a rest day in Agadez."
    },
    {
     "q": "Kidal",
@@ -1966,7 +1979,8 @@ export const DAKAR = [
      0.7253
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "14 Jan 1997",
+    "text": "Stages 9 and 10: out into the Ténéré to the Oclan bivouac, then 537 km back into Mali."
    },
    {
     "q": "Timbuktu",
@@ -1976,7 +1990,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "15 Jan 1997",
+    "text": "Stage 11: 577 km back to Timbuktu."
    },
    {
     "q": "Néma",
@@ -1986,7 +2001,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "16 Jan 1997",
+    "text": "Stage 12: 588 km into Mauritania."
    },
    {
     "q": "Kiffa",
@@ -1996,7 +2012,8 @@ export const DAKAR = [
      -11.4002
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "17 Jan 1997",
+    "text": "Stage 13: 604 km to Kiffa."
    },
    {
     "q": "Saint-Louis",
@@ -2006,7 +2023,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "18 Jan 1997",
+    "text": "Stage 14: 751 km into Senegal."
    },
    {
     "q": "Dakar",
@@ -2016,7 +2034,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1997 Paris–Dakar Rally (after stage 15)."
+    "date": "19 Jan 1997",
+    "text": "The finish. Kenjiro Shinozuka and Henri Magne won the cars in a Mitsubishi Pajero, the first Japanese winner; Stéphane Peterhansel took his fifth bike title on a Yamaha."
    }
   ]
  },
@@ -2024,12 +2043,16 @@ export const DAKAR = [
   "id": "dakar-1998",
   "title": "1998 Paris–Granada–Dakar Rally",
   "who": "Won by Jean-Pierre Fontenay / Gilles Picard (Mitsubishi) and Stéphane Peterhansel (Yamaha)",
-  "when": "1998",
+  "when": "1–18 January 1998",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1998 edition of the Dakar Rally, in its African era: 19 stage towns and bivouacs through France, Spain, Morocco, Mauritania, Mali, Senegal. Winners — Cars: Jean-Pierre Fontenay / Gilles Picard (Mitsubishi); Bikes: Stéphane Peterhansel (Yamaha); Trucks: Karel Loprais / Radomír Stachura / Jan Cermak (Tatra 815).",
   "sources": [
+   {
+    "label": "Motorsport.com: list of Dakar car winners",
+    "url": "https://www.motorsport.com/dakar/news/dakar-winners-cars-list/4624302/"
+   },
    {
     "label": "Wikipedia: 1998 Paris–Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1998_Paris%E2%80%93Granada%E2%80%93Dakar_Rally"
@@ -2045,7 +2068,8 @@ export const DAKAR = [
      2.32
     ],
     "route": "line",
-    "text": "Start of the 1998 Paris–Granada–Dakar Rally."
+    "date": "1 Jan 1998",
+    "text": "The 20th Dakar starts from Paris again."
    },
    {
     "q": "Narbonne",
@@ -2055,7 +2079,8 @@ export const DAKAR = [
      3.0042
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 1998",
+    "text": "End of stage 1, with a 10 km special."
    },
    {
     "q": "Granada",
@@ -2065,7 +2090,8 @@ export const DAKAR = [
      -3.5995
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1998",
+    "text": "Stage 2 across Spain to Granada."
    },
    {
     "q": "Almeria",
@@ -2075,7 +2101,8 @@ export const DAKAR = [
      -2.312
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 1998",
+    "text": "Stage 3 to the port of Almería, then the crossing to Morocco."
    },
    {
     "q": "Nador",
@@ -2086,7 +2113,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 1998",
+    "text": "Stage 4 starts in Nador."
    },
    {
     "q": "Er-Rachidia",
@@ -2096,7 +2124,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "4 Jan 1998",
+    "text": "End of stage 4, 247 km timed."
    },
    {
     "q": "Ouarzazate",
@@ -2106,7 +2135,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "5 Jan 1998",
+    "text": "Stage 5: 344 km timed over the Atlas."
    },
    {
     "q": "Smara",
@@ -2116,7 +2146,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "6 Jan 1998",
+    "text": "Stage 6: 354 km timed into Western Sahara."
    },
    {
     "q": "Zouerat",
@@ -2126,7 +2157,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "7 Jan 1998",
+    "text": "Stage 7: 494 km timed into Mauritania."
    },
    {
     "q": "El Mreiti",
@@ -2136,7 +2168,8 @@ export const DAKAR = [
      -7.8425
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "8 Jan 1998",
+    "text": "Stage 8: 680 km timed into the empty north-east."
    },
    {
     "q": "Taoudenni",
@@ -2146,7 +2179,8 @@ export const DAKAR = [
      -3.9807
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "9 Jan 1998",
+    "text": "Stage 9: 478 km to the salt mines of Taoudenni in northern Mali."
    },
    {
     "q": "Gao",
@@ -2156,7 +2190,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "10 Jan 1998",
+    "text": "Stage 10 to Gao was cancelled; a rest day followed."
    },
    {
     "q": "Timbuktu",
@@ -2166,7 +2201,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "12 Jan 1998",
+    "text": "Stage 11: 411 km timed to Timbuktu."
    },
    {
     "q": "Néma",
@@ -2176,7 +2212,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "13 Jan 1998",
+    "text": "Stage 12: 551 km timed into Mauritania."
    },
    {
     "q": "Tidjikja",
@@ -2186,7 +2223,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "14 Jan 1998",
+    "text": "Stage 13: 745 km timed, the longest special."
    },
    {
     "q": "Atar",
@@ -2196,7 +2234,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "15 Jan 1998",
+    "text": "Stage 14: 358 km timed to Atar."
    },
    {
     "q": "Boutilimit",
@@ -2206,7 +2245,8 @@ export const DAKAR = [
      -14.6965
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "16 Jan 1998",
+    "text": "Stage 15: 290 km timed south."
    },
    {
     "q": "Saint-Louis",
@@ -2216,7 +2256,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "17 Jan 1998",
+    "text": "Stage 16: 166 km timed into Senegal."
    },
    {
     "q": "Dakar",
@@ -2226,7 +2267,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1998 Paris–Granada–Dakar Rally (after stage 17)."
+    "date": "18 Jan 1998",
+    "text": "The finish. Jean-Pierre Fontenay won the cars for Mitsubishi, and Stéphane Peterhansel the bikes on a Yamaha, his sixth, a record at the time."
    }
   ]
  },
