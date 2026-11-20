@@ -2381,55 +2381,74 @@ export const CLASSICS = [
     {
      "q": "Hanoi, Vietnam",
      "name": "Hanoi",
-     "text": "Bikes bought in the Old Quarter; out south-west."
+     "text": "Bikes bought in the Old Quarter; out south-west.",
+     "wiki": "Hanoi"
     },
     {
      "q": "Xuan Mai, Hanoi",
      "name": "Xuan Mai",
-     "text": "Where the Ho Chi Minh Road begins."
+     "text": "Where the Ho Chi Minh Road begins.",
+     "wiki": "Xuan Mai"
     },
     {
      "q": "Phong Nha, Quang Binh",
      "name": "Phong Nha",
-     "text": "Huge caves in the karst, including Son Doong, the world's largest."
+     "text": "Huge caves in the karst, including Son Doong, the world's largest.",
+     "wiki": "Phong Nha"
     },
     {
      "q": "Khe Sanh, Quang Tri",
      "name": "Khe Sanh",
-     "text": "The old US combat base, scene of a 77-day siege in 1968."
+     "text": "The old US combat base, scene of a 77-day siege in 1968.",
+     "wiki": "Khe Sanh"
     },
     {
      "q": "A Luoi, Hue",
      "name": "A Luoi",
-     "text": "Down the western branch through near-empty forest by the Laos border."
+     "text": "Down the western branch through near-empty forest by the Laos border.",
+     "wiki": "A Lưới district"
     },
     {
      "q": "Kham Duc, Quang Nam",
-     "at": [15.4458, 107.7944],
+     "at": [
+      15.4458,
+      107.7944
+     ],
      "name": "Kham Duc",
-     "text": "Mountain passes and jungle, the best riding of the road."
+     "text": "Mountain passes and jungle, the best riding of the road.",
+     "wiki": "Kham Duc"
     },
     {
      "q": "Kon Tum, Vietnam",
-     "at": [14.3497, 108.0005],
+     "at": [
+      14.3497,
+      108.0005
+     ],
      "name": "Kon Tum",
-     "text": "The Central Highlands and their minority villages."
+     "text": "The Central Highlands and their minority villages.",
+     "wiki": "Kon Tum"
     },
     {
      "q": "Buon Ma Thuot, Vietnam",
      "name": "Buon Ma Thuot",
-     "text": "Vietnam's coffee capital."
+     "text": "Vietnam's coffee capital.",
+     "wiki": "Buon Ma Thuot"
     },
     {
      "q": "Da Lat, Vietnam",
      "name": "Dalat",
-     "text": "A cool hill station of pine forests."
+     "text": "A cool hill station of pine forests.",
+     "wiki": "Da Lat"
     },
     {
      "q": "Ho Chi Minh City, Vietnam",
-     "at": [10.7769, 106.7009],
+     "at": [
+      10.7769,
+      106.7009
+     ],
      "name": "Saigon",
-     "text": "Down to the delta city, end of the road."
+     "text": "Down to the delta city, end of the road.",
+     "wiki": "Ho Chi Minh City"
     }
    ]
   },

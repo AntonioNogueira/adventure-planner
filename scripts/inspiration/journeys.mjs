@@ -615,292 +615,354 @@ export const JOURNEYS = [
     {
      "q": "Mill Hill, London",
      "name": "London",
-     "text": "The start from Mill Hill School, where several of them taught."
+     "text": "The start from Mill Hill School, where several of them taught.",
+     "wiki": "Mill Hill"
     },
     {
      "q": "Nice, France",
      "name": "Nice",
-     "text": "Ferry to France and south to the Riviera."
+     "text": "Ferry to France and south to the Riviera.",
+     "wiki": "Nice"
     },
     {
      "q": "Pisa, Italy",
      "name": "Pisa",
-     "text": "Down Italy past the leaning tower."
+     "text": "Down Italy past the leaning tower.",
+     "wiki": "Pisa"
     },
     {
      "q": "Cassino, Italy",
      "name": "Monte Cassino",
-     "text": "The rebuilt abbey on its hill."
+     "text": "The rebuilt abbey on its hill.",
+     "wiki": "Cassino"
     },
     {
      "q": "Bari, Italy",
      "name": "Bari",
-     "text": "The ferry to Greece."
+     "text": "The ferry to Greece.",
+     "wiki": "Bari"
     },
     {
      "q": "Igoumenitsa, Greece",
      "name": "Greece",
      "by": "ferry",
-     "text": "Across northern Greece."
+     "text": "Across northern Greece.",
+     "wiki": "Igoumenitsa"
     },
     {
      "q": "Istanbul, Turkey",
      "name": "Istanbul",
-     "text": "Into Asia."
+     "text": "Into Asia.",
+     "wiki": "Istanbul"
     },
     {
      "q": "Erzurum, Turkey",
      "name": "Eastern Turkey",
-     "text": "The high Anatolian plateau towards the Armenian border."
+     "text": "The high Anatolian plateau towards the Armenian border.",
+     "wiki": "Erzurum"
     },
     {
      "q": "Tbilisi, Georgia",
      "name": "Georgia",
-     "text": "Into the Caucasus."
+     "text": "Into the Caucasus.",
+     "wiki": "Tbilisi"
     },
     {
      "q": "Baku, Azerbaijan",
      "name": "Baku",
-     "text": "The ferry across the Caspian Sea."
+     "text": "The ferry across the Caspian Sea.",
+     "wiki": "Baku"
     },
     {
      "q": "Türkmenbaşy, Turkmenistan",
      "name": "Turkmenistan",
      "by": "ferry",
-     "text": "Desert and the old Silk Road."
+     "text": "Desert and the old Silk Road.",
+     "wiki": "Türkmenbaşy"
     },
     {
      "q": "Bukhara, Uzbekistan",
      "name": "Bukhara",
-     "text": "Silk Road cities, then Samarkand."
+     "text": "Silk Road cities, then Samarkand.",
+     "wiki": "Bukhara"
     },
     {
      "q": "Samarkand, Uzbekistan",
      "name": "Samarkand",
-     "text": "The Registan's tiled madrasas."
+     "text": "The Registan's tiled madrasas.",
+     "wiki": "Samarkand"
     },
     {
      "q": "Almaty, Kazakhstan",
      "name": "Kazakhstan",
-     "text": "Vast empty steppe; petrol bought from lorries."
+     "text": "Vast empty steppe; petrol bought from lorries.",
+     "wiki": "Almaty"
     },
     {
      "q": "Barnaul, Russia",
      "name": "Barnaul",
-     "text": "Into post-Soviet Russia, shops empty."
+     "text": "Into post-Soviet Russia, shops empty.",
+     "wiki": "Barnaul"
     },
     {
      "q": "Novosibirsk, Russia",
      "name": "Novosibirsk",
-     "text": "East along the half-built highway across Siberia."
+     "text": "East along the half-built highway across Siberia.",
+     "wiki": "Novosibirsk"
     },
     {
      "q": "Irkutsk, Russia",
      "name": "Irkutsk",
-     "text": "By Lake Baikal; three riders head home here."
+     "text": "By Lake Baikal; three riders head home here.",
+     "wiki": "Irkutsk"
     },
     {
      "q": "Mogocha, Russia",
      "name": "Zilov Gap",
-     "text": "The roadless Zilov Gap: bogs and broken bikes, the hardest part of the trip."
+     "text": "The roadless Zilov Gap: bogs and broken bikes, the hardest part of the trip.",
+     "wiki": "Mogocha"
     },
     {
      "q": "Skovorodino, Russia",
      "name": "Skovorodino",
      "by": "train",
-     "text": "Exhausted, they took the Trans-Siberian train for the last 100 miles of the gap."
+     "text": "Exhausted, they took the Trans-Siberian train for the last 100 miles of the gap.",
+     "wiki": "Skovorodino"
     },
     {
      "q": "Yakutsk, Russia",
      "name": "Yakutsk",
-     "text": "North to the Lena river: no road onwards then."
+     "text": "North to the Lena river: no road onwards then.",
+     "wiki": "Yakutsk"
     },
     {
      "q": "Khandyga, Russia",
      "name": "Khandyga",
      "by": "boat",
-     "text": "A river barge down the Lena to where the road starts again."
+     "text": "A river barge down the Lena to where the road starts again.",
+     "wiki": "Khandyga"
     },
     {
      "q": "Magadan, Russia",
-     "at": [59.5612, 150.8301],
+     "at": [
+      59.5612,
+      150.8301
+     ],
      "name": "Magadan",
-     "text": "The Road of Bones to the Pacific, 111 days after leaving London."
+     "text": "The Road of Bones to the Pacific, 111 days after leaving London.",
+     "wiki": "Magadan"
     },
     {
      "q": "Anchorage, Alaska",
      "name": "Anchorage",
      "by": "flight",
-     "text": "Bikes and riders flown to Alaska: good roads and full shops, a culture shock."
+     "text": "Bikes and riders flown to Alaska: good roads and full shops, a culture shock.",
+     "wiki": "Anchorage"
     },
     {
      "q": "Vancouver, Canada",
      "name": "Vancouver",
-     "text": "Down the west coast."
+     "text": "Down the west coast.",
+     "wiki": "Vancouver"
     },
     {
      "q": "San Francisco, California",
      "name": "San Francisco",
-     "text": "Another rider has to leave, out of money; three carry on."
+     "text": "Another rider has to leave, out of money; three carry on.",
+     "wiki": "San Francisco, California"
     },
     {
      "q": "Los Angeles, California",
      "name": "Los Angeles",
-     "text": "On to the Mexican border."
+     "text": "On to the Mexican border.",
+     "wiki": "Los Angeles, California"
     },
     {
      "q": "Nogales, Sonora",
      "name": "Nogales",
-     "text": "Into Mexico."
+     "text": "Into Mexico.",
+     "wiki": "Nogales"
     },
     {
      "q": "Guatemala City",
      "name": "Guatemala",
-     "text": "Through Central America."
+     "text": "Through Central America.",
+     "wiki": "Guatemala City"
     },
     {
      "q": "San Salvador",
      "name": "El Salvador",
-     "text": "The Coatepeque crater lake."
+     "text": "The Coatepeque crater lake.",
+     "wiki": "San Salvador"
     },
     {
      "q": "Managua, Nicaragua",
      "name": "Nicaragua",
-     "text": "South through Nicaragua."
+     "text": "South through Nicaragua.",
+     "wiki": "Managua"
     },
     {
      "q": "San José, Costa Rica",
      "name": "Costa Rica",
-     "text": "Costa Rica."
+     "text": "Costa Rica.",
+     "wiki": "San José"
     },
     {
      "q": "Panama City",
-     "at": [8.9824, -79.5199],
+     "at": [
+      8.9824,
+      -79.5199
+     ],
      "name": "Panama",
-     "text": "The end of the road north of the Darién Gap."
+     "text": "The end of the road north of the Darién Gap.",
+     "wiki": "Panama City"
     },
     {
      "q": "Bogotá, Colombia",
      "name": "Bogotá",
      "by": "unknown",
-     "text": "Round the Darién Gap into South America."
+     "text": "Round the Darién Gap into South America.",
+     "wiki": "Bogotá"
     },
     {
      "q": "Quito, Ecuador",
      "name": "Quito",
-     "text": "Along the Andes."
+     "text": "Along the Andes.",
+     "wiki": "Quito"
     },
     {
      "q": "Trujillo, Peru",
      "name": "Trujillo",
-     "text": "Down the Peruvian desert coast."
+     "text": "Down the Peruvian desert coast.",
+     "wiki": "Trujillo"
     },
     {
      "q": "Calama, Chile",
      "name": "Atacama Desert",
-     "text": "The driest desert on earth."
+     "text": "The driest desert on earth.",
+     "wiki": "Calama"
     },
     {
      "q": "Santiago, Chile",
      "name": "Santiago",
-     "text": "The end of the Americas leg."
+     "text": "The end of the Americas leg.",
+     "wiki": "Santiago"
     },
     {
      "q": "Cape Town, South Africa",
      "name": "Cape Town",
      "by": "unknown",
-     "text": "Across to Africa for the last leg home."
+     "text": "Across to Africa for the last leg home.",
+     "wiki": "Cape Town"
     },
     {
      "q": "Johannesburg, South Africa",
      "name": "Johannesburg",
-     "text": "North through South Africa."
+     "text": "North through South Africa.",
+     "wiki": "Johannesburg"
     },
     {
      "q": "Victoria Falls, Zimbabwe",
      "name": "Victoria Falls",
-     "text": "Zimbabwe and the falls."
+     "text": "Zimbabwe and the falls.",
+     "wiki": "Victoria Falls"
     },
     {
      "q": "Lusaka, Zambia",
      "name": "Zambia",
-     "text": "Zambia, then Malawi."
+     "text": "Zambia, then Malawi.",
+     "wiki": "Lusaka"
     },
     {
      "q": "Lilongwe, Malawi",
      "name": "Malawi",
-     "text": "Up the lake country."
+     "text": "Up the lake country.",
+     "wiki": "Lilongwe"
     },
     {
      "q": "Arusha, Tanzania",
      "name": "Tanzania",
-     "text": "Tanzania under Kilimanjaro."
+     "text": "Tanzania under Kilimanjaro.",
+     "wiki": "Arusha"
     },
     {
      "q": "Nairobi, Kenya",
      "name": "Nairobi",
-     "text": "Kenya."
+     "text": "Kenya.",
+     "wiki": "Nairobi"
     },
     {
      "q": "Addis Ababa, Ethiopia",
      "name": "Ethiopia",
-     "text": "Up into the Ethiopian highlands."
+     "text": "Up into the Ethiopian highlands.",
+     "wiki": "Addis Ababa"
     },
     {
      "q": "Massawa, Eritrea",
      "name": "Massawa",
-     "text": "The Red Sea port and a ferry to Arabia."
+     "text": "The Red Sea port and a ferry to Arabia.",
+     "wiki": "Massawa"
     },
     {
      "q": "Jeddah, Saudi Arabia",
      "name": "Jeddah",
      "by": "ferry",
-     "text": "Across Saudi Arabia."
+     "text": "Across Saudi Arabia.",
+     "wiki": "Jeddah"
     },
     {
      "q": "Petra, Jordan",
      "name": "Petra",
-     "text": "The rock-cut city in Jordan."
+     "text": "The rock-cut city in Jordan.",
+     "wiki": "Petra"
     },
     {
      "q": "Damascus, Syria",
      "name": "Damascus",
-     "text": "Syria."
+     "text": "Syria.",
+     "wiki": "Damascus"
     },
     {
      "q": "Göreme, Turkey",
      "name": "Cappadocia",
-     "text": "Fairy chimneys in central Turkey."
+     "text": "Fairy chimneys in central Turkey.",
+     "wiki": "Göreme"
     },
     {
      "q": "Sofia, Bulgaria",
      "name": "Bulgaria",
-     "text": "Into the Balkans."
+     "text": "Into the Balkans.",
+     "wiki": "Sofia"
     },
     {
      "q": "Belgrade, Serbia",
      "name": "Serbia",
-     "text": "North through Serbia."
+     "text": "North through Serbia.",
+     "wiki": "Belgrade"
     },
     {
      "q": "Budapest, Hungary",
      "name": "Budapest",
-     "text": "Central Europe."
+     "text": "Central Europe.",
+     "wiki": "Budapest"
     },
     {
      "q": "Prague, Czech Republic",
      "name": "Prague",
-     "text": "Prague."
+     "text": "Prague.",
+     "wiki": "Prague"
     },
     {
      "q": "Frankfurt, Germany",
      "name": "Frankfurt",
-     "text": "Germany, then Belgium and France."
+     "text": "Germany, then Belgium and France.",
+     "wiki": "Frankfurt"
     },
     {
      "q": "Mill Hill, London",
      "name": "Back in London",
-     "text": "Home, round the world the long way."
+     "text": "Home, round the world the long way.",
+     "wiki": "Mill Hill"
     }
    ]
   },
@@ -1095,13 +1157,13 @@ export const JOURNEYS = [
   },
   {
    "id": "johnsons-rtw",
-   "title": "Around the world two-up: Grant and Susan Johnson",
+   "title": "Grant & Susan Johnson: Africa, 1997",
    "who": "Grant & Susan Johnson",
-   "when": "1987–1998",
+   "when": "1997 (part of their 1987–1998 ride round the world)",
    "vehicle": "BMW R80G/S, two-up",
    "kind": "moto",
    "color": "#0f766e",
-   "summary": "A Canadian couple sell everything and set off for Panama on a new BMW R80G/S. Eleven years, 39 countries and more than 100,000 km later, travelling slowly, they had ridden round the world; near the end, in 1997, they founded Horizons Unlimited, now the biggest community of motorcycle travellers.",
+   "summary": "A Canadian couple sold everything in 1987 and rode a BMW R80G/S slowly round the world: eleven years, 39 countries, more than 100,000 km, and near the end they founded Horizons Unlimited, now the biggest community of motorcycle travellers. Only places named on their highlights pages are known, so the map shows the one section that reads as a continuous ride: East Africa down to the southern tip of the continent.",
    "sources": [
     {
      "label": "Horizons Unlimited: Grant and Susan Johnson",
@@ -1116,86 +1178,32 @@ export const JOURNEYS = [
      "url": "https://www.advrider.com/meet-grant-johnson-founder-of-horizons-unlimited/"
     }
    ],
-   "approximate": "Only places their own highlights pages name; most of the route between them is not known here and is drawn as dashed lines.",
+   "approximate": "Places their highlights pages name for Africa; the roads between them are approximate.",
    "stops": [
-    {
-     "q": "Vancouver, Canada",
-     "name": "Canada",
-     "text": "Early 1987: everything sold, jobs quit, heading south."
-    },
-    {
-     "q": "Mulegé, Baja California Sur",
-     "name": "Mulegé, Baja",
-     "date": "1987",
-     "text": "El Requesón beach in Baja California, an early favourite."
-    },
-    {
-     "q": "Panama City",
-     "at": [8.9824, -79.5199],
-     "name": "Panama",
-     "text": "Their first goal, Panama."
-    },
-    {
-     "q": "Uluru, Northern Territory",
-     "name": "Uluru",
-     "by": "unknown",
-     "date": "1991",
-     "text": "Ayers Rock, in the middle of Australia."
-    },
-    {
-     "q": "Oslo, Norway",
-     "name": "Norway",
-     "by": "unknown",
-     "date": "1997",
-     "text": "Norway, on the European leg."
-    },
     {
      "q": "Arusha, Tanzania",
      "name": "Tanzania",
-     "by": "unknown",
      "date": "1997",
-     "text": "East Africa."
+     "text": "East Africa.",
+     "wiki": "Arusha"
     },
     {
      "q": "Lilongwe, Malawi",
      "name": "Malawi",
-     "text": "South through Malawi."
+     "text": "South through Malawi.",
+     "wiki": "Lilongwe"
     },
     {
      "q": "Windhoek, Namibia",
      "name": "Namibia",
-     "text": "Namibia's deserts."
+     "text": "Namibia's deserts.",
+     "wiki": "Windhoek"
     },
     {
      "q": "Cape Agulhas, South Africa",
      "name": "Cape Agulhas",
-     "text": "The southern tip of Africa."
-    },
-    {
-     "q": "Ushuaia, Argentina",
-     "name": "Ushuaia",
-     "by": "unknown",
-     "date": "1997",
-     "text": "Where they founded Horizons Unlimited as the trip neared its end."
-    },
-    {
-     "q": "Cusco, Peru",
-     "name": "Peru",
-     "date": "1998",
-     "text": "North up the Andes."
-    },
-    {
-     "q": "Quito, Ecuador",
-     "name": "Ecuador",
-     "date": "1998",
-     "text": "Ecuador."
-    },
-    {
-     "q": "Anchorage, Alaska",
-     "name": "Alaska",
-     "by": "unknown",
-     "date": "1998",
-     "text": "Alaska, after eleven years on the road."
+     "text": "The southern tip of Africa.",
+     "wiki": "Cape Agulhas"
     }
    ]
   },
@@ -1220,33 +1228,39 @@ export const JOURNEYS = [
      "q": "Brooklyn, New York",
      "name": "Brooklyn",
      "date": "2 May 1915",
-     "text": "Off with a jar of Atlantic water, tools and a gun."
+     "text": "Off with a jar of Atlantic water, tools and a gun.",
+     "wiki": "Brooklyn, New York"
     },
     {
      "q": "Albany, New York",
      "name": "Albany",
-     "text": "Up the Hudson valley."
+     "text": "Up the Hudson valley.",
+     "wiki": "Albany, New York"
     },
     {
      "q": "Buffalo, New York",
      "name": "Buffalo",
-     "text": "West along the Great Lakes, about 150 miles a day."
+     "text": "West along the Great Lakes, about 150 miles a day.",
+     "wiki": "Buffalo, New York"
     },
     {
      "q": "Chicago, Illinois",
      "name": "Chicago",
-     "text": "Crowds gather wherever \"the two lady riders\" stop."
+     "text": "Crowds gather wherever \"the two lady riders\" stop.",
+     "wiki": "Chicago, Illinois"
     },
     {
      "q": "Salt Lake City, Utah",
      "name": "Salt Lake City",
-     "text": "Photographed in Salt Lake City on the way west."
+     "text": "Photographed in Salt Lake City on the way west.",
+     "wiki": "Salt Lake City, Utah"
     },
     {
      "q": "Ocean Beach, San Francisco",
      "name": "San Francisco",
      "date": "July 1915",
-     "text": "Two months after leaving: Atlantic water poured into the Pacific."
+     "text": "Two months after leaving: Atlantic water poured into the Pacific.",
+     "wiki": "Ocean Beach, San Francisco"
     }
    ]
   },
@@ -1271,33 +1285,39 @@ export const JOURNEYS = [
      "q": "Sheepshead Bay, Brooklyn",
      "name": "Sheepshead Bay",
      "date": "4 Jul 1916",
-     "text": "The start from the Brooklyn race track on Independence Day."
+     "text": "The start from the Brooklyn race track on Independence Day.",
+     "wiki": "Sheepshead Bay, Brooklyn"
     },
     {
      "q": "Chicago, Illinois",
      "name": "Chicago",
-     "text": "West across the Midwest in rain and mud."
+     "text": "West across the Midwest in rain and mud.",
+     "wiki": "Chicago, Illinois"
     },
     {
      "q": "Pikes Peak, Colorado",
      "name": "Pikes Peak",
-     "text": "The first women to reach the summit by motor vehicle."
+     "text": "The first women to reach the summit by motor vehicle.",
+     "wiki": "Pikes Peak"
     },
     {
      "q": "Salt Lake City, Utah",
      "name": "Salt Lake City",
-     "text": "Lost in the desert to the west, out of water, saved by a prospector."
+     "text": "Lost in the desert to the west, out of water, saved by a prospector.",
+     "wiki": "Salt Lake City, Utah"
     },
     {
      "q": "Los Angeles, California",
      "name": "Los Angeles",
      "date": "8 Sep 1916",
-     "text": "5,500 miles in 60 days."
+     "text": "5,500 miles in 60 days.",
+     "wiki": "Los Angeles, California"
     },
     {
      "q": "Tijuana, Mexico",
      "name": "Tijuana",
-     "text": "A last ride over the border to finish."
+     "text": "A last ride over the border to finish.",
+     "wiki": "Tijuana"
     }
    ]
   },
@@ -1969,132 +1989,6 @@ export const JOURNEYS = [
    ]
   },
   {
-   "id": "manicom-rtw",
-   "title": "Sam Manicom: eight years round the world",
-   "who": "Sam Manicom",
-   "when": "1992–2000",
-   "vehicle": "BMW R80 GS",
-   "kind": "moto",
-   "color": "#be185d",
-   "media": [
-    {
-     "kind": "book",
-     "title": "Into Africa",
-     "by": "Sam Manicom"
-    },
-    {
-     "kind": "book",
-     "title": "Under Asian Skies",
-     "by": "Sam Manicom",
-     "isbn": "9780955657306"
-    },
-    {
-     "kind": "book",
-     "title": "Distant Suns",
-     "by": "Sam Manicom"
-    },
-    {
-     "kind": "book",
-     "title": "Tortillas to Totems",
-     "by": "Sam Manicom"
-    }
-   ],
-   "summary": "He had ridden for three months when he left to cross Africa; he came back eight years and some 200,000 miles later, after 55 countries. Into Africa covers the Sahara to the Namib; Under Asian Skies runs from a container ship to Australia up through Southeast Asia and India and home via Iran and Turkey. Distant Suns (South America) and Tortillas to Totems (Mexico to North America) finish the story; those two are not mapped yet.",
-   "sources": [
-    {
-     "label": "Mad or Nomad: Sam Manicom, 8 lessons from 8 years",
-     "url": "https://www.madornomad.com/sam-manicom-8-lessons-from-8-years-on-the-road/"
-    },
-    {
-     "label": "webBikeWorld: Into Africa & Under Asian Skies review",
-     "url": "https://www.webbikeworld.com/into-africa-under-asian-skies/"
-    },
-    {
-     "label": "Wanderlust Journal: interview",
-     "url": "https://wanderlust-journal.com/2019/08/22/an-interview-with-sam-manicom/"
-    }
-   ],
-   "approximate": "Only the regions named in reviews of the first two books; the order and roads in between are unknown.",
-   "stops": [
-    {
-     "q": "London, UK",
-     "name": "England",
-     "date": "1992",
-     "text": "Leaves with very little riding experience, for \"a year in Africa\".",
-     "wiki": "London"
-    },
-    {
-     "q": "Tamanrasset, Algeria",
-     "at": [
-      22.785,
-      5.523
-     ],
-     "name": "Sahara",
-     "by": "unknown",
-     "text": "Across the Sahara.",
-     "wiki": "Tassili n'Ajjer"
-    },
-    {
-     "q": "Nairobi, Kenya",
-     "name": "East Africa",
-     "by": "unknown",
-     "text": "Through East Africa.",
-     "wiki": "Nairobi"
-    },
-    {
-     "q": "Sossusvlei, Namibia",
-     "at": [
-      -24.7275,
-      15.3428
-     ],
-     "name": "Namib",
-     "by": "unknown",
-     "text": "The Namib Desert in the south.",
-     "wiki": "Sossusvlei"
-    },
-    {
-     "q": "Sydney, Australia",
-     "name": "Sydney",
-     "by": "boat",
-     "text": "A container ship to Australia and a battle with port officials.",
-     "wiki": "Sydney"
-    },
-    {
-     "q": "Jakarta, Indonesia",
-     "name": "Indonesia",
-     "by": "unknown",
-     "text": "Island hopping, and a memorable bus ride.",
-     "wiki": "Jakarta"
-    },
-    {
-     "q": "Bangkok, Thailand",
-     "name": "Thailand",
-     "by": "unknown",
-     "text": "Dengue fever.",
-     "wiki": "Bangkok"
-    },
-    {
-     "q": "Delhi, India",
-     "name": "India",
-     "by": "unknown",
-     "text": "Many adventures in India.",
-     "wiki": "Delhi"
-    },
-    {
-     "q": "Tehran, Iran",
-     "name": "Iran",
-     "text": "Back west through Iran.",
-     "wiki": "Tehran"
-    },
-    {
-     "q": "Istanbul, Turkey",
-     "name": "Turkey",
-     "text": "And Turkey, towards home, before South and North America.",
-     "wiki": "Istanbul"
-    }
-   ]
-  },
-  {
    "id": "amyr-klink-1984",
    "title": "Amyr Klink: Cem dias entre céu e mar",
    "who": "Amyr Klink",
@@ -2320,13 +2214,13 @@ export const JOURNEYS = [
   },
   {
    "id": "tiffany-coates",
-   "title": "Tiffany Coates and Thelma",
+   "title": "Tiffany Coates and Thelma: Cape Town to Cairo",
    "who": "Tiffany Coates (with Becky Lincoln, then Maggie)",
-   "when": "From 1997, about five years for the first big ride",
+   "when": "About 2000 (part of a ride that began in 1997)",
    "vehicle": "BMW R80GS \"Thelma\" (1992)",
    "kind": "moto",
    "color": "#ca8a04",
-   "summary": "Two friends with no riding experience and £2,500 between them buy a second-hand BMW to ride to India; nine months turn into years. After Australia, Becky goes home to university and Tiffany ships Thelma to Cape Town, where her friend Maggie flies in to ride up Africa with her, the classic Cape to Cairo with detours. Later she rides the length of the Americas and across northern Asia to Mongolia: more than 200,000 miles on the same bike, much of it solo. Today she leads motorcycle tours and is a Churchill Fellow.",
+   "summary": "Two friends with no riding experience and £2,500 between them bought a second-hand BMW R80GS in 1997 to ride to India; nine months turned into years. After Australia, Becky went home to university and Tiffany shipped Thelma to Cape Town, where her friend Maggie flew in to ride up Africa with her: the classic Cape to Cairo, with detours. That section is mapped here. Later she rode the length of the Americas and across northern Asia to Mongolia, more than 200,000 miles on the same bike; today she leads motorcycle tours and is a Churchill Fellow.",
    "sources": [
     {
      "label": "Overland Expo: Community Spotlight, Tiffany Coates",
@@ -2345,41 +2239,14 @@ export const JOURNEYS = [
      "url": "https://www.churchillfellowship.org/ideas-experts/fellows-directory/tiffany-coates/"
     }
    ],
-   "approximate": "Only the countries and regions named in interviews; the order of the later rides and the roads are approximate.",
+   "approximate": "Only the start, the region and the end named in interviews; the road between them is the usual Cape to Cairo route, not hers.",
    "stops": [
-    {
-     "q": "London, UK",
-     "name": "England",
-     "date": "1997",
-     "wiki": "BMW R80GS",
-     "text": "Becky and Tiffany set off for India on a second-hand R80GS they call Thelma."
-    },
-    {
-     "q": "Lahore, Pakistan",
-     "name": "Pakistan",
-     "by": "unknown",
-     "wiki": "Lahore",
-     "text": "Their favourite part of the trip."
-    },
-    {
-     "q": "Delhi, India",
-     "name": "India",
-     "wiki": "Delhi",
-     "text": "The original goal, reached."
-    },
-    {
-     "q": "Perth, Western Australia",
-     "name": "Australia",
-     "by": "boat",
-     "wiki": "Perth",
-     "text": "Across Australia, working to pay for the road. Becky goes home to university."
-    },
     {
      "q": "Cape Town, South Africa",
      "name": "Cape Town",
-     "by": "boat",
      "wiki": "Cape Town",
-     "text": "Thelma shipped to Africa; Maggie flies in from Ireland to join."
+     "text": "Thelma shipped to Africa; Maggie flies in from Ireland to join.",
+     "date": "c. 2000"
     },
     {
      "q": "Nairobi, Kenya",
@@ -2392,40 +2259,6 @@ export const JOURNEYS = [
      "name": "Cairo",
      "wiki": "Cairo",
      "text": "The top of Africa."
-    },
-    {
-     "q": "Anchorage, Alaska",
-     "name": "Alaska",
-     "by": "unknown",
-     "wiki": "Anchorage, Alaska",
-     "text": "Later: the length of the Americas, north to south."
-    },
-    {
-     "q": "Panama City, Panama",
-     "at": [8.9824, -79.5199],
-     "name": "Panama",
-     "wiki": "Panama City",
-     "text": "Through Central America to the Darién Gap."
-    },
-    {
-     "q": "Cartagena, Colombia",
-     "name": "Colombia",
-     "by": "boat",
-     "wiki": "Cartagena, Colombia",
-     "text": "Around the gap by sea, into South America."
-    },
-    {
-     "q": "Ushuaia, Argentina",
-     "name": "Tierra del Fuego",
-     "wiki": "Ushuaia",
-     "text": "To the bottom of South America."
-    },
-    {
-     "q": "Ulaanbaatar, Mongolia",
-     "name": "Mongolia",
-     "by": "unknown",
-     "wiki": "Ulaanbaatar",
-     "text": "Another ride, across northern Asia to Outer Mongolia."
     }
    ]
   },

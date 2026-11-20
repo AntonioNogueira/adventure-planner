@@ -293,7 +293,7 @@ Transalp MTB, Trans Dinarica, Shimanami Kaido, Mekong, Cabot Trail, GAP & C&O, P
 Island, Gerês, Canning Stock Route, Morocco Sahara 4x4. 144 journeys.
 Batch 8: Mondo Enduro, Lois Pryce, the Johnsons, Ho Chi Minh Road and pioneering women riders (Hotchkiss, Van Buren
 sisters, Wallach & Blenkiron, Dautheville, Elspeth Beard). Batch 9 (writers and epics): Pirsig's Zen ride, Travels with
-Charley, Fulton's One Man Caravan, Maillart & Fleming, Sam Manicom, Amyr Klink, Saramago's Viagem a Portugal, Kerouac;
+Charley, Fulton's One Man Caravan, Maillart & Fleming, Amyr Klink, Saramago's Viagem a Portugal, Kerouac;
 West Africa overland, Skeleton Coast & Kaokoland, Sani Pass & Lesotho, Silk Road overland, ViaRhôna, Canal des Deux Mers,
 EuroVelo 8 (southern Spain and France), Route des Grandes Alpes, Torino–Nice, Montañas Vacías, Transpyr.
 The daily check runs in a dedicated worker session (scheduled tasks created from chat can't push); first PR: #1.

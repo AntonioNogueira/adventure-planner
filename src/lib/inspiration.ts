@@ -3,7 +3,7 @@
 
 /** 'unknown': the sources don't say how they got there (an ocean crossing, a gap in the record): drawn dashed. */
 export type LegKind = 'ride' | 'walk' | 'truck' | 'bus' | 'train' | 'ferry' | 'boat' | 'flight' | 'unknown';
-export interface JourneyPhoto { url: string; page?: string; source?: string; credit?: string; license?: string }
+export interface JourneyPhoto { url: string; page?: string; source?: string; credit?: string; license?: string; /** 'book': a book cover (shown whole, not cropped). */ kind?: 'book' }
 export interface JourneyStop {
   name: string;
   /** What to look up to plan a trip from here (a geocodable place). */

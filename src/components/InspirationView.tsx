@@ -32,6 +32,23 @@ const feature = (line: Line, properties: Record<string, unknown>) => ({
 });
 const collection = (features: ReturnType<typeof feature>[]) => ({ type: 'FeatureCollection' as const, features });
 
+/** Ocean crossings and legs of unknown route on round-the-world trips are not drawn: a long straight line across
+ *  the globe says nothing and makes the map look jumpy. The trip shows as its pieces on each continent. */
+const JUMP_KM = 2500;
+const isJump = (l: { by: string; km: number }) => !ON_ROAD.has(l.by as never) && l.km > JUMP_KM;
+/** The light overview line cut where it jumps more than ~20° in one step (those are the crossings above). */
+function splitJumps(line: Line, maxDeg = 20): Line[] {
+  const parts: Line[] = [];
+  let cur: Line = [];
+  for (const p of line) {
+    const prev = cur[cur.length - 1];
+    if (prev && Math.hypot(p[0] - prev[0], p[1] - prev[1]) > maxDeg) { if (cur.length > 1) parts.push(cur); cur = []; }
+    cur.push(p);
+  }
+  if (cur.length > 1) parts.push(cur);
+  return parts;
+}
+
 /** Only the first Dakar (1979) shows by default; the other editions stay under the Rally filter or a search. */
 const archived = (j: { id: string }) => j.id.startsWith('dakar-') && j.id !== 'dakar-1979';
 
@@ -50,6 +67,28 @@ function heatPoints(lines: Line[]) {
   }
   return { type: 'FeatureCollection' as const, features: pts };
 }
+
+/** A small drawing of a journey's line, for cards with no photo. */
+const RouteSketch: React.FC<{ line: Line; color: string; className?: string }> = ({ line, color, className }) => {
+  const parts = splitJumps(line).filter(p => p.length > 1);
+  if (!parts.length) return null;
+  const pts = parts.flat();
+  const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...lngs), Math.max(...lngs), Math.min(...lats), Math.max(...lats)];
+  const span = Math.max(x1 - x0, (y1 - y0) * 1.6, 0.01);
+  const W = 160, H = 100, pad = 8;
+  const k = Math.min((W - 2 * pad) / span, (H - 2 * pad) / Math.max(y1 - y0, 0.01));
+  const ox = (W - (x1 - x0) * k) / 2, oy = (H - (y1 - y0) * k) / 2;
+  const xy = ([lat, lng]: [number, number]) => `${(ox + (lng - x0) * k).toFixed(1)},${(oy + (y1 - lat) * k).toFixed(1)}`;
+  const [start, end] = [parts[0][0], parts[parts.length - 1][parts[parts.length - 1].length - 1]];
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className={className} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      {parts.map((p, i) => <polyline key={i} points={p.map(xy).join(' ')} fill="none" stroke={color} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />)}
+      <circle cx={xy(start).split(',')[0]} cy={xy(start).split(',')[1]} r={3.2} fill="#fff" stroke={color} strokeWidth={1.8} />
+      <circle cx={xy(end).split(',')[0]} cy={xy(end).split(',')[1]} r={3.2} fill={color} />
+    </svg>
+  );
+};
 
 /** A stop's balloon: photo with credit, where and when, the story, and "plan this stretch". */
 const StopCard: React.FC<{ journey: Journey; index: number; onPlan: (prompt: string) => void }> = ({ journey, index, onPlan }) => {
@@ -225,9 +264,9 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     // While a journey is open only its detailed line shows: the rough overview lines (its own and the others',
     // several of which follow the same roads) would run beside it as shortcuts. They come back when it's closed.
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
-      shown ? [] : all.map(j => feature(j.overview, { id: j.id, color: j.color, dim: false })),
+      shown ? [] : all.flatMap(j => splitJumps(j.overview).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
     ));
-    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.map(j => j.overview)));
+    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.flatMap(j => splitJumps(j.overview))));
   }, [ready, all, shown]);
 
   const openStop = (index: number, fly = true) => {
@@ -254,7 +293,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     markers.current = [];
     popup.current?.popup.remove();
     (map.getSource('journey') as maplibregl.GeoJSONSource).setData(collection(
-      journey ? journey.legs.map(l => feature(l.line, { color: journey.color, road: ON_ROAD.has(l.by) })) : [],
+      journey ? journey.legs.filter(l => !isJump(l)).map(l => feature(l.line, { color: journey.color, road: ON_ROAD.has(l.by) })) : [],
     ));
     if (!journey) return;
     spinRef.current();
@@ -334,7 +373,13 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
             {list && all.map(j => (
               <button key={j.id} onClick={() => select(j.id)} disabled={loading === j.id}
                 className="group block w-full overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition-shadow hover:shadow-md">
-                {j.cover && <img src={j.cover.url} alt="" loading="lazy" className="h-24 w-full object-cover" />}
+                {j.cover?.kind === 'book'
+                  ? <div className="flex h-24 w-full items-center gap-3 bg-gradient-to-r from-stone-100 to-white px-3">
+                      <img src={j.cover.url} alt="" title={j.cover.credit} loading="lazy" className="h-20 w-auto rounded-sm object-contain shadow" />
+                      <RouteSketch line={j.overview} color={j.color} className="h-20 min-w-0 flex-1" />
+                    </div>
+                  : j.cover ? <img src={j.cover.url} alt="" loading="lazy" className="h-24 w-full object-cover" />
+                  : <div className="h-24 w-full bg-gradient-to-br from-stone-100 to-emerald-50 p-2"><RouteSketch line={j.overview} color={j.color} className="h-full w-full" /></div>}
                 <div className="border-l-4 p-2.5" style={{ borderColor: j.color }}>
                   <p className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
                     {j.title}{loading === j.id && <Loader2 size={13} className="animate-spin text-slate-400" />}
@@ -344,7 +389,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
                 </div>
               </button>
             ))}
-            <p className="flex items-start gap-1 text-[10px] text-slate-400"><Sparkles size={11} className="mt-px shrink-0" />{t('Routes are reconstructed from public accounts; photos are freely licensed from Wikimedia Commons.')}</p>
+            <p className="flex items-start gap-1 text-[10px] text-slate-400"><Sparkles size={11} className="mt-px shrink-0" />{t('Routes are reconstructed from public accounts; photos are freely licensed from Wikimedia Commons, book covers come from Open Library.')}</p>
           </div>
         ) : (
           <div className="space-y-2.5">
