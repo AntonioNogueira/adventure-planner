@@ -661,6 +661,10 @@ export const JOURNEYS = [
    "summary": "A group of friends from a London school staff room go round the world the longest way in the shortest time, on cheap Suzuki DR350s, rough camping on a shoestring: across Central Asia and Siberia through the roadless Zilov Gap to Magadan, from Alaska to Chile, and up Africa from Cape Town home to London. Their film became a cult classic of adventure riding.",
    "sources": [
     {
+     "label": "Adventure Motorcycle: riders getting candid with Austin Vince",
+     "url": "https://dev.adventuremotorcycle.com/riders/riders-getting-candid-with-austin-vince-new?showall=1"
+    },
+    {
      "label": "Wikipedia: Mondo Enduro",
      "url": "https://en.wikipedia.org/wiki/Mondo_Enduro"
     },
@@ -761,7 +765,11 @@ export const JOURNEYS = [
     {
      "q": "Mogocha, Russia",
      "name": "Zilov Gap",
-     "text": "The roadless Zilov Gap: bogs and broken bikes, the hardest part of the trip."
+     "text": "The roadless Zilov Gap: bogs, rivers and broken bikes. Austin Vince later called it the best ten days of the whole trip.",
+     "source": {
+      "label": "Adventure Motorcycle: Austin Vince interview",
+      "url": "https://dev.adventuremotorcycle.com/riders/riders-getting-candid-with-austin-vince-new?showall=1"
+     }
     },
     {
      "q": "Skovorodino, Russia",
@@ -1085,6 +1093,10 @@ export const JOURNEYS = [
     {
      "label": "ONE: meet Lois, who rode from London to Cape Town",
      "url": "https://www.one.org/stories/meet-lois-the-woman-who-travelled-from-london-to-cape-town-by-motorbike"
+    },
+    {
+     "label": "Canada Moto Guide: review of Red Tape and White Knuckles",
+     "url": "https://canadamotoguide.com/2013/06/13/book-review-red-tape-and-white-knuckles/"
     }
    ],
    "approximate": "The countries named in accounts of the book; the towns and roads are approximate.",
@@ -1269,6 +1281,14 @@ export const JOURNEYS = [
    "summary": "Effie Hotchkiss, 26, a Wall Street worker, rides her new three-speed Harley from Brooklyn to San Francisco with her 56-year-old mother Avis in the sidecar, doing her own repairs, to see the Panama-Pacific Exposition: the first women to cross the United States by motorcycle. At Ocean Beach they poured Atlantic water they had carried into the Pacific.",
    "sources": [
     {
+     "label": "Rider Magazine: Effie's great adventure",
+     "url": "https://ridermagazine.com/effies-great-adventure-first-women-to-ride-cross-country/"
+    },
+    {
+     "label": "The Vintagent: first women motorcyclists across the USA",
+     "url": "https://thevintagent.com/?p=75295"
+    },
+    {
      "label": "Wikipedia: Avis and Effie Hotchkiss",
      "url": "https://en.wikipedia.org/wiki/Avis_and_Effie_Hotchkiss"
     }
@@ -1304,8 +1324,8 @@ export const JOURNEYS = [
     {
      "q": "Ocean Beach, San Francisco",
      "name": "San Francisco",
-     "date": "July 1915",
-     "text": "Two months after leaving: Atlantic water poured into the Pacific."
+     "date": "Summer 1915",
+     "text": "Two to three months after leaving (accounts differ): Atlantic water poured into the Pacific at Ocean Beach. They rode home to Brooklyn by October, about 9,000 miles in all."
     }
    ]
   },
@@ -1319,6 +1339,14 @@ export const JOURNEYS = [
    "color": "#7c3aed",
    "summary": "Two sisters, each on her own 1,000 cc Indian, ride 5,500 miles in 60 days from Brooklyn to Los Angeles to prove women could serve as military dispatch riders: the first women to cross the US on solo motorcycles. Arrested for wearing men's clothes, they were also the first women to drive up Pikes Peak; the army still turned them down.",
    "sources": [
+    {
+     "label": "History Today: the first women to cross the US on solo motorcycles",
+     "url": "https://www.historytoday.com/archive/months-past/first-women-cross-us-solo-motorcycles"
+    },
+    {
+     "label": "Expedition Portal: the Van Buren sisters' 1916 ride",
+     "url": "https://expeditionportal.com/pioneers-of-moto-history-the-van-buren-sisters-1916-ride-across-america/"
+    },
     {
      "label": "Wikipedia: Van Buren sisters",
      "url": "https://en.wikipedia.org/wiki/Van_Buren_sisters"
@@ -1467,6 +1495,10 @@ export const JOURNEYS = [
     {
      "label": "The Vintagent: Anne-France Dautheville",
      "url": "https://thevintagent.com/?p=76013"
+    },
+    {
+     "label": "Overland Magazine: history of overlanding, the 1970s",
+     "url": "https://overlandmag.com/resources/history-2/history-1970s/"
     }
    ],
    "approximate": "Only the countries accounts name; the route between them is approximate and partly unknown.",
@@ -1486,7 +1518,7 @@ export const JOURNEYS = [
      "q": "Tokyo, Japan",
      "name": "Japan",
      "by": "unknown",
-     "text": "In Tokyo a dealer rebuilt the tired engine."
+     "text": "Bike and rider flew from Alaska to Tokyo for three weeks in Japan, where a dealer rebuilt the tired engine."
     },
     {
      "q": "New Delhi, India",

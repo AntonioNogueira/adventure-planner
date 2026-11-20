@@ -2276,7 +2276,7 @@ export const DAKAR = [
   "id": "dakar-1999",
   "title": "1999 Granada–Dakar Rally",
   "who": "Won by Jean-Louis Schlesser / Philippe Monnet (Schlesser-Renault) and Richard Sainct (BMW)",
-  "when": "1999",
+  "when": "31 December 1998 – 17 January 1999",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
@@ -2285,6 +2285,10 @@ export const DAKAR = [
    {
     "label": "Wikipedia: 1999 Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1999_Granada%E2%80%93Dakar_Rally"
+   },
+   {
+    "label": "Wikipedia: 2000 Paris–Dakar–Cairo Rally (rerouted after the 1999 robbery)",
+    "url": "https://en.wikipedia.org/wiki/2000_Paris%E2%80%93Dakar%E2%80%93Cairo_Rally"
    }
   ],
   "approximate": "Stage towns and bivouacs from Wikipedia's stage table. The rally ran off-road between them, so the lines are straight from bivouac to bivouac.",
@@ -2297,7 +2301,8 @@ export const DAKAR = [
      -3.5995
     ],
     "route": "line",
-    "text": "Start of the 1999 Granada–Dakar Rally."
+    "date": "31 Dec 1998",
+    "text": "A 5 km prologue in Granada."
    },
    {
     "q": "Rabat",
@@ -2308,7 +2313,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 1999",
+    "text": "Stage 1 across the Strait to the Moroccan capital."
    },
    {
     "q": "Agadir",
@@ -2318,7 +2324,8 @@ export const DAKAR = [
      -9.5839
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1999",
+    "text": "Stage 2 south down the Atlantic coast."
    },
    {
     "q": "Tan-Tan",
@@ -2328,7 +2335,8 @@ export const DAKAR = [
      -11.0987
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 1999",
+    "text": "Stage 3: 230 km timed to the edge of the desert."
    },
    {
     "q": "Bir Moghrein",
@@ -2338,7 +2346,8 @@ export const DAKAR = [
      -11.581
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "4 Jan 1999",
+    "text": "Stage 4: 451 km timed into northern Mauritania."
    },
    {
     "q": "Atar",
@@ -2348,7 +2357,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "5 Jan 1999",
+    "text": "Stage 5: 624 km timed to Atar."
    },
    {
     "q": "Tidjikja",
@@ -2358,7 +2368,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "6 Jan 1999",
+    "text": "Stage 6: 458 km timed south-east."
    },
    {
     "q": "Nioro",
@@ -2368,7 +2379,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "7 Jan 1999",
+    "text": "Stage 7: 434 km timed into Mali."
    },
    {
     "q": "Bobo Dioulasso",
@@ -2378,7 +2390,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "8 Jan 1999",
+    "text": "Stage 8 into Burkina Faso (cancelled for the bikes), then a rest day."
    },
    {
     "q": "Mopti",
@@ -2388,7 +2401,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "10 Jan 1999",
+    "text": "Stage 9: 295 km timed back into Mali."
    },
    {
     "q": "Timbuktu",
@@ -2398,7 +2412,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "11 Jan 1999",
+    "text": "Stage 10 up the Niger to Timbuktu."
    },
    {
     "q": "Néma",
@@ -2408,7 +2423,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "12 Jan 1999",
+    "text": "Stage 11: 539 km timed into Mauritania."
    },
    {
     "q": "Tichit",
@@ -2418,7 +2434,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "13 Jan 1999",
+    "text": "Stage 12: 490 km timed to the old caravan town of Tichit."
    },
    {
     "q": "Atar",
@@ -2428,7 +2445,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "14 Jan 1999",
+    "text": "Stage 13: 579 km timed back to Atar."
    },
    {
     "q": "Nouakchott",
@@ -2438,7 +2456,8 @@ export const DAKAR = [
      -15.978
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "15 Jan 1999",
+    "text": "Stage 14: 433 km timed to the Mauritanian capital."
    },
    {
     "q": "Saint-Louis",
@@ -2448,7 +2467,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "16 Jan 1999",
+    "text": "Stage 15: 151 km timed into Senegal."
    },
    {
     "q": "Dakar",
@@ -2458,7 +2478,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1999 Granada–Dakar Rally (after stage 16)."
+    "date": "17 Jan 1999",
+    "text": "The finish. Jean-Louis Schlesser and Philippe Monnet won the cars in a Schlesser-Renault buggy, and Richard Sainct the bikes for BMW. An armed robbery of competitors in Mauritania this year led the next rally to avoid the country."
    }
   ]
  },
@@ -2466,12 +2487,20 @@ export const DAKAR = [
   "id": "dakar-2000",
   "title": "2000 Paris–Dakar–Cairo Rally",
   "who": "Won by Jean-Louis Schlesser / Henri Magne (Schlesser-Renault) and Richard Sainct (BMW)",
-  "when": "2000",
+  "when": "6–23 January 2000",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 2000 edition of the Dakar Rally, in its African era: 13 stage towns and bivouacs through Senegal, Mali, Burkina Faso, Niger, Libya, Egypt. Winners — Cars: Jean-Louis Schlesser / Henri Magne (Schlesser-Renault); Bikes: Richard Sainct (BMW); Trucks: Vladimir Chagin / Semen Yakubov / Sergey Savostin (Kamaz).",
   "sources": [
+   {
+    "label": "CBS News: Dakar terror fears spur airlift",
+    "url": "https://www.cbsnews.com/news/dakar-terror-fears-spur-airlift"
+   },
+   {
+    "label": "Cycle News: Dakar–Cairo rally postponed (January 2000)",
+    "url": "https://www.cyclenews.com/2000/01/article/dakar-cairo-rally-postponed/"
+   },
    {
     "label": "Wikipedia: 2000 Paris–Dakar–Cairo Rally",
     "url": "https://en.wikipedia.org/wiki/2000_Paris%E2%80%93Dakar%E2%80%93Cairo_Rally"
@@ -2487,7 +2516,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Start of the 2000 Paris–Dakar–Cairo Rally."
+    "date": "6 Jan 2000",
+    "text": "The Paris–Dakar–Cairo: for the millennium, the rally ran east across Africa from Dakar to the Pyramids."
    },
    {
     "q": "Tambacounda",
@@ -2497,7 +2527,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "6 Jan 2000",
+    "text": "Stage 1: 594 km across Senegal."
    },
    {
     "q": "Kayes",
@@ -2507,7 +2538,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "7 Jan 2000",
+    "text": "Stage 2: 359 km into Mali."
    },
    {
     "q": "Bamako",
@@ -2517,7 +2549,8 @@ export const DAKAR = [
      -7.985
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "8 Jan 2000",
+    "text": "Stage 3: 711 km to Mali's capital."
    },
    {
     "q": "Bobo-Dioulasso",
@@ -2527,7 +2560,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "9 Jan 2000",
+    "text": "Stage 4: 608 km into Burkina Faso."
    },
    {
     "q": "Ouagadougou",
@@ -2537,7 +2571,8 @@ export const DAKAR = [
      -1.5271
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "10 Jan 2000",
+    "text": "Stage 5: 762 km to Ouagadougou."
    },
    {
     "q": "Niamey",
@@ -2547,7 +2582,8 @@ export const DAKAR = [
      2.1098
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "11 Jan 2000",
+    "text": "Stage 6: 733 km into Niger. Here a reported terrorist threat cancelled the four Niger desert stages."
    },
    {
     "q": "Sabha",
@@ -2558,7 +2594,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "flight",
-    "text": "On the route."
+    "date": "17 Jan 2000",
+    "text": "The rally was suspended for five days and airlifted from Niamey to Sabha in Libya in giant Antonov cargo planes, a first in its history. Racing resumed here."
    },
    {
     "q": "Waw al-Kabir",
@@ -2568,7 +2605,8 @@ export const DAKAR = [
      16.7153
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "17 Jan 2000",
+    "text": "Stage 7: 469 km timed across the Libyan Sahara."
    },
    {
     "q": "Kufra",
@@ -2578,7 +2616,8 @@ export const DAKAR = [
      23.2869
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "19 Jan 2000",
+    "text": "Stages 8 and 9 via the Waha oasis to Kufra, 647 km on the second day."
    },
    {
     "q": "Dakhla",
@@ -2588,7 +2627,8 @@ export const DAKAR = [
      29.2582
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "20 Jan 2000",
+    "text": "Stage 10, the longest at 852 km, into Egypt's Western Desert; stage 11 looped round Dakhla."
    },
    {
     "q": "Wadi Elrayan",
@@ -2598,7 +2638,8 @@ export const DAKAR = [
      30.3761
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "22 Jan 2000",
+    "text": "Stage 12: 722 km towards the Nile."
    },
    {
     "q": "Cairo",
@@ -2608,7 +2649,8 @@ export const DAKAR = [
      31.2357
     ],
     "route": "line",
-    "text": "Finish of the 2000 Paris–Dakar–Cairo Rally (after stage 13)."
+    "date": "23 Jan 2000",
+    "text": "The finish by the Pyramids. Jean-Louis Schlesser won the cars again in his buggy, with Henri Magne, and Richard Sainct the bikes for BMW."
    }
   ]
  },
