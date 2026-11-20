@@ -19,7 +19,7 @@ import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourney
 // Routes, overnight stops and place suggestions come from OpenStreetMap services in the browser, not from the AI.
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
-interface PlanEnv extends SubmissionEnv {
+export interface PlanEnv extends SubmissionEnv {
   ANTHROPIC_API_KEY?: string;
   CLAUDE_MODEL?: string;
   GEMINI_API_KEY?: string;
@@ -463,7 +463,7 @@ async function planWithOpenAI(env: PlanEnv, prompt: string) {
   return JSON.parse(text);
 }
 
-interface AiTask {
+export interface AiTask {
   /** Short name for the usage log. */
   name: string;
   prompt: string;
@@ -515,7 +515,7 @@ export function describeIntent(intent: any) {
 class NoProvider extends Error {}
 class AllFailed extends Error { constructor(public details: string[]) { super('All AI providers failed'); } }
 
-async function runTaskResult(env: PlanEnv, task: AiTask): Promise<{ provider: string; result: any }> {
+export async function runTaskResult(env: PlanEnv, task: AiTask): Promise<{ provider: string; result: any }> {
   const available = providers(env, task);
   if (available.length === 0) throw new NoProvider();
   const failures: string[] = [];

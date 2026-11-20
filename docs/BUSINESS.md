@@ -406,6 +406,15 @@ of the last 30 days. Code: server/safety.ts (sources, country list), src/compone
 - Ideas: show the layer along a planned route (warn when a route crosses a level 3–4 country), border-crossing status
   from overlander forums, ACLED conflict events (needs a free research key).
 
+### 15b. Safety v2: worldwide and located (Nov 2026)
+Pins follow what is happening, as precisely as the sources allow: areas the UK advises against travelling to (read
+from the advice text by the AI and placed with OpenStreetMap, re-read only when a country's advice changes), country
+pins only when the advice is above normal or changed in the last two weeks and nothing more precise is known (UK and
+US reports newest first), incidents in the news in the last 24 hours (GDELT event files: riots, kidnappings, bombings,
+assassinations, artillery/air strikes, armed clashes with armed parties, mass violence; at least 3 distinct reports per
+place), and GDACS natural hazards. All 226 countries with UK advice (+ the UK from the US feed). Incidents and hazards
+refresh every 3 hours, advice every 12. Incidents are machine-read news: some noise remains, each card links the reports.
+
 ## 16. "Add your journey": travellers send their own journeys (Nov 2026)
 
 A button at the top left of the Inspire map opens a chat: the traveller shares a blog link, sends a document (PDF,
