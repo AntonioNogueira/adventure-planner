@@ -12,7 +12,7 @@ import { checkAdmin, loadPendingSubmissions, loadPublished, loadSubmission, summ
 import AddJourneyChat from './AddJourneyChat';
 import ReviewJourney from './ReviewJourney';
 import ImportJourney from './ImportJourney';
-import { SafetyLayer } from './SafetyLayer';
+import { SafetyButton, SafetyLayer } from './SafetyLayer';
 import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
 import { maptilerKey } from '../lib/maptiler';
 import { mediaLinks } from '../lib/affiliate';
@@ -206,6 +206,8 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
   }, []);
   // "Add your journey" (the chat), and for admins the journeys sent for review.
   const [adding, setAdding] = useState(false);
+  // The overland safety layer (its button sits with "Add your journey").
+  const [safety, setSafety] = useState(false);
   addingRef.current = adding;
   const [reviewing, setReviewing] = useState<Submission | null>(null);
   const [queue, setQueue] = useState<Submission[]>([]);
@@ -395,7 +397,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
             className={cn('px-2 py-1', basemap === b ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-emerald-50')}>{t(b === 'topo' ? 'Topo' : 'Satellite')}</button>
         ))}
       </div>
-      <SafetyLayer map={ready ? mapRef.current : null} ready={ready} />
+      <SafetyLayer map={ready ? mapRef.current : null} ready={ready} on={safety} setOn={setSafety} />
       {/* Top left of the map: the way back to all journeys, and "Add your journey". */}
       {!importing && !reviewing && (
         <div className="absolute left-2.5 top-[84px] z-10 flex flex-col items-start gap-1.5 md:left-[392px]">
@@ -405,6 +407,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
           {!adding && (
             <button onClick={() => { setJourney(null); setAdding(true); }} className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide text-white shadow hover:bg-emerald-800"><Plus size={15} />{t('Add your journey')}</button>
           )}
+          <SafetyButton on={safety} onToggle={() => setSafety(v => !v)} />
         </div>
       )}
       {adding && <AddJourneyChat preview={preview} onPreview={setPreview} onClose={() => setAdding(false)} onLogin={() => onLogin?.()} />}

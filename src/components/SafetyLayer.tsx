@@ -69,9 +69,21 @@ const EventCard: React.FC<{ e: SafetyEvent }> = ({ e }) => {
 };
 
 /** The toggle button, the legend and the pins. */
-export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean }> = ({ map, ready }) => {
+/** The button that turns the layer on and off (placed by the map view, next to "Add your journey"). */
+export const SafetyButton: React.FC<{ on: boolean; onToggle: () => void }> = ({ on, onToggle }) => {
+  const { t } = useSettings();
+  return (
+    <button onClick={onToggle} aria-pressed={on}
+      className={cn('inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide shadow',
+        on ? 'border-red-700 bg-red-700 text-white' : 'border-red-700 bg-white text-red-800 hover:bg-red-50')}>
+      <ShieldAlert size={15} />{t('Overland safety')}
+    </button>
+  );
+};
+
+/** The legend and the pins, while `on`. */
+export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean; on: boolean; setOn: (on: boolean) => void }> = ({ map, ready, on, setOn }) => {
   const { t, locale } = useSettings();
-  const [on, setOn] = useState(false);
   const [data, setData] = useState<SafetyData | null>(null);
   const [error, setError] = useState(false);
   const markers = useRef<maplibregl.Marker[]>([]);
@@ -140,13 +152,8 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean 
   const updated = data ? new Date(data.updated).toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
   return (
     <>
-      <button onClick={() => setOn(v => !v)} aria-pressed={on}
-        className={cn('absolute right-2.5 top-[114px] z-10 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide shadow',
-          on ? 'border-red-700 bg-red-700 text-white' : 'border-slate-300 bg-white text-slate-700 hover:bg-red-50')}>
-        <ShieldAlert size={13} />{t('Overland safety')}
-      </button>
       {on && (
-        <div className="absolute right-2.5 top-[146px] z-10 w-[230px] rounded-md border border-slate-300 bg-white/95 p-2 text-[10.5px] text-slate-600 shadow">
+        <div className="absolute bottom-[calc(50dvh+8px)] right-2.5 z-10 w-[230px] md:bottom-10 rounded-md border border-slate-300 bg-white/95 p-2 text-[10.5px] text-slate-600 shadow">
           <div className="mb-1 flex items-center justify-between">
             <p className="font-bold uppercase text-slate-800">{t('Travel advice')}</p>
             <button onClick={() => setOn(false)} aria-label={t('Close')} className="text-slate-400 hover:text-slate-700"><X size={13} /></button>
@@ -154,7 +161,7 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean 
           {([4, 3, 2, 1] as const).map(l => (
             <p key={l} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: LEVEL_COLORS[l] }} />{t(LEVEL_WORDS[l])}</p>
           ))}
-          <p className="mt-0.5 flex items-center gap-1.5"><span style={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '9px solid #ea580c' }} />{t('Disaster alert (GDACS)')}</p>
+          <p className="mt-0.5 flex items-center gap-1.5"><span className="flex h-3 w-3 items-center justify-center rounded-full text-[8px] font-extrabold text-white" style={{ background: '#9a3412' }}>!</span>{t('Disaster alert (GDACS)')}</p>
           {!data && !error && <p className="mt-1 text-slate-400">{t('Loading…')}</p>}
           {error && <p className="mt-1 text-red-700">{t('Couldn\'t load the safety data.')}</p>}
           {data && (
