@@ -3,7 +3,7 @@
 // nested coordinate lists directly).
 import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { unwrapJourney, unwrapLine, type Journey, type JourneySummary } from './inspiration';
+import { landPieces, unwrapJourney, unwrapLine, type Journey, type JourneySummary } from './inspiration';
 import { simplify } from './journeyBuild';
 
 /** Admins are marked by a document admins/{uid}, created by hand in the Firebase console. */
@@ -13,7 +13,7 @@ export async function checkAdmin(uid: string): Promise<boolean> {
 
 export function summarize(j: Journey): JourneySummary {
   const { stops, legs, imported: _i, ...meta } = j;
-  return { ...meta, stopCount: stops.length, cover: stops.find(s => s.photo)?.photo || null, overview: unwrapLine(simplify(legs.flatMap(l => l.line), 0.3)) };
+  return { ...meta, stopCount: stops.length, cover: stops.find(s => s.photo)?.photo || null, overview: landPieces(legs).map(p => unwrapLine(simplify(p, 0.3))) };
 }
 
 /** Published journeys, newest first (none if Firestore can't be reached). */

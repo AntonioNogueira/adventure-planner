@@ -273,7 +273,19 @@ async function coverOf(book) {
 const index = [];
 for (const j of JOURNEYS.filter(j => existsSync(new URL(`${j.id}.json`, OUT)))) {
   const full = JSON.parse(readFileSync(new URL(`${j.id}.json`, OUT), 'utf8'));
-  const overview = round(simplify(full.legs.flatMap(l => l.line), 0.3));
+  // One piece per stretch over land: ocean crossings and long legs of unknown route (>2500 km, not by road) are left
+  // out, as on the map (src/lib/inspiration.ts isJumpLeg).
+  const ROAD = new Set(['ride', 'walk', 'truck', 'bus']);
+  const pieces = [];
+  let cur = [];
+  for (const l of full.legs) {
+    if (!ROAD.has(l.by) && l.km > 2500) { if (cur.length > 1) pieces.push(cur); cur = []; continue; }
+    cur = cur.concat(l.line);
+  }
+  if (cur.length > 1) pieces.push(cur);
+  // A journey that is all crossing (a row across an ocean) is drawn as it is.
+  if (!pieces.length) pieces.push(full.legs.flatMap(l => l.line));
+  const overview = pieces.map(p => round(simplify(p, 0.3))).filter(p => p.length > 1);
   const { stops, legs, ...meta } = full;
   const cover = stops.find(s => s.photo)?.photo || await bookCover(full) || null;
   index.push({ ...meta, stopCount: stops.length, cover, overview });

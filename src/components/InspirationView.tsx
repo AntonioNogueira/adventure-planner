@@ -15,7 +15,7 @@ import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
 import { maptilerKey } from '../lib/maptiler';
 import { mediaLinks } from '../lib/affiliate';
 import { useSettings } from '../lib/settings';
-import { Journey, JourneyStop, JourneySummary, LEG_WORDS, ON_ROAD, loadJourney, loadJourneys, sectionPrompt } from '../lib/inspiration';
+import { Journey, JourneyStop, JourneySummary, LEG_WORDS, ON_ROAD, isJumpLeg, loadJourney, loadJourneys, sectionPrompt } from '../lib/inspiration';
 import { cn } from '../lib/utils';
 
 maplibregl.setWorkerUrl(mapWorkerUrl);
@@ -35,8 +35,7 @@ const collection = (features: ReturnType<typeof feature>[]) => ({ type: 'Feature
 
 /** Ocean crossings and legs of unknown route on round-the-world trips are not drawn: a long straight line across
  *  the globe says nothing and makes the map look jumpy. The trip shows as its pieces on each continent. */
-const JUMP_KM = 2500;
-const isJump = (l: { by: string; km: number }) => !ON_ROAD.has(l.by as never) && l.km > JUMP_KM;
+const isJump = isJumpLeg;
 /** The light overview line cut where it jumps more than ~20° in one step (those are the crossings above). */
 function splitJumps(line: Line, maxDeg = 20): Line[] {
   const parts: Line[] = [];
@@ -70,8 +69,8 @@ function heatPoints(lines: Line[]) {
 }
 
 /** A small drawing of a journey's line, for cards with no photo. */
-const RouteSketch: React.FC<{ line: Line; color: string; className?: string }> = ({ line, color, className }) => {
-  const parts = splitJumps(line).filter(p => p.length > 1);
+const RouteSketch: React.FC<{ line: Line[]; color: string; className?: string }> = ({ line, color, className }) => {
+  const parts = line.flatMap(l => splitJumps(l)).filter(p => p.length > 1);
   if (!parts.length) return null;
   const pts = parts.flat();
   const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
@@ -265,9 +264,9 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     // While a journey is open only its detailed line shows: the rough overview lines (its own and the others',
     // several of which follow the same roads) would run beside it as shortcuts. They come back when it's closed.
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
-      shown ? [] : all.flatMap(j => splitJumps(j.overview).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
+      shown ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
     ));
-    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.flatMap(j => splitJumps(j.overview))));
+    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)))));
   }, [ready, all, shown]);
 
   const openStop = (index: number, fly = true) => {
@@ -294,7 +293,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     markers.current = [];
     popup.current?.popup.remove();
     (map.getSource('journey') as maplibregl.GeoJSONSource).setData(collection(
-      journey ? journey.legs.filter(l => !isJump(l)).map(l => feature(l.line, { color: journey.color, road: ON_ROAD.has(l.by) })) : [],
+      journey ? (journey.legs.some(l => !isJump(l)) ? journey.legs.filter(l => !isJump(l)) : journey.legs).map(l => feature(l.line, { color: journey.color, road: ON_ROAD.has(l.by) })) : [],
     ));
     if (!journey) return;
     spinRef.current();

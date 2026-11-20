@@ -98,27 +98,43 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean 
       p.on('close', () => setTimeout(() => root.unmount()));
       popup.current = { p, root };
     };
-    for (const c of data.countries) {
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.title = `${c.name}: ${LEVEL_WORDS[c.level]}`;
-      el.setAttribute('aria-label', el.title);
-      el.className = 'flex items-center justify-center rounded-full border-2 border-white shadow-md';
-      Object.assign(el.style, { width: '20px', height: '20px', borderRadius: '50%', cursor: 'pointer', background: LEVEL_COLORS[c.level], color: '#fff', fontSize: '11px', fontWeight: '800' });
-      el.textContent = String(c.level);
-      el.addEventListener('click', ev => { ev.stopPropagation(); open(c.at, <CountryCard c={c} />); });
-      markers.current.push(new maplibregl.Marker({ element: el }).setLngLat([c.at[1], c.at[0]]).addTo(map));
+    // Drawn as map layers (not HTML markers) so the globe hides the pins on its far side.
+    const point = (at: [number, number], props: Record<string, unknown>) => ({ type: 'Feature' as const, properties: props, geometry: { type: 'Point' as const, coordinates: [at[1], at[0]] } });
+    const fc = {
+      type: 'FeatureCollection' as const,
+      features: [
+        ...data.countries.map((c, i) => point(c.at, { kind: 'country', i, level: c.level, label: String(c.level), color: LEVEL_COLORS[c.level], r: 9 })),
+        ...data.events.map((e, i) => point(e.at, { kind: 'event', i, level: 0, label: '!', color: e.level === 'Red' ? '#7f1d1d' : '#9a3412', r: 7 })),
+      ],
+    };
+    if (map.getSource('safety')) (map.getSource('safety') as maplibregl.GeoJSONSource).setData(fc);
+    else {
+      map.addSource('safety', { type: 'geojson', data: fc });
+      map.addLayer({ id: 'safety-dot', type: 'circle', source: 'safety', paint: {
+        'circle-radius': ['get', 'r'], 'circle-color': ['get', 'color'], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2, 'circle-pitch-alignment': 'viewport' } });
+      map.addLayer({ id: 'safety-label', type: 'symbol', source: 'safety', layout: {
+        'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 11, 'text-allow-overlap': true, 'text-ignore-placement': true },
+        paint: { 'text-color': '#ffffff' } });
     }
-    for (const e of data.events) {
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.title = `${e.kind}: ${e.name}`;
-      el.setAttribute('aria-label', el.title);
-      Object.assign(el.style, { width: '0', height: '0', borderLeft: '9px solid transparent', borderRight: '9px solid transparent', borderBottom: `16px solid ${e.level === 'Red' ? '#b91c1c' : '#ea580c'}`, filter: 'drop-shadow(0 1px 1px rgba(0,0,0,.5))', background: 'transparent' });
-      el.addEventListener('click', ev => { ev.stopPropagation(); open(e.at, <EventCard e={e} />); });
-      markers.current.push(new maplibregl.Marker({ element: el }).setLngLat([e.at[1], e.at[0]]).addTo(map));
-    }
-    return () => { markers.current.forEach(m => m.remove()); markers.current = []; };
+    for (const id of ['safety-dot', 'safety-label']) map.setLayoutProperty(id, 'visibility', 'visible');
+    const onClick = (ev: maplibregl.MapLayerMouseEvent) => {
+      const f = ev.features?.[0];
+      if (!f) return;
+      const { kind, i } = f.properties as { kind: string; i: number };
+      if (kind === 'country') open(data.countries[i].at, <CountryCard c={data.countries[i]} />);
+      else open(data.events[i].at, <EventCard e={data.events[i]} />);
+    };
+    const enter = () => { map.getCanvas().style.cursor = 'pointer'; };
+    const leave = () => { map.getCanvas().style.cursor = ''; };
+    map.on('click', 'safety-dot', onClick);
+    map.on('mouseenter', 'safety-dot', enter);
+    map.on('mouseleave', 'safety-dot', leave);
+    return () => {
+      map.off('click', 'safety-dot', onClick);
+      map.off('mouseenter', 'safety-dot', enter);
+      map.off('mouseleave', 'safety-dot', leave);
+      for (const id of ['safety-dot', 'safety-label']) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+    };
   }, [on, ready, map, data]);
 
   const updated = data ? new Date(data.updated).toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
