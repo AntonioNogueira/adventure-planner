@@ -10,6 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { checkAdmin, loadPublished, summarize, unpublishJourney } from '../lib/inspirationStore';
 import ImportJourney from './ImportJourney';
+import { SafetyLayer } from './SafetyLayer';
 import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
 import { maptilerKey } from '../lib/maptiler';
 import { mediaLinks } from '../lib/affiliate';
@@ -330,6 +331,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
             className={cn('px-2 py-1', basemap === b ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-emerald-50')}>{t(b === 'topo' ? 'Topo' : 'Satellite')}</button>
         ))}
       </div>
+      <SafetyLayer map={ready ? mapRef.current : null} ready={ready} />
       <aside className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4] p-3 shadow-2xl md:inset-x-auto md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[380px] md:rounded-none md:border-0 md:border-r">
         {importing && uid ? (
           <ImportJourney uid={uid} preview={preview} onPreview={setPreview} onClose={() => setImporting(false)}

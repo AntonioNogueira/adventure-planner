@@ -387,3 +387,21 @@ last plan's stages and which services answer).
 **Weather (Open-Meteo):** the forecast and the "typical for these dates" figures come from Open-Meteo, free for
 non-commercial use and about 10,000 requests a day per device. Once the app earns money (paid plans, affiliate
 income), switch to their commercial API plan (roughly €30/month at the start) or run their open-source server.
+
+## 15. Overland safety informer (Nov 2026)
+
+A button on the Inspire map ("Overland safety") shows a pin for each of ~90 countries on the demanding overland
+routes (West and East/Southern Africa, North Africa, the Middle East, Central and South Asia, Russia and Mongolia,
+Central and South America), coloured by the stricter of the UK and US travel advice (1 normal → 4 do not travel), with
+the latest change and its date, a short summary and links to the official pages; plus orange and red disaster alerts
+of the last 30 days. Code: server/safety.ts (sources, country list), src/components/SafetyLayer.tsx (map layer).
+
+- Sources, all public with no key: UK FCDO travel advice (GOV.UK Content API), US State Department advisories (RSS),
+  GDACS (UN/EU disaster alerts). ReliefWeb (UN OCHA) needs an approved "appname", requested free from ReliefWeb;
+  once we have one it can add humanitarian reports per country.
+- Updating: the server (GET /api/safety) rebuilds the data in the background when it is older than 12 hours, so pins
+  are at most half a day old. A copy is saved with the app (public/safety/latest.json, `node scripts/safety/build.ts`)
+  for when the sources can't be reached.
+- It is a summary, not advice: every card links to the official page and says so.
+- Ideas: show the layer along a planned route (warn when a route crosses a level 3–4 country), border-crossing status
+  from overlander forums, ACLED conflict events (needs a free research key).
