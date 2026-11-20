@@ -68,24 +68,44 @@ function heatPoints(lines: Line[]) {
   return { type: 'FeatureCollection' as const, features: pts };
 }
 
-/** A small drawing of a journey's line, for cards with no photo. */
-const RouteSketch: React.FC<{ line: Line[]; color: string; className?: string }> = ({ line, color, className }) => {
+/** Land outlines for the route sketches (Natural Earth 110m, public domain), loaded once. */
+let landPath: Promise<string> | null = null;
+function useLand() {
+  const [d, setD] = useState('');
+  useEffect(() => {
+    landPath ??= fetch('/inspiration/land.json').then(r => r.json()).then(j => String(j.d || '')).catch(() => '');
+    let alive = true;
+    landPath.then(v => { if (alive) setD(v); });
+    return () => { alive = false; };
+  }, []);
+  return d;
+}
+
+/** A small map of a journey's line (on land outlines), for cards with no photo. `aspect`: width / height of the box. */
+const RouteSketch: React.FC<{ line: Line[]; color: string; aspect: number; className?: string; /** Share of the width covered on the left (a book cover): the line is centred in the rest. */ left?: number }> = ({ line, color, aspect, className, left = 0 }) => {
+  const land = useLand();
   const parts = line.flatMap(l => splitJumps(l)).filter(p => p.length > 1);
   if (!parts.length) return null;
   const pts = parts.flat();
   const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
-  const [x0, x1, y0, y1] = [Math.min(...lngs), Math.max(...lngs), Math.min(...lats), Math.max(...lats)];
-  const span = Math.max(x1 - x0, (y1 - y0) * 1.6, 0.01);
-  const W = 160, H = 100, pad = 8;
-  const k = Math.min((W - 2 * pad) / span, (H - 2 * pad) / Math.max(y1 - y0, 0.01));
-  const ox = (W - (x1 - x0) * k) / 2, oy = (H - (y1 - y0) * k) / 2;
-  const xy = ([lat, lng]: [number, number]) => `${(ox + (lng - x0) * k).toFixed(1)},${(oy + (y1 - lat) * k).toFixed(1)}`;
+  const [lx0, lx1, ly0, ly1] = [Math.min(...lngs), Math.max(...lngs), -Math.max(...lats), -Math.min(...lats)];
+  // Some room around the line, at least 6° tall, in the box's shape.
+  let w = Math.max(lx1 - lx0, 0.5), h = Math.max(ly1 - ly0, 0.5);
+  const pad = Math.max(w, h) * 0.12 + 0.5;
+  w += 2 * pad; h += 2 * pad;
+  w = w / (1 - left);
+  h = Math.max(h, 6, w / aspect); w = Math.max(w, h * aspect);
+  const x0 = (lx0 + lx1) / 2 - w * (1 + left) / 2, y0 = (ly0 + ly1) / 2 - h / 2;
+  const path = (p: Line) => p.map(([lat, lng], i) => `${i ? 'L' : 'M'}${lng.toFixed(2)} ${(-lat).toFixed(2)}`).join('');
   const [start, end] = [parts[0][0], parts[parts.length - 1][parts[parts.length - 1].length - 1]];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={className} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      {parts.map((p, i) => <polyline key={i} points={p.map(xy).join(' ')} fill="none" stroke={color} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />)}
-      <circle cx={xy(start).split(',')[0]} cy={xy(start).split(',')[1]} r={3.2} fill="#fff" stroke={color} strokeWidth={1.8} />
-      <circle cx={xy(end).split(',')[0]} cy={xy(end).split(',')[1]} r={3.2} fill={color} />
+    <svg viewBox={`${x0.toFixed(2)} ${y0.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`} className={className} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect x={x0} y={y0} width={w} height={h} fill="#d7e8ef" />
+      {land && <path d={land} fill="#f4efe2" stroke="#c8bb9c" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />}
+      {parts.map((p, i) => <path key={`c${i}`} d={path(p)} fill="none" stroke="#fff" strokeWidth={4.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />)}
+      {parts.map((p, i) => <path key={i} d={path(p)} fill="none" stroke={color} strokeWidth={2.4} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />)}
+      <circle cx={start[1]} cy={-start[0]} r={h * 0.035} fill="#fff" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+      <circle cx={end[1]} cy={-end[0]} r={h * 0.035} fill={color} stroke="#fff" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 };
@@ -266,7 +286,7 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
       shown ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
     ));
-    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)))));
+    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.filter(j => !j.crossing).flatMap(j => j.overview.flatMap(o => splitJumps(o)))));
   }, [ready, all, shown]);
 
   const openStop = (index: number, fly = true) => {
@@ -375,12 +395,12 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
               <button key={j.id} onClick={() => select(j.id)} disabled={loading === j.id}
                 className="group block w-full overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition-shadow hover:shadow-md">
                 {j.cover?.kind === 'book'
-                  ? <div className="flex h-24 w-full items-center gap-3 bg-gradient-to-r from-stone-100 to-white px-3">
-                      <img src={j.cover.url} alt="" title={j.cover.credit} loading="lazy" className="h-20 w-auto rounded-sm object-contain shadow" />
-                      <RouteSketch line={j.overview} color={j.color} className="h-20 min-w-0 flex-1" />
+                  ? <div className="relative h-24 w-full">
+                      <RouteSketch line={j.overview} color={j.color} aspect={3.6} left={0.24} className="absolute inset-0 h-full w-full" />
+                      <img src={j.cover.url} alt="" title={j.cover.credit} loading="lazy" className="absolute left-3 top-2 h-20 w-auto rounded-sm border border-white object-contain shadow-md" />
                     </div>
                   : j.cover ? <img src={j.cover.url} alt="" loading="lazy" className="h-24 w-full object-cover" />
-                  : <div className="h-24 w-full bg-gradient-to-br from-stone-100 to-emerald-50 p-2"><RouteSketch line={j.overview} color={j.color} className="h-full w-full" /></div>}
+                  : <RouteSketch line={j.overview} color={j.color} aspect={3.6} className="block h-24 w-full" />}
                 <div className="border-l-4 p-2.5" style={{ borderColor: j.color }}>
                   <p className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
                     {j.title}{loading === j.id && <Loader2 size={13} className="animate-spin text-slate-400" />}

@@ -265,7 +265,9 @@ async function coverOf(book) {
     saveCache();
     await sleep(1000);
   }
-  const id = cache[key];
+  // Covers Open Library has that are only a 'no image available' scan.
+  const BAD = new Set([10868438]);
+  const id = BAD.has(cache[key]) ? null : cache[key];
   return id ? { url: `https://covers.openlibrary.org/b/id/${id}-M.jpg`, page: `https://openlibrary.org/search?q=${encodeURIComponent(book.title)}`, source: 'https://openlibrary.org', credit: `Cover of "${book.title}" via Open Library`, license: 'book cover', kind: 'book' } : null;
 }
 
@@ -284,11 +286,12 @@ for (const j of JOURNEYS.filter(j => existsSync(new URL(`${j.id}.json`, OUT)))) 
   }
   if (cur.length > 1) pieces.push(cur);
   // A journey that is all crossing (a row across an ocean) is drawn as it is.
-  if (!pieces.length) pieces.push(full.legs.flatMap(l => l.line));
+  const crossing = !pieces.length;
+  if (crossing) pieces.push(full.legs.flatMap(l => l.line));
   const overview = pieces.map(p => round(simplify(p, 0.3))).filter(p => p.length > 1);
   const { stops, legs, ...meta } = full;
   const cover = stops.find(s => s.photo)?.photo || await bookCover(full) || null;
-  index.push({ ...meta, stopCount: stops.length, cover, overview });
+  index.push({ ...meta, stopCount: stops.length, cover, overview, ...(crossing ? { crossing: true } : {}) });
 }
 writeFileSync(new URL('index.json', OUT), JSON.stringify(index));
 console.log('\nindex.json written');

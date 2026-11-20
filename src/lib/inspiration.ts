@@ -40,6 +40,8 @@ export interface JourneySummary {
   /** A light version of the line, for the overview of all journeys: one piece per stretch over land (ocean
    *  crossings and long legs of unknown route are left out). */
   overview: [number, number][][];
+  /** The whole journey is a sea crossing (left out of the heatmap). */
+  crossing?: boolean;
 }
 export interface Journey extends Omit<JourneySummary, 'stopCount' | 'cover' | 'overview'> {
   /** Published with the import tool (stored in Firestore), not built into the app. */
