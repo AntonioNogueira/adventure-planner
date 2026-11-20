@@ -1,7 +1,8 @@
 // Journeys for the Inspiration map: famous trips (built into public/inspiration by scripts/inspiration/build.mjs)
 // and, later, journeys published with the import tool. Loaded on demand.
 
-export type LegKind = 'ride' | 'walk' | 'truck' | 'bus' | 'train' | 'ferry' | 'boat' | 'flight';
+/** 'unknown': the sources don't say how they got there (an ocean crossing, a gap in the record): drawn dashed. */
+export type LegKind = 'ride' | 'walk' | 'truck' | 'bus' | 'train' | 'ferry' | 'boat' | 'flight' | 'unknown';
 export interface JourneyPhoto { url: string; page?: string; source?: string; credit?: string; license?: string }
 export interface JourneyStop {
   name: string;
@@ -51,7 +52,7 @@ export const ON_ROAD = new Set<LegKind>(['ride', 'walk', 'truck', 'bus']);
 
 /** How a leg was travelled, in words ("by ferry"); riding needs no note. */
 export const LEG_WORDS: Record<LegKind, string> = {
-  ride: '', walk: 'on foot', truck: 'by truck', bus: 'by bus', train: 'by train', ferry: 'by ferry', boat: 'by boat', flight: 'by plane',
+  ride: '', walk: 'on foot', truck: 'by truck', bus: 'by bus', train: 'by train', ferry: 'by ferry', boat: 'by boat', flight: 'by plane', unknown: '',
 };
 
 /** Longitudes made continuous (no jump of more than 180°), so a line across the Pacific crosses it instead of

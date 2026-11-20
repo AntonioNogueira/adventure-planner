@@ -638,4 +638,1854 @@ export const JOURNEYS = [
       { q: 'Ensenada, Baja California', name: 'Ensenada finish', wiki: 'Baja 1000', text: 'Back to Ensenada after 854 race miles. Christopher Polvoorde and Bryce Menzies won overall in a Trophy Truck; the SLR Honda team of Tyler Lynn, David Kamo and Carter Klein won the bikes in 17 h 55 min.', source: { label: 'Cycle News: 2025 Baja 1000 motorcycle results', url: 'https://www.cyclenews.com/2025/11/article/2025-score-baja-1000-motorcycle-results/' } },
     ],
   },
+  {
+   "id": "mondo-enduro",
+   "title": "Mondo Enduro",
+   "who": "Austin Vince, Gerald Vince, Chas Penty and friends",
+   "when": "1995–1996",
+   "vehicle": "Suzuki DR350s",
+   "kind": "moto",
+   "color": "#a16207",
+   "media": [
+    {
+     "kind": "series",
+     "title": "Mondo Enduro",
+     "note": "The expedition film, shown on Discovery"
+    },
+    {
+     "kind": "series",
+     "title": "Terra Circa",
+     "note": "Austin Vince's 2001 sequel, back to the Zilov Gap"
+    }
+   ],
+   "summary": "A group of friends from a London school staff room go round the world the longest way in the shortest time, on cheap Suzuki DR350s, rough camping on a shoestring: across Central Asia and Siberia through the roadless Zilov Gap to Magadan, from Alaska to Chile, and up Africa from Cape Town home to London. Their film became a cult classic of adventure riding.",
+   "sources": [
+    {
+     "label": "Wikipedia: Mondo Enduro",
+     "url": "https://en.wikipedia.org/wiki/Mondo_Enduro"
+    },
+    {
+     "label": "Wikipedia: Austin Vince",
+     "url": "https://en.wikipedia.org/wiki/Austin_Vince"
+    }
+   ],
+   "approximate": "Places from the film's chapter list; the roads between them are the router's choice and only approximate.",
+   "stops": [
+    {
+     "q": "Mill Hill, London",
+     "name": "London",
+     "text": "The start from Mill Hill School, where several of them taught."
+    },
+    {
+     "q": "Nice, France",
+     "name": "Nice",
+     "text": "Ferry to France and south to the Riviera."
+    },
+    {
+     "q": "Pisa, Italy",
+     "name": "Pisa",
+     "text": "Down Italy past the leaning tower."
+    },
+    {
+     "q": "Cassino, Italy",
+     "name": "Monte Cassino",
+     "text": "The rebuilt abbey on its hill."
+    },
+    {
+     "q": "Bari, Italy",
+     "name": "Bari",
+     "text": "The ferry to Greece."
+    },
+    {
+     "q": "Igoumenitsa, Greece",
+     "name": "Greece",
+     "by": "ferry",
+     "text": "Across northern Greece."
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Istanbul",
+     "text": "Into Asia."
+    },
+    {
+     "q": "Erzurum, Turkey",
+     "name": "Eastern Turkey",
+     "text": "The high Anatolian plateau towards the Armenian border."
+    },
+    {
+     "q": "Tbilisi, Georgia",
+     "name": "Georgia",
+     "text": "Into the Caucasus."
+    },
+    {
+     "q": "Baku, Azerbaijan",
+     "name": "Baku",
+     "text": "The ferry across the Caspian Sea."
+    },
+    {
+     "q": "Türkmenbaşy, Turkmenistan",
+     "name": "Turkmenistan",
+     "by": "ferry",
+     "text": "Desert and the old Silk Road."
+    },
+    {
+     "q": "Bukhara, Uzbekistan",
+     "name": "Bukhara",
+     "text": "Silk Road cities, then Samarkand."
+    },
+    {
+     "q": "Samarkand, Uzbekistan",
+     "name": "Samarkand",
+     "text": "The Registan's tiled madrasas."
+    },
+    {
+     "q": "Almaty, Kazakhstan",
+     "name": "Kazakhstan",
+     "text": "Vast empty steppe; petrol bought from lorries."
+    },
+    {
+     "q": "Barnaul, Russia",
+     "name": "Barnaul",
+     "text": "Into post-Soviet Russia, shops empty."
+    },
+    {
+     "q": "Novosibirsk, Russia",
+     "name": "Novosibirsk",
+     "text": "East along the half-built highway across Siberia."
+    },
+    {
+     "q": "Irkutsk, Russia",
+     "name": "Irkutsk",
+     "text": "By Lake Baikal; three riders head home here."
+    },
+    {
+     "q": "Mogocha, Russia",
+     "name": "Zilov Gap",
+     "text": "The roadless Zilov Gap: bogs and broken bikes, the hardest part of the trip."
+    },
+    {
+     "q": "Skovorodino, Russia",
+     "name": "Skovorodino",
+     "by": "train",
+     "text": "Exhausted, they took the Trans-Siberian train for the last 100 miles of the gap."
+    },
+    {
+     "q": "Yakutsk, Russia",
+     "name": "Yakutsk",
+     "text": "North to the Lena river: no road onwards then."
+    },
+    {
+     "q": "Khandyga, Russia",
+     "name": "Khandyga",
+     "by": "boat",
+     "text": "A river barge down the Lena to where the road starts again."
+    },
+    {
+     "q": "Magadan, Russia",
+     "at": [59.5612, 150.8301],
+     "name": "Magadan",
+     "text": "The Road of Bones to the Pacific, 111 days after leaving London."
+    },
+    {
+     "q": "Anchorage, Alaska",
+     "name": "Anchorage",
+     "by": "flight",
+     "text": "Bikes and riders flown to Alaska: good roads and full shops, a culture shock."
+    },
+    {
+     "q": "Vancouver, Canada",
+     "name": "Vancouver",
+     "text": "Down the west coast."
+    },
+    {
+     "q": "San Francisco, California",
+     "name": "San Francisco",
+     "text": "Another rider has to leave, out of money; three carry on."
+    },
+    {
+     "q": "Los Angeles, California",
+     "name": "Los Angeles",
+     "text": "On to the Mexican border."
+    },
+    {
+     "q": "Nogales, Sonora",
+     "name": "Nogales",
+     "text": "Into Mexico."
+    },
+    {
+     "q": "Guatemala City",
+     "name": "Guatemala",
+     "text": "Through Central America."
+    },
+    {
+     "q": "San Salvador",
+     "name": "El Salvador",
+     "text": "The Coatepeque crater lake."
+    },
+    {
+     "q": "Managua, Nicaragua",
+     "name": "Nicaragua",
+     "text": "South through Nicaragua."
+    },
+    {
+     "q": "San José, Costa Rica",
+     "name": "Costa Rica",
+     "text": "Costa Rica."
+    },
+    {
+     "q": "Panama City",
+     "at": [8.9824, -79.5199],
+     "name": "Panama",
+     "text": "The end of the road north of the Darién Gap."
+    },
+    {
+     "q": "Bogotá, Colombia",
+     "name": "Bogotá",
+     "by": "unknown",
+     "text": "Round the Darién Gap into South America."
+    },
+    {
+     "q": "Quito, Ecuador",
+     "name": "Quito",
+     "text": "Along the Andes."
+    },
+    {
+     "q": "Trujillo, Peru",
+     "name": "Trujillo",
+     "text": "Down the Peruvian desert coast."
+    },
+    {
+     "q": "Calama, Chile",
+     "name": "Atacama Desert",
+     "text": "The driest desert on earth."
+    },
+    {
+     "q": "Santiago, Chile",
+     "name": "Santiago",
+     "text": "The end of the Americas leg."
+    },
+    {
+     "q": "Cape Town, South Africa",
+     "name": "Cape Town",
+     "by": "unknown",
+     "text": "Across to Africa for the last leg home."
+    },
+    {
+     "q": "Johannesburg, South Africa",
+     "name": "Johannesburg",
+     "text": "North through South Africa."
+    },
+    {
+     "q": "Victoria Falls, Zimbabwe",
+     "name": "Victoria Falls",
+     "text": "Zimbabwe and the falls."
+    },
+    {
+     "q": "Lusaka, Zambia",
+     "name": "Zambia",
+     "text": "Zambia, then Malawi."
+    },
+    {
+     "q": "Lilongwe, Malawi",
+     "name": "Malawi",
+     "text": "Up the lake country."
+    },
+    {
+     "q": "Arusha, Tanzania",
+     "name": "Tanzania",
+     "text": "Tanzania under Kilimanjaro."
+    },
+    {
+     "q": "Nairobi, Kenya",
+     "name": "Nairobi",
+     "text": "Kenya."
+    },
+    {
+     "q": "Addis Ababa, Ethiopia",
+     "name": "Ethiopia",
+     "text": "Up into the Ethiopian highlands."
+    },
+    {
+     "q": "Massawa, Eritrea",
+     "name": "Massawa",
+     "text": "The Red Sea port and a ferry to Arabia."
+    },
+    {
+     "q": "Jeddah, Saudi Arabia",
+     "name": "Jeddah",
+     "by": "ferry",
+     "text": "Across Saudi Arabia."
+    },
+    {
+     "q": "Petra, Jordan",
+     "name": "Petra",
+     "text": "The rock-cut city in Jordan."
+    },
+    {
+     "q": "Damascus, Syria",
+     "name": "Damascus",
+     "text": "Syria."
+    },
+    {
+     "q": "Göreme, Turkey",
+     "name": "Cappadocia",
+     "text": "Fairy chimneys in central Turkey."
+    },
+    {
+     "q": "Sofia, Bulgaria",
+     "name": "Bulgaria",
+     "text": "Into the Balkans."
+    },
+    {
+     "q": "Belgrade, Serbia",
+     "name": "Serbia",
+     "text": "North through Serbia."
+    },
+    {
+     "q": "Budapest, Hungary",
+     "name": "Budapest",
+     "text": "Central Europe."
+    },
+    {
+     "q": "Prague, Czech Republic",
+     "name": "Prague",
+     "text": "Prague."
+    },
+    {
+     "q": "Frankfurt, Germany",
+     "name": "Frankfurt",
+     "text": "Germany, then Belgium and France."
+    },
+    {
+     "q": "Mill Hill, London",
+     "name": "Back in London",
+     "text": "Home, round the world the long way."
+    }
+   ]
+  },
+  {
+   "id": "lois-on-the-loose",
+   "title": "Lois on the Loose",
+   "who": "Lois Pryce",
+   "when": "2003–2004",
+   "vehicle": "Yamaha XT225 (Serow)",
+   "kind": "moto",
+   "color": "#db2777",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Lois on the Loose",
+     "by": "Lois Pryce"
+    },
+    {
+     "kind": "book",
+     "title": "Red Tape and White Knuckles",
+     "by": "Lois Pryce"
+    },
+    {
+     "kind": "book",
+     "title": "Revolutionary Ride",
+     "by": "Lois Pryce",
+     "note": "Her solo rides in Iran, 2013–14"
+    }
+   ],
+   "summary": "Lois Pryce leaves her job at BBC Music and rides alone from Alaska to the tip of South America on a small 225 cc Yamaha: about 20,000 miles in ten months, from the Arctic down the length of the Americas through Mexico, Central America, the Inca lands of Peru and Bolivia to Ushuaia. Her book about it became an adventure-riding favourite.",
+   "sources": [
+    {
+     "label": "Wikipedia: Lois Pryce",
+     "url": "https://en.wikipedia.org/wiki/Lois_Pryce"
+    },
+    {
+     "label": "Yamaha: Lois Pryce, Alaska to Panama",
+     "url": "https://global.yamaha-motor.com/stories/resonating-worlds/journey/vol12/"
+    },
+    {
+     "label": "Yamaha: Lois Pryce, Colombia to Argentina",
+     "url": "https://global.yamaha-motor.com/stories/resonating-worlds/journey/vol13"
+    }
+   ],
+   "approximate": "Only the regions her accounts name; the towns and roads between them are approximate.",
+   "stops": [
+    {
+     "q": "Anchorage, Alaska",
+     "name": "Anchorage",
+     "text": "The start in Alaska, April 2003, on a bike small enough to pick up when it falls."
+    },
+    {
+     "q": "Whitehorse, Yukon",
+     "name": "Yukon",
+     "text": "South through Canada."
+    },
+    {
+     "q": "La Paz, Baja California Sur",
+     "name": "Baja California",
+     "text": "Down the long desert peninsula of Baja."
+    },
+    {
+     "q": "Panama City",
+     "at": [8.9824, -79.5199],
+     "name": "Panama",
+     "text": "Through Central America to the Darién Gap."
+    },
+    {
+     "q": "Bogotá, Colombia",
+     "name": "Colombia",
+     "by": "unknown",
+     "text": "Round the gap into South America."
+    },
+    {
+     "q": "Cusco, Peru",
+     "name": "Peru",
+     "text": "The old Inca lands of the Andes."
+    },
+    {
+     "q": "La Paz, Bolivia",
+     "name": "Bolivia",
+     "text": "The high plains of Bolivia."
+    },
+    {
+     "q": "Ushuaia, Argentina",
+     "name": "Ushuaia",
+     "text": "The end of the road at the bottom of the world, about 20,000 miles from Anchorage."
+    }
+   ]
+  },
+  {
+   "id": "lois-red-tape",
+   "title": "Red Tape and White Knuckles",
+   "who": "Lois Pryce",
+   "when": "2006",
+   "vehicle": "Yamaha XT225",
+   "kind": "moto",
+   "color": "#be185d",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Lois on the Loose",
+     "by": "Lois Pryce"
+    },
+    {
+     "kind": "book",
+     "title": "Red Tape and White Knuckles",
+     "by": "Lois Pryce"
+    },
+    {
+     "kind": "book",
+     "title": "Revolutionary Ride",
+     "by": "Lois Pryce",
+     "note": "Her solo rides in Iran, 2013–14"
+    }
+   ],
+   "summary": "Lois Pryce rides alone from her London home to Cape Town: across the Sahara through Algeria and Niger, down West Africa, through the Congo basin's jungle tracks and the minefields of post-war Angola, about 10,000 miles in four months. The book tells it with humour, and plenty of border bureaucracy.",
+   "sources": [
+    {
+     "label": "Wikipedia: Lois Pryce",
+     "url": "https://en.wikipedia.org/wiki/Lois_Pryce"
+    },
+    {
+     "label": "ONE: meet Lois, who rode from London to Cape Town",
+     "url": "https://www.one.org/stories/meet-lois-the-woman-who-travelled-from-london-to-cape-town-by-motorbike"
+    }
+   ],
+   "approximate": "The countries named in accounts of the book; the towns and roads are approximate.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "London",
+     "text": "The start from home."
+    },
+    {
+     "q": "Tunis, Tunisia",
+     "name": "Tunisia",
+     "by": "ferry",
+     "text": "Across the Mediterranean to Africa."
+    },
+    {
+     "q": "Tamanrasset, Algeria",
+     "name": "Algeria (Sahara)",
+     "text": "South across the Algerian Sahara."
+    },
+    {
+     "q": "Agadez, Niger",
+     "name": "Niger",
+     "text": "Out of the desert into Niger."
+    },
+    {
+     "q": "Kano, Nigeria",
+     "name": "Nigeria",
+     "text": "Into Nigeria."
+    },
+    {
+     "q": "Yaoundé, Cameroon",
+     "name": "Cameroon",
+     "text": "Down into Cameroon."
+    },
+    {
+     "q": "Libreville, Gabon",
+     "name": "Gabon",
+     "text": "Gabon's forests."
+    },
+    {
+     "q": "Pointe-Noire, Republic of the Congo",
+     "name": "Congo",
+     "text": "The Congo basin: mud, jungle and checkpoints."
+    },
+    {
+     "q": "Matadi, Democratic Republic of the Congo",
+     "name": "DR Congo",
+     "text": "Across the Congo river into the DRC."
+    },
+    {
+     "q": "Luanda, Angola",
+     "name": "Angola",
+     "text": "Post-war Angola, with minefields beside the tracks."
+    },
+    {
+     "q": "Windhoek, Namibia",
+     "name": "Namibia",
+     "text": "Good roads at last through Namibia."
+    },
+    {
+     "q": "Cape Town, South Africa",
+     "name": "Cape Town",
+     "text": "The finish, about 10,000 miles from London."
+    }
+   ]
+  },
+  {
+   "id": "johnsons-rtw",
+   "title": "Around the world two-up: Grant and Susan Johnson",
+   "who": "Grant & Susan Johnson",
+   "when": "1987–1998",
+   "vehicle": "BMW R80G/S, two-up",
+   "kind": "moto",
+   "color": "#0f766e",
+   "summary": "A Canadian couple sell everything and set off for Panama on a new BMW R80G/S. Eleven years, 39 countries and more than 100,000 km later, travelling slowly, they had ridden round the world; near the end, in 1997, they founded Horizons Unlimited, now the biggest community of motorcycle travellers.",
+   "sources": [
+    {
+     "label": "Horizons Unlimited: Grant and Susan Johnson",
+     "url": "https://www.horizonsunlimited.com/johnson"
+    },
+    {
+     "label": "Horizons Unlimited: highlights of our 11-year trip",
+     "url": "https://www.horizonsunlimited.com/johnson/hilites/"
+    },
+    {
+     "label": "ADVrider: meet Grant Johnson, founder of Horizons Unlimited",
+     "url": "https://www.advrider.com/meet-grant-johnson-founder-of-horizons-unlimited/"
+    }
+   ],
+   "approximate": "Only places their own highlights pages name; most of the route between them is not known here and is drawn as dashed lines.",
+   "stops": [
+    {
+     "q": "Vancouver, Canada",
+     "name": "Canada",
+     "text": "Early 1987: everything sold, jobs quit, heading south."
+    },
+    {
+     "q": "Mulegé, Baja California Sur",
+     "name": "Mulegé, Baja",
+     "date": "1987",
+     "text": "El Requesón beach in Baja California, an early favourite."
+    },
+    {
+     "q": "Panama City",
+     "at": [8.9824, -79.5199],
+     "name": "Panama",
+     "text": "Their first goal, Panama."
+    },
+    {
+     "q": "Uluru, Northern Territory",
+     "name": "Uluru",
+     "by": "unknown",
+     "date": "1991",
+     "text": "Ayers Rock, in the middle of Australia."
+    },
+    {
+     "q": "Oslo, Norway",
+     "name": "Norway",
+     "by": "unknown",
+     "date": "1997",
+     "text": "Norway, on the European leg."
+    },
+    {
+     "q": "Arusha, Tanzania",
+     "name": "Tanzania",
+     "by": "unknown",
+     "date": "1997",
+     "text": "East Africa."
+    },
+    {
+     "q": "Lilongwe, Malawi",
+     "name": "Malawi",
+     "text": "South through Malawi."
+    },
+    {
+     "q": "Windhoek, Namibia",
+     "name": "Namibia",
+     "text": "Namibia's deserts."
+    },
+    {
+     "q": "Cape Agulhas, South Africa",
+     "name": "Cape Agulhas",
+     "text": "The southern tip of Africa."
+    },
+    {
+     "q": "Ushuaia, Argentina",
+     "name": "Ushuaia",
+     "by": "unknown",
+     "date": "1997",
+     "text": "Where they founded Horizons Unlimited as the trip neared its end."
+    },
+    {
+     "q": "Cusco, Peru",
+     "name": "Peru",
+     "date": "1998",
+     "text": "North up the Andes."
+    },
+    {
+     "q": "Quito, Ecuador",
+     "name": "Ecuador",
+     "date": "1998",
+     "text": "Ecuador."
+    },
+    {
+     "q": "Anchorage, Alaska",
+     "name": "Alaska",
+     "by": "unknown",
+     "date": "1998",
+     "text": "Alaska, after eleven years on the road."
+    }
+   ]
+  },
+  {
+   "id": "hotchkiss-1915",
+   "title": "Effie and Avis Hotchkiss: coast to coast",
+   "who": "Effie Hotchkiss & her mother Avis",
+   "when": "1915",
+   "vehicle": "Harley-Davidson 11-F with sidecar",
+   "kind": "moto",
+   "color": "#9333ea",
+   "summary": "Effie Hotchkiss, 26, a Wall Street worker, rides her new three-speed Harley from Brooklyn to San Francisco with her 56-year-old mother Avis in the sidecar, doing her own repairs, to see the Panama-Pacific Exposition: the first women to cross the United States by motorcycle. At Ocean Beach they poured Atlantic water they had carried into the Pacific.",
+   "sources": [
+    {
+     "label": "Wikipedia: Avis and Effie Hotchkiss",
+     "url": "https://en.wikipedia.org/wiki/Avis_and_Effie_Hotchkiss"
+    }
+   ],
+   "approximate": "Places named in accounts of the ride; the 1915 roads are drawn as today's, only approximately.",
+   "stops": [
+    {
+     "q": "Brooklyn, New York",
+     "name": "Brooklyn",
+     "date": "2 May 1915",
+     "text": "Off with a jar of Atlantic water, tools and a gun."
+    },
+    {
+     "q": "Albany, New York",
+     "name": "Albany",
+     "text": "Up the Hudson valley."
+    },
+    {
+     "q": "Buffalo, New York",
+     "name": "Buffalo",
+     "text": "West along the Great Lakes, about 150 miles a day."
+    },
+    {
+     "q": "Chicago, Illinois",
+     "name": "Chicago",
+     "text": "Crowds gather wherever \"the two lady riders\" stop."
+    },
+    {
+     "q": "Salt Lake City, Utah",
+     "name": "Salt Lake City",
+     "text": "Photographed in Salt Lake City on the way west."
+    },
+    {
+     "q": "Ocean Beach, San Francisco",
+     "name": "San Francisco",
+     "date": "July 1915",
+     "text": "Two months after leaving: Atlantic water poured into the Pacific."
+    }
+   ]
+  },
+  {
+   "id": "van-buren-1916",
+   "title": "The Van Buren sisters cross America",
+   "who": "Augusta & Adeline Van Buren",
+   "when": "1916",
+   "vehicle": "Two Indian Power Plus motorcycles",
+   "kind": "moto",
+   "color": "#7c3aed",
+   "summary": "Two sisters, each on her own 1,000 cc Indian, ride 5,500 miles in 60 days from Brooklyn to Los Angeles to prove women could serve as military dispatch riders: the first women to cross the US on solo motorcycles. Arrested for wearing men's clothes, they were also the first women to drive up Pikes Peak; the army still turned them down.",
+   "sources": [
+    {
+     "label": "Wikipedia: Van Buren sisters",
+     "url": "https://en.wikipedia.org/wiki/Van_Buren_sisters"
+    }
+   ],
+   "approximate": "Places named in accounts of the ride; the roads are drawn as today's, only approximately.",
+   "stops": [
+    {
+     "q": "Sheepshead Bay, Brooklyn",
+     "name": "Sheepshead Bay",
+     "date": "4 Jul 1916",
+     "text": "The start from the Brooklyn race track on Independence Day."
+    },
+    {
+     "q": "Chicago, Illinois",
+     "name": "Chicago",
+     "text": "West across the Midwest in rain and mud."
+    },
+    {
+     "q": "Pikes Peak, Colorado",
+     "name": "Pikes Peak",
+     "text": "The first women to reach the summit by motor vehicle."
+    },
+    {
+     "q": "Salt Lake City, Utah",
+     "name": "Salt Lake City",
+     "text": "Lost in the desert to the west, out of water, saved by a prospector."
+    },
+    {
+     "q": "Los Angeles, California",
+     "name": "Los Angeles",
+     "date": "8 Sep 1916",
+     "text": "5,500 miles in 60 days."
+    },
+    {
+     "q": "Tijuana, Mexico",
+     "name": "Tijuana",
+     "text": "A last ride over the border to finish."
+    }
+   ]
+  },
+  {
+   "id": "wallach-blenkiron",
+   "title": "London to Cape Town by sidecar: Wallach and Blenkiron",
+   "who": "Theresa Wallach & Florence Blenkiron",
+   "when": "1934–1935",
+   "vehicle": "600 cc Panther with sidecar and trailer",
+   "kind": "moto",
+   "color": "#b91c1c",
+   "media": [
+    {
+     "kind": "book",
+     "title": "The Rugged Road",
+     "by": "Theresa Wallach",
+     "note": "Her account, published in 2001"
+    }
+   ],
+   "summary": "Two young British engineers and racers ride a Panther with sidecar and trailer from London across the Sahara, reportedly without a compass, and down through Central and East Africa to Cape Town: about 13,500 miles in nearly eight months, through heat, wild animals, breakdowns and politics. Seen off by Lady Astor and five women MPs.",
+   "sources": [
+    {
+     "label": "Wikipedia: Theresa Wallach",
+     "url": "https://en.wikipedia.org/wiki/Theresa_Wallach"
+    },
+    {
+     "label": "Historic UK: Florence Blenkiron and Theresa Wallach",
+     "url": "https://www.historic-uk.com/CultureUK/Florence-Blenkiron-Theresa-Wallach-Motorcyclists/"
+    },
+    {
+     "label": "National Motor Museum: on a Panther through Africa",
+     "url": "https://nationalmotormuseum.org.uk/story-of-motoring/motoring-topics/international-womens-day-and-womens-history-month/on-a-panther-through-africa/"
+    }
+   ],
+   "approximate": "Few places are recorded: El Goléa on New Year's Day 1935, and the towns Blenkiron listed on her sidecar on the way back. The line between them is approximate.",
+   "stops": [
+    {
+     "q": "Aldwych, London",
+     "name": "London",
+     "date": "11 Dec 1934",
+     "text": "Away from Crown House, Aldwych, seen off by Lady Astor."
+    },
+    {
+     "q": "El Goléa, Algeria",
+     "name": "El Goléa",
+     "date": "1 Jan 1935",
+     "text": "New Year in the Sahara, deep in Algeria."
+    },
+    {
+     "q": "Bangassou, Central African Republic",
+     "name": "Bangassou",
+     "text": "Through the forests of Central Africa."
+    },
+    {
+     "q": "Kampala, Uganda",
+     "name": "Kampala",
+     "text": "Into East Africa."
+    },
+    {
+     "q": "Kakamega, Kenya",
+     "name": "Kakamega",
+     "text": "Kenya."
+    },
+    {
+     "q": "Harare, Zimbabwe",
+     "name": "Salisbury",
+     "text": "Better roads for the last 3,000 miles, through Rhodesia."
+    },
+    {
+     "q": "Bloemfontein, South Africa",
+     "name": "Bloemfontein",
+     "text": "South Africa."
+    },
+    {
+     "q": "Cape Town, South Africa",
+     "name": "Cape Town",
+     "date": "29 Jul 1935",
+     "text": "Cape Town, nearly eight months after London. Blenkiron rode back alone, home in April 1936."
+    }
+   ]
+  },
+  {
+   "id": "dautheville-1973",
+   "title": "Anne-France Dautheville round the world",
+   "who": "Anne-France Dautheville",
+   "when": "1973",
+   "vehicle": "Kawasaki 125",
+   "kind": "moto",
+   "color": "#c026d3",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Et j'ai suivi le vent",
+     "by": "Anne-France Dautheville"
+    },
+    {
+     "kind": "book",
+     "title": "Une demoiselle sur une moto",
+     "by": "Anne-France Dautheville"
+    }
+   ],
+   "summary": "A French journalist becomes the first woman to ride solo round the world, on a little Kawasaki 125, writing about it to pay her way: from Montreal across Canada and Alaska, then Japan, India and Afghanistan back towards France, about 12,500 miles over three continents. She kept travelling the world by motorcycle until 1981.",
+   "sources": [
+    {
+     "label": "Wikipedia: Anne-France Dautheville",
+     "url": "https://en.wikipedia.org/wiki/Anne-France_Dautheville"
+    },
+    {
+     "label": "The Vintagent: Anne-France Dautheville",
+     "url": "https://thevintagent.com/?p=76013"
+    }
+   ],
+   "approximate": "Only the countries accounts name; the route between them is approximate and partly unknown.",
+   "stops": [
+    {
+     "q": "Montreal, Quebec",
+     "name": "Montreal",
+     "date": "Jul 1973",
+     "text": "The start on a borrowed 125 cc Kawasaki."
+    },
+    {
+     "q": "Anchorage, Alaska",
+     "name": "Alaska",
+     "text": "Across Canada to Alaska."
+    },
+    {
+     "q": "Tokyo, Japan",
+     "name": "Japan",
+     "by": "unknown",
+     "text": "In Tokyo a dealer rebuilt the tired engine."
+    },
+    {
+     "q": "New Delhi, India",
+     "name": "India",
+     "by": "unknown",
+     "text": "India."
+    },
+    {
+     "q": "Kabul, Afghanistan",
+     "name": "Afghanistan",
+     "text": "Afghanistan, on the old overland route."
+    },
+    {
+     "q": "Paris, France",
+     "name": "Paris",
+     "by": "unknown",
+     "text": "Home to France."
+    }
+   ]
+  },
+  {
+   "id": "elspeth-beard",
+   "title": "Elspeth Beard: Lone Rider",
+   "who": "Elspeth Beard",
+   "when": "1982–1984",
+   "vehicle": "BMW R60/6",
+   "kind": "moto",
+   "color": "#4338ca",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Lone Rider",
+     "by": "Elspeth Beard"
+    }
+   ],
+   "summary": "An architecture student takes a break from her studies and rides an old BMW round the world alone, about 35,000 miles: North America, Australia, Southeast Asia, India in the turmoil after Indira Gandhi's assassination, Pakistan and back through Turkey. Accidents, theft and forged permits along the way; nobody paid attention when she got home, until her book.",
+   "sources": [
+    {
+     "label": "Wikipedia: Elspeth Beard",
+     "url": "https://en.wikipedia.org/wiki/Elspeth_Beard"
+    }
+   ],
+   "approximate": "Places named in accounts of the trip; the roads are approximate.",
+   "stops": [
+    {
+     "q": "New York City",
+     "name": "New York",
+     "date": "1982",
+     "text": "The bike shipped over from Britain; the start."
+    },
+    {
+     "q": "Toronto, Canada",
+     "name": "Canada",
+     "text": "North into Canada."
+    },
+    {
+     "q": "Mexico City",
+     "name": "Mexico",
+     "text": "South to Mexico, then back to the US."
+    },
+    {
+     "q": "Los Angeles, California",
+     "name": "Los Angeles",
+     "text": "The bike shipped on to Australia."
+    },
+    {
+     "q": "Sydney, Australia",
+     "name": "Sydney",
+     "by": "boat",
+     "text": "Out of money: seven months working in a pub."
+    },
+    {
+     "q": "Townsville, Queensland",
+     "name": "Townsville",
+     "text": "A crash and two weeks in hospital."
+    },
+    {
+     "q": "Darwin, Northern Territory",
+     "name": "Darwin",
+     "text": "Across the top of Australia."
+    },
+    {
+     "q": "Singapore",
+     "name": "Singapore",
+     "by": "unknown",
+     "text": "Six weeks replacing stolen documents and gear."
+    },
+    {
+     "q": "Bangkok, Thailand",
+     "name": "Thailand",
+     "text": "Up through Malaysia and Thailand."
+    },
+    {
+     "q": "Amritsar, India",
+     "name": "Punjab",
+     "by": "unknown",
+     "text": "Punjab closed after Indira Gandhi's assassination; she forged a permit to get out."
+    },
+    {
+     "q": "Lahore, Pakistan",
+     "name": "Pakistan",
+     "text": "Into Pakistan."
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Turkey",
+     "text": "West across Iran and Turkey to Europe."
+    },
+    {
+     "q": "London, UK",
+     "name": "London",
+     "date": "1984",
+     "text": "Home after about 35,000 miles: one of the first Englishwomen round the world by motorcycle."
+    }
+   ]
+  },
+  {
+   "id": "pirsig-zen-1968",
+   "title": "Pirsig: Zen and the Art of Motorcycle Maintenance",
+   "who": "Robert M. Pirsig and his son Chris",
+   "when": "July 1968, 17 days",
+   "vehicle": "Honda CB77 Super Hawk",
+   "kind": "moto",
+   "color": "#0f766e",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Zen and the Art of Motorcycle Maintenance",
+     "by": "Robert M. Pirsig"
+    },
+    {
+     "kind": "book",
+     "title": "Zen and Now",
+     "by": "Mark Richardson",
+     "note": "Retraces the ride forty years on"
+    }
+   ],
+   "summary": "The most-read motorcycle book ever is really a philosophy book. Pirsig and his 11-year-old son ride from Minnesota across the Dakotas and Montana, where their friends the Sutherlands turn back, then over the Rockies and through Idaho and Oregon to the California coast. Along the way: carburettor jets at altitude, the \"classical\" and \"romantic\" ways of seeing, and the ghost of his former self, Phaedrus. The Honda is now in the Smithsonian.",
+   "sources": [
+    {
+     "label": "Wikipedia: Zen and the Art of Motorcycle Maintenance",
+     "url": "https://en.wikipedia.org/wiki/Zen_and_the_Art_of_Motorcycle_Maintenance"
+    },
+    {
+     "label": "Psybertron: the ZMM route in detail",
+     "url": "https://www.psybertron.org/zammroutedetails.html"
+    },
+    {
+     "label": "Mark Richardson, Zen and Now (extract with route map)",
+     "url": "https://cdn.shopify.com/s/files/1/0542/4573/files/Zen_and_Now_Extract.pdf?4631"
+    }
+   ],
+   "approximate": "Towns from route studies of the book; roads between them are approximate.",
+   "stops": [
+    {
+     "q": "Saint Paul, Minnesota",
+     "name": "St Paul",
+     "date": "July 1968",
+     "wiki": "Honda CB77",
+     "text": "Father, son and the Sutherlands on a BMW leave the Twin Cities heading west on back roads."
+    },
+    {
+     "q": "Oakes, North Dakota",
+     "name": "Oakes",
+     "text": "Flat prairie and thunderstorms on the first day.",
+     "wiki": "Oakes, North Dakota"
+    },
+    {
+     "q": "Ellendale, North Dakota",
+     "name": "Ellendale",
+     "text": "Breakfast stop on day two, the start of the long talks about \"Quality\".",
+     "wiki": "Ellendale, North Dakota"
+    },
+    {
+     "q": "Lemmon, South Dakota",
+     "name": "Lemmon",
+     "text": "Across the open Dakotas.",
+     "wiki": "Lemmon, South Dakota"
+    },
+    {
+     "q": "Miles City, Montana",
+     "name": "Miles City",
+     "text": "The engine runs rich with the altitude: new jets and a valve adjustment, the famous lesson in fixing your own machine.",
+     "wiki": "Miles City, Montana"
+    },
+    {
+     "q": "Laurel, Montana",
+     "name": "Laurel",
+     "text": "Towards the mountains.",
+     "wiki": "Laurel, Montana"
+    },
+    {
+     "q": "Bozeman, Montana",
+     "name": "Bozeman",
+     "wiki": "Montana State University",
+     "text": "Where Phaedrus once taught writing at the college. The Sutherlands head home from Montana."
+    },
+    {
+     "q": "Missoula, Montana",
+     "name": "Missoula",
+     "text": "Father and son continue alone.",
+     "wiki": "Missoula, Montana"
+    },
+    {
+     "q": "Lolo Pass, Idaho",
+     "at": [
+      46.635,
+      -114.58
+     ],
+     "name": "Lolo Pass",
+     "text": "A night camped on a logging road at the pass.",
+     "wiki": "Lolo Pass, Idaho"
+    },
+    {
+     "q": "Cambridge, Idaho",
+     "name": "Cambridge",
+     "text": "South through Idaho towards Oregon.",
+     "wiki": "Cambridge, Idaho"
+    },
+    {
+     "q": "Bend, Oregon",
+     "name": "Bend",
+     "text": "Across the high desert of central Oregon.",
+     "wiki": "Bend, Oregon"
+    },
+    {
+     "q": "Eureka, California",
+     "name": "Eureka",
+     "text": "Down to the Pacific coast of northern California.",
+     "wiki": "Eureka, California"
+    },
+    {
+     "q": "San Francisco, California",
+     "name": "San Francisco",
+     "text": "The end of the ride and of the book, on the coast road south to the Bay.",
+     "wiki": "San Francisco, California"
+    }
+   ]
+  },
+  {
+   "id": "steinbeck-charley-1960",
+   "title": "Steinbeck: Travels with Charley",
+   "who": "John Steinbeck and Charley the poodle",
+   "when": "September–December 1960",
+   "vehicle": "GMC pickup camper \"Rocinante\"",
+   "kind": "car",
+   "color": "#9a3412",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Travels with Charley: In Search of America",
+     "by": "John Steinbeck"
+    },
+    {
+     "kind": "book",
+     "title": "Dogging Steinbeck",
+     "by": "Bill Steigerwald",
+     "note": "Fact-checks the trip"
+    }
+   ],
+   "summary": "At 58, Steinbeck sets out to rediscover the country he writes about: almost 10,000 miles round the edge of the United States in a camper named after Don Quixote's horse, with his wife's poodle. Maine potato fields, the Great Lakes, Montana which he loved, the Pacific Northwest, a farewell to his Salinas Valley, a Texas Thanksgiving and the ugly school protests of New Orleans. Later research showed he was rarely alone and tidied up the story.",
+   "sources": [
+    {
+     "label": "Wikipedia: Travels with Charley",
+     "url": "https://en.wikipedia.org/wiki/Travels_with_Charley"
+    },
+    {
+     "label": "Bill Steigerwald, \"Sorry, Charley\" (Reason, 2011)",
+     "url": "http://reason.com/archives/2011/04/04/sorry-charley"
+    }
+   ],
+   "approximate": "Places named in the book; the roads are approximate.",
+   "stops": [
+    {
+     "q": "Sag Harbor, New York",
+     "name": "Sag Harbor",
+     "date": "Sept 1960",
+     "wiki": "Rocinante",
+     "text": "Delayed two weeks by Hurricane Donna, he leaves his Long Island summer home."
+    },
+    {
+     "q": "Bangor, Maine",
+     "name": "Bangor",
+     "text": "North through New England, closed summer shops and terse farmers.",
+     "wiki": "Bangor, Maine"
+    },
+    {
+     "q": "Deer Isle, Maine",
+     "name": "Deer Isle",
+     "text": "The best lobster he ever ate, and a cat named George.",
+     "wiki": "Deer Isle, Maine"
+    },
+    {
+     "q": "Presque Isle, Maine",
+     "name": "Northern Maine",
+     "text": "A night with French-Canadian potato pickers, sharing wine.",
+     "wiki": "Presque Isle, Maine"
+    },
+    {
+     "q": "Niagara Falls, New York",
+     "name": "Niagara Falls",
+     "text": "Turned back at the Canadian border: Charley lacks his papers.",
+     "wiki": "Niagara Falls, New York"
+    },
+    {
+     "q": "Chicago, Illinois",
+     "name": "Chicago",
+     "text": "A break with his wife Elaine in a hotel.",
+     "wiki": "Chicago, Illinois"
+    },
+    {
+     "q": "Sauk Centre, Minnesota",
+     "name": "Sauk Centre",
+     "text": "Sinclair Lewis's home town, where nobody remembers him.",
+     "wiki": "Sauk Centre, Minnesota"
+    },
+    {
+     "q": "Fargo, North Dakota",
+     "name": "North Dakota",
+     "text": "Across the plains.",
+     "wiki": "Fargo, North Dakota"
+    },
+    {
+     "q": "Missoula, Montana",
+     "name": "Montana",
+     "text": "The state he fell for, and the Great Divide.",
+     "wiki": "Missoula, Montana"
+    },
+    {
+     "q": "Seattle, Washington",
+     "name": "Seattle",
+     "text": "\"I wonder why progress looks so much like destruction.\"",
+     "wiki": "Seattle, Washington"
+    },
+    {
+     "q": "Pacific Grove, California",
+     "name": "Monterey",
+     "text": "Down the coast through Oregon (a flat tyre in the rain), to his old country. Farewell from Fremont Peak.",
+     "wiki": "Pacific Grove, California"
+    },
+    {
+     "q": "Barstow, California",
+     "name": "Mojave",
+     "text": "Dog food for two coyotes instead of a bullet.",
+     "wiki": "Barstow, California"
+    },
+    {
+     "q": "Amarillo, Texas",
+     "name": "Amarillo",
+     "text": "Thanksgiving on a cattle ranch.",
+     "wiki": "Amarillo, Texas"
+    },
+    {
+     "q": "New Orleans, Louisiana",
+     "name": "New Orleans",
+     "text": "The mothers screaming at a newly integrated school depress him deeply.",
+     "wiki": "New Orleans, Louisiana"
+    },
+    {
+     "q": "New York City",
+     "name": "New York",
+     "date": "Dec 1960",
+     "text": "Home; he gets lost in his own city.",
+     "wiki": "New York City"
+    }
+   ]
+  },
+  {
+   "id": "fulton-one-man-caravan",
+   "title": "Robert Fulton Jr: One Man Caravan",
+   "who": "Robert Edison Fulton Jr",
+   "when": "1932–1933, 18 months",
+   "vehicle": "Douglas twin motorcycle",
+   "kind": "moto",
+   "color": "#78350f",
+   "media": [
+    {
+     "kind": "book",
+     "title": "One Man Caravan",
+     "by": "Robert Edison Fulton Jr",
+     "isbn": "1884313051"
+    }
+   ],
+   "summary": "A 23-year-old Harvard architecture graduate rides from London to Tokyo, about 25,000 miles, filming 40,000 feet of the world on the way. A night in a Turkish jail, Iraqi bandits avoided, almost shot at in the Khyber Pass, a guest of Indian rajahs. He later invented the Skyhook rescue system.",
+   "sources": [
+    {
+     "label": "Wikipedia: Robert Edison Fulton Jr.",
+     "url": "https://en.wikipedia.org/wiki/Robert_Edison_Fulton_Jr."
+    }
+   ],
+   "approximate": "Only the main places of the book; the roads and the Asian legs are approximate.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "London",
+     "date": "1932",
+     "text": "Off on a borrowed idea: ride round the world and study its buildings.",
+     "wiki": "London"
+    },
+    {
+     "q": "Vienna, Austria",
+     "name": "Vienna",
+     "text": "Where he had studied architecture.",
+     "wiki": "Vienna"
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Turkey",
+     "text": "A night in a Turkish jail.",
+     "wiki": "Istanbul"
+    },
+    {
+     "q": "Baghdad, Iraq",
+     "name": "Iraq",
+     "text": "Across the desert, dodging bandits.",
+     "wiki": "Baghdad"
+    },
+    {
+     "q": "Khyber Pass",
+     "at": [
+      34.0786,
+      71.2096
+     ],
+     "name": "Khyber Pass",
+     "text": "Almost shot at by Pashtun tribesmen.",
+     "wiki": "Khyber Pass"
+    },
+    {
+     "q": "Delhi, India",
+     "name": "India",
+     "text": "Guest of rajahs.",
+     "wiki": "Delhi"
+    },
+    {
+     "q": "Tokyo, Japan",
+     "name": "Tokyo",
+     "by": "unknown",
+     "date": "1933",
+     "text": "The end, with the film that became his lecture tour.",
+     "wiki": "Tokyo"
+    }
+   ]
+  },
+  {
+   "id": "maillart-fleming-1935",
+   "title": "Maillart & Fleming: Peking to Kashmir",
+   "who": "Ella Maillart and Peter Fleming",
+   "when": "February–September 1935",
+   "vehicle": "Train, lorry, horse, camel and on foot",
+   "kind": "other",
+   "color": "#a16207",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Forbidden Journey",
+     "by": "Ella Maillart"
+    },
+    {
+     "kind": "book",
+     "title": "News from Tartary",
+     "by": "Peter Fleming"
+    }
+   ],
+   "summary": "A Swiss sailor-skier and a Times correspondent cross China from Peking to Srinagar, 3,500 miles in seven months, to see what was happening in closed Xinjiang after the Kumul rebellion. Deserts, the Tsaidam marshes, caravans and Himalayan passes; two books of the same journey that read very differently.",
+   "sources": [
+    {
+     "label": "Wikipedia: Ella Maillart",
+     "url": "https://en.wikipedia.org/wiki/Ella_Maillart"
+    },
+    {
+     "label": "Wikipedia: News from Tartary",
+     "url": "https://en.wikipedia.org/wiki/News_from_Tartary"
+    }
+   ],
+   "approximate": "Main towns of the journey; the tracks across the deserts are drawn as straight lines.",
+   "stops": [
+    {
+     "q": "Beijing, China",
+     "name": "Peking",
+     "date": "Feb 1935",
+     "text": "They set off together, against all advice.",
+     "wiki": "Beijing"
+    },
+    {
+     "q": "Lanzhou, China",
+     "name": "Lanchow",
+     "by": "train",
+     "text": "By train and lorry into the northwest.",
+     "wiki": "Lanzhou"
+    },
+    {
+     "q": "Xining, China",
+     "name": "Sining",
+     "text": "Last town before the high plateau.",
+     "wiki": "Xining"
+    },
+    {
+     "q": "Golmud, China",
+     "name": "Tsaidam",
+     "route": "line",
+     "by": "unknown",
+     "text": "Months with caravans across the Tsaidam basin.",
+     "wiki": "Golmud"
+    },
+    {
+     "q": "Qiemo, Xinjiang",
+     "name": "Cherchen",
+     "route": "line",
+     "text": "Into the oases on the southern edge of the Taklamakan.",
+     "wiki": "Qiemo"
+    },
+    {
+     "q": "Hotan, Xinjiang",
+     "name": "Khotan",
+     "route": "line",
+     "text": "Oasis to oasis on horseback.",
+     "wiki": "Hotan"
+    },
+    {
+     "q": "Kashgar, Xinjiang",
+     "name": "Kashgar",
+     "text": "Guests of the British consulate.",
+     "wiki": "Kashgar"
+    },
+    {
+     "q": "Gilgit, Pakistan",
+     "name": "Gilgit",
+     "route": "line",
+     "text": "Over the passes through Hunza.",
+     "wiki": "Gilgit"
+    },
+    {
+     "q": "Srinagar, India",
+     "name": "Srinagar",
+     "date": "Sept 1935",
+     "text": "Kashmir after seven months.",
+     "wiki": "Srinagar"
+    }
+   ]
+  },
+  {
+   "id": "manicom-rtw",
+   "title": "Sam Manicom: eight years round the world",
+   "who": "Sam Manicom",
+   "when": "1992–2000",
+   "vehicle": "BMW R80 GS",
+   "kind": "moto",
+   "color": "#be185d",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Into Africa",
+     "by": "Sam Manicom"
+    },
+    {
+     "kind": "book",
+     "title": "Under Asian Skies",
+     "by": "Sam Manicom",
+     "isbn": "9780955657306"
+    },
+    {
+     "kind": "book",
+     "title": "Distant Suns",
+     "by": "Sam Manicom"
+    },
+    {
+     "kind": "book",
+     "title": "Tortillas to Totems",
+     "by": "Sam Manicom"
+    }
+   ],
+   "summary": "He had ridden for three months when he left to cross Africa; he came back eight years and some 200,000 miles later, after 55 countries. Into Africa covers the Sahara to the Namib; Under Asian Skies runs from a container ship to Australia up through Southeast Asia and India and home via Iran and Turkey. Distant Suns (South America) and Tortillas to Totems (Mexico to North America) finish the story; those two are not mapped yet.",
+   "sources": [
+    {
+     "label": "Mad or Nomad: Sam Manicom, 8 lessons from 8 years",
+     "url": "https://www.madornomad.com/sam-manicom-8-lessons-from-8-years-on-the-road/"
+    },
+    {
+     "label": "webBikeWorld: Into Africa & Under Asian Skies review",
+     "url": "https://www.webbikeworld.com/into-africa-under-asian-skies/"
+    },
+    {
+     "label": "Wanderlust Journal: interview",
+     "url": "https://wanderlust-journal.com/2019/08/22/an-interview-with-sam-manicom/"
+    }
+   ],
+   "approximate": "Only the regions named in reviews of the first two books; the order and roads in between are unknown.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "England",
+     "date": "1992",
+     "text": "Leaves with very little riding experience, for \"a year in Africa\".",
+     "wiki": "London"
+    },
+    {
+     "q": "Tamanrasset, Algeria",
+     "at": [
+      22.785,
+      5.523
+     ],
+     "name": "Sahara",
+     "by": "unknown",
+     "text": "Across the Sahara.",
+     "wiki": "Tassili n'Ajjer"
+    },
+    {
+     "q": "Nairobi, Kenya",
+     "name": "East Africa",
+     "by": "unknown",
+     "text": "Through East Africa.",
+     "wiki": "Nairobi"
+    },
+    {
+     "q": "Sossusvlei, Namibia",
+     "at": [
+      -24.7275,
+      15.3428
+     ],
+     "name": "Namib",
+     "by": "unknown",
+     "text": "The Namib Desert in the south.",
+     "wiki": "Sossusvlei"
+    },
+    {
+     "q": "Sydney, Australia",
+     "name": "Sydney",
+     "by": "boat",
+     "text": "A container ship to Australia and a battle with port officials.",
+     "wiki": "Sydney"
+    },
+    {
+     "q": "Jakarta, Indonesia",
+     "name": "Indonesia",
+     "by": "unknown",
+     "text": "Island hopping, and a memorable bus ride.",
+     "wiki": "Jakarta"
+    },
+    {
+     "q": "Bangkok, Thailand",
+     "name": "Thailand",
+     "by": "unknown",
+     "text": "Dengue fever.",
+     "wiki": "Bangkok"
+    },
+    {
+     "q": "Delhi, India",
+     "name": "India",
+     "by": "unknown",
+     "text": "Many adventures in India.",
+     "wiki": "Delhi"
+    },
+    {
+     "q": "Tehran, Iran",
+     "name": "Iran",
+     "text": "Back west through Iran.",
+     "wiki": "Tehran"
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Turkey",
+     "text": "And Turkey, towards home, before South and North America.",
+     "wiki": "Istanbul"
+    }
+   ]
+  },
+  {
+   "id": "amyr-klink-1984",
+   "title": "Amyr Klink: Cem dias entre céu e mar",
+   "who": "Amyr Klink",
+   "when": "12 June – 19 September 1984",
+   "vehicle": "Rowing boat IAT",
+   "kind": "other",
+   "color": "#0369a1",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Cem Dias entre Céu e Mar",
+     "by": "Amyr Klink",
+     "isbn": "8535906428"
+    }
+   ],
+   "summary": "The first solo row across the South Atlantic: a young Brazilian from São Paulo rows 7,000 km in a hundred days from Namibia to Bahia. His book about it is a Brazilian classic, read in schools, and launched a life of polar and ocean voyages.",
+   "sources": [
+    {
+     "label": "Wikipédia: Amyr Klink",
+     "url": "https://pt.wikipedia.org/wiki/Amyr_Klink"
+    }
+   ],
+   "approximate": "Start and finish only; the line across the ocean is straight.",
+   "stops": [
+    {
+     "q": "Lüderitz, Namibia",
+     "name": "Lüderitz",
+     "date": "12 June 1984",
+     "text": "Pushes off alone from the Namibian coast.",
+     "wiki": "Lüderitz"
+    },
+    {
+     "q": "Itacimirim, Camaçari",
+     "at": [
+      -12.62,
+      -38.05
+     ],
+     "name": "Praia da Espera",
+     "by": "boat",
+     "route": "line",
+     "date": "19 Sept 1984",
+     "text": "Lands at Praia da Espera near Salvador, the last chapter's title."
+    }
+   ]
+  },
+  {
+   "id": "saramago-viagem-portugal",
+   "title": "Saramago: Viagem a Portugal",
+   "who": "José Saramago",
+   "when": "October 1979 – July 1980",
+   "vehicle": "Car",
+   "kind": "car",
+   "color": "#4d7c0f",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Viagem a Portugal",
+     "by": "José Saramago"
+    }
+   ],
+   "summary": "Before the Nobel, Saramago drove the whole of mainland Portugal, region by region, writing about churches, paintings, landscapes and people he met. The book's six parts go from the hard northeast to the Algarve; in 2022 RTP made a series with Fábio Porchat visiting the same places.",
+   "sources": [
+    {
+     "label": "Wikipédia: Viagem a Portugal",
+     "url": "https://pt.wikipedia.org/wiki/Viagem_a_Portugal"
+    }
+   ],
+   "approximate": "One town per part of the book; the real itinerary had many more stops.",
+   "stops": [
+    {
+     "q": "Miranda do Douro, Portugal",
+     "name": "Miranda do Douro",
+     "date": "Oct 1979",
+     "text": "\"From northeast to northwest, hard and golden\": in through Trás-os-Montes.",
+     "wiki": "Miranda do Douro"
+    },
+    {
+     "q": "Bragança, Portugal",
+     "name": "Bragança",
+     "text": "The northeast.",
+     "wiki": "Bragança"
+    },
+    {
+     "q": "Braga, Portugal",
+     "name": "Braga",
+     "text": "Over to the green Minho.",
+     "wiki": "Braga"
+    },
+    {
+     "q": "Aveiro, Portugal",
+     "name": "Aveiro",
+     "text": "\"Low lands, neighbours of the sea\".",
+     "wiki": "Aveiro"
+    },
+    {
+     "q": "Guarda, Portugal",
+     "name": "Guarda",
+     "text": "\"Gentle Beiras of stone, patience\".",
+     "wiki": "Guarda"
+    },
+    {
+     "q": "Coimbra, Portugal",
+     "name": "Coimbra",
+     "text": "\"Between Mondego and Sado, stop everywhere\".",
+     "wiki": "Coimbra"
+    },
+    {
+     "q": "Lisboa, Portugal",
+     "name": "Lisboa",
+     "text": "The capital and the Tagus.",
+     "wiki": "Lisbon"
+    },
+    {
+     "q": "Évora, Portugal",
+     "name": "Évora",
+     "text": "\"The great and burning land of Alentejo\".",
+     "wiki": "Évora"
+    },
+    {
+     "q": "Faro, Portugal",
+     "name": "Algarve",
+     "date": "July 1980",
+     "text": "\"Of Algarve and sun, dry bread and soft bread\".",
+     "wiki": "Faro"
+    }
+   ]
+  },
+  {
+   "id": "kerouac-on-the-road",
+   "title": "Kerouac: On the Road, first trip",
+   "who": "Jack Kerouac (Sal Paradise)",
+   "when": "July 1947",
+   "vehicle": "Buses and hitch-hiking",
+   "kind": "other",
+   "color": "#334155",
+   "media": [
+    {
+     "kind": "book",
+     "title": "On the Road",
+     "by": "Jack Kerouac"
+    }
+   ],
+   "summary": "The founding text of the road trip. Part one of the novel follows Kerouac's own first crossing of America with $50: buses and hitched rides to Denver and Dean Moriarty, on to San Francisco, cotton fields in California, then back east. Later parts add New Orleans and a car to Mexico City.",
+   "sources": [
+    {
+     "label": "Wikipedia: On the Road",
+     "url": "https://en.wikipedia.org/wiki/On_the_Road"
+    }
+   ],
+   "approximate": "Places from the novel's first part; the roads are approximate.",
+   "stops": [
+    {
+     "q": "Paterson, New Jersey",
+     "name": "Paterson",
+     "date": "July 1947",
+     "text": "Leaves his aunt's house with fifty dollars.",
+     "wiki": "Paterson, New Jersey"
+    },
+    {
+     "q": "Chicago, Illinois",
+     "name": "Chicago",
+     "by": "bus",
+     "text": "Bebop in the Loop.",
+     "wiki": "Chicago, Illinois"
+    },
+    {
+     "q": "Des Moines, Iowa",
+     "name": "Des Moines",
+     "by": "unknown",
+     "text": "Hitching west across Iowa.",
+     "wiki": "Des Moines, Iowa"
+    },
+    {
+     "q": "Cheyenne, Wyoming",
+     "name": "Cheyenne",
+     "by": "unknown",
+     "text": "Rodeo week.",
+     "wiki": "Cheyenne, Wyoming"
+    },
+    {
+     "q": "Denver, Colorado",
+     "name": "Denver",
+     "by": "unknown",
+     "text": "Dean, Carlo and the parties, and a trip to Central City.",
+     "wiki": "Denver, Colorado"
+    },
+    {
+     "q": "San Francisco, California",
+     "name": "San Francisco",
+     "by": "bus",
+     "text": "A job as a night watchman.",
+     "wiki": "San Francisco, California"
+    },
+    {
+     "q": "Los Angeles, California",
+     "name": "Los Angeles",
+     "by": "bus",
+     "text": "With Terry.",
+     "wiki": "Los Angeles, California"
+    },
+    {
+     "q": "Bakersfield, California",
+     "name": "San Joaquin Valley",
+     "by": "bus",
+     "text": "Picking cotton, and finding he is not made for it.",
+     "wiki": "Bakersfield, California"
+    },
+    {
+     "q": "Pittsburgh, Pennsylvania",
+     "name": "Pittsburgh",
+     "by": "bus",
+     "text": "A bus back east.",
+     "wiki": "Pittsburgh, Pennsylvania"
+    },
+    {
+     "q": "Times Square, New York",
+     "name": "New York",
+     "by": "unknown",
+     "text": "Hitched to Times Square, broke.",
+     "wiki": "Times Square, New York"
+    }
+   ]
+  },
+  {
+   "id": "tiffany-coates",
+   "title": "Tiffany Coates and Thelma",
+   "who": "Tiffany Coates (with Becky Lincoln, then Maggie)",
+   "when": "From 1997, about five years for the first big ride",
+   "vehicle": "BMW R80GS \"Thelma\" (1992)",
+   "kind": "moto",
+   "color": "#ca8a04",
+   "summary": "Two friends with no riding experience and £2,500 between them buy a second-hand BMW to ride to India; nine months turn into years. After Australia, Becky goes home to university and Tiffany ships Thelma to Cape Town, where her friend Maggie flies in to ride up Africa with her, the classic Cape to Cairo with detours. Later she rides the length of the Americas and across northern Asia to Mongolia: more than 200,000 miles on the same bike, much of it solo. Today she leads motorcycle tours and is a Churchill Fellow.",
+   "sources": [
+    {
+     "label": "Overland Expo: Community Spotlight, Tiffany Coates",
+     "url": "https://www.overlandexpo.com/compass/communitycoates"
+    },
+    {
+     "label": "Exploring Overland: Tiffany Coates' R80GS, Thelma",
+     "url": "https://exploringoverland.com/overland-tech-travel/2012/3/2/no-poseur-machine-tiffany-coates-r80gs-thelma.html"
+    },
+    {
+     "label": "Team Motorcycle: interview",
+     "url": "https://www.teammotorcycle.com/blog/tiffany-coates-motorcycle-interview"
+    },
+    {
+     "label": "Churchill Fellowship: Tiffany Coates",
+     "url": "https://www.churchillfellowship.org/ideas-experts/fellows-directory/tiffany-coates/"
+    }
+   ],
+   "approximate": "Only the countries and regions named in interviews; the order of the later rides and the roads are approximate.",
+   "stops": [
+    {
+     "q": "London, UK",
+     "name": "England",
+     "date": "1997",
+     "wiki": "BMW R80GS",
+     "text": "Becky and Tiffany set off for India on a second-hand R80GS they call Thelma."
+    },
+    {
+     "q": "Lahore, Pakistan",
+     "name": "Pakistan",
+     "by": "unknown",
+     "wiki": "Lahore",
+     "text": "Their favourite part of the trip."
+    },
+    {
+     "q": "Delhi, India",
+     "name": "India",
+     "wiki": "Delhi",
+     "text": "The original goal, reached."
+    },
+    {
+     "q": "Perth, Western Australia",
+     "name": "Australia",
+     "by": "boat",
+     "wiki": "Perth",
+     "text": "Across Australia, working to pay for the road. Becky goes home to university."
+    },
+    {
+     "q": "Cape Town, South Africa",
+     "name": "Cape Town",
+     "by": "boat",
+     "wiki": "Cape Town",
+     "text": "Thelma shipped to Africa; Maggie flies in from Ireland to join."
+    },
+    {
+     "q": "Nairobi, Kenya",
+     "name": "East Africa",
+     "wiki": "Nairobi",
+     "text": "North up the classic Cape to Cairo route, with diversions."
+    },
+    {
+     "q": "Cairo, Egypt",
+     "name": "Cairo",
+     "wiki": "Cairo",
+     "text": "The top of Africa."
+    },
+    {
+     "q": "Anchorage, Alaska",
+     "name": "Alaska",
+     "by": "unknown",
+     "wiki": "Anchorage, Alaska",
+     "text": "Later: the length of the Americas, north to south."
+    },
+    {
+     "q": "Panama City, Panama",
+     "at": [8.9824, -79.5199],
+     "name": "Panama",
+     "wiki": "Panama City",
+     "text": "Through Central America to the Darién Gap."
+    },
+    {
+     "q": "Cartagena, Colombia",
+     "name": "Colombia",
+     "by": "boat",
+     "wiki": "Cartagena, Colombia",
+     "text": "Around the gap by sea, into South America."
+    },
+    {
+     "q": "Ushuaia, Argentina",
+     "name": "Tierra del Fuego",
+     "wiki": "Ushuaia",
+     "text": "To the bottom of South America."
+    },
+    {
+     "q": "Ulaanbaatar, Mongolia",
+     "name": "Mongolia",
+     "by": "unknown",
+     "wiki": "Ulaanbaatar",
+     "text": "Another ride, across northern Asia to Outer Mongolia."
+    }
+   ]
+  },
 ];

@@ -350,7 +350,12 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
           <div className="space-y-2.5">
             {/* Stays in view while the stops scroll: the way back and which journey this is. */}
             <div className="sticky -top-3 z-10 -mx-3 -mt-3 space-y-1.5 border-b border-slate-200 bg-[#fffcf4] px-3 pb-2 pt-3">
-              <button onClick={() => { setJourney(null); mapRef.current?.easeTo({ zoom: narrow() ? 0.9 : 1.9, duration: 900 }); }} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"><ArrowLeft size={13} />{t('All journeys')}</button>
+              <button onClick={() => {
+                setJourney(null);
+                // Step back a little (one or two zoom levels), not all the way out to the whole globe.
+                const map = mapRef.current;
+                if (map) map.easeTo({ zoom: Math.max(narrow() ? 0.9 : 1.9, map.getZoom() - 1.5), duration: 700 });
+              }} className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[13px] font-bold uppercase tracking-wide text-emerald-800 hover:bg-emerald-100"><ArrowLeft size={15} />{t('All journeys')}</button>
               <div className="border-l-4 pl-2" style={{ borderColor: journey.color }}>
                 <h2 className="text-base font-bold leading-tight text-slate-900">{journey.title}</h2>
                 <p className="text-[11px] text-slate-600">{journey.who} · {journey.when}</p>
