@@ -74,9 +74,9 @@ export const SafetyButton: React.FC<{ on: boolean; onToggle: () => void }> = ({ 
   const { t } = useSettings();
   return (
     <button onClick={onToggle} aria-pressed={on}
-      className={cn('inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide shadow',
+      className={cn('flex w-full items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-bold uppercase tracking-wide shadow',
         on ? 'border-red-700 bg-red-700 text-white' : 'border-red-700 bg-white text-red-800 hover:bg-red-50')}>
-      <ShieldAlert size={15} />{t('Overland safety')}
+      <ShieldAlert size={13} />{t('Overland safety')}
     </button>
   );
 };

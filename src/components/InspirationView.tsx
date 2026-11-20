@@ -29,6 +29,9 @@ interface Props {
   onLogin?: () => void;
 }
 
+/** The buttons at the map's top left: one size. */
+const MAP_BUTTON = 'flex w-full items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-bold uppercase tracking-wide shadow';
+
 type Line = [number, number][];
 /** Journeys drawn in straight lines between a few known places (their real path was much longer). */
 const STRAIGHT = new Set(['capelo-ivens', 'livingstone-zambezi']);
@@ -391,7 +394,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
   return (
     <div className="absolute inset-0 z-[17] bg-[radial-gradient(ellipse_at_center,#1e3a4f_0%,#0b1622_70%)]">
       <div ref={container} className="h-full w-full" />
-      <div className="absolute right-2.5 top-[84px] z-10 flex overflow-hidden rounded-md border border-slate-300 bg-white text-[10.5px] font-semibold shadow" role="group" aria-label={t('Map style when zoomed in')}>
+      <div className="absolute bottom-[calc(50dvh+8px)] left-2 z-10 flex overflow-hidden md:bottom-3 md:left-[388px] rounded-md border border-slate-300 bg-white text-[10.5px] font-semibold shadow" role="group" aria-label={t('Map style when zoomed in')}>
         {(['topo', 'satellite'] as const).map(b => (
           <button key={b} onClick={() => setBasemap(b)} aria-pressed={basemap === b}
             className={cn('px-2 py-1', basemap === b ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-emerald-50')}>{t(b === 'topo' ? 'Topo' : 'Satellite')}</button>
@@ -400,14 +403,14 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       <SafetyLayer map={ready ? mapRef.current : null} ready={ready} on={safety} setOn={setSafety} />
       {/* Top left of the map: the way back to all journeys, and "Add your journey". */}
       {!importing && !reviewing && (
-        <div className="absolute left-2.5 top-[84px] z-10 flex flex-col items-start gap-1.5 md:left-[392px]">
-          {journey && (
-            <button onClick={backToAll} className="inline-flex items-center gap-1.5 rounded-md border border-emerald-700 bg-white px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide text-emerald-800 shadow hover:bg-emerald-50"><ArrowLeft size={15} />{t('All journeys')}</button>
-          )}
-          {!adding && (
-            <button onClick={() => { setJourney(null); setAdding(true); }} className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide text-white shadow hover:bg-emerald-800"><Plus size={15} />{t('Add your journey')}</button>
-          )}
+        <div className="absolute left-2 top-[72px] z-10 flex w-[176px] flex-col gap-1 md:left-[388px] xl:top-2.5">
           <SafetyButton on={safety} onToggle={() => setSafety(v => !v)} />
+          {!adding && (
+            <button onClick={() => { setJourney(null); setAdding(true); }} className={cn(MAP_BUTTON, 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800')}><Plus size={13} />{t('Add your journey')}</button>
+          )}
+          {journey && (
+            <button onClick={backToAll} className={cn(MAP_BUTTON, 'border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50')}><ArrowLeft size={13} />{t('All journeys')}</button>
+          )}
         </div>
       )}
       {adding && <AddJourneyChat preview={preview} onPreview={setPreview} onClose={() => setAdding(false)} onLogin={() => onLogin?.()} />}
