@@ -1,14 +1,16 @@
 // The Inspiration map, open to everyone: famous journeys drawn on a world map. Pick one to follow it stop by stop
 // (photo, story, how they travelled), then plan any stretch of it as your own trip.
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
-import { ArrowLeft, Bike, BookOpen, Compass, ExternalLink, Loader2, MapPinned, PlayCircle, Sparkles, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, Bike, ClipboardCheck, Plus, BookOpen, Compass, ExternalLink, Loader2, MapPinned, PlayCircle, Sparkles, Trash2, Upload } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
-import { checkAdmin, loadPublished, summarize, unpublishJourney } from '../lib/inspirationStore';
+import { checkAdmin, loadPendingSubmissions, loadPublished, loadSubmission, summarize, unpublishJourney, type Submission } from '../lib/inspirationStore';
+import AddJourneyChat from './AddJourneyChat';
+import ReviewJourney from './ReviewJourney';
 import ImportJourney from './ImportJourney';
 import { SafetyLayer } from './SafetyLayer';
 import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
@@ -23,6 +25,8 @@ maplibregl.setWorkerUrl(mapWorkerUrl);
 interface Props {
   /** "Plan this stretch": hands a request to the AI planner. */
   onPlan: (prompt: string) => void;
+  /** Opens the login dialog. */
+  onLogin?: () => void;
 }
 
 type Line = [number, number][];
@@ -156,7 +160,7 @@ const StopCard: React.FC<{ journey: Journey; index: number; onPlan: (prompt: str
   );
 };
 
-const InspirationView: React.FC<Props> = ({ onPlan }) => {
+const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
   const { t, dist, locale } = useSettings();
   const [list, setList] = useState<JourneySummary[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -183,9 +187,14 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   journeyRef.current = shown;
   const narrow = () => (container.current?.clientWidth || 1000) < 768;
   // The panel covers part of the map: keep the journey clear of it.
-  const padding = () => (narrow()
-    ? { top: 70, left: 30, right: 30, bottom: Math.round((container.current?.clientHeight || 800) * 0.5) }
-    : { top: 90, left: 410, right: 60, bottom: 50 });
+  // While adding a journey the chat box covers the lower part of the map: fit the journey above it.
+  const addingRef = useRef(false);
+  const padding = () => {
+    const h = container.current?.clientHeight || 800;
+    return narrow()
+      ? { top: 70, left: 30, right: 30, bottom: Math.round(h * (addingRef.current ? 0.66 : 0.5)) }
+      : { top: 90, left: 410, right: 60, bottom: addingRef.current ? Math.round(Math.min(h * 0.62, 520)) : 50 };
+  };
 
   useEffect(() => {
     loadJourneys().then(setList).catch(() => setFailed(true));
@@ -195,6 +204,29 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
       if (user) checkAdmin(user.uid).then(setAdmin); else setAdmin(false);
     });
   }, []);
+  // "Add your journey" (the chat), and for admins the journeys sent for review.
+  const [adding, setAdding] = useState(false);
+  addingRef.current = adding;
+  const [reviewing, setReviewing] = useState<Submission | null>(null);
+  const [queue, setQueue] = useState<Submission[]>([]);
+  useEffect(() => {
+    if (!admin) { setQueue([]); return; }
+    loadPendingSubmissions().then(setQueue);
+    // The link in the review email: ?review=<id>.
+    const id = new URLSearchParams(window.location.search).get('review');
+    if (id) loadSubmission(id).then(sub => { if (sub) { setReviewing(sub); setPreview(sub.journey); } }).catch(() => undefined);
+  }, [admin]);
+  const review = (sub: Submission | null) => {
+    setReviewing(sub);
+    setPreview(sub ? sub.journey : null);
+    if (!sub) {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('review')) { url.searchParams.delete('review'); window.history.replaceState(null, '', url); }
+    }
+  };
+  // Back to the list where it was scrolled to.
+  const asideRef = useRef<HTMLElement>(null);
+  const listScroll = useRef<number | null>(null);
   // Famous journeys first, then those imported (newest first).
   const every = useMemo(() => [...(list || []), ...published.map(summarize)], [list, published]);
   // Filters: how they travelled, when, and words (title, people, vehicle, story).
@@ -212,10 +244,23 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
   }), [every, kind, era, words]);
 
   const select = async (id: string) => {
+    if (!journey && asideRef.current) listScroll.current = asideRef.current.scrollTop;
     const mine = published.find(j => j.id === id);
     if (mine) { setJourney(mine); return; }
     setLoading(id);
     try { setJourney(await loadJourney(id)); } catch { setFailed(true); } finally { setLoading(null); }
+  };
+  useLayoutEffect(() => {
+    if (!journey && !reviewing && listScroll.current != null && asideRef.current) {
+      asideRef.current.scrollTop = listScroll.current;
+      listScroll.current = null;
+    }
+  }, [journey, reviewing, list]);
+  const backToAll = () => {
+    setJourney(null);
+    // Step back a little (one or two zoom levels), not all the way out to the whole globe.
+    const map = mapRef.current;
+    if (map) map.easeTo({ zoom: Math.max(narrow() ? 0.9 : 1.9, map.getZoom() - 1.5), duration: 700 });
   };
   const selectRef = useRef(select);
   selectRef.current = select;
@@ -284,10 +329,10 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
     // While a journey is open only its detailed line shows: the rough overview lines (its own and the others',
     // several of which follow the same roads) would run beside it as shortcuts. They come back when it's closed.
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
-      shown ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
+      shown || adding ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
     ));
-    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown ? [] : all.filter(j => !j.crossing).flatMap(j => j.overview.flatMap(o => splitJumps(o)))));
-  }, [ready, all, shown]);
+    (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown || adding ? [] : all.filter(j => !j.crossing).flatMap(j => j.overview.flatMap(o => splitJumps(o)))));
+  }, [ready, all, shown, adding]);
 
   const openStop = (index: number, fly = true) => {
     const map = mapRef.current, j = journeyRef.current;
@@ -351,8 +396,38 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
         ))}
       </div>
       <SafetyLayer map={ready ? mapRef.current : null} ready={ready} />
-      <aside className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4] p-3 shadow-2xl md:inset-x-auto md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[380px] md:rounded-none md:border-0 md:border-r">
-        {importing && uid ? (
+      {/* Top left of the map: the way back to all journeys, and "Add your journey". */}
+      {!importing && !reviewing && (
+        <div className="absolute left-2.5 top-[84px] z-10 flex flex-col items-start gap-1.5 md:left-[392px]">
+          {journey && (
+            <button onClick={backToAll} className="inline-flex items-center gap-1.5 rounded-md border border-emerald-700 bg-white px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide text-emerald-800 shadow hover:bg-emerald-50"><ArrowLeft size={15} />{t('All journeys')}</button>
+          )}
+          {!adding && (
+            <button onClick={() => { setJourney(null); setAdding(true); }} className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-3 py-1.5 text-[13px] font-bold uppercase tracking-wide text-white shadow hover:bg-emerald-800"><Plus size={15} />{t('Add your journey')}</button>
+          )}
+        </div>
+      )}
+      {adding && <AddJourneyChat preview={preview} onPreview={setPreview} onClose={() => setAdding(false)} onLogin={() => onLogin?.()} />}
+      <aside ref={asideRef} className="absolute inset-x-0 bottom-0 max-h-[50dvh] overflow-y-auto rounded-t-xl border-t bg-[#fffcf4] p-3 shadow-2xl md:inset-x-auto md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[380px] md:rounded-none md:border-0 md:border-r">
+        {reviewing && uid ? (
+          <ReviewJourney submission={reviewing} uid={uid} onBack={() => review(null)}
+            onPublished={(j) => { setPublished(list => [j, ...list]); setQueue(q => q.filter(x => x.id !== reviewing.id)); }} />
+        ) : adding ? (
+          <div className="space-y-2">
+            <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Plus size={16} />{t('Add your journey')}</h2>
+            <p className="text-xs leading-relaxed text-slate-600">{t('Tell the assistant below about your journey. Only your journey shows on the map while you work on it; check it there after each answer.')}</p>
+            {preview && (
+              <div className="space-y-1.5 rounded-md border border-slate-200 bg-white p-2">
+                <div className="border-l-4 pl-2" style={{ borderColor: preview.color }}>
+                  <p className="text-sm font-bold text-slate-900">{preview.title}</p>
+                  <p className="text-[11px] text-slate-600">{[preview.who, preview.when, preview.vehicle].filter(Boolean).join(' · ')}</p>
+                </div>
+                <p className="text-[11px] text-slate-700">{preview.summary}</p>
+                <ol className="space-y-0.5">{preview.stops.map((s, i) => <li key={i} className="text-[11px] text-slate-700"><b>{i + 1}. {s.name}</b>{s.date ? ` · ${s.date}` : ''}</li>)}</ol>
+              </div>
+            )}
+          </div>
+        ) : importing && uid ? (
           <ImportJourney uid={uid} preview={preview} onPreview={setPreview} onClose={() => setImporting(false)}
             onPublished={(j) => { setPublished(list => [j, ...list]); setPreview(null); setImporting(false); setJourney(j); }} />
         ) : !journey ? (
@@ -383,6 +458,14 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
                 </button>
               )}
             </div>
+            {admin && queue.length > 0 && (
+              <div className="space-y-1 rounded-md border border-amber-300 bg-amber-50 p-2">
+                <p className="flex items-center gap-1 text-[11px] font-bold uppercase text-amber-900"><ClipboardCheck size={13} />{t('Journeys to review ({n})', { n: queue.length })}</p>
+                {queue.map(q => (
+                  <button key={q.id} onClick={() => review(q)} className="block w-full truncate text-left text-xs text-amber-900 hover:underline">{q.title} · {q.email || ''}</button>
+                ))}
+              </div>
+            )}
             {admin && (
               <button onClick={() => { setJourney(null); setImporting(true); }}
                 className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-emerald-400 px-2 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50">
@@ -416,12 +499,6 @@ const InspirationView: React.FC<Props> = ({ onPlan }) => {
           <div className="space-y-2.5">
             {/* Stays in view while the stops scroll: the way back and which journey this is. */}
             <div className="sticky -top-3 z-10 -mx-3 -mt-3 space-y-1.5 border-b border-slate-200 bg-[#fffcf4] px-3 pb-2 pt-3">
-              <button onClick={() => {
-                setJourney(null);
-                // Step back a little (one or two zoom levels), not all the way out to the whole globe.
-                const map = mapRef.current;
-                if (map) map.easeTo({ zoom: Math.max(narrow() ? 0.9 : 1.9, map.getZoom() - 1.5), duration: 700 });
-              }} className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[13px] font-bold uppercase tracking-wide text-emerald-800 hover:bg-emerald-100"><ArrowLeft size={15} />{t('All journeys')}</button>
               <div className="border-l-4 pl-2" style={{ borderColor: journey.color }}>
                 <h2 className="text-base font-bold leading-tight text-slate-900">{journey.title}</h2>
                 <p className="text-[11px] text-slate-600">{journey.who} · {journey.when}</p>

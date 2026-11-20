@@ -7,6 +7,7 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { verifyIdToken, readPlanRecord, isAdmin, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 import { isLocalUrl, readLink, linkAsText } from './link';
+import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourneyChatPrompt, buildScreeningPrompt, emailAdmin, readSubmission, screeningJsonSchema } from './submissions';
 
 // Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
 //   POST /api/plan                 understand a trip request (start, finish, mode, days, places to pass)
@@ -18,7 +19,7 @@ import { isLocalUrl, readLink, linkAsText } from './link';
 // Routes, overnight stops and place suggestions come from OpenStreetMap services in the browser, not from the AI.
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
-interface PlanEnv {
+interface PlanEnv extends SubmissionEnv {
   ANTHROPIC_API_KEY?: string;
   CLAUDE_MODEL?: string;
   GEMINI_API_KEY?: string;
@@ -751,6 +752,29 @@ const journeyGeminiSchema = {
   required: ['title', 'who', 'when', 'vehicle', 'kind', 'summary', 'sourceLabel', 'stops'],
 };
 
+// "Add your journey" chat: a reply, whether it's ready to send, and the journey so far.
+const journeyChatJsonSchema = {
+  type: 'object',
+  properties: { reply: { type: 'string' }, ready: { type: 'boolean' }, journey: journeyJsonSchema },
+  required: ['reply', 'ready', 'journey'],
+  additionalProperties: false,
+};
+const journeyChatGeminiSchema = {
+  type: Type.OBJECT,
+  properties: { reply: { type: Type.STRING }, ready: { type: Type.BOOLEAN }, journey: journeyGeminiSchema },
+  required: ['reply', 'ready', 'journey'],
+};
+const screeningGeminiSchema = {
+  type: Type.OBJECT,
+  properties: {
+    verdict: { type: Type.STRING, enum: ['looks genuine', 'needs a closer look', 'doubtful'] },
+    aiWritten: { type: Type.STRING, enum: ['unlikely', 'possible', 'likely'] },
+    checks: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { check: { type: Type.STRING }, result: { type: Type.STRING, enum: ['ok', 'warning', 'problem'] }, note: { type: Type.STRING } }, required: ['check', 'result', 'note'] } },
+    summary: { type: Type.STRING },
+  },
+  required: ['verdict', 'aiWritten', 'checks', 'summary'],
+};
+
 /** The AI's reading, trimmed to sensible sizes and values. */
 export function cleanJourney(raw: any, url = '') {
   const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -817,7 +841,7 @@ const SUPPORTED_BINARY = new Set(['application/pdf', 'image/png', 'image/jpeg', 
 
 function createHandler(env: PlanEnv): Connect.NextHandleFunction {
   return async (req, res, next) => {
-    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage', '/api/import-journey', '/api/health'];
+    const routes = ['/api/plan', '/api/extract-reservation', '/api/extract-link', '/api/me', '/api/usage', '/api/import-journey', '/api/health', '/api/journey-chat', '/api/submit-journey', '/api/screen-journey'];
     if (!req.url || !routes.includes(req.url)) return next();
     if (req.url === '/api/me') {
       if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' });
@@ -847,7 +871,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
 
     let body: any;
     try {
-      body = JSON.parse(await readBody(req, req.url === '/api/extract-reservation' ? 15_000_000 : 100_000));
+      body = JSON.parse(await readBody(req, req.url === '/api/extract-reservation' || req.url === '/api/journey-chat' ? 15_000_000 : 100_000));
     } catch {
       return sendJson(res, 400, { error: 'Invalid or too large request body' });
     }
@@ -943,6 +967,92 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       } catch (err) {
         return sendTaskError(res, err);
       }
+    }
+
+    if (req.url === '/api/journey-chat') {
+      // Anyone may chat (rate-limited above); sending the journey needs a login.
+      if (!allow(res, acct, 'aiPlans')) return;
+      const messages: ChatTurn[] = (Array.isArray(body.messages) ? body.messages : [])
+        .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string')
+        .map((m: any) => ({ role: m.role, text: String(m.text).slice(0, 4000) })).slice(-14);
+      const draft = body.draft && typeof body.draft === 'object' ? body.draft : null;
+      const language = typeof body.language === 'string' ? body.language.slice(0, 8) : '';
+      const url = String(body.url || '').trim().slice(0, 2000);
+      let file: UploadedFile | undefined;
+      let material = '';
+      if (url) {
+        if (!/^https?:\/\//i.test(url) || isLocalUrl(url)) return sendJson(res, 400, { error: 'That link can\'t be opened.' });
+        const info = await readLink(url, 40_000);
+        if (info.unreadable) return sendJson(res, 422, { error: 'That page could not be read (it may need a login). Paste the text, or describe the route instead.' });
+        material = linkAsText(info);
+        file = { mimeType: 'text/plain', data: '', text: material };
+      } else if (body.file && typeof body.file === 'object') {
+        const fileName = String(body.file.fileName || 'file').slice(0, 200);
+        const mimeType = String(body.file.mimeType || '').toLowerCase();
+        const data = String(body.file.data || '');
+        const isText = mimeType.startsWith('text/') || /\.(txt|md|html?|gpx|kml)$/i.test(fileName);
+        if (!data) return sendJson(res, 400, { error: 'The file is empty.' });
+        if (!isText && !SUPPORTED_BINARY.has(mimeType)) return sendJson(res, 415, { error: 'Send a PDF, a text file, a GPX/KML track or an image.' });
+        file = isText ? { mimeType: 'text/plain', data, text: decodeTextFile(data).slice(0, 60_000) } : { mimeType, data };
+        material = fileName;
+      }
+      if (!messages.length && !file) return sendJson(res, 400, { error: 'Say something about your journey.' });
+      try {
+        const { provider, result } = await runTaskResult(env, {
+          name: 'journey chat',
+          prompt: buildJourneyChatPrompt(messages, draft, language, material),
+          geminiSchema: journeyChatGeminiSchema,
+          claudeSchema: journeyChatJsonSchema,
+          ...(file ? { file } : {}),
+        });
+        const journey = cleanJourney(result.journey || {}, url);
+        if (!String(result.journey?.title || '').trim()) journey.title = draft?.title && draft.title !== 'Imported journey' ? draft.title : 'My journey';
+        if (journey.sources[0] && !url && draft?.sources?.[0]?.url) journey.sources = draft.sources;
+        return sendJson(res, 200, {
+          provider,
+          reply: typeof result.reply === 'string' ? result.reply.trim().slice(0, 1200) : '',
+          ready: Boolean(result.ready) && journey.stops.length >= 3,
+          journey,
+        });
+      } catch (err) {
+        return sendTaskError(res, err);
+      }
+    }
+
+    if (req.url === '/api/submit-journey' || req.url === '/api/screen-journey') {
+      if (!acct.caller) return sendJson(res, 401, { error: 'Log in to send your journey.' });
+      const admin = await isAdmin(acct.caller, firebaseConfig.projectId, firebaseConfig.firestoreDatabaseId);
+      if (req.url === '/api/screen-journey' && !admin) return sendJson(res, 403, { error: 'Only admins can do this.' });
+      const id = String(body.id || '');
+      const sub = await readSubmission(id, acct.caller, firebaseConfig.projectId, firebaseConfig.firestoreDatabaseId);
+      if (!sub) return sendJson(res, 404, { error: 'Journey not found.' });
+      if (req.url === '/api/submit-journey' && sub.createdBy !== acct.caller.uid) return sendJson(res, 403, { error: 'Not your journey.' });
+      // Source links still open?
+      const links: Record<string, boolean> = {};
+      for (const s of (sub.data.journey?.sources || []).slice(0, 3)) {
+        if (s.url && /^https?:\/\//.test(s.url) && !isLocalUrl(s.url)) links[s.url] = !(await readLink(s.url, 2000).catch(() => ({ unreadable: true }))).unreadable;
+      }
+      const checks = automaticChecks(sub.data, links);
+      let report: ScreeningReport;
+      try {
+        const { provider, result } = await runTaskResult(env, {
+          name: 'journey screening',
+          prompt: buildScreeningPrompt(sub.data, checks),
+          geminiSchema: screeningGeminiSchema,
+          claudeSchema: screeningJsonSchema,
+        });
+        report = {
+          verdict: String(result.verdict || 'needs a closer look'), aiWritten: String(result.aiWritten || 'possible'),
+          checks: [...checks, ...(Array.isArray(result.checks) ? result.checks : []).slice(0, 8)],
+          summary: String(result.summary || '').slice(0, 1200), at: new Date().toISOString(), provider,
+        };
+      } catch (err) {
+        report = { verdict: 'needs a closer look', aiWritten: 'not checked', checks, summary: `The AI screening could not run (${err instanceof Error ? err.message.slice(0, 120) : 'error'}); only the automatic checks were done.`, at: new Date().toISOString() };
+      }
+      if (req.url === '/api/screen-journey') return sendJson(res, 200, { report });
+      const origin = (env.PUBLIC_URL || '').replace(/\/$/, '') || `${(req.headers['x-forwarded-proto'] as string) || 'https'}://${req.headers.host}`;
+      const emailed = await emailAdmin(env, sub, report, `${origin}/?review=${encodeURIComponent(id)}`);
+      return sendJson(res, 200, { ok: true, emailed });
     }
 
     if (req.url === '/api/extract-link') {

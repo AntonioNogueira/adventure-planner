@@ -28,6 +28,13 @@ services:
         sync: false
       - key: CHECKOUT_URL_EXPLORER
         sync: false
+      # "Add your journey": email the admin when a journey is sent for review (Resend API key + address).
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
       # Affiliate ids for the booking links in place popups (optional).
       - key: BOOKING_AID
         sync: false

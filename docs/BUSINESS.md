@@ -405,3 +405,22 @@ of the last 30 days. Code: server/safety.ts (sources, country list), src/compone
 - It is a summary, not advice: every card links to the official page and says so.
 - Ideas: show the layer along a planned route (warn when a route crosses a level 3–4 country), border-crossing status
   from overlander forums, ACLED conflict events (needs a free research key).
+
+## 16. "Add your journey": travellers send their own journeys (Nov 2026)
+
+A button at the top left of the Inspire map opens a chat: the traveller shares a blog link, sends a document (PDF,
+text, GPX/KML, image) or describes the route; after each answer the AI's version is drawn on the globe (only theirs
+shows). When happy, they tick a declaration (their own journey or the right to share it, facts true to the best of
+their knowledge, responsible for the text and material) and send it. It needs an account.
+
+- Saved in Firestore `submissions` (only the author and admins can read; see firestore.rules), status pending.
+- First screening on the server (POST /api/submit-journey): automatic checks (stops, distances, source link opens,
+  title already on the map, declaration) plus an AI report: plausibility, consistency, signs of AI-written text,
+  copying a famous journey, unsuitable content. Verdict: looks genuine / needs a closer look / doubtful.
+- Email to the admin (Resend; env RESEND_API_KEY + ADMIN_EMAIL, optional EMAIL_FROM, PUBLIC_URL) with the report
+  and a private link `/?review=<id>` that only admins can open. Without the key, sent journeys wait in "Journeys to
+  review" in the Inspire panel (admins only).
+- Review screen: the journey on the map, the conversation, the material, the screening (run again), Publish (goes to
+  the `inspiration` collection, live for everyone) or Reject.
+- Setup: publish the updated firestore.rules; create a Resend account with the admin's address, add the API key and
+  ADMIN_EMAIL in Render; the admin account needs a document admins/{uid} (already there for the import tool).
