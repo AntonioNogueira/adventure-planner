@@ -2658,12 +2658,16 @@ export const DAKAR = [
   "id": "dakar-2001",
   "title": "2001 Paris–Dakar Rally",
   "who": "Won by Jutta Kleinschmidt / Andreas Schulz (Mitsubishi) and Fabrizio Meoni (KTM)",
-  "when": "2001",
+  "when": "1–21 January 2001",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 2001 edition of the Dakar Rally, in its African era: 19 stage towns and bivouacs through France, Spain, Morocco, Mauritania, Mali, Senegal. Winners — Cars: Jutta Kleinschmidt / Andreas Schulz (Mitsubishi); Bikes: Fabrizio Meoni (KTM); Trucks: Karel Loprais / Josef Kalina / Petr Hamerla (Tatra).",
   "sources": [
+   {
+    "label": "ESPN: an \"unbelievable\" win for Kleinschmidt (2001)",
+    "url": "https://www.espn.com/auto/news/2001/0121/1031169.html"
+   },
    {
     "label": "Wikipedia: 2001 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/2001_Paris%E2%80%93Dakar_Rally"
@@ -2679,7 +2683,8 @@ export const DAKAR = [
      2.32
     ],
     "route": "line",
-    "text": "Start of the 2001 Paris–Dakar Rally."
+    "date": "1 Jan 2001",
+    "text": "The start from Paris."
    },
    {
     "q": "Narbonne",
@@ -2689,7 +2694,8 @@ export const DAKAR = [
      3.0042
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 2001",
+    "text": "End of stage 1, 916 km south through France."
    },
    {
     "q": "Castellón de la Plana",
@@ -2699,7 +2705,8 @@ export const DAKAR = [
      -0.0377
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 2001",
+    "text": "Stage 2: 560 km into Spain."
    },
    {
     "q": "Almería",
@@ -2709,7 +2716,8 @@ export const DAKAR = [
      -2.312
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 2001",
+    "text": "Stage 3 down the Spanish coast to the port, then the crossing to Morocco."
    },
    {
     "q": "Nador",
@@ -2720,7 +2728,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 2001",
+    "text": "Stage 4 starts in Nador."
    },
    {
     "q": "Er-Rachidia",
@@ -2730,7 +2739,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "4 Jan 2001",
+    "text": "End of stage 4, 602 km."
    },
    {
     "q": "Ouarzazate",
@@ -2740,7 +2750,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "5 Jan 2001",
+    "text": "Stage 5: 572 km over the Atlas."
    },
    {
     "q": "Guelmim",
@@ -2750,7 +2761,8 @@ export const DAKAR = [
      -10.0574
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "6 Jan 2001",
+    "text": "Stage 6: 608 km towards the Sahara."
    },
    {
     "q": "Smara",
@@ -2760,7 +2772,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "7 Jan 2001",
+    "text": "Stage 7: 489 km into Western Sahara."
    },
    {
     "q": "El Ghallaouiya",
@@ -2770,7 +2783,8 @@ export const DAKAR = [
      -10.6016
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "8 Jan 2001",
+    "text": "Stage 8: 628 km into Mauritania; stage 9 was a loop around El Ghallaouiya."
    },
    {
     "q": "Atar",
@@ -2780,7 +2794,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "10 Jan 2001",
+    "text": "Stage 10: 440 km to Atar, then a rest day."
    },
    {
     "q": "Nouakchott",
@@ -2790,7 +2805,8 @@ export const DAKAR = [
      -15.978
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "12 Jan 2001",
+    "text": "Stage 11: 508 km to the Mauritanian capital."
    },
    {
     "q": "Tidjikdja",
@@ -2800,7 +2816,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "13 Jan 2001",
+    "text": "Stage 12: 654 km east; stage 13 looped around Tidjikdja."
    },
    {
     "q": "Tichit",
@@ -2810,7 +2827,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "15 Jan 2001",
+    "text": "Stage 14: 234 km to the old caravan town of Tichit."
    },
    {
     "q": "Néma",
@@ -2820,7 +2838,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "16 Jan 2001",
+    "text": "Stage 15: 499 km to Néma."
    },
    {
     "q": "Bamako",
@@ -2830,7 +2849,8 @@ export const DAKAR = [
      -7.985
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "17 Jan 2001",
+    "text": "Stage 16: 776 km into Mali."
    },
    {
     "q": "Bakel",
@@ -2840,7 +2860,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 17."
+    "date": "18 Jan 2001",
+    "text": "Stage 17: 804 km into Senegal."
    },
    {
     "q": "Tambacounda",
@@ -2850,7 +2871,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 18."
+    "date": "19 Jan 2001",
+    "text": "Stage 18: 292 km to Tambacounda."
    },
    {
     "q": "Dakar",
@@ -2860,7 +2882,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 2001 Paris–Dakar Rally (after stage 19)."
+    "date": "21 Jan 2001",
+    "text": "Stage 19 reached Dakar on 20 January and a final loop ran on the 21st. Jutta Kleinschmidt and Andreas Schulz won in a Mitsubishi Pajero, the first woman to win the Dakar; Fabrizio Meoni won the bikes for KTM."
    }
   ]
  },
@@ -2868,12 +2891,16 @@ export const DAKAR = [
   "id": "dakar-2002",
   "title": "2002 Arras–Madrid–Dakar Rally",
   "who": "Won by Hiroshi Masuoka / Pascal Maimon (Mitsubishi) and Fabrizio Meoni (KTM)",
-  "when": "2002",
+  "when": "28 December 2001 – 13 January 2002",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 2002 edition of the Dakar Rally, in its African era: 14 stage towns and bivouacs through France, Spain, Morocco, Mauritania, Senegal. Winners — Cars: Hiroshi Masuoka / Pascal Maimon (Mitsubishi); Bikes: Fabrizio Meoni (KTM); Trucks: Vladimir Chagin / Semen Yakubov / Sergey Savostin (Kamaz).",
   "sources": [
+   {
+    "label": "Wikipedia: Jutta Kleinschmidt (succession of car winners)",
+    "url": "https://en.wikipedia.org/wiki/Jutta_Kleinschmidt"
+   },
    {
     "label": "Wikipedia: 2002 Arras–Madrid–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/2002_Arras%E2%80%93Madrid%E2%80%93Dakar_Rally"
@@ -2889,7 +2916,8 @@ export const DAKAR = [
      2.7772
     ],
     "route": "line",
-    "text": "Start of the 2002 Arras–Madrid–Dakar Rally."
+    "date": "28 Dec 2001",
+    "text": "The start from Arras in northern France."
    },
    {
     "q": "Châteauroux",
@@ -2899,7 +2927,8 @@ export const DAKAR = [
      1.6771
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "28 Dec 2001",
+    "text": "Stage 1, a 465 km liaison."
    },
    {
     "q": "Narbonne",
@@ -2909,7 +2938,8 @@ export const DAKAR = [
      3.0042
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "29 Dec 2001",
+    "text": "Stage 2: 598 km south to the Mediterranean."
    },
    {
     "q": "Madrid",
@@ -2919,7 +2949,8 @@ export const DAKAR = [
      -3.7035
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "30 Dec 2001",
+    "text": "Stage 3: 930 km across Spain to Madrid."
    },
    {
     "q": "Rabat",
@@ -2930,7 +2961,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "Bivouac at the end of stage 4."
+    "date": "31 Dec 2001",
+    "text": "Stage 4: 961 km, across the Strait to Morocco's capital."
    },
    {
     "q": "Er-Rachidia",
@@ -2940,7 +2972,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "1 Jan 2002",
+    "text": "Stage 5: 534 km over the Atlas."
    },
    {
     "q": "Ouarzazate",
@@ -2950,7 +2983,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "2 Jan 2002",
+    "text": "Stage 6: 576 km to Ouarzazate."
    },
    {
     "q": "Tan-Tan",
@@ -2960,7 +2994,8 @@ export const DAKAR = [
      -11.0987
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "3 Jan 2002",
+    "text": "Stage 7: 793 km to the Atlantic edge of the Sahara."
    },
    {
     "q": "Zouerat",
@@ -2970,7 +3005,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "4 Jan 2002",
+    "text": "Stage 8: 739 km into Mauritania."
    },
    {
     "q": "Atar",
@@ -2980,7 +3016,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "5 Jan 2002",
+    "text": "Stage 9: 396 km to Atar, then a rest day and a loop stage around the town."
    },
    {
     "q": "Tidjikdja",
@@ -2990,7 +3027,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "8 Jan 2002",
+    "text": "Stage 11: 502 km south-east."
    },
    {
     "q": "Tichit",
@@ -3000,7 +3038,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "9 Jan 2002",
+    "text": "Stage 12: 538 km to Tichit, with a loop stage there next day."
    },
    {
     "q": "Kiffa",
@@ -3010,7 +3049,8 @@ export const DAKAR = [
      -11.4002
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "11 Jan 2002",
+    "text": "Stage 14: 461 km to Kiffa."
    },
    {
     "q": "Dakar",
@@ -3020,7 +3060,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 2002 Arras–Madrid–Dakar Rally (after stage 15)."
+    "date": "13 Jan 2002",
+    "text": "A 1,011 km last run into Dakar on the 12th and a final loop on the 13th. Hiroshi Masuoka and Pascal Maimon won the cars for Mitsubishi, and Fabrizio Meoni the bikes for KTM again."
    }
   ]
  },

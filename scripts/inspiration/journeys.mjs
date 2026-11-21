@@ -1577,6 +1577,14 @@ export const JOURNEYS = [
    "summary": "An architecture student takes a break from her studies and rides an old BMW round the world alone, about 35,000 miles: North America, Australia, Southeast Asia, India in the turmoil after Indira Gandhi's assassination, Pakistan and back through Turkey. Accidents, theft and forged permits along the way; nobody paid attention when she got home, until her book.",
    "sources": [
     {
+     "label": "The Vintagent: Lone Rider around the world",
+     "url": "https://thevintagent.com/lone-rider-around-the-world/"
+    },
+    {
+     "label": "BMW Motorrad: Elspeth Beard",
+     "url": "https://www.bmw-motorrad.com/en/articles/elspeth-beard.html"
+    },
+    {
      "label": "Wikipedia: Elspeth Beard",
      "url": "https://en.wikipedia.org/wiki/Elspeth_Beard"
     }
@@ -1586,8 +1594,8 @@ export const JOURNEYS = [
     {
      "q": "New York City",
      "name": "New York",
-     "date": "1982",
-     "text": "The bike shipped over from Britain; the start."
+     "date": "Oct 1982",
+     "text": "She left London in October 1982, aged 23, on a 1974 BMW R60/6; the bike was shipped over and the ride starts here."
     },
     {
      "q": "Toronto, Canada",
@@ -1650,7 +1658,7 @@ export const JOURNEYS = [
     {
      "q": "London, UK",
      "name": "London",
-     "date": "1984",
+     "date": "Nov 1984",
      "text": "Home after about 35,000 miles: one of the first Englishwomen round the world by motorcycle."
     }
    ]
@@ -1687,8 +1695,8 @@ export const JOURNEYS = [
      "url": "https://www.psybertron.org/zammroutedetails.html"
     },
     {
-     "label": "Mark Richardson, Zen and Now (extract with route map)",
-     "url": "https://cdn.shopify.com/s/files/1/0542/4573/files/Zen_and_Now_Extract.pdf?4631"
+     "label": "Smithsonian: the Zen motorcycle, 50 years on",
+     "url": "https://www.smithsonianmag.com/smithsonian-institution/zen-motorcycle-still-inspires-philosophical-road-trippers-50-years-later-180984143/"
     }
    ],
    "approximate": "Towns from route studies of the book; roads between them are approximate.",
@@ -1802,6 +1810,10 @@ export const JOURNEYS = [
    "summary": "At 58, Steinbeck sets out to rediscover the country he writes about: almost 10,000 miles round the edge of the United States in a camper named after Don Quixote's horse, with his wife's poodle. Maine potato fields, the Great Lakes, Montana which he loved, the Pacific Northwest, a farewell to his Salinas Valley, a Texas Thanksgiving and the ugly school protests of New Orleans. Later research showed he was rarely alone and tidied up the story.",
    "sources": [
     {
+     "label": "PRI / The World: traveling in Charley's footsteps",
+     "url": "https://theworld.org/stories/2013/08/14/traveling-charleys-footsteps"
+    },
+    {
      "label": "Wikipedia: Travels with Charley",
      "url": "https://en.wikipedia.org/wiki/Travels_with_Charley"
     },
@@ -1815,7 +1827,7 @@ export const JOURNEYS = [
     {
      "q": "Sag Harbor, New York",
      "name": "Sag Harbor",
-     "date": "Sept 1960",
+     "date": "23 Sep 1960",
      "wiki": "Rocinante",
      "text": "Delayed two weeks by Hurricane Donna, he leaves his Long Island summer home."
     },
@@ -1900,7 +1912,7 @@ export const JOURNEYS = [
     {
      "q": "New York City",
      "name": "New York",
-     "date": "Dec 1960",
+     "date": "5 Dec 1960",
      "text": "Home; he gets lost in his own city.",
      "wiki": "New York City"
     }
@@ -1924,6 +1936,14 @@ export const JOURNEYS = [
    ],
    "summary": "A 23-year-old Harvard architecture graduate rides from London to Tokyo, about 25,000 miles, filming 40,000 feet of the world on the way. A night in a Turkish jail, Iraqi bandits avoided, almost shot at in the Khyber Pass, a guest of Indian rajahs. He later invented the Skyhook rescue system.",
    "sources": [
+    {
+     "label": "The Vintagent: Fulton's One Man Caravan",
+     "url": "https://thevintagent.com/?p=75298"
+    },
+    {
+     "label": "Common Tread: solo around the world in 1932",
+     "url": "https://www.revzilla.com/common-tread/solo-around-the-world-in-1932-the-robert-edison-fulton-jr-story"
+    },
     {
      "label": "Wikipedia: Robert Edison Fulton Jr.",
      "url": "https://en.wikipedia.org/wiki/Robert_Edison_Fulton_Jr."
@@ -2011,6 +2031,10 @@ export const JOURNEYS = [
     {
      "label": "Wikipedia: News from Tartary",
      "url": "https://en.wikipedia.org/wiki/News_from_Tartary"
+    },
+    {
+     "label": "Papers Past: Fleming's own report (Evening Post, Dec 1935)",
+     "url": "https://paperspast.natlib.govt.nz/newspapers/EP19351202.2.54"
     }
    ],
    "approximate": "Main towns of the journey; the tracks across the deserts are drawn as straight lines.",
@@ -2018,7 +2042,7 @@ export const JOURNEYS = [
     {
      "q": "Beijing, China",
      "name": "Peking",
-     "date": "Feb 1935",
+     "date": "16 Feb 1935",
      "text": "They set off together, against all advice.",
      "wiki": "Beijing"
     },
@@ -2083,7 +2107,7 @@ export const JOURNEYS = [
    "id": "amyr-klink-1984",
    "title": "Amyr Klink: Cem dias entre céu e mar",
    "who": "Amyr Klink",
-   "when": "12 June – 19 September 1984",
+   "when": "10 June – 18 September 1984",
    "vehicle": "Rowing boat IAT",
    "kind": "other",
    "color": "#0369a1",
@@ -2098,6 +2122,14 @@ export const JOURNEYS = [
    "summary": "The first solo row across the South Atlantic: a young Brazilian from São Paulo rows 7,000 km in a hundred days from Namibia to Bahia. His book about it is a Brazilian classic, read in schools, and launched a life of polar and ocean voyages.",
    "sources": [
     {
+     "label": "A Tarde: 42 years on, Amyr Klink's crossing becomes a film (2026)",
+     "url": "https://atarde.com.br/cineinsite/42-anos-apos-travessia-historica-amyr-klink-ganha-filme-nos-cinemas-1391833"
+    },
+    {
+     "label": "Wikipedia: Amyr Klink",
+     "url": "https://en.wikipedia.org/wiki/Amyr_Klink"
+    },
+    {
      "label": "Wikipédia: Amyr Klink",
      "url": "https://pt.wikipedia.org/wiki/Amyr_Klink"
     }
@@ -2107,7 +2139,7 @@ export const JOURNEYS = [
     {
      "q": "Lüderitz, Namibia",
      "name": "Lüderitz",
-     "date": "12 June 1984",
+     "date": "10 June 1984",
      "text": "Pushes off alone from the Namibian coast.",
      "wiki": "Lüderitz"
     },
@@ -2120,7 +2152,7 @@ export const JOURNEYS = [
      "name": "Praia da Espera",
      "by": "boat",
      "route": "line",
-     "date": "19 Sept 1984",
+     "date": "18 Sept 1984",
      "text": "Lands at Praia da Espera near Salvador, the last chapter's title."
     }
    ]
@@ -2145,6 +2177,14 @@ export const JOURNEYS = [
     {
      "label": "Wikipédia: Viagem a Portugal",
      "url": "https://pt.wikipedia.org/wiki/Viagem_a_Portugal"
+    },
+    {
+     "label": "Time Out Lisboa: new RTP series follows Saramago's book",
+     "url": "https://www.timeout.pt/lisboa/pt/noticias/nova-serie-da-rtp-viaja-pelo-pais-guiada-por-obra-de-jose-saramago-102122"
+    },
+    {
+     "label": "DN: Viagem a Portugal with Fábio Porchat premieres on RTP",
+     "url": "https://www.dn.pt/cultura/serie-viagem-a-portugal-com-fabio-porchat-estreia-se-na-rtp-a-22-de-outubro-15243703.html"
     }
    ],
    "approximate": "One town per part of the book; the real itinerary had many more stops.",
@@ -2225,6 +2265,14 @@ export const JOURNEYS = [
    "summary": "The founding text of the road trip. Part one of the novel follows Kerouac's own first crossing of America with $50: buses and hitched rides to Denver and Dean Moriarty, on to San Francisco, cotton fields in California, then back east. Later parts add New Orleans and a car to Mexico City.",
    "sources": [
     {
+     "label": "Lonely Planet: following Kerouac across the US",
+     "url": "https://www.lonelyplanet.com/articles/on-the-road-following-kerouac-across-the-us"
+    },
+    {
+     "label": "ArcGIS StoryMaps: mapping Kerouac's On the Road",
+     "url": "https://storymaps.arcgis.com/stories/38597b872c9b4d2e809c1ecac46f9551"
+    },
+    {
      "label": "Wikipedia: On the Road",
      "url": "https://en.wikipedia.org/wiki/On_the_Road"
     }
@@ -2234,7 +2282,7 @@ export const JOURNEYS = [
     {
      "q": "Paterson, New Jersey",
      "name": "Paterson",
-     "date": "July 1947",
+     "date": "17 July 1947",
      "text": "Leaves his aunt's house with fifty dollars.",
      "wiki": "Paterson, New Jersey"
     },
