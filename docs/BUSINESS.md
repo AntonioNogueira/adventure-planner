@@ -293,7 +293,7 @@ Transalp MTB, Trans Dinarica, Shimanami Kaido, Mekong, Cabot Trail, GAP & C&O, P
 Island, Gerês, Canning Stock Route, Morocco Sahara 4x4. 144 journeys.
 Batch 8: Mondo Enduro, Lois Pryce, the Johnsons, Ho Chi Minh Road and pioneering women riders (Hotchkiss, Van Buren
 sisters, Wallach & Blenkiron, Dautheville, Elspeth Beard). Batch 9 (writers and epics): Pirsig's Zen ride, Travels with
-Charley, Fulton's One Man Caravan, Maillart & Fleming, Sam Manicom, Amyr Klink, Saramago's Viagem a Portugal, Kerouac;
+Charley, Fulton's One Man Caravan, Maillart & Fleming, Amyr Klink, Saramago's Viagem a Portugal, Kerouac;
 West Africa overland, Skeleton Coast & Kaokoland, Sani Pass & Lesotho, Silk Road overland, ViaRhôna, Canal des Deux Mers,
 EuroVelo 8 (southern Spain and France), Route des Grandes Alpes, Torino–Nice, Montañas Vacías, Transpyr.
 The daily check runs in a dedicated worker session (scheduled tasks created from chat can't push); first PR: #1.
@@ -387,3 +387,49 @@ last plan's stages and which services answer).
 **Weather (Open-Meteo):** the forecast and the "typical for these dates" figures come from Open-Meteo, free for
 non-commercial use and about 10,000 requests a day per device. Once the app earns money (paid plans, affiliate
 income), switch to their commercial API plan (roughly €30/month at the start) or run their open-source server.
+
+## 15. Overland safety informer (Nov 2026)
+
+A button on the Inspire map ("Overland safety") shows a pin for each of ~90 countries on the demanding overland
+routes (West and East/Southern Africa, North Africa, the Middle East, Central and South Asia, Russia and Mongolia,
+Central and South America), coloured by the stricter of the UK and US travel advice (1 normal → 4 do not travel), with
+the latest change and its date, a short summary and links to the official pages; plus orange and red disaster alerts
+of the last 30 days. Code: server/safety.ts (sources, country list), src/components/SafetyLayer.tsx (map layer).
+
+- Sources, all public with no key: UK FCDO travel advice (GOV.UK Content API), US State Department advisories (RSS),
+  GDACS (UN/EU disaster alerts). ReliefWeb (UN OCHA) needs an approved "appname", requested free from ReliefWeb;
+  once we have one it can add humanitarian reports per country.
+- Updating: the server (GET /api/safety) rebuilds the data in the background when it is older than 12 hours, so pins
+  are at most half a day old. A copy is saved with the app (public/safety/latest.json, `node scripts/safety/build.ts`)
+  for when the sources can't be reached.
+- It is a summary, not advice: every card links to the official page and says so.
+- Ideas: show the layer along a planned route (warn when a route crosses a level 3–4 country), border-crossing status
+  from overlander forums, ACLED conflict events (needs a free research key).
+
+### 15b. Safety v2: worldwide and located (Nov 2026)
+Pins follow what is happening, as precisely as the sources allow: areas the UK advises against travelling to (read
+from the advice text by the AI and placed with OpenStreetMap, re-read only when a country's advice changes), country
+pins only when the advice is above normal or changed in the last two weeks and nothing more precise is known (UK and
+US reports newest first), incidents in the news in the last 24 hours (GDELT event files: riots, kidnappings, bombings,
+assassinations, artillery/air strikes, armed clashes with armed parties, mass violence; at least 3 distinct reports per
+place), and GDACS natural hazards. All 226 countries with UK advice (+ the UK from the US feed). Incidents and hazards
+refresh every 3 hours, advice every 12. Incidents are machine-read news: some noise remains, each card links the reports.
+
+## 16. "Add your journey": travellers send their own journeys (Nov 2026)
+
+A button at the top left of the Inspire map opens a chat: the traveller shares a blog link, sends a document (PDF,
+text, GPX/KML, image) or describes the route; after each answer the AI's version is drawn on the globe (only theirs
+shows). When happy, they tick a declaration (their own journey or the right to share it, facts true to the best of
+their knowledge, responsible for the text and material) and send it. It needs an account.
+
+- Saved in Firestore `submissions` (only the author and admins can read; see firestore.rules), status pending.
+- First screening on the server (POST /api/submit-journey): automatic checks (stops, distances, source link opens,
+  title already on the map, declaration) plus an AI report: plausibility, consistency, signs of AI-written text,
+  copying a famous journey, unsuitable content. Verdict: looks genuine / needs a closer look / doubtful.
+- Email to the admin (Resend; env RESEND_API_KEY + ADMIN_EMAIL, optional EMAIL_FROM, PUBLIC_URL) with the report
+  and a private link `/?review=<id>` that only admins can open. Without the key, sent journeys wait in "Journeys to
+  review" in the Inspire panel (admins only).
+- Review screen: the journey on the map, the conversation, the material, the screening (run again), Publish (goes to
+  the `inspiration` collection, live for everyone) or Reject.
+- Setup: publish the updated firestore.rules; create a Resend account with the admin's address, add the API key and
+  ADMIN_EMAIL in Render; the admin account needs a document admins/{uid} (already there for the import tool).

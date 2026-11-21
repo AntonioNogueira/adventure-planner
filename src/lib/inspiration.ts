@@ -3,7 +3,7 @@
 
 /** 'unknown': the sources don't say how they got there (an ocean crossing, a gap in the record): drawn dashed. */
 export type LegKind = 'ride' | 'walk' | 'truck' | 'bus' | 'train' | 'ferry' | 'boat' | 'flight' | 'unknown';
-export interface JourneyPhoto { url: string; page?: string; source?: string; credit?: string; license?: string }
+export interface JourneyPhoto { url: string; page?: string; source?: string; credit?: string; license?: string; /** 'book': a book cover (shown whole, not cropped). */ kind?: 'book' }
 export interface JourneyStop {
   name: string;
   /** What to look up to plan a trip from here (a geocodable place). */
@@ -37,8 +37,11 @@ export interface JourneySummary {
   bbox: [number, number, number, number];
   stopCount: number;
   cover?: JourneyPhoto | null;
-  /** A light version of the whole line, for the overview of all journeys. */
-  overview: [number, number][];
+  /** A light version of the line, for the overview of all journeys: one piece per stretch over land (ocean
+   *  crossings and long legs of unknown route are left out). */
+  overview: [number, number][][];
+  /** The whole journey is a sea crossing (left out of the heatmap). */
+  crossing?: boolean;
 }
 export interface Journey extends Omit<JourneySummary, 'stopCount' | 'cover' | 'overview'> {
   /** Published with the import tool (stored in Firestore), not built into the app. */
@@ -49,6 +52,30 @@ export interface Journey extends Omit<JourneySummary, 'stopCount' | 'cover' | 'o
 
 /** Legs on roads are drawn solid; boats, trains and flights dashed. */
 export const ON_ROAD = new Set<LegKind>(['ride', 'walk', 'truck', 'bus']);
+
+/** Legs not drawn on the map: ocean crossings and long legs of unknown route (a straight line across the globe says
+ *  nothing and makes round-the-world trips look jumpy). */
+export const isJumpLeg = (l: { by: string; km: number }) => !ON_ROAD.has(l.by as LegKind) && l.km > 2500;
+
+/** The overview as pieces; older data saved it as one line. */
+function overviewParts(o: unknown): [number, number][][] {
+  if (!Array.isArray(o) || !o.length) return [];
+  return typeof (o as unknown[][])[0]?.[0] === 'number' ? [o as [number, number][]] : (o as [number, number][][]);
+}
+
+/** The pieces of a journey's line over land, from its legs (consecutive drawn legs joined). */
+export function landPieces(legs: { by: string; km: number; line: [number, number][] }[]): [number, number][][] {
+  const parts: [number, number][][] = [];
+  let cur: [number, number][] = [];
+  for (const l of legs) {
+    if (isJumpLeg(l)) { if (cur.length > 1) parts.push(cur); cur = []; continue; }
+    cur = cur.concat(l.line);
+  }
+  if (cur.length > 1) parts.push(cur);
+  // A journey that is all crossing (a row across an ocean) is drawn as it is.
+  if (!parts.length) parts.push(legs.flatMap(l => l.line));
+  return parts;
+}
 
 /** How a leg was travelled, in words ("by ferry"); riding needs no note. */
 export const LEG_WORDS: Record<LegKind, string> = {
@@ -88,7 +115,7 @@ export function loadJourneys(): Promise<JourneySummary[]> {
   index ??= fetch('/inspiration/index.json').then(r => {
     if (!r.ok) throw new Error(`Journeys ${r.status}`);
     return r.json();
-  }).then((list: JourneySummary[]) => list.map(j => ({ ...j, overview: unwrapLine(j.overview) }))).catch(err => { index = null; throw err; });
+  }).then((list: JourneySummary[]) => list.map(j => ({ ...j, overview: overviewParts(j.overview as unknown).map(p => unwrapLine(p)) }))).catch(err => { index = null; throw err; });
   return index;
 }
 

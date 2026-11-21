@@ -3,7 +3,8 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { planApi } from './server/plan-api';
+import { planApi, runTaskResult } from './server/plan-api';
+import { areasGeminiSchema, areasJsonSchema, areasPrompt, safetyApi } from './server/safety';
 
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
@@ -53,6 +54,11 @@ export default defineConfig(({ mode, command }) => {
       tailwindcss(),
       // AI keys stay on the server: the browser calls /api/plan instead of Gemini/OpenAI directly.
       planApi(env),
+      // Overland safety informer: travel advice and disaster alerts, refreshed on the server every 12 hours.
+      safetyApi(async (country, text) => {
+        const { result } = await runTaskResult(env, { name: `safety areas (${country})`, prompt: areasPrompt(country, text), geminiSchema: areasGeminiSchema, claudeSchema: areasJsonSchema });
+        return Array.isArray(result?.areas) ? result.areas : [];
+      }),
       {
         // The app's settings are inserted when the page is served, not baked into the build,
         // so one build works with whatever settings the server is started with.

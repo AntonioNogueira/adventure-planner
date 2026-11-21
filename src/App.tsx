@@ -1347,7 +1347,7 @@ const App: React.FC = () => {
             /></Suspense>
           )}
           {view === 'inspire' && (
-            <Suspense fallback={null}><InspirationView onPlan={(text) => {
+            <Suspense fallback={null}><InspirationView onLogin={() => setShowLogin(true)} onPlan={(text) => {
               setView('route');
               setPlannerRequest(r => ({ text, n: (r?.n || 0) + 1 }));
             }} /></Suspense>

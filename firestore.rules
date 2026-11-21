@@ -95,6 +95,22 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Journeys sent with "Add your journey": the author creates one (after ticking the responsibility box) and can read
+    // it; admins read them all and set the status (pending → published / rejected). Nobody else sees them.
+    match /submissions/{subId} {
+      allow get: if isAuthenticated() && (resource.data.createdBy == request.auth.uid || isAdmin());
+      allow list: if isAdmin() || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
+      allow create: if isAuthenticated()
+                    && request.resource.data.keys().hasOnly(['title', 'createdBy', 'createdAt', 'status', 'acknowledged', 'data'])
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.acknowledged == true
+                    && request.resource.data.title is string && request.resource.data.title.size() < 200
+                    && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+      allow update: if isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedAt', 'reviewedBy']);
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
+    }
+
     match /trips/{tripId} {
       // Owners can read and list their trips; anyone with the link can open a shared one.
       allow get: if resource == null || resource.data.get('shared', false) == true

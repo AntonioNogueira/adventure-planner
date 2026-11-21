@@ -18,6 +18,8 @@ export const TOPO_STYLE = raster(['https://tile.opentopomap.org/{z}/{x}/{y}.png'
 export const BLUE_MARBLE = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/2004-08/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg';
 export const GLOBE_STYLE: StyleSpecification = {
   version: 8,
+  // Fonts for labels drawn on the map (the safety pins' numbers).
+  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
   sources: {
     sat: { type: 'raster', tiles: [BLUE_MARBLE], tileSize: 256, maxzoom: 8, attribution: 'Imagery: <a href="https://earthdata.nasa.gov/gibs">NASA Blue Marble (GIBS)</a>' },
     base: { type: 'raster', tiles: ['https://tile.opentopomap.org/{z}/{x}/{y}.png'], tileSize: 256, maxzoom: 17,

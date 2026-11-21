@@ -238,12 +238,60 @@ for (const j of JOURNEYS) {
     console.log(`meta updated: ${j.id}`);
   } else if (!metaOnly) await build(j);
 }
+/** The cover of the journey's book from Open Library (a free catalogue), for cards with no photo of a stop. The book
+ *  whose title is in the journey's title wins, else the first book listed. */
+async function bookCover(j) {
+  const books = (j.media || []).filter(m => m.kind === 'book');
+  const first = books.find(b => j.title.toLowerCase().includes(b.title.toLowerCase()));
+  for (const book of first ? [first, ...books.filter(b => b !== first)] : books) {
+    const c = await coverOf(book);
+    if (c) return c;
+  }
+  return null;
+}
+
+async function coverOf(book) {
+  const key = `ol|${book.isbn || ''}|${book.title}|${book.by || ''}`;
+  if (!(key in cache)) {
+    let id = null;
+    const q = book.isbn ? `isbn=${book.isbn}` : `title=${encodeURIComponent(book.title)}${book.by ? `&author=${encodeURIComponent(book.by.split(/,| and /)[0])}` : ''}`;
+    const data = await get(`https://openlibrary.org/search.json?${q}&fields=key,title,cover_i&limit=5`, 2);
+    id = data?.docs?.find(d => d.cover_i)?.cover_i || null;
+    if (!id && book.isbn) {
+      const data2 = await get(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&fields=key,title,cover_i&limit=5`, 2);
+      id = data2?.docs?.find(d => d.cover_i)?.cover_i || null;
+    }
+    cache[key] = id;
+    saveCache();
+    await sleep(1000);
+  }
+  // Covers Open Library has that are only a 'no image available' scan.
+  const BAD = new Set([10868438]);
+  const id = BAD.has(cache[key]) ? null : cache[key];
+  return id ? { url: `https://covers.openlibrary.org/b/id/${id}-M.jpg`, page: `https://openlibrary.org/search?q=${encodeURIComponent(book.title)}`, source: 'https://openlibrary.org', credit: `Cover of "${book.title}" via Open Library`, license: 'book cover', kind: 'book' } : null;
+}
+
 // The list the map loads first: what each journey is, with a light line for the overview.
-const index = JOURNEYS.filter(j => existsSync(new URL(`${j.id}.json`, OUT))).map(j => {
+const index = [];
+for (const j of JOURNEYS.filter(j => existsSync(new URL(`${j.id}.json`, OUT)))) {
   const full = JSON.parse(readFileSync(new URL(`${j.id}.json`, OUT), 'utf8'));
-  const overview = round(simplify(full.legs.flatMap(l => l.line), 0.3));
+  // One piece per stretch over land: ocean crossings and long legs of unknown route (>2500 km, not by road) are left
+  // out, as on the map (src/lib/inspiration.ts isJumpLeg).
+  const ROAD = new Set(['ride', 'walk', 'truck', 'bus']);
+  const pieces = [];
+  let cur = [];
+  for (const l of full.legs) {
+    if (!ROAD.has(l.by) && l.km > 2500) { if (cur.length > 1) pieces.push(cur); cur = []; continue; }
+    cur = cur.concat(l.line);
+  }
+  if (cur.length > 1) pieces.push(cur);
+  // A journey that is all crossing (a row across an ocean) is drawn as it is.
+  const crossing = !pieces.length;
+  if (crossing) pieces.push(full.legs.flatMap(l => l.line));
+  const overview = pieces.map(p => round(simplify(p, 0.3))).filter(p => p.length > 1);
   const { stops, legs, ...meta } = full;
-  return { ...meta, stopCount: stops.length, cover: stops.find(s => s.photo)?.photo || null, overview };
-});
+  const cover = stops.find(s => s.photo)?.photo || await bookCover(full) || null;
+  index.push({ ...meta, stopCount: stops.length, cover, overview, ...(crossing ? { crossing: true } : {}) });
+}
 writeFileSync(new URL('index.json', OUT), JSON.stringify(index));
 console.log('\nindex.json written');
