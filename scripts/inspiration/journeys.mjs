@@ -15,7 +15,11 @@ export const JOURNEYS = [
     color: '#d97706',
     media: [{"kind": "book", "title": "Long Way Round", "by": "Ewan McGregor & Charley Boorman"}, {"kind": "series", "title": "Long Way Round", "note": "TV series, 2004"}],
     summary: 'London to New York the long way: east across Europe, the Kazakh and Mongolian steppe, Siberia and the Road of Bones to Magadan, then across Alaska, Canada and the US. About 30,000 km in under four months, filmed as a TV series that inspired a generation of adventure riders.',
-    sources: [{ label: 'Wikipedia: Long Way Round', url: 'https://en.wikipedia.org/wiki/Long_Way_Round' }],
+    sources: [
+      { label: 'Eugene Kaspersky: two attempts at the abandoned Road of Bones (2026)', url: 'https://eugene.kaspersky.com/2026/04/09/two-attempts-at-the-infamous-abandoned-road-of-bones-in-siberia/' },
+      { label: 'Adventure Bike Rider: an insider\'s guide to the Road of Bones', url: 'https://www.adventurebikerider.com/an-insiders-guide-to-the-road-of-bones/' },
+      { label: 'Wikipedia: Long Way Round', url: 'https://en.wikipedia.org/wiki/Long_Way_Round' },
+    ],
     approximate: 'Countries, key places and dates follow public accounts; the exact roads between them are approximate.',
     stops: [
       { q: "Shepherd's Bush, London", name: 'London', date: '14 Apr 2004', wiki: "Shepherd's Bush", text: 'The start, from their workshop in west London: two heavily loaded BMWs, a support crew of two 4x4s, and 19,000 miles ahead.' },
@@ -26,7 +30,7 @@ export const JOURNEYS = [
       { q: 'Uzhhorod, Ukraine', name: 'Into Ukraine', wiki: 'Uzhhorod', text: 'Across Slovakia and into Ukraine, where roads, signs and border queues change character.' },
       { q: 'Kyiv, Ukraine', name: 'Kyiv', wiki: 'Kyiv', text: 'East across the wide Ukrainian plains towards Russia.' },
       { q: 'Volgograd, Russia', name: 'Volgograd', wiki: 'Mamayev Kurgan', text: 'The old Stalingrad on the Volga, watched over by the giant Motherland Calls statue. Russian visas had been one of the hardest parts of planning.' },
-      { q: 'Atyrau, Kazakhstan', name: 'Atyrau', wiki: 'Atyrau', text: 'Into Kazakhstan where the Ural river meets the Caspian: the start of thousands of kilometres of steppe, wild camping and broken roads.' },
+      { q: 'Atyrau, Kazakhstan', at: [47.1067, 51.9139], name: 'Atyrau', wiki: 'Atyrau', text: 'Into Kazakhstan where the Ural river meets the Caspian: the start of thousands of kilometres of steppe, wild camping and broken roads.' },
       { q: 'Almaty, Kazakhstan', name: 'Almaty', wiki: 'Almaty', text: 'Kazakhstan\'s green southern city under the Tian Shan mountains, a rest after the long empty steppe.' },
       { q: 'Semey, Kazakhstan', name: 'Semey', wiki: 'Semey', text: 'North through eastern Kazakhstan towards the Russian Altai.' },
       { q: 'Barnaul, Russia', name: 'Barnaul', wiki: 'Barnaul', text: 'Back into Russia, heading for the Altai mountains and the Mongolian border.' },
@@ -37,8 +41,8 @@ export const JOURNEYS = [
       { q: 'Chita, Russia', name: 'Chita', wiki: 'Chita, Zabaykalsky Krai', text: 'East along the Trans-Siberian corridor to where the road ran out.' },
       { q: 'Tynda, Russia', name: 'Tynda', by: 'train', wiki: 'Baikal–Amur Mainline', text: 'The Zilov Gap had no road at all, so bikes and riders took the train for about 930 km.' },
       { q: 'Yakutsk, Russia', name: 'Yakutsk', wiki: 'Yakutsk', text: 'The world\'s coldest big city, and the start of the Kolyma Highway east to the Pacific.' },
-      { q: 'Susuman, Russia', name: 'Road of Bones', wiki: 'Kolyma', text: 'The Road of Bones, built by Gulag prisoners. In summer melt the rivers were deep and fast, and some crossings needed a passing truck to carry the bikes.' },
-      { q: 'Magadan, Russia', name: 'Magadan', wiki: 'Magadan', text: 'The end of the road on the Sea of Okhotsk, with the Mask of Sorrow memorial to the Gulag prisoners. Asia done.' },
+      { q: 'Susuman, Russia', name: 'Road of Bones', wiki: 'Kolyma', text: 'The Road of Bones, built by Gulag prisoners. In summer melt the rivers were deep and fast, and some crossings needed a passing truck to carry the bikes.', source: { label: 'Eugene Kaspersky (2026)', url: 'https://eugene.kaspersky.com/2026/04/09/two-attempts-at-the-infamous-abandoned-road-of-bones-in-siberia/' } },
+      { q: 'Magadan, Russia', at: [59.5646, 150.8079], name: 'Magadan', wiki: 'Magadan', text: 'The end of the road on the Sea of Okhotsk, with the Mask of Sorrow memorial to the Gulag prisoners. Asia done.' },
       { q: 'Anchorage, Alaska', name: 'Anchorage', by: 'flight', wiki: 'Anchorage, Alaska', text: 'A 4,000 km flight across the Bering Sea from Magadan to Alaska, then back on the bikes.' },
       { q: 'Whitehorse, Yukon', name: 'Whitehorse', wiki: 'Whitehorse', text: 'Down the Alaska Highway into Canada\'s Yukon: big forests, bears, and smooth roads after Siberia.' },
       { q: 'Calgary, Alberta', name: 'Calgary', wiki: 'Calgary', text: 'Out of the Rockies and onto the Canadian prairies.' },
@@ -57,7 +61,11 @@ export const JOURNEYS = [
     color: '#b91c1c',
     media: [{"kind": "book", "title": "Long Way Down", "by": "Ewan McGregor & Charley Boorman"}, {"kind": "series", "title": "Long Way Down", "note": "TV series, 2007"}],
     summary: 'From the northern tip of Scotland to Cape Town: down through Europe, across the Mediterranean to North Africa, then the whole length of Africa through eighteen countries, from the Sahara and the Nile to the Rift Valley and the Cape.',
-    sources: [{ label: 'Wikipedia: Long Way Down', url: 'https://en.wikipedia.org/wiki/Long_Way_Down' }],
+    sources: [
+      { label: 'Horizons Unlimited: a classic Cairo to Cape ride tale', url: 'https://horizonsunlimited.com/hubb/ride-tales/a-classic-cairo-to-cape-66602?nojs=1' },
+      { label: 'Bikesales: Boorman and McGregor to take the Long Way Down (2007)', url: 'https://www.bikesales.com.au/editorial/details/boorman-and-mcgregor-to-take-the-long-way-down-11949' },
+      { label: 'Wikipedia: Long Way Down', url: 'https://en.wikipedia.org/wiki/Long_Way_Down' },
+    ],
     approximate: 'Countries, key places and dates follow public accounts; the exact roads between them are approximate.',
     stops: [
       { at: [58.6373, -3.0689], name: "John o' Groats", date: '12 May 2007', wiki: 'Duncansby Head', text: 'The start at the northern tip of mainland Britain, with Cape Town about 24,000 km away.' },
@@ -78,7 +86,7 @@ export const JOURNEYS = [
       { q: 'Gondar, Ethiopia', name: 'Gondar', wiki: 'Gondar', text: 'Up into the Ethiopian highlands: green mountains, castles and crowds of children by the road.' },
       { q: 'Addis Ababa, Ethiopia', name: 'Addis Ababa', wiki: 'Addis Ababa', text: 'Ethiopia\'s capital, high in the mountains.' },
       { q: 'Moyale, Kenya', name: 'Moyale', wiki: 'Moyale, Kenya', text: 'The border into Kenya, and the start of a notorious stretch of rough, rocky road south.' },
-      { q: 'Marsabit, Kenya', name: 'Marsabit', wiki: 'Marsabit', text: 'Through the remote north of Kenya on dirt and rocks.' },
+      { q: 'Marsabit, Kenya', at: [2.3381, 37.9916], name: 'Marsabit', wiki: 'Marsabit', text: 'Through the remote north of Kenya on dirt and rocks.' },
       { q: 'Nanyuki, Kenya', name: 'The equator', wiki: 'Nanyuki', text: 'Crossing the equator near Mount Kenya: into the southern hemisphere.' },
       { q: 'Kampala, Uganda', name: 'Kampala', wiki: 'Kampala', text: 'West into Uganda and its green hills.' },
       { q: 'Kigali, Rwanda', name: 'Kigali', wiki: 'Kigali', text: 'Rwanda, where they met President Paul Kagame.' },
@@ -102,7 +110,11 @@ export const JOURNEYS = [
     color: '#0e7490',
     media: [{"kind": "series", "title": "Long Way Up", "note": "TV series, Apple TV+, 2020"}],
     summary: 'From Ushuaia at the tip of South America to Los Angeles on prototype electric motorcycles: Patagonia, the Andes and the Atacama, the salt flats of Bolivia, Peru, Ecuador and Colombia, then up through Central America and Mexico. About 21,000 km, with range anxiety all the way.',
-    sources: [{ label: 'Wikipedia: Long Way Up (route by episode)', url: 'https://en.wikipedia.org/wiki/Long_Way_Up' }],
+    sources: [
+      { label: 'Overland Expo: takeaways from the 13,000-mile all-electric journey', url: 'https://www.overlandexpo.com/compass/rivian-r1t-13000-mile-long-way-up' },
+      { label: 'The Vintagent: the Long Way Up LiveWire', url: 'https://thevintagent.com/the-long-way-up-livewire/' },
+      { label: 'Wikipedia: Long Way Up (route by episode)', url: 'https://en.wikipedia.org/wiki/Long_Way_Up' },
+    ],
     approximate: 'Places follow the published route by episode; the exact roads between them are approximate.',
     stops: [
       { q: 'Ushuaia, Argentina', name: 'Ushuaia', date: 'Sep 2019', wiki: 'Ushuaia', text: 'The start at the end of the world, in winter snow, on two electric Harleys adapted for gravel.' },
@@ -131,20 +143,20 @@ export const JOURNEYS = [
       { q: 'Uyuni, Bolivia', name: 'Salar de Uyuni', wiki: 'Salar de Uyuni', text: 'Riding across the world\'s largest salt flat.' },
       { q: 'La Paz, Bolivia', name: 'La Paz', wiki: 'La Paz', text: 'The world\'s highest capital, in a canyon below El Alto.' },
       { q: 'Copacabana, Bolivia', name: 'Lake Titicaca', wiki: 'Lake Titicaca', text: 'Across a strait of Lake Titicaca on a wooden barge.' },
-      { q: 'Puno, Peru', name: 'Puno', wiki: 'Puno', text: 'Into Peru on the shore of the lake.' },
+      { q: 'Puno, Peru', at: [-15.8407, -70.0284], name: 'Puno', wiki: 'Puno', text: 'Into Peru on the shore of the lake.' },
       { q: 'Cusco, Peru', name: 'Cusco', wiki: 'Cusco', text: 'The old Inca capital.' },
       { q: 'Ollantaytambo, Peru', name: 'Ollantaytambo', wiki: 'Ollantaytambo', text: 'Inca terraces in the Sacred Valley.' },
-      { q: 'Ayacucho, Peru', name: 'Ayacucho', wiki: 'Ayacucho', text: 'Twisting mountain roads across the Peruvian Andes.' },
-      { q: 'Ica, Peru', name: 'Ica', wiki: 'Ica, Peru', text: 'Down to the desert coast and its giant dunes.' },
-      { q: 'Tumbes, Peru', name: 'Tumbes', wiki: 'Tumbes, Peru', text: 'North along the Pacific to the Ecuador border.' },
+      { q: 'Ayacucho, Peru', at: [-13.1604, -74.2257], name: 'Ayacucho', wiki: 'Ayacucho', text: 'Twisting mountain roads across the Peruvian Andes.' },
+      { q: 'Ica, Peru', at: [-14.0641, -75.7291], name: 'Ica', wiki: 'Ica, Peru', text: 'Down to the desert coast and its giant dunes.' },
+      { q: 'Tumbes, Peru', at: [-3.5708, -80.4596], name: 'Tumbes', wiki: 'Tumbes, Peru', text: 'North along the Pacific to the Ecuador border.' },
       { q: 'Guayaquil, Ecuador', name: 'Guayaquil', wiki: 'Guayaquil', text: 'Mobbed by Star Wars fans in Ecuador\'s biggest city.' },
       { q: 'Montecristi, Ecuador', name: 'Montecristi', wiki: 'Panama hat', text: 'Where "Panama" hats are really woven by hand.' },
-      { q: 'Tulcán, Ecuador', name: 'Tulcán', wiki: 'Carchi Province', text: 'Near the Colombian border Ewan\'s bike failed; he finished the day riding Claudio\'s bike two-up.' },
+      { q: 'Tulcán, Ecuador', at: [0.8116, -77.7172], name: 'Tulcán', wiki: 'Carchi Province', text: 'Near the Colombian border Ewan\'s bike failed; he finished the day riding Claudio\'s bike two-up.' },
       { q: 'Ipiales, Colombia', name: 'Las Lajas', wiki: 'Las Lajas Shrine', text: 'A detour to the Las Lajas shrine, built across a gorge.' },
       { q: 'Pasto, Colombia', name: 'Pasto', wiki: 'Pasto, Colombia', text: 'Weather delays at the airport, with a boat to catch.' },
       { q: 'Buenaventura, Colombia', name: 'Buenaventura', by: 'flight', wiki: 'Buenaventura, Valle del Cauca', text: 'No road through the Darién Gap: a small plane to the Pacific coast…' },
       { q: 'Bahía Solano, Colombia', name: 'Bahía Solano', by: 'boat', wiki: 'Bahía Solano', text: '…then a boat up the jungle coast…' },
-      { q: 'Panama City', name: 'Panama City', by: 'flight', wiki: 'Panama City', text: '…and flights on to Panama City and Central America.' },
+      { q: 'Panama City', at: [8.9714, -79.5342], name: 'Panama City', by: 'flight', wiki: 'Panama City', text: '…and flights on to Panama City and Central America.' },
       { q: 'San José, Costa Rica', name: 'San José', wiki: 'San José, Costa Rica', text: 'Up the Pan-American Highway into Costa Rica.' },
       { q: 'Granada, Nicaragua', name: 'Granada', wiki: 'Granada, Nicaragua', text: 'Colonial streets on Lake Nicaragua.' },
       { q: 'San Pedro Sula, Honduras', name: 'San Pedro Sula', wiki: 'San Pedro Sula', text: 'A fast run across Honduras.' },
@@ -168,7 +180,11 @@ export const JOURNEYS = [
     color: '#4d7c0f',
     media: [{"kind": "book", "title": "The Motorcycle Diaries", "by": "Ernesto Che Guevara"}, {"kind": "film", "title": "The Motorcycle Diaries", "note": "Film by Walter Salles, 2004"}],
     summary: 'Two young Argentines set off from Buenos Aires on an old Norton to see the continent. The bike died in Chile; they carried on by truck, ship, raft and plane through the Andes, the Atacama, Machu Picchu and the Amazon, a trip that changed one of them for ever.',
-    sources: [{ label: 'Wikipedia: The Motorcycle Diaries (book)', url: 'https://en.wikipedia.org/wiki/The_Motorcycle_Diaries_(book)' }],
+    sources: [
+      { label: 'Motorcycle Classics: the route ridden again on period Norton 500s', url: 'https://www.motorcycleclassics.com/classic-motorcycle-touring/norton-500-zm0z12mazbea/' },
+      { label: 'Horizons Unlimited: Chasing Che, the route retraced on a BMW', url: 'https://horizonsunlimited.com/node/377' },
+      { label: 'Wikipedia: The Motorcycle Diaries (book)', url: 'https://en.wikipedia.org/wiki/The_Motorcycle_Diaries_(book)' },
+    ],
     approximate: 'Places follow the diary and later accounts; the roads of 1952 are drawn on today\'s roads.',
     stops: [
       { q: 'Buenos Aires, Argentina', name: 'Buenos Aires', date: 'Jan 1952', wiki: 'Buenos Aires', text: 'The start on La Poderosa II ("the Mighty One"), a 1939 Norton 500 loaded far beyond reason.' },
@@ -185,7 +201,7 @@ export const JOURNEYS = [
       { q: 'Antofagasta, Chile', name: 'Antofagasta', by: 'boat', wiki: 'Antofagasta', text: 'North as stowaways on a cargo ship, working their passage once discovered.' },
       { q: 'Chuquicamata, Chile', name: 'Chuquicamata', by: 'truck', wiki: 'Calama, Chile', text: 'The vast copper mine in the Atacama, and the miners who worked it.' },
       { q: 'Arica, Chile', name: 'Arica', by: 'truck', wiki: 'Arica', text: 'North through the desert to the Peruvian border.' },
-      { q: 'Puno, Peru', name: 'Puno', by: 'truck', wiki: 'Lake Titicaca', text: 'Up onto the altiplano on trucks, beside Lake Titicaca.' },
+      { q: 'Puno, Peru', at: [-15.8407, -70.0284], name: 'Puno', by: 'truck', wiki: 'Lake Titicaca', text: 'Up onto the altiplano on trucks, beside Lake Titicaca.' },
       { q: 'Cusco, Peru', name: 'Cusco', by: 'truck', wiki: 'Cusco', text: 'The Inca capital and its Spanish churches built on Inca walls.' },
       { q: 'Machu Picchu, Peru', name: 'Machu Picchu', by: 'train', wiki: 'Machu Picchu', text: 'The lost city above the Urubamba: a high point of the journey.' },
       { q: 'Abancay, Peru', name: 'Abancay', by: 'truck', wiki: 'Abancay', text: 'Back across the Andes towards Lima.' },
@@ -208,10 +224,14 @@ export const JOURNEYS = [
     color: '#7c3aed',
     media: [{"kind": "book", "title": "Jupiter's Travels", "by": "Ted Simon"}, {"kind": "book", "title": "Dreaming of Jupiter", "by": "Ted Simon", "note": "The same journey again, 27 years later"}],
     summary: 'A journalist rides alone round the world: four years, about 126,000 km and 45 countries, the length of Africa, South and North America, Australia and Asia. The book became the bible of round-the-world motorcycling.',
-    sources: [{ label: "Wikipedia: Jupiter's Travels", url: "https://en.wikipedia.org/wiki/Jupiter%27s_Travels" }],
+    sources: [
+      { label: 'Adventure Bike Rider: an interview with Ted Simon', url: 'https://www.adventurebikerider.com/an-interview-with-ted-simon/' },
+      { label: 'Jupitalia: about Ted Simon', url: 'https://jupitalia.com/about-ted-simon/' },
+      { label: "Wikipedia: Jupiter's Travels", url: "https://en.wikipedia.org/wiki/Jupiter%27s_Travels" },
+    ],
     approximate: 'Only the main stages are shown, from public accounts of the book; the route between them is approximate.',
     stops: [
-      { q: 'London', name: 'London', date: 'Oct 1973', wiki: 'Triumph Tiger 100', text: 'Ted Simon leaves alone on a Triumph Tiger 100, sponsored by a newspaper, with no clear idea of what lies ahead.' },
+      { q: 'London', name: 'London', date: '6 Oct 1973', wiki: 'Triumph Tiger 100', text: 'Ted Simon leaves alone on a Triumph Tiger 100, sponsored by a newspaper, with no clear idea of what lies ahead.' },
       { q: 'Tunis, Tunisia', name: 'Tunisia', by: 'ferry', wiki: 'Tunis', text: 'Across France and Italy and over the sea to Africa.' },
       { q: 'Cairo, Egypt', name: 'Egypt', wiki: 'Cairo', text: 'Along North Africa to the Nile.' },
       { q: 'Khartoum, Sudan', name: 'Sudan', wiki: 'Khartoum', text: 'South through the Sudanese desert.' },
@@ -248,7 +268,11 @@ export const JOURNEYS = [
     color: '#92400e',
     media: [{"kind": "book", "title": "The Travels of Marco Polo", "by": "Marco Polo"}, {"kind": "free", "title": "The Travels of Marco Polo", "note": "Old translations, free on Project Gutenberg", "url": "https://www.gutenberg.org/ebooks/search/?query=travels+of+marco+polo"}],
     summary: 'A young Venetian sets out with his merchant father and uncle along the Silk Road to the court of Kublai Khan, serves him for years, and returns by sea through Southeast Asia and India. His book opened Asia to European imagination for centuries.',
-    sources: [{ label: 'Wikipedia: Marco Polo', url: 'https://en.wikipedia.org/wiki/Marco_Polo' }],
+    sources: [
+      { label: 'Britannica: Marco Polo', url: 'https://www.britannica.com/biography/Marco-Polo' },
+      { label: 'World History Encyclopedia: Marco Polo', url: 'https://www.worldhistory.org/Marco_Polo/' },
+      { label: 'Wikipedia: Marco Polo', url: 'https://en.wikipedia.org/wiki/Marco_Polo' },
+    ],
     approximate: 'Historians reconstruct the route from the book; places are approximate and some are debated. Drawn on today\'s roads and sea lanes.',
     stops: [
       { q: 'Venice, Italy', name: 'Venice', date: '1271', wiki: 'Venice', text: 'Seventeen-year-old Marco leaves Venice with his father Niccolò and uncle Maffeo, who had already been to China.' },
@@ -263,9 +287,9 @@ export const JOURNEYS = [
       { q: 'Hotan, China', name: 'Khotan', wiki: 'Hotan', text: 'Along the southern edge of the desert, famous for jade.' },
       { at: [39.02, 88.17], name: 'Lop desert', wiki: 'Taklamakan Desert', text: 'A month-long desert crossing, with tales of spirit voices luring travellers away.' },
       { q: 'Dunhuang, China', name: 'Dunhuang', wiki: 'Mogao Caves', text: 'Into China proper at the edge of the desert.' },
-      { at: [42.36, 116.18], name: 'Shangdu (Xanadu)', wiki: 'Shangdu', text: 'Kublai Khan\'s summer capital, where they are received in 1275.' },
+      { at: [42.36, 116.18], name: 'Shangdu (Xanadu)', date: '1275', wiki: 'Shangdu', text: 'Kublai Khan\'s summer capital, where they are received in 1275 (some scholars say 1274), about three and a half years after leaving Venice.' },
       { q: 'Beijing, China', name: 'Khanbaliq (Beijing)', wiki: 'Khanbaliq', text: 'Years in the Khan\'s service, sent on missions across his empire.' },
-      { q: 'Quanzhou, China', name: 'Zaiton (Quanzhou)', wiki: 'Quanzhou', text: 'They finally leave, escorting a Mongol princess by sea to Persia.' },
+      { q: 'Quanzhou, China', at: [24.8755, 118.6724], name: 'Zaiton (Quanzhou)', wiki: 'Quanzhou', text: 'They finally leave, escorting a Mongol princess by sea to Persia.' },
       { q: 'Lhokseumawe, Indonesia', name: 'Sumatra', by: 'boat', wiki: 'Samudera Pasai Sultanate', text: 'Months in Sumatra waiting for the monsoon winds.' },
       { q: 'Colombo, Sri Lanka', name: 'Sri Lanka', by: 'boat', wiki: 'Sri Lanka', text: 'Across the Bay of Bengal, then along the coast of India.' },
       { at: [27.07, 56.46], name: 'Hormuz', by: 'boat', wiki: 'Strait of Hormuz', text: 'Back in Persia by sea, two years after leaving China.' },
@@ -283,7 +307,11 @@ export const JOURNEYS = [
     color: '#9f1239',
     media: [{"kind": "book", "title": "A Time of Gifts", "by": "Patrick Leigh Fermor"}, {"kind": "book", "title": "Between the Woods and the Water", "by": "Patrick Leigh Fermor"}, {"kind": "book", "title": "The Broken Road", "by": "Patrick Leigh Fermor"}],
     summary: 'At eighteen, Patrick Leigh Fermor walks from the Hook of Holland to Constantinople, sleeping in barns, monasteries and castles across a Europe on the eve of war. His books, written decades later, are among the finest travel writing ever.',
-    sources: [{ label: 'Wikipedia: A Time of Gifts', url: 'https://en.wikipedia.org/wiki/A_Time_of_Gifts' }],
+    sources: [
+      { label: 'Intrepid Times: interview with Nick Hunt, who walked the route again', url: 'https://intrepidtimes.com/2016/08/nick-hunt/' },
+      { label: 'Patrick Leigh Fermor Society blog: In Paddy\'s Footsteps', url: 'https://patrickleighfermor.org/category/in-paddys-footsteps/' },
+      { label: 'Wikipedia: A Time of Gifts', url: 'https://en.wikipedia.org/wiki/A_Time_of_Gifts' },
+    ],
     approximate: 'Main places from his three books; the paths between them are approximate.',
     stops: [
       { q: 'Hook of Holland', name: 'Hook of Holland', date: 'Dec 1933', wiki: 'Hook of Holland', text: 'Landing from London on a rainy December night, with a rucksack and very little money.' },
@@ -312,22 +340,26 @@ export const JOURNEYS = [
     color: '#475569',
     media: [{"kind": "free", "title": "Around the World on a Bicycle", "by": "Thomas Stevens", "note": "1887, free on Project Gutenberg", "url": "https://www.gutenberg.org/ebooks/search/?query=around+the+world+on+a+bicycle+stevens"}],
     summary: 'The first person to cycle round the world, on a high-wheeled penny-farthing with no gears and solid tyres: across the American West, Europe, Turkey and Persia, then India, China and Japan. The bikepacking pioneer.',
-    sources: [{ label: 'Wikipedia: Thomas Stevens (cyclist)', url: 'https://en.wikipedia.org/wiki/Thomas_Stevens_(cyclist)' }],
+    sources: [
+      { label: 'Berkhamsted Local History: Thomas Stevens crosses America by bicycle', url: 'https://berkhamsted-history.org.uk/thomas-stevens-a-berkhamsted-pioneer-crosses-america-by-bicycle/' },
+      { label: 'Scroll.in: India through the eyes of the first round-the-world cyclist', url: 'https://scroll.in/global/1023115/a-land-of-colours-india-through-the-eyes-of-the-first-cyclist-to-circumnavigate-the-world' },
+      { label: 'Wikipedia: Thomas Stevens (cyclist)', url: 'https://en.wikipedia.org/wiki/Thomas_Stevens_(cyclist)' },
+    ],
     approximate: 'Main places from his book; the roads between them are approximate.',
     stops: [
-      { q: 'San Francisco', name: 'San Francisco', date: 'Apr 1884', wiki: 'Penny-farthing', text: 'Off from San Francisco on a 50-inch Columbia high-wheeler, with a change of socks and a revolver.' },
+      { q: 'San Francisco', name: 'San Francisco', date: '22 Apr 1884', wiki: 'Penny-farthing', text: 'Off from San Francisco on a 50-inch Columbia high-wheeler, with a change of socks and a revolver.' },
       { q: 'Laramie, Wyoming', name: 'The Rockies', wiki: 'Laramie, Wyoming', text: 'Across the Sierra and the deserts, often pushing the bike along railway tracks.' },
       { q: 'Chicago', name: 'Chicago', wiki: 'Chicago', text: 'Over the plains to the Great Lakes.' },
-      { q: 'Boston', name: 'Boston', date: 'Aug 1884', wiki: 'Boston', text: 'The first crossing of America by bicycle. He then decided to keep going round the world.' },
+      { q: 'Boston', name: 'Boston', date: '4 Aug 1884', wiki: 'Boston', text: 'About 3,700 miles and 103 days after San Francisco, much of it pushed on foot: the first crossing of America by bicycle. He then decided to keep going round the world.', source: { label: 'Berkhamsted Local History', url: 'https://berkhamsted-history.org.uk/thomas-stevens-a-berkhamsted-pioneer-crosses-america-by-bicycle/' } },
       { q: 'Liverpool', name: 'Liverpool', by: 'boat', wiki: 'Liverpool', text: 'By steamer to England.' },
       { q: 'Vienna, Austria', name: 'Vienna', wiki: 'Vienna', text: 'Across England, France and Germany to the Danube.' },
       { q: 'Istanbul, Turkey', name: 'Constantinople', wiki: 'Istanbul', text: 'Through the Balkans to the Bosphorus.' },
       { q: 'Ankara, Turkey', name: 'Anatolia', wiki: 'Ankara', text: 'Across Anatolia, where crowds gathered to see the strange machine.' },
       { q: 'Tehran, Iran', name: 'Tehran', wiki: 'Tehran', text: 'Winter in Persia as a guest of the Shah\'s court. Refused passage through Afghanistan, he turned back.' },
-      { q: 'Kolkata, India', name: 'India', by: 'boat', wiki: 'Grand Trunk Road', text: 'By sea to India, then riding the Grand Trunk Road.' },
+      { q: 'Kolkata, India', name: 'India', by: 'boat', wiki: 'Grand Trunk Road', text: 'By sea to India, then riding the Grand Trunk Road.', source: { label: 'Scroll.in', url: 'https://scroll.in/global/1023115/a-land-of-colours-india-through-the-eyes-of-the-first-cyclist-to-circumnavigate-the-world' } },
       { q: 'Hong Kong', name: 'Hong Kong', by: 'boat', wiki: 'Hong Kong', text: 'On to China by ship.' },
       { q: 'Shanghai, China', name: 'China', wiki: 'Shanghai', text: 'A hard, sometimes hostile ride through southern China.' },
-      { q: 'Yokohama, Japan', name: 'Yokohama', date: 'Dec 1886', by: 'boat', wiki: 'Yokohama', text: 'Across Japan to Yokohama, the end of the first ride round the world by bicycle.' },
+      { q: 'Yokohama, Japan', name: 'Yokohama', date: '17 Dec 1886', by: 'boat', wiki: 'Yokohama', text: 'Across Japan to Yokohama, the end of the first ride round the world by bicycle.' },
     ],
   },
 
@@ -341,8 +373,12 @@ export const JOURNEYS = [
     kind: 'bike',
     color: '#15803d',
     media: [{"kind": "film", "title": "Ride the Divide", "note": "Documentary, 2010"}],
-    summary: 'About 4,400 km of mostly gravel along the Rocky Mountains, from Banff in Canada to the Mexican border, crossing the Continental Divide again and again. The world\'s best-known bikepacking route: the race record is under two weeks; most riders take two months.',
-    sources: [{ label: 'Wikipedia: Tour Divide', url: 'https://en.wikipedia.org/wiki/Tour_Divide' }, { label: 'Wikipedia: Great Divide Mountain Bike Route', url: 'https://en.wikipedia.org/wiki/Great_Divide_Mountain_Bike_Route' }],
+    summary: 'About 4,400 km of mostly gravel along the Rocky Mountains, from Banff in Canada to the Mexican border, crossing the Continental Divide again and again. The world\'s best-known bikepacking route: the fastest racers now finish in under twelve days; most riders take two months.',
+    sources: [
+      { label: 'bikepacking.com: Robin Gemperle wins the 2025 Tour Divide', url: 'https://bikepacking.com/news/robin-gemperle-wins-the-2025-tour-divide/' },
+      { label: 'Wikipedia: Tour Divide', url: 'https://en.wikipedia.org/wiki/Tour_Divide' },
+      { label: 'Wikipedia: Great Divide Mountain Bike Route', url: 'https://en.wikipedia.org/wiki/Great_Divide_Mountain_Bike_Route' },
+    ],
     approximate: 'Towns on the route; the line between them follows roads, not the exact gravel tracks (use the official maps to ride it).',
     stops: [
       { q: 'Banff, Alberta', name: 'Banff', wiki: 'Banff, Alberta', text: 'The start in the Canadian Rockies, in June, often with snow still on the passes.' },
@@ -378,7 +414,11 @@ export const JOURNEYS = [
     kind: 'bike',
     color: '#be123c',
     summary: 'About 6,800 km coast to coast on quiet roads, from the Pacific in Oregon to the Atlantic in Virginia, through the Cascades, Yellowstone, the Rockies, the plains, the Ozarks and Appalachia. Created for America\'s bicentennial, when thousands rode it.',
-    sources: [{ label: 'Wikipedia: TransAmerica Trail (bicycle)', url: 'https://en.wikipedia.org/wiki/TransAmerica_Trail_(bicycle)' }],
+    sources: [
+      { label: 'National Geographic: 50 years of the TransAmerica Bike Trail', url: 'https://www.nationalgeographic.com/travel/article/transamerica-trail-united-states' },
+      { label: 'Adventure Cycling: TransAm westbound in segments', url: 'https://www.adventurecycling.org/companion/transam-westbound-in-segments/' },
+      { label: 'Wikipedia: TransAmerica Bicycle Trail', url: 'https://en.wikipedia.org/wiki/TransAmerica_Bicycle_Trail' },
+    ],
     approximate: 'Towns on the route; the line between them is approximate (use the official maps to ride it).',
     stops: [
       { q: 'Astoria, Oregon', name: 'Astoria', wiki: 'Astoria, Oregon', text: 'Dip your wheel in the Pacific at the mouth of the Columbia River.' },
@@ -408,7 +448,11 @@ export const JOURNEYS = [
     kind: 'bike',
     color: '#0369a1',
     summary: 'About 1,200 km of Chile\'s Route 7 through northern Patagonia: rainforest, fjords, glaciers and turquoise rivers, with ferries and long gravel stretches. A dream ride for cyclists and riders alike.',
-    sources: [{ label: 'Wikipedia: Carretera Austral', url: 'https://en.wikipedia.org/wiki/Carretera_Austral' }],
+    sources: [
+      { label: 'CycleBlaze: six weeks on the Carretera Austral (2024)', url: 'https://cycleblaze.com/journals/CarreteraAustral2024' },
+      { label: 'bikepacking.com: Touristas, pieces of the Carretera Austral', url: 'https://bikepacking.com/plog/touristas-carretera-austral/' },
+      { label: 'Wikipedia: Carretera Austral', url: 'https://en.wikipedia.org/wiki/Carretera_Austral' },
+    ],
     approximate: 'Main places on the road; ferry timetables change, so check before you go.',
     stops: [
       { q: 'Puerto Montt, Chile', name: 'Puerto Montt', wiki: 'Puerto Montt', text: 'The start of Route 7 at kilometre zero.' },
@@ -417,11 +461,11 @@ export const JOURNEYS = [
       { q: 'Chaitén, Chile', name: 'Chaitén', wiki: 'Chaitén (volcano)', text: 'The town rebuilt after the 2008 eruption.' },
       { q: 'La Junta, Chile', name: 'La Junta', wiki: 'La Junta, Chile', text: 'Rivers and rain forest.' },
       { q: 'Puyuhuapi, Chile', name: 'Puyuhuapi', wiki: 'Queulat National Park', text: 'The hanging glacier of Queulat.' },
-      { q: 'Coyhaique, Chile', name: 'Coyhaique', wiki: 'Coyhaique', text: 'The only city on the road: supplies and repairs.' },
-      { q: 'Villa Cerro Castillo, Chile', name: 'Cerro Castillo', wiki: 'Cerro Castillo National Park', text: 'A castle of rock above the road.' },
+      { q: 'Coyhaique, Chile', name: 'Coyhaique', route: 'car', wiki: 'Coyhaique', text: 'The only city on the road: supplies and repairs.' },
+      { q: 'Villa Cerro Castillo, Chile', at: [-46.1226, -72.1544], name: 'Cerro Castillo', wiki: 'Cerro Castillo National Park', text: 'A castle of rock above the road.' },
       { q: 'Puerto Río Tranquilo, Chile', name: 'Río Tranquilo', wiki: 'Marble Caves', text: 'The marble caves of General Carrera Lake.' },
       { q: 'Cochrane, Chile', name: 'Cochrane', wiki: 'Cochrane, Chile', text: 'Wild, empty valleys of Patagonia.' },
-      { q: 'Villa O\'Higgins, Chile', name: 'Villa O\'Higgins', wiki: 'Villa O\'Higgins', text: 'The end of the road. Hardy cyclists continue by boat and on foot into Argentina.' },
+      { q: 'Villa O\'Higgins, Chile', name: 'Villa O\'Higgins', wiki: 'Villa O\'Higgins', text: 'The end of the road. Hardy cyclists continue by boat and on foot into Argentina.', source: { label: 'CycleBlaze (2024)', url: 'https://cycleblaze.com/journals/carreteraaustral2024/day-29-villa-ohiggins-to-argentina' } },
     ],
   },
 
@@ -435,7 +479,11 @@ export const JOURNEYS = [
     kind: 'walk',
     color: '#ca8a04',
     summary: 'About 780 km across northern Spain to the cathedral of Santiago de Compostela, following a pilgrimage walked for over a thousand years: the Pyrenees, Rioja, the high Meseta and green Galicia. Usually five weeks on foot, two by bike.',
-    sources: [{ label: 'Wikipedia: French Way', url: 'https://en.wikipedia.org/wiki/French_Way' }],
+    sources: [
+      { label: 'Follow the Camino: Camino statistics for 2025', url: 'https://followthecamino.com/en/camino-statistics-for-2025-the-year-a-pilgrimage-confirmed-its-global-dimension/' },
+      { label: 'American Pilgrims on the Camino: statistics', url: 'https://www.americanpilgrims.org/statistics' },
+      { label: 'Wikipedia: French Way', url: 'https://en.wikipedia.org/wiki/French_Way' },
+    ],
     approximate: 'Main stages; the walking path is drawn on nearby roads.',
     stops: [
       { q: 'Saint-Jean-Pied-de-Port, France', name: 'Saint-Jean-Pied-de-Port', wiki: 'Saint-Jean-Pied-de-Port', text: 'The traditional start on the French side of the Pyrenees.' },
@@ -446,7 +494,7 @@ export const JOURNEYS = [
       { q: 'Frómista, Spain', name: 'The Meseta', wiki: 'Meseta Central', text: 'Days across the open high plateau: wheat, sky and silence.' },
       { q: 'León, Spain', name: 'León', wiki: 'León Cathedral', text: 'Stained glass in León\'s cathedral.' },
       { q: 'Astorga, Spain', name: 'Astorga', wiki: 'Astorga, Spain', text: 'Towards the mountains of León.' },
-      { q: 'Ponferrada, Spain', name: 'Ponferrada', wiki: 'Castle of Ponferrada', text: 'A Templar castle.' },
+      { q: 'Ponferrada, Spain', at: [42.5454, -6.5939], name: 'Ponferrada', wiki: 'Castle of Ponferrada', text: 'A Templar castle.' },
       { q: 'O Cebreiro, Spain', name: 'O Cebreiro', wiki: 'O Cebreiro', text: 'The climb into misty Galicia.' },
       { q: 'Sarria, Spain', name: 'Sarria', wiki: 'Sarria', text: 'The last 100 km, the minimum for the Compostela certificate.' },
       { q: 'Santiago de Compostela, Spain', name: 'Santiago de Compostela', wiki: 'Santiago de Compostela Cathedral', text: 'The cathedral square, and the end of the Way.' },
@@ -461,16 +509,20 @@ export const JOURNEYS = [
     kind: 'moto',
     color: '#7c2d12',
     summary: 'About 1,200 km across the "Roof of the World" from Osh in Kyrgyzstan to Dushanbe in Tajikistan, over passes above 4,600 m, past high lakes and along the Afghan border on the Panj river. One of the great overland roads.',
-    sources: [{ label: 'Wikipedia: Pamir Highway', url: 'https://en.wikipedia.org/wiki/Pamir_Highway' }],
+    sources: [
+      { label: 'OPEN Cycle: The Pamir Ballad (2025)', url: 'https://opencycle.com/blog/the-pamir-ballad-an-absurd-and-beautiful-ride' },
+      { label: 'bikepacking.com: A Journey Beyond II, bikepacking the Pamir Highway', url: 'https://bikepacking.com/plog/bikepacking-pamir-highway/' },
+      { label: 'Wikipedia: Pamir Highway', url: 'https://en.wikipedia.org/wiki/Pamir_Highway' },
+    ],
     approximate: 'Main places on the road; the line between them is approximate. Permits (GBAO) are needed.',
     stops: [
-      { q: 'Osh, Kyrgyzstan', name: 'Osh', wiki: 'Osh', text: 'An ancient Silk Road town and the usual start.' },
+      { q: 'Osh, Kyrgyzstan', at: [40.5173, 72.805], name: 'Osh', wiki: 'Osh', text: 'An ancient Silk Road town and the usual start.' },
       { at: [39.73, 73.25], name: 'Sary-Tash', wiki: 'Alay Valley', text: 'The Alay valley with the Pamir wall rising ahead.' },
       { at: [39.02, 73.55], name: 'Karakul', wiki: 'Karakul (Tajikistan)', text: 'Over the Kyzyl-Art pass to a huge lake at almost 4,000 m.' },
-      { at: [38.17, 73.96], name: 'Murghab', wiki: 'Murghob', text: 'Over Ak-Baital, at about 4,650 m the highest pass, to a high-plateau town.' },
+      { at: [38.17, 73.96], name: 'Murghab', wiki: 'Murghob', text: 'Over Ak-Baital, at about 4,650 m the highest pass, to a high-plateau town.', source: { label: 'OPEN Cycle (2025)', url: 'https://opencycle.com/blog/the-pamir-ballad-an-absurd-and-beautiful-ride' } },
       { q: 'Khorog, Tajikistan', name: 'Khorog', wiki: 'Khorog', text: 'Down to the Panj river and the Afghan border.' },
       { q: 'Rushan, Tajikistan', name: 'The Panj valley', wiki: 'Panj River', text: 'Afghanistan just across the river, close enough to wave.' },
-      { q: 'Qalai Khumb, Tajikistan', name: 'Kalai-Khumb', wiki: 'Darvoz District', text: 'Rough road through deep gorges.' },
+      { q: 'Qalai Khumb, Tajikistan', at: [38.4541, 70.7886], name: 'Kalai-Khumb', wiki: 'Darvoz District', text: 'Rough road through deep gorges.' },
       { q: 'Dushanbe, Tajikistan', name: 'Dushanbe', wiki: 'Dushanbe', text: 'Tajikistan\'s capital, and the end of the highway.' },
     ],
   },
@@ -483,7 +535,11 @@ export const JOURNEYS = [
     kind: 'moto',
     color: '#166534',
     summary: 'Portugal\'s longest road, 739 km from Chaves near Spain to Faro on the Algarve, through vineyards of the Douro, the forests of the centre and the open plains of the Alentejo. Known as Portugal\'s Route 66.',
-    sources: [{ label: 'Wikipedia: Estrada Nacional 2', url: 'https://en.wikipedia.org/wiki/Estrada_Nacional_2' }],
+    sources: [
+      { label: 'Portugal Resident: EN2 named International Route of the Year (2025)', url: 'https://www.portugalresident.com/portugals-iconic-en2-route-named-international-route-of-the-year-in-spain/' },
+      { label: 'Julie Dawn Fox: N2, the ultimate Portugal road trip', url: 'https://juliedawnfox.com/n2-the-ultimate-portugal-road-trip-from-north-to-south/' },
+      { label: 'Wikipedia: Estrada Nacional 2', url: 'https://en.wikipedia.org/wiki/Estrada_Nacional_2' },
+    ],
     approximate: 'Main towns on the road; the line follows today\'s roads.',
     stops: [
       { q: 'Chaves, Portugal', name: 'Chaves', wiki: 'Chaves, Portugal', text: 'Kilometre zero, by a Roman bridge.' },
@@ -516,6 +572,7 @@ export const JOURNEYS = [
     sources: [
       { label: 'Wikipedia: Hermenegildo Capelo', url: 'https://en.wikipedia.org/wiki/Hermenegildo_Capelo' },
       { label: 'Wikipedia: Roberto Ivens', url: 'https://en.wikipedia.org/wiki/Roberto_Ivens' },
+      { label: 'LNEG: Capelo and Ivens geological samples revisited (1884–1885)', url: 'https://repositorio.lneg.pt/bitstreams/9c851bad-5457-4220-be90-77b00c6c0d4c/download' },
     ],
     approximate: 'Only the main known places; the expedition\'s real path wound far more, and the straight lines between places are a rough guide only.',
     stops: [
@@ -541,6 +598,7 @@ export const JOURNEYS = [
     sources: [
       { label: 'History Today: Livingstone reaches the Victoria Falls', url: 'https://www.historytoday.com/archive/david-livingstone-reaches-victoria-falls' },
       { label: 'Princeton University Library: David Livingstone, 1813–1873', url: 'https://static-prod.lib.princeton.edu/visual_materials/maps/websites/africa/livingstone/livingstone.html' },
+      { label: 'David Livingstone Birthplace: timeline', url: 'https://www.david-livingstone-birthplace.org/files/learning-topics-timeline-r2.pdf' },
     ],
     approximate: 'Main places and dates from his account; dates differ slightly between sources, and the straight lines are a rough guide.',
     stops: [
@@ -568,6 +626,7 @@ export const JOURNEYS = [
     sources: [
       { label: '131 Offroad: 2025 Baja 1000 course', url: 'https://131offroad.com/2025/10/04/2025-baja-1000-course' },
       { label: 'SCORE Journal, October 2025', url: 'https://read.uberflip.com/i/1540550-score-journal-oct-2025/25' },
+      { label: 'RACER: Menzies and Polvoorde win the 2025 Baja 1000', url: 'https://racer.com/2025/11/16/menzies-polvoorde-storm-to-score-baja-1000-redemption' },
     ],
     approximate: 'Main points and race-mile checkpoints; the course runs on desert tracks, not the roads shown.',
     stops: [
@@ -576,7 +635,7 @@ export const JOURNEYS = [
       { q: 'San Ignacio, Baja California Sur', name: 'San Ignacio (RM 365)', at: [27.2837, -112.8979], wiki: 'San Ignacio, Baja California Sur', text: 'An oasis town of date palms; the southern turn of the loop at race mile 365.' },
       { q: 'San Felipe, Baja California', name: 'San Felipe', wiki: 'San Felipe, Baja California', text: 'North up the Sea of Cortez side.' },
       { q: 'San Matías, Baja California', name: 'San Matías (RM 717)', at: [31.3345, -115.5464], wiki: 'Sierra de San Pedro Mártir', text: 'The pass between the sierras, last checkpoint at race mile 717.' },
-      { q: 'Ensenada, Baja California', name: 'Ensenada finish', wiki: 'Baja 1000', text: 'Back to Ensenada after 854 race miles.' },
+      { q: 'Ensenada, Baja California', name: 'Ensenada finish', wiki: 'Baja 1000', text: 'Back to Ensenada after 854 race miles. Christopher Polvoorde and Bryce Menzies won overall in a Trophy Truck; the SLR Honda team of Tyler Lynn, David Kamo and Carter Klein won the bikes in 17 h 55 min.', source: { label: 'Cycle News: 2025 Baja 1000 motorcycle results', url: 'https://www.cyclenews.com/2025/11/article/2025-score-baja-1000-motorcycle-results/' } },
     ],
   },
   {
@@ -601,6 +660,10 @@ export const JOURNEYS = [
    ],
    "summary": "A group of friends from a London school staff room go round the world the longest way in the shortest time, on cheap Suzuki DR350s, rough camping on a shoestring: across Central Asia and Siberia through the roadless Zilov Gap to Magadan, from Alaska to Chile, and up Africa from Cape Town home to London. Their film became a cult classic of adventure riding.",
    "sources": [
+    {
+     "label": "Adventure Motorcycle: riders getting candid with Austin Vince",
+     "url": "https://dev.adventuremotorcycle.com/riders/riders-getting-candid-with-austin-vince-new?showall=1"
+    },
     {
      "label": "Wikipedia: Mondo Enduro",
      "url": "https://en.wikipedia.org/wiki/Mondo_Enduro"
@@ -719,8 +782,12 @@ export const JOURNEYS = [
     {
      "q": "Mogocha, Russia",
      "name": "Zilov Gap",
-     "text": "The roadless Zilov Gap: bogs and broken bikes, the hardest part of the trip.",
-     "wiki": "Mogocha"
+     "text": "The roadless Zilov Gap: bogs, rivers and broken bikes. Austin Vince later called it the best ten days of the whole trip.",
+     "wiki": "Mogocha",
+     "source": {
+      "label": "Adventure Motorcycle: Austin Vince interview",
+      "url": "https://dev.adventuremotorcycle.com/riders/riders-getting-candid-with-austin-vince-new?showall=1"
+     }
     },
     {
      "q": "Skovorodino, Russia",
@@ -1088,6 +1155,10 @@ export const JOURNEYS = [
     {
      "label": "ONE: meet Lois, who rode from London to Cape Town",
      "url": "https://www.one.org/stories/meet-lois-the-woman-who-travelled-from-london-to-cape-town-by-motorbike"
+    },
+    {
+     "label": "Canada Moto Guide: review of Red Tape and White Knuckles",
+     "url": "https://canadamotoguide.com/2013/06/13/book-review-red-tape-and-white-knuckles/"
     }
    ],
    "approximate": "The countries named in accounts of the book; the towns and roads are approximate.",
@@ -1218,6 +1289,14 @@ export const JOURNEYS = [
    "summary": "Effie Hotchkiss, 26, a Wall Street worker, rides her new three-speed Harley from Brooklyn to San Francisco with her 56-year-old mother Avis in the sidecar, doing her own repairs, to see the Panama-Pacific Exposition: the first women to cross the United States by motorcycle. At Ocean Beach they poured Atlantic water they had carried into the Pacific.",
    "sources": [
     {
+     "label": "Rider Magazine: Effie's great adventure",
+     "url": "https://ridermagazine.com/effies-great-adventure-first-women-to-ride-cross-country/"
+    },
+    {
+     "label": "The Vintagent: first women motorcyclists across the USA",
+     "url": "https://thevintagent.com/?p=75295"
+    },
+    {
      "label": "Wikipedia: Avis and Effie Hotchkiss",
      "url": "https://en.wikipedia.org/wiki/Avis_and_Effie_Hotchkiss"
     }
@@ -1258,8 +1337,8 @@ export const JOURNEYS = [
     {
      "q": "Ocean Beach, San Francisco",
      "name": "San Francisco",
-     "date": "July 1915",
-     "text": "Two months after leaving: Atlantic water poured into the Pacific.",
+     "date": "Summer 1915",
+     "text": "Two to three months after leaving (accounts differ): Atlantic water poured into the Pacific at Ocean Beach. They rode home to Brooklyn by October, about 9,000 miles in all.",
      "wiki": "Ocean Beach, San Francisco"
     }
    ]
@@ -1274,6 +1353,14 @@ export const JOURNEYS = [
    "color": "#7c3aed",
    "summary": "Two sisters, each on her own 1,000 cc Indian, ride 5,500 miles in 60 days from Brooklyn to Los Angeles to prove women could serve as military dispatch riders: the first women to cross the US on solo motorcycles. Arrested for wearing men's clothes, they were also the first women to drive up Pikes Peak; the army still turned them down.",
    "sources": [
+    {
+     "label": "History Today: the first women to cross the US on solo motorcycles",
+     "url": "https://www.historytoday.com/archive/months-past/first-women-cross-us-solo-motorcycles"
+    },
+    {
+     "label": "Expedition Portal: the Van Buren sisters' 1916 ride",
+     "url": "https://expeditionportal.com/pioneers-of-moto-history-the-van-buren-sisters-1916-ride-across-america/"
+    },
     {
      "label": "Wikipedia: Van Buren sisters",
      "url": "https://en.wikipedia.org/wiki/Van_Buren_sisters"
@@ -1428,6 +1515,10 @@ export const JOURNEYS = [
     {
      "label": "The Vintagent: Anne-France Dautheville",
      "url": "https://thevintagent.com/?p=76013"
+    },
+    {
+     "label": "Overland Magazine: history of overlanding, the 1970s",
+     "url": "https://overlandmag.com/resources/history-2/history-1970s/"
     }
    ],
    "approximate": "Only the countries accounts name; the route between them is approximate and partly unknown.",
@@ -1447,7 +1538,7 @@ export const JOURNEYS = [
      "q": "Tokyo, Japan",
      "name": "Japan",
      "by": "unknown",
-     "text": "In Tokyo a dealer rebuilt the tired engine."
+     "text": "Bike and rider flew from Alaska to Tokyo for three weeks in Japan, where a dealer rebuilt the tired engine."
     },
     {
      "q": "New Delhi, India",
@@ -1486,6 +1577,14 @@ export const JOURNEYS = [
    "summary": "An architecture student takes a break from her studies and rides an old BMW round the world alone, about 35,000 miles: North America, Australia, Southeast Asia, India in the turmoil after Indira Gandhi's assassination, Pakistan and back through Turkey. Accidents, theft and forged permits along the way; nobody paid attention when she got home, until her book.",
    "sources": [
     {
+     "label": "The Vintagent: Lone Rider around the world",
+     "url": "https://thevintagent.com/lone-rider-around-the-world/"
+    },
+    {
+     "label": "BMW Motorrad: Elspeth Beard",
+     "url": "https://www.bmw-motorrad.com/en/articles/elspeth-beard.html"
+    },
+    {
      "label": "Wikipedia: Elspeth Beard",
      "url": "https://en.wikipedia.org/wiki/Elspeth_Beard"
     }
@@ -1495,8 +1594,8 @@ export const JOURNEYS = [
     {
      "q": "New York City",
      "name": "New York",
-     "date": "1982",
-     "text": "The bike shipped over from Britain; the start."
+     "date": "Oct 1982",
+     "text": "She left London in October 1982, aged 23, on a 1974 BMW R60/6; the bike was shipped over and the ride starts here."
     },
     {
      "q": "Toronto, Canada",
@@ -1559,7 +1658,7 @@ export const JOURNEYS = [
     {
      "q": "London, UK",
      "name": "London",
-     "date": "1984",
+     "date": "Nov 1984",
      "text": "Home after about 35,000 miles: one of the first Englishwomen round the world by motorcycle."
     }
    ]
@@ -1596,8 +1695,8 @@ export const JOURNEYS = [
      "url": "https://www.psybertron.org/zammroutedetails.html"
     },
     {
-     "label": "Mark Richardson, Zen and Now (extract with route map)",
-     "url": "https://cdn.shopify.com/s/files/1/0542/4573/files/Zen_and_Now_Extract.pdf?4631"
+     "label": "Smithsonian: the Zen motorcycle, 50 years on",
+     "url": "https://www.smithsonianmag.com/smithsonian-institution/zen-motorcycle-still-inspires-philosophical-road-trippers-50-years-later-180984143/"
     }
    ],
    "approximate": "Towns from route studies of the book; roads between them are approximate.",
@@ -1711,6 +1810,10 @@ export const JOURNEYS = [
    "summary": "At 58, Steinbeck sets out to rediscover the country he writes about: almost 10,000 miles round the edge of the United States in a camper named after Don Quixote's horse, with his wife's poodle. Maine potato fields, the Great Lakes, Montana which he loved, the Pacific Northwest, a farewell to his Salinas Valley, a Texas Thanksgiving and the ugly school protests of New Orleans. Later research showed he was rarely alone and tidied up the story.",
    "sources": [
     {
+     "label": "PRI / The World: traveling in Charley's footsteps",
+     "url": "https://theworld.org/stories/2013/08/14/traveling-charleys-footsteps"
+    },
+    {
      "label": "Wikipedia: Travels with Charley",
      "url": "https://en.wikipedia.org/wiki/Travels_with_Charley"
     },
@@ -1724,7 +1827,7 @@ export const JOURNEYS = [
     {
      "q": "Sag Harbor, New York",
      "name": "Sag Harbor",
-     "date": "Sept 1960",
+     "date": "23 Sep 1960",
      "wiki": "Rocinante",
      "text": "Delayed two weeks by Hurricane Donna, he leaves his Long Island summer home."
     },
@@ -1809,7 +1912,7 @@ export const JOURNEYS = [
     {
      "q": "New York City",
      "name": "New York",
-     "date": "Dec 1960",
+     "date": "5 Dec 1960",
      "text": "Home; he gets lost in his own city.",
      "wiki": "New York City"
     }
@@ -1833,6 +1936,14 @@ export const JOURNEYS = [
    ],
    "summary": "A 23-year-old Harvard architecture graduate rides from London to Tokyo, about 25,000 miles, filming 40,000 feet of the world on the way. A night in a Turkish jail, Iraqi bandits avoided, almost shot at in the Khyber Pass, a guest of Indian rajahs. He later invented the Skyhook rescue system.",
    "sources": [
+    {
+     "label": "The Vintagent: Fulton's One Man Caravan",
+     "url": "https://thevintagent.com/?p=75298"
+    },
+    {
+     "label": "Common Tread: solo around the world in 1932",
+     "url": "https://www.revzilla.com/common-tread/solo-around-the-world-in-1932-the-robert-edison-fulton-jr-story"
+    },
     {
      "label": "Wikipedia: Robert Edison Fulton Jr.",
      "url": "https://en.wikipedia.org/wiki/Robert_Edison_Fulton_Jr."
@@ -1920,6 +2031,10 @@ export const JOURNEYS = [
     {
      "label": "Wikipedia: News from Tartary",
      "url": "https://en.wikipedia.org/wiki/News_from_Tartary"
+    },
+    {
+     "label": "Papers Past: Fleming's own report (Evening Post, Dec 1935)",
+     "url": "https://paperspast.natlib.govt.nz/newspapers/EP19351202.2.54"
     }
    ],
    "approximate": "Main towns of the journey; the tracks across the deserts are drawn as straight lines.",
@@ -1927,7 +2042,7 @@ export const JOURNEYS = [
     {
      "q": "Beijing, China",
      "name": "Peking",
-     "date": "Feb 1935",
+     "date": "16 Feb 1935",
      "text": "They set off together, against all advice.",
      "wiki": "Beijing"
     },
@@ -1992,7 +2107,7 @@ export const JOURNEYS = [
    "id": "amyr-klink-1984",
    "title": "Amyr Klink: Cem dias entre céu e mar",
    "who": "Amyr Klink",
-   "when": "12 June – 19 September 1984",
+   "when": "10 June – 18 September 1984",
    "vehicle": "Rowing boat IAT",
    "kind": "other",
    "color": "#0369a1",
@@ -2007,6 +2122,14 @@ export const JOURNEYS = [
    "summary": "The first solo row across the South Atlantic: a young Brazilian from São Paulo rows 7,000 km in a hundred days from Namibia to Bahia. His book about it is a Brazilian classic, read in schools, and launched a life of polar and ocean voyages.",
    "sources": [
     {
+     "label": "A Tarde: 42 years on, Amyr Klink's crossing becomes a film (2026)",
+     "url": "https://atarde.com.br/cineinsite/42-anos-apos-travessia-historica-amyr-klink-ganha-filme-nos-cinemas-1391833"
+    },
+    {
+     "label": "Wikipedia: Amyr Klink",
+     "url": "https://en.wikipedia.org/wiki/Amyr_Klink"
+    },
+    {
      "label": "Wikipédia: Amyr Klink",
      "url": "https://pt.wikipedia.org/wiki/Amyr_Klink"
     }
@@ -2016,7 +2139,7 @@ export const JOURNEYS = [
     {
      "q": "Lüderitz, Namibia",
      "name": "Lüderitz",
-     "date": "12 June 1984",
+     "date": "10 June 1984",
      "text": "Pushes off alone from the Namibian coast.",
      "wiki": "Lüderitz"
     },
@@ -2029,7 +2152,7 @@ export const JOURNEYS = [
      "name": "Praia da Espera",
      "by": "boat",
      "route": "line",
-     "date": "19 Sept 1984",
+     "date": "18 Sept 1984",
      "text": "Lands at Praia da Espera near Salvador, the last chapter's title."
     }
    ]
@@ -2054,6 +2177,14 @@ export const JOURNEYS = [
     {
      "label": "Wikipédia: Viagem a Portugal",
      "url": "https://pt.wikipedia.org/wiki/Viagem_a_Portugal"
+    },
+    {
+     "label": "Time Out Lisboa: new RTP series follows Saramago's book",
+     "url": "https://www.timeout.pt/lisboa/pt/noticias/nova-serie-da-rtp-viaja-pelo-pais-guiada-por-obra-de-jose-saramago-102122"
+    },
+    {
+     "label": "DN: Viagem a Portugal with Fábio Porchat premieres on RTP",
+     "url": "https://www.dn.pt/cultura/serie-viagem-a-portugal-com-fabio-porchat-estreia-se-na-rtp-a-22-de-outubro-15243703.html"
     }
    ],
    "approximate": "One town per part of the book; the real itinerary had many more stops.",
@@ -2134,6 +2265,14 @@ export const JOURNEYS = [
    "summary": "The founding text of the road trip. Part one of the novel follows Kerouac's own first crossing of America with $50: buses and hitched rides to Denver and Dean Moriarty, on to San Francisco, cotton fields in California, then back east. Later parts add New Orleans and a car to Mexico City.",
    "sources": [
     {
+     "label": "Lonely Planet: following Kerouac across the US",
+     "url": "https://www.lonelyplanet.com/articles/on-the-road-following-kerouac-across-the-us"
+    },
+    {
+     "label": "ArcGIS StoryMaps: mapping Kerouac's On the Road",
+     "url": "https://storymaps.arcgis.com/stories/38597b872c9b4d2e809c1ecac46f9551"
+    },
+    {
      "label": "Wikipedia: On the Road",
      "url": "https://en.wikipedia.org/wiki/On_the_Road"
     }
@@ -2143,7 +2282,7 @@ export const JOURNEYS = [
     {
      "q": "Paterson, New Jersey",
      "name": "Paterson",
-     "date": "July 1947",
+     "date": "17 July 1947",
      "text": "Leaves his aunt's house with fifty dollars.",
      "wiki": "Paterson, New Jersey"
     },

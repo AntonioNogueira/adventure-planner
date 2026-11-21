@@ -74,6 +74,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Patrick Lam: TMB trip report, July–August 2025', 'https://patricklam.ca/post/20250824-tmb'),
       REPORT('Kenji Saito: TMB day by day (September 2025)', 'https://kenjisaito.com/tour-du-mont-blanc-tmb-day-2'),
+      REPORT('Mon Tour du Mont Blanc: booking a refuge, the complete guide', 'https://montourdumontblanc.com/en/actualites/booking-a-refuge-the-complete-guide'),
     ],
     approximate: 'The classic anticlockwise stages; the line follows mountain paths near the official route.',
     stops: [
@@ -103,6 +104,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Halfway Anywhere: PCT best moments, class of 2025', 'https://www.halfwayanywhere.com/trails/pacific-crest-trail/pct-best-moments-2025/'),
       REPORT('Halfway Anywhere: PCT tips from the class of 2025', 'https://www.halfwayanywhere.com/trails/pacific-crest-trail/pacific-crest-trail-tips-2025-2026/'),
+      REPORT('KUOW: new monument marks the northern end of the fire-blocked PCT (2026)', 'https://www.kuow.org/climate/2026-08-14/new-monument-marks-northern-end-of-fire-blocked-pacific-crest-trail'),
     ],
     approximate: 'The usual resupply towns and landmarks; the line follows trails near the PCT where they were found.',
     stops: [
@@ -129,7 +131,7 @@ export const CLASSICS = [
       { q: 'Packwood, Washington', name: 'Goat Rocks', wiki: 'Goat Rocks', text: 'The Knife\'s Edge in the Goat Rocks, with Mount Rainier close.' },
       { q: 'Snoqualmie Pass, Washington', name: 'Snoqualmie Pass', wiki: 'Snoqualmie Pass', text: 'Into the steep, wet North Cascades.' },
       { q: 'Stehekin, Washington', name: 'Stehekin', wiki: 'Stehekin, Washington', text: 'A village reached only by boat, plane or trail, with a famous bakery.' },
-      { q: 'Manning Park, British Columbia', name: 'Northern Terminus', wiki: 'E. C. Manning Provincial Park', text: 'The monument at the Canadian border, and on to Manning Park: about 4,265 km from Mexico.' },
+      { q: 'Manning Park, British Columbia', name: 'Northern Terminus', wiki: 'E. C. Manning Provincial Park', text: 'The monument at the Canadian border, and on to Manning Park: about 4,265 km from Mexico. Wildfire closures in the North Cascades have often stopped hikers short of it; in 2026 they finished at a temporary monument near Rainy Pass.', source: REPORT('KUOW (2026)', 'https://www.kuow.org/climate/2026-08-14/new-monument-marks-northern-end-of-fire-blocked-pacific-crest-trail') },
     ],
   },
   {
@@ -169,10 +171,11 @@ export const CLASSICS = [
     vehicle: 'Motorbike or with an easy rider, 3–4 days',
     kind: 'moto',
     color: '#c2410c',
-    summary: 'A loop of 350–450 km through the karst mountains on the Chinese border: the Ma Pi Leng pass above the Nho Que river, Hmong villages and markets, terraced valleys and homestays. Most go anticlockwise from Ha Giang; many ride pillion with a local driver.',
+    summary: 'A loop of 350–450 km through the karst mountains on the Chinese border: the Ma Pi Leng pass above the Nho Que river, Hmong villages and markets, terraced valleys and homestays. Most go anticlockwise from Ha Giang; many ride pillion with a local driver. Riding yourself needs a valid motorbike licence: police checks and fines were stepped up in 2026.',
     sources: [
       REPORT('Kreier: the Ha Giang Loop a second time (2025)', 'https://kreier.github.io/quartz/Travel/2025/Ha-Giang-loop-a-second-time-in-2025'),
       REPORT('Team-BHP travelogue: Ha Giang Loop (May 2025)', 'https://www.team-bhp.com/forum/travelogues/294466-ha-giang-loop-vietnam.html'),
+      REPORT('Lonely Planet: how to tackle the Ha Giang Loop (2026)', 'https://www.lonelyplanet.com/articles/ultimate-itinerary-ha-giang-loop-vietnam'),
     ],
     approximate: 'The usual anticlockwise loop and overnight villages.',
     stops: [
@@ -229,6 +232,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Andy & Ness: the Gibb River Road, part III (September 2025)', 'https://andyandnessas-allaussieadventures.blogspot.com/2025/09/the-gibb-river-road-part-iii.html'),
       REPORT('Australia.com: Gibb River Road itinerary', 'https://australia.com/en/trips-and-itineraries/broome-and-surrounds/the-gibb-river-road-itinerary.html'),
+      REPORT('Main Roads WA: Gibb River Road upgrades and sealing', 'https://www.mainroads.wa.gov.au/projects-initiatives/all-projects/regional/gibb-river-road'),
     ],
     approximate: 'The usual west-to-east stops; the line follows the road where the router found it.',
     stops: [
@@ -255,6 +259,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Bikepacking.com: Lagunas y Salares route', 'https://bikepacking.com/routes/lagunas-y-salares/'),
       REPORT('Itchy Boots: 10 tips for the Ruta de las Lagunas', 'https://www.itchyboots.com/bikers-guide/10-tips-for-riding-the-ruta-de-las-lagunas-in-bolivia'),
+      REPORT('Mad or Nomad: how to ride the Ruta de las Lagunas on a motorcycle', 'https://www.madornomad.com/how-to-ride-bolivias-ruta-de-las-lagunas-on-a-motorcycle/'),
     ],
     approximate: 'The usual villages, lagoons and refuges; the tracks shift every season, so the line is a guide only.',
     stops: [
@@ -302,7 +307,7 @@ export const CLASSICS = [
     id: 'manali-leh',
     title: 'Manali to Leh',
     who: 'Classic route · the Himalayan highway by motorcycle',
-    when: 'Mid-June to September, when the passes are open',
+    when: 'June to September; the road usually opens in May or June',
     vehicle: 'Royal Enfield or any adventure bike, 4–6 days',
     kind: 'moto',
     color: '#ea580c',
@@ -310,6 +315,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Notes from Chetan: Manali to Leh by bicycle, July 2025', 'https://notesfromchetan.blogspot.com/2025/12'),
       REPORT('Vargis Khan: Pang to Manali by motorcycle', 'https://vargiskhan.com/log/pang-to-manali/'),
+      REPORT('Discover with Dheeraj: Manali–Leh highway status 2026', 'https://discoverwithdheeraj.com/manali-leh-highway-status-2026/'),
     ],
     approximate: 'The usual overnight stops; the line follows the Manali–Leh highway.',
     stops: [
@@ -338,6 +344,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Walk with Vicky: Chennai to Spiti (October 2025)', 'https://walkwithvicky.blogspot.com/2025/10/chennai-to-spiti-ultimate-himalayan-adventure.html'),
       REPORT('Discover with Dheeraj: Kinnaur–Spiti circuit itinerary', 'https://discoverwithdheeraj.com/kinnaur-spiti-circuit-itinerary-2026/'),
+      REPORT('Travel Coffee: Spiti Valley road status (May 2026)', 'https://travelcoffee.in/blog/spiti-valley-road-status'),
     ],
     approximate: 'The common clockwise loop and overnight villages.',
     stops: [
@@ -391,6 +398,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Vintage Rides: The Spices Route, a travel story', 'https://www.vintagerides.com/gb/blog/the-spices-route-a-travel-story-by-paul-ollett/'),
       REPORT('xBHP: the southern escapade, riding solo across 5 states', 'https://www.xbhp.com/talkies/tourer/30136-the-southern-escapade-riding-solo-across-5-states'),
+      REPORT('Bike India: Coorg–Ooty–Munnar crowned the world\'s ultimate riding wonder', 'https://bikeindia.in/india-route-crowned-the-worlds-ultimate-riding-wonder/'),
     ],
     approximate: 'A common loop of hill stations; the roads are the router\'s choice.',
     stops: [
@@ -443,13 +451,14 @@ export const CLASSICS = [
     color: '#c2410c',
     summary: 'The classic self-drive: from Windhoek over the escarpment to the red dunes of Sossusvlei, along the foggy Atlantic coast at Swakopmund and Cape Cross, through Spitzkoppe and the rock art of Damaraland, to the waterholes of Etosha. Long gravel roads, few people, huge skies.',
     sources: [
+      REPORT('This Is Pure Felicity: Namibia road trip, 4,460 km (April 2026)', 'https://thisispurefelicity.blogspot.com/2026/04/namibia-road-trip-4460-kilometers-of.html'),
       REPORT('Lizy Travels the World: Namibia road trip day by day', 'https://lizytravelstheworld.com/namibia-road-trip-two-week-itinerary-day-by-day/'),
       REPORT('Rough Guides: planning a self-drive safari in Namibia', 'https://www.roughguides.com/namibia/self-drive-safari/'),
     ],
     approximate: 'A common two-week loop; the gravel roads are the router\'s choice.',
     stops: [
       { q: 'Windhoek, Namibia', name: 'Windhoek', wiki: 'Windhoek', text: 'Pick up the 4x4, stock up on water and food.' },
-      { q: 'Sesriem, Namibia', name: 'Sossusvlei', wiki: 'Sossusvlei', text: 'Over the Spreetshoogte pass to Sesriem; at dawn, the dunes and the dead trees of Deadvlei.' },
+      { q: 'Sesriem, Namibia', name: 'Sossusvlei', wiki: 'Sossusvlei', text: 'Over the Spreetshoogte pass to Sesriem; at dawn, the dunes and the dead trees of Deadvlei. After rain the access roads can flood.', source: REPORT('This Is Pure Felicity (2026)', 'https://thisispurefelicity.blogspot.com/2026/04/namibia-road-trip-4460-kilometers-of.html') },
       { q: 'Solitaire, Namibia', name: 'Solitaire', wiki: 'Solitaire, Namibia', text: 'A desert stop famous for its apple pie.' },
       { q: 'Swakopmund, Namibia', name: 'Swakopmund', wiki: 'Swakopmund', text: 'Through the Kuiseb canyon to a German-era town in the coastal fog.', source: REPORT('Lizy Travels the World', 'https://lizytravelstheworld.com/namibia-road-trip-two-week-itinerary-day-by-day/') },
       { q: 'Cape Cross, Namibia', name: 'Cape Cross', wiki: 'Cape Cross', text: 'Tens of thousands of fur seals on the Skeleton Coast.' },
@@ -471,6 +480,7 @@ export const CLASSICS = [
     color: '#4d7c0f',
     summary: 'Salt pans and baobabs, then into the wild: Moremi on the edge of the Okavango Delta, the Khwai river, the deep sand to Savuti, and the Chobe riverfront\'s elephant herds. Unfenced campsites, river crossings, and park bookings made months ahead.',
     sources: [
+      REPORT('Bluewater Dive Travel: 21 days overland through Botswana (April 2026)', 'https://www.bluewaterdivetravel.com/article/baobabs-butterflies-and-bat-eared-foxes-my-21-day-overland-trip-through-botswana-april-2026'),
       REPORT('Getaway: road-tripping northern Botswana', 'https://getaway.co.za/photography/road-tripping-northern-botswana-photo-blog'),
       REPORT('We Will Nomad: Botswana by road, a self-drive diary', 'https://www.wewillnomad.com/post/botswana-by-road-our-self-drive-safari-diary'),
     ],
@@ -481,7 +491,7 @@ export const CLASSICS = [
       { q: 'Maun, Botswana', name: 'Maun', wiki: 'Maun', text: 'The safari town: fuel, food, permits, and scenic flights over the Delta.', source: REPORT('Getaway: northern Botswana', 'https://getaway.co.za/photography/road-tripping-northern-botswana-photo-blog') },
       { q: 'Third Bridge, Moremi', name: 'Third Bridge', at: [-19.2386, 23.3531], wiki: 'Moremi Game Reserve', text: 'Moremi\'s famous camp in the Delta, with lions and wild dogs about.' },
       { q: 'Khwai, Botswana', name: 'Khwai', wiki: 'Khwai River', text: 'A river of hippos and elephants on Moremi\'s northern edge.' },
-      { q: 'Savuti', name: 'Savuti', at: [-18.5667, 24.0667], wiki: 'Savuti', text: 'Deep sand across the Mababe depression to the Savuti channel, lion country.' },
+      { q: 'Savuti', name: 'Savuti', at: [-18.5667, 24.0667], wiki: 'Savuti', text: 'Deep sand across the Mababe depression to the Savuti channel, lion country. Hyenas raid the public campsite at night.', source: REPORT('Tracks4Africa: three wilderness wonders of northern Botswana', 'https://blog.tracks4africa.co.za/three-must-see-wilderness-wonders-in-botswanas-north/') },
       { q: 'Chobe Riverfront', name: 'Chobe Riverfront', at: [-17.8167, 25.0333], wiki: 'Chobe National Park', text: 'Hundreds of elephants coming to drink in the afternoon.' },
       { q: 'Kasane, Botswana', name: 'Kasane', wiki: 'Kasane', text: 'The end, a short hop from Victoria Falls.' },
     ],
@@ -524,6 +534,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Bikepacking.com: the Congo Nile Trail (bikepacker\'s edition)', 'https://bikepacking.com/routes/congo-nile-trail/'),
       REPORT('Afar: five days biking Rwanda\'s Congo Nile Trail', 'https://www.afar.com/magazine/what-its-like-biking-rwandas-congo-nile-trail'),
+      REPORT('Pro Cycling UK: cycling the Congo Nile Trail, stages and advice', 'https://procyclinguk.com/cycling-in-congo-nile-trail/'),
     ],
     approximate: 'The usual stages; the line follows tracks near the marked trail.',
     stops: [
@@ -542,8 +553,9 @@ export const CLASSICS = [
     vehicle: 'Adventure motorcycle, 3–4 weeks',
     kind: 'moto',
     color: '#9a3412',
-    summary: 'The old rally\'s spirit on public roads: from Lisbon to the Strait of Gibraltar, through Morocco and down the long Atlantic desert road, across Mauritania\'s Sahara and the Senegal river to Saint-Louis and Dakar. Borders take hours; plan visas and the Diama crossing.',
+    summary: 'The old rally\'s spirit on public roads: from Lisbon to the Strait of Gibraltar, through Morocco and down the long Atlantic desert road, across Mauritania\'s Sahara and the Senegal river to Saint-Louis and Dakar. Borders take hours: Mauritania now needs an e-visa arranged in advance (since 2025), and the Diama crossing into Senegal needs planning.',
     sources: [
+      REPORT('Sahara Overland: Mauritania (updated May 2026)', 'https://sahara-overland.com/mauritania/'),
       REPORT('Ducati: route to Dakar with the Multistrada V4 Rally', 'https://www.ducati.com/au/en/stories/travel/route-to-dakar-with-the-multistrada-v4-rally'),
       REPORT('JB\'s Trails: riding a motorcycle across Mauritania', 'https://jbstrails.com/?p=24857'),
     ],
@@ -574,6 +586,7 @@ export const CLASSICS = [
     color: '#be123c',
     summary: 'The emperors\' old pilgrimage route through the forested mountains of the Kii peninsula to the three Grand Shrines of Kumano: stone paths under cedars, small oji shrines, hot springs at night and dinners in family inns. Walkers of both this and the Camino de Santiago can become "dual pilgrims".',
     sources: [
+      REPORT('Camino forum: Kumano Kodo Nakahechi trip report (June 2026)', 'https://www.caminodesantiago.me/community/threads/kumano-kodo-nakahechi-route-trip-report-june-2026.97252/'),
       REPORT('Third Eye Mom: Chikatsuyu to Hongu (October 2025)', 'https://thirdeyemom.com/2025/10/21/hiking-the-kumano-kodo-nakahechi-trail-chikatsuyu-to-hongu-grand-shrine/'),
       REPORT('Ski Kangae: Kumano Kodo day 1 (March 2025)', 'https://skikangae.blogspot.com/2025/03/kumano-kodo-day-1.html'),
     ],
@@ -598,10 +611,11 @@ export const CLASSICS = [
     vehicle: 'On foot, 2–5 weeks (or highlights in a week)',
     kind: 'walk',
     color: '#0284c7',
-    summary: 'About 540 km of old mule paths and Roman roads along the Turquoise Coast from Fethiye towards Antalya: cliff paths above turquoise bays, the ruins of Lycian cities, rock tombs and sunken Kekova, with village pensions and camping. Hot in summer; spring and autumn are best.',
+    summary: 'About 540 km on the classic line (the full waymarked trail now runs about 760 km, to Geyikbayırı near Antalya) of old mule paths and Roman roads along the Turquoise Coast from Fethiye: cliff paths above turquoise bays, the ruins of Lycian cities, rock tombs and sunken Kekova, with village pensions and camping. Hot in summer; spring and autumn are best.',
     sources: [
+      REPORT('FKT: Mikhail Kulaha, the whole Lycian Way in 7½ days (April 2026)', 'https://fastestknowntime.com/fkt/mikhail-kulaha-lycian-way-turkiye-2026-04-17'),
       REPORT('The Gone Goat: hiking the Lycian Way in a week', 'https://www.thegonegoat.com/turkey/hiking-the-lycian-way-turkey'),
-      REPORT('Novo-Monde: the Lycian Way from Fethiye to Kabak', 'https://www.novo-monde.com/en/lycian-way-fethiye-kabak/'),
+      REPORT('Antalya tourism: the Lycian Way (2026)', 'https://antalya.tc/explore/places/lycian-way'),
     ],
     approximate: 'Main stages from Ölüdeniz to Çıralı; the line follows paths near the marked trail.',
     stops: [
@@ -626,9 +640,10 @@ export const CLASSICS = [
     vehicle: 'Touring bike with camping gear, 3–4 weeks',
     kind: 'bike',
     color: '#2563eb',
-    summary: 'About 1,350 km round the island on Route 1: lava fields, waterfalls, the north\'s fjords and Mývatn\'s craters, the empty east, glaciers and the iceberg lagoon in the south. The wind decides the day: carry warm and waterproof clothes, and time for bad weather.',
+    summary: 'About 1,320 km round the island on Route 1 (more with side trips): lava fields, waterfalls, the north\'s fjords and Mývatn\'s craters, the empty east, glaciers and the iceberg lagoon in the south. The wind decides the day: carry warm and waterproof clothes, and time for bad weather.',
     sources: [
       REPORT('AliceAlain: the call of Iceland, 22 days by bike (2025)', 'https://findpenguins.com/alicealain/trip/the-call-of-iceland'),
+      REPORT('Guide to Iceland: cycling around the Ring Road', 'https://guidetoiceland.is/best-of-iceland/cycling-around-icelands-ring-road'),
       REPORT('Cycling West: bike touring Iceland\'s Ring Road', 'https://cyclingwest.com/?p=33927'),
     ],
     approximate: 'The Ring Road and the usual overnight towns.',
