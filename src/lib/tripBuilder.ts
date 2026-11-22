@@ -88,9 +88,16 @@ async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> 
     // The origin or destination listed again (within 3 km) would only make an empty day.
     .filter(r => !r.at || (haversineKm(r.at, start) > 3 && haversineKm(r.at, end) > 3));
   const kept: typeof located = [];
+  // A loop (back to where it started) has no start-to-finish line to measure detours against: its places are kept
+  // unless they are clearly a far-off namesake.
+  const loop = haversineKm(start, end) < 15;
+  const LOOP_MAX_KM = 1000;
   located.forEach((r, i) => {
     // A night the traveller asked for stays, unless its location is clearly wrong (a far-off namesake).
-    if (r.overnight && (!r.at || (haversineKm(start, r.at) + haversineKm(r.at, end)) / Math.max(1, haversineKm(start, end)) <= 2.5)) { kept.push(r); return; }
+    const plausible = !r.at || (loop
+      ? haversineKm(start, r.at) <= LOOP_MAX_KM
+      : (haversineKm(start, r.at) + haversineKm(r.at, end)) / Math.max(1, haversineKm(start, end)) <= 2.5);
+    if (r.overnight && plausible) { kept.push(r); return; }
     if (!r.at) return;
     const prev = kept.length ? kept[kept.length - 1].at || start : start;
     const next = located.slice(i + 1).find(n => n.at)?.at || end;
@@ -99,7 +106,7 @@ async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> 
     const via = haversineKm(prev, r.at) + haversineKm(r.at, next);
     const trip = haversineKm(start, end);
     const tripVia = haversineKm(start, r.at) + haversineKm(r.at, end);
-    if (direct > 0 && via / direct <= MAX_DETOUR && tripVia / trip <= MAX_DETOUR) kept.push(r);
+    if (loop ? plausible && (direct === 0 || via / direct <= MAX_DETOUR * 2) : direct > 0 && via / direct <= MAX_DETOUR && tripVia / trip <= MAX_DETOUR) kept.push(r);
     else console.info(`Skipping detour via ${r.place} (${Math.round(via)} km instead of ${Math.round(direct)} km)`);
   });
   return kept.map(({ place, overnight }) => ({ place, overnight }));
@@ -169,8 +176,9 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
         nextVia++;
       }
     };
-    if (days > 1) {
-      const points = pathWithDistances(segments[s].legs);
+    // A part with no drawn path (a routing service returned only a distance) can't be split into days.
+    const points = days > 1 ? pathWithDistances(segments[s].legs) : [];
+    if (days > 1 && points.length >= 2) {
       const splits = splitByEffort(segmentKm[s], profiles[s], kmPer1000m, days, ferries[s]);
       const spots = splits.map(km => pointAt(points, km));
       // Places to stay around each planned day end, measured along the route; then the best one per night.
