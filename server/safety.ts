@@ -4,6 +4,7 @@ import zlib from 'zlib';
 import { Type } from '@google/genai';
 import type { Plugin, Connect } from 'vite';
 import type { ServerResponse } from 'http';
+import { isTrouble } from '../src/lib/safetyTags.ts';
 
 // Overland safety informer: what is happening now, placed as precisely as the sources allow. Built on the server
 // (GET /api/safety): incidents and natural hazards are refreshed every 3 hours, travel advice every 12 hours.
@@ -16,8 +17,13 @@ import type { ServerResponse } from 'http';
 //     two weeks and nothing more precise is known, with the UK and US advice (newest first);
 //   - incidents: armed clashes, riots, bombings and mass violence reported in the news in the last 24 hours, from
 //     GDELT's geocoded event files (machine-read news: links to the reports so they can be checked);
-//   - hazards: orange and red alerts of GDACS (UN/EU): earthquakes, tsunamis, cyclones, floods, wildfires, volcanoes, droughts.
-// All sources are public and need no key. ReliefWeb (UN OCHA) could be added with an approved appname.
+//   - hazards: orange and red alerts of GDACS (UN/EU): earthquakes, tsunamis, cyclones, floods, wildfires, volcanoes, droughts;
+//     plus strong earthquakes from USGS that GDACS hasn't flagged.
+// Country advice comes from four governments (UK, US, Canada, Germany): the pin shows the strictest, and the card shows
+// when they disagree. Countries with a pin also get recent Mastodon posts about trouble on the road (#Country, filtered
+// by words in English and the local language; unverified) and links to search X, Bluesky, Reddit and local-language
+// Google News (src/lib/safetyTags.ts). All sources are public and need no key. ReliefWeb (UN OCHA) could be added with
+// an approved appname.
 
 export type Region = 'West Africa' | 'North Africa' | 'East & Southern Africa' | 'Middle East' | 'Central Asia' | 'South Asia'
   | 'Russia & Mongolia' | 'Central America' | 'South America';
@@ -147,11 +153,12 @@ const US_ALIASES: Record<string, string[]> = {
   'Myanmar (Burma)': ['Burma (Myanmar)', 'Burma'], 'Côte d\'Ivoire': ['Cote d\'Ivoire', 'Côte d\'Ivoire'],
 };
 
-export interface Report { source: 'UK' | 'US'; level: 1 | 2 | 3 | 4; headline: string; latest?: string; summary: string; updated: string; url: string }
-export interface SafetyCountry { name: string; region?: Region; at: [number, number]; level: 1 | 2 | 3 | 4; reports: Report[]; recent: boolean; areas: number }
+export interface Report { source: 'UK' | 'US' | 'CA' | 'DE'; level: 1 | 2 | 3 | 4; headline: string; latest?: string; summary: string; updated: string; url: string }
+export interface SocialPost { url: string; at: string; text: string; by: string }
+export interface SafetyCountry { name: string; region?: Region; at: [number, number]; level: 1 | 2 | 3 | 4; reports: Report[]; recent: boolean; areas: number; posts?: SocialPost[] }
 export interface SafetyArea { country: string; name: string; at: [number, number]; level: 3 | 4; note: string; updated: string; url: string }
 export interface SafetyIncident { at: [number, number]; place: string; country: string; kind: string; events: number; sources: number; links: { title: string; url: string }[]; last: string }
-export interface SafetyEvent { kind: string; name: string; level: 'Orange' | 'Red'; at: [number, number]; from: string; to: string; countries: string; url: string }
+export interface SafetyEvent { kind: string; name: string; level: 'Orange' | 'Red'; at: [number, number]; from: string; to: string; countries: string; url: string; source?: 'GDACS' | 'USGS' }
 export interface SafetyData {
   updated: string; adviceUpdated: string;
   countries: SafetyCountry[]; areas: SafetyArea[]; incidents: SafetyIncident[]; events: SafetyEvent[];
@@ -217,6 +224,102 @@ async function usAdvisories(): Promise<Map<string, Report>> {
   return out;
 }
 
+// Canada (Global Affairs Canada): one JSON file for every country, with ISO codes (used to match Germany's list too).
+const CA_HEADLINE = ['Take normal security precautions', 'Exercise a high degree of caution', 'Avoid non-essential travel', 'Avoid all travel'];
+const CA_ALIASES: Record<string, string[]> = {
+  'DR Congo': ['Democratic Republic of Congo (Kinshasa)', 'Democratic Republic of the Congo'], 'Congo': ['Republic of Congo (Brazzaville)', 'Republic of the Congo'],
+  'Côte d\'Ivoire': ['Côte d\'Ivoire (Ivory Coast)', 'Ivory Coast'], 'Myanmar': ['Myanmar (Burma)', 'Burma'], 'Turkey': ['Türkiye', 'Turkey'],
+  'The Gambia': ['Gambia, The', 'Gambia'], 'Israel': ['Israel and Palestine'], 'Palestine': ['Israel and Palestine'], 'Cape Verde': ['Cabo Verde'],
+  'Federated States of Micronesia': ['Micronesia (FSM)'], 'St Kitts and Nevis': ['Saint Kitts and Nevis'], 'St Lucia': ['Saint Lucia'],
+  'St Vincent and the Grenadines': ['Saint Vincent & the Grenadines'], 'Czechia': ['Czech Republic'],
+  'United States': ['United States'], 'USA': ['United States'], 'Eswatini': ['Eswatini (Swaziland)'],
+};
+interface CaAdvice { iso: string; report: Report }
+async function canadaAdvice(): Promise<Map<string, CaAdvice>> {
+  const j = await getJson('https://data.international.gc.ca/travel-voyage/index-updated.json');
+  const out = new Map<string, CaAdvice>();
+  for (const [iso, c] of Object.entries<any>(j.data || {})) {
+    const state = Math.max(0, Math.min(3, Number(c['advisory-state']) || 0));
+    const regional = c['has-regional-advisory'] === 1 && state < 3;
+    const report: Report = {
+      source: 'CA', level: (state + 1) as 1 | 2 | 3 | 4,
+      headline: CA_HEADLINE[state] + (regional ? ' (regional advisories in effect)' : ''),
+      latest: c.eng?.['recent-updates'] || '', summary: '',
+      updated: c['date-published']?.timestamp ? new Date(c['date-published'].timestamp * 1000).toISOString() : '',
+      url: `https://travel.gc.ca/destinations/${c.eng?.['url-slug'] || ''}`,
+    };
+    for (const n of [c['country-eng'], c.eng?.name, String(c['country-eng'] || '').replace(/\s*\(.*\)\s*/, '')]) if (n) out.set(norm(n), { iso, report });
+  }
+  return out;
+}
+
+// Germany (Auswärtiges Amt open data): warning flags per country, by ISO code.
+async function germanyAdvice(): Promise<Map<string, Report>> {
+  const j = await getJson('https://www.auswaertiges-amt.de/opendata/travelwarning');
+  const out = new Map<string, Report>();
+  for (const c of Object.values<any>(j.response || {})) {
+    if (!c || typeof c !== 'object' || !c.countryCode) continue;
+    const [level, headline] = c.warning ? [4, 'Travel warning for the whole country'] : c.partialWarning ? [3, 'Travel warning for parts of the country']
+      : c.situationWarning ? [3, 'Advises against travel to the whole country'] : c.situationPartWarning ? [2, 'Advises against travel to parts of the country']
+      : [1, 'No travel warning'];
+    out.set(String(c.countryCode).toUpperCase(), {
+      source: 'DE', level: level as 1 | 2 | 3 | 4, headline, summary: '',
+      updated: c.lastModified ? new Date(c.lastModified * 1000).toISOString() : '',
+      url: 'https://www.auswaertiges-amt.de/de/ReiseUndSicherheit/reise-und-sicherheitshinweise',
+    });
+  }
+  return out;
+}
+
+// USGS: strong earthquakes of the last week (magnitude 6+, or 5.5+ in the last two days), for those GDACS hasn't flagged.
+async function usgsQuakes(): Promise<SafetyEvent[]> {
+  const j = await getJson('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson');
+  const twoDays = Date.now() - 2 * 864e5;
+  return (j.features || []).filter((f: any) => f.properties.mag >= 6 || (f.properties.mag >= 5.5 && f.properties.time > twoDays)).map((f: any) => ({
+    kind: 'Earthquake', name: `M${f.properties.mag.toFixed(1)} ${f.properties.place || ''}`.trim(),
+    level: f.properties.mag >= 6.5 || f.properties.alert === 'red' || f.properties.alert === 'orange' ? 'Red' : 'Orange',
+    at: [f.geometry.coordinates[1], f.geometry.coordinates[0]] as [number, number],
+    from: new Date(f.properties.time).toISOString(), to: new Date(f.properties.time).toISOString(),
+    countries: String(f.properties.place || '').split(', ').pop() || '', url: f.properties.url, source: 'USGS' as const,
+  }));
+}
+/** USGS quakes not already in GDACS (same place within ~150 km and 3 days). */
+function addQuakes(events: SafetyEvent[], quakes: SafetyEvent[]): SafetyEvent[] {
+  const near = (a: SafetyEvent, b: SafetyEvent) => Math.hypot(a.at[0] - b.at[0], a.at[1] - b.at[1]) < 1.5 && Math.abs(Date.parse(a.from) - Date.parse(b.from)) < 3 * 864e5;
+  return [...events, ...quakes.filter(q => !events.some(e => e.kind === 'Earthquake' && near(e, q)))];
+}
+
+// ---- Social: recent Mastodon posts with the country's hashtag that talk about trouble on the road ----
+async function mastodonPosts(country: string, tag: string): Promise<SocialPost[]> {
+  const posts = await getJson(`https://mastodon.social/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=40`);
+  const since = Date.now() - 3 * 864e5;
+  const out: SocialPost[] = [];
+  for (const p of Array.isArray(posts) ? posts : []) {
+    if (Date.parse(p.created_at) < since || p.sensitive || p.reblog) continue;
+    const text = strip(p.content || '');
+    // The trouble named near the start (the headline of a news post), not somewhere in a long text.
+    if (!isTrouble(text.slice(0, 180), country) || out.some(o => o.text === text)) continue;
+    out.push({ url: p.url || p.uri, at: p.created_at, text: clip(text, 220), by: String(p.account?.acct || '').split('@').pop() || 'mastodon.social' });
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+/** Adds posts to the countries that have a pin (or incidents in the news), the most serious first; a few at a time. */
+async function withPosts(countries: SafetyCountry[], inc: SafetyIncident[]): Promise<SafetyCountry[]> {
+  const inNews = new Set(inc.map(i => norm(i.country)));
+  // Names that are also a US state or common words give unrelated posts: left out.
+  const AMBIGUOUS = new Set(['Georgia', 'Jordan', 'Chad', 'Guinea', 'Niger', 'Turkey', 'Mali', 'China']);
+  const pick = countries.filter(c => !AMBIGUOUS.has(c.name) && (c.level >= 3 || c.recent || inNews.has(norm(c.name)))).sort((a, b) => b.level - a.level).slice(0, 60);
+  const tagOf = (n: string) => n.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]/g, '').toLowerCase();
+  const found = await pool(pick, 3, c => mastodonPosts(c.name, tagOf(c.name)));
+  const byName = new Map(pick.map((c, i) => [c.name, found[i]]));
+  return countries.map(c => {
+    const posts = byName.get(c.name);
+    const { posts: _old, ...rest } = c;
+    return posts && posts.length ? { ...rest, posts } : (byName.has(c.name) ? rest : c);
+  });
+}
+
 async function gdacs(): Promise<SafetyEvent[]> {
   const day = (d: Date) => d.toISOString().slice(0, 10);
   const now = new Date();
@@ -230,7 +333,7 @@ async function gdacs(): Promise<SafetyEvent[]> {
     at: [f.geometry.coordinates[1], f.geometry.coordinates[0]] as [number, number],
     from: f.properties.fromdate, to: f.properties.todate,
     countries: String(f.properties.country || ''),
-    url: f.properties.url?.report || 'https://www.gdacs.org',
+    url: f.properties.url?.report || 'https://www.gdacs.org', source: 'GDACS' as const,
   }));
 }
 
@@ -367,16 +470,20 @@ export interface BuildOptions { readAreas?: AreaReader; previous?: SafetyData | 
 export async function buildSafety(opts: BuildOptions = {}): Promise<SafetyData> {
   const prev = opts.previous || null;
   const doAdvice = opts.adviceToo !== false || !prev;
-  const [inc, events] = await Promise.all([
+  const [inc, gd, quakes] = await Promise.all([
     incidents().catch(err => { console.warn('[safety] incidents', String(err)); return prev?.incidents || []; }),
-    gdacs().catch(() => prev?.events || []),
+    gdacs().catch(() => prev?.events.filter(e => e.source !== 'USGS') || []),
+    usgsQuakes().catch(() => prev?.events.filter(e => e.source === 'USGS') || []),
   ]);
-  if (!doAdvice && prev) return { ...prev, updated: new Date().toISOString(), incidents: inc, events };
+  const events = addQuakes(gd, quakes);
+  if (!doAdvice && prev) return { ...prev, updated: new Date().toISOString(), incidents: inc, events, countries: await withPosts(prev.countries, inc).catch(() => prev.countries) };
 
   const countries = allCountries();
-  const [us, uk] = await Promise.all([
+  const [us, uk, ca, de] = await Promise.all([
     usAdvisories().catch(() => new Map<string, Report>()),
     pool(countries, 6, c => (c.fcdo ? fcdo(c.fcdo) : Promise.reject(new Error('no UK advice')))),
+    canadaAdvice().catch(err => { console.warn('[safety] canada', String(err)); return new Map<string, CaAdvice>(); }),
+    germanyAdvice().catch(err => { console.warn('[safety] germany', String(err)); return new Map<string, Report>(); }),
   ]);
   const areas: SafetyArea[] = [];
   const out: SafetyCountry[] = [];
@@ -384,23 +491,34 @@ export async function buildSafety(opts: BuildOptions = {}): Promise<SafetyData> 
   for (let i = 0; i < countries.length; i++) {
     const c = countries[i], u = uk[i];
     const usReport = [c.name, ...(c.us || []), ...(US_ALIASES[c.name] || [])].map(n => us.get(norm(n))).find(Boolean);
-    const reports = [u?.report, usReport].filter((r): r is Report => Boolean(r)).sort((a, b) => Date.parse(b.updated || '0') - Date.parse(a.updated || '0'));
-    if (!reports.length) continue;
+    const caAdvice = [c.name, ...(CA_ALIASES[c.name] || []), ...(c.us || [])].map(n => ca.get(norm(n))).find(Boolean);
+    const deReport = caAdvice ? de.get(caAdvice.iso) : undefined;
+    const reports = [u?.report, usReport, caAdvice?.report, deReport].filter((r): r is Report => Boolean(r)).sort((a, b) => Date.parse(b.updated || '0') - Date.parse(a.updated || '0'));
+    if (!reports.some(r => r.source === 'UK' || r.source === 'US')) continue;
     const mine = u ? await adviceAreas(c, u, opts.readAreas, prev?.areas || []) : [];
     areas.push(...mine);
-    const level = Math.max(...reports.map(r => r.level)) as 1 | 2 | 3 | 4;
-    const recent = reports.some(r => Date.parse(r.updated || '0') > twoWeeks);
+    // The UK or US level as before, raised only when at least two governments give the higher level (one government's
+    // stricter notice alone doesn't move the pin; the card shows it and that they disagree).
+    const levels = reports.map(r => r.level).sort((a, b) => b - a);
+    const ukUs = Math.max(...reports.filter(r => r.source === 'UK' || r.source === 'US').map(r => r.level));
+    const level = Math.max(ukUs, levels[1] ?? levels[0]) as 1 | 2 | 3 | 4;
+    // Recently changed: the UK or US advice (Canada and Germany re-publish often for small text edits).
+    const recent = reports.some(r => (r.source === 'UK' || r.source === 'US') && Date.parse(r.updated || '0') > twoWeeks);
     out.push({ name: c.name, ...(c.region ? { region: c.region } : {}), at: c.at, level, reports, recent, areas: mine.length });
   }
   if (!out.length) throw new Error('no safety source answered');
   const now = new Date().toISOString();
   return {
-    updated: now, adviceUpdated: now, countries: out, areas, incidents: inc, events,
+    updated: now, adviceUpdated: now, countries: await withPosts(out, inc).catch(() => out), areas, incidents: inc, events,
     sources: [
       { label: 'UK FCDO travel advice', url: 'https://www.gov.uk/foreign-travel-advice' },
       { label: 'US State Department travel advisories', url: 'https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html' },
+      { label: 'Global Affairs Canada travel advice', url: 'https://travel.gc.ca/travelling/advisories' },
+      { label: 'German Foreign Office travel warnings', url: 'https://www.auswaertiges-amt.de/de/ReiseUndSicherheit/reise-und-sicherheitshinweise' },
       { label: 'GDELT news events', url: 'https://www.gdeltproject.org' },
       { label: 'GDACS (UN/EU disaster alerts)', url: 'https://www.gdacs.org' },
+      { label: 'USGS earthquakes', url: 'https://earthquake.usgs.gov/earthquakes/map/' },
+      { label: 'Mastodon (public posts)', url: 'https://mastodon.social/explore' },
     ],
   };
 }
