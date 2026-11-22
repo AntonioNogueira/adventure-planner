@@ -3700,4 +3700,201 @@ export const CLASSICS = [
     }
    ]
   },
+  {
+   "id": "mongol-rally",
+   "title": "Mongol Rally",
+   "who": "The Adventurists · since 2004",
+   "when": "Every summer (launch in July)",
+   "vehicle": "A small, unsuitable car (classically under 1.2 litres)",
+   "kind": "rally",
+   "color": "#ca8a04",
+   "summary": "Not a race and no route: a start in Europe, a finish in Asia, and whatever crazy way teams choose in between, in cars that should never leave the city, raising money for charity. Teams launch from the UK or Czechia, converge on Prague, then head through Istanbul, the Caucasus and Central Asia (or Russia), often meeting in Samarkand, before Mongolia. The finish moved from Ulaanbaatar to Ulan-Ude in Siberia, and in 2025 to Oskemen in Kazakhstan. About 13,000–16,000 km in three to four weeks.",
+   "sources": [
+    {
+     "label": "Wikipedia: Mongol Rally",
+     "url": "https://en.wikipedia.org/wiki/Mongol_Rally"
+    },
+    {
+     "label": "The Adventurists: Mongol Rally guide",
+     "url": "https://www.theadventurists.com/guides/mongol-rally/"
+    },
+    {
+     "label": "WeRoad: Mongol Rally 2026, route and dates",
+     "url": "https://www.weroad.it/blog/mongol-rally-cosa-e-percorso-date"
+    }
+   ],
+   "approximate": "One classic southern route through the Caucasus and Central Asia to the old finish in Ulaanbaatar and on to Ulan-Ude; every team picks its own way.",
+   "stops": [
+    {
+     "q": "Goodwood Circuit, England",
+     "at": [
+      50.8597,
+      -0.7581
+     ],
+     "name": "Goodwood",
+     "wiki": "Goodwood Circuit",
+     "text": "The classic British launch: a lap of the circuit, then east."
+    },
+    {
+     "q": "Praha, Czechia",
+     "name": "Prague",
+     "wiki": "Prague",
+     "text": "The launch party where teams converge (the 2026 start was in Czechia)."
+    },
+    {
+     "q": "Istanbul, Turkey",
+     "name": "Istanbul",
+     "wiki": "Istanbul",
+     "text": "Across the Balkans to the Bosphorus."
+    },
+    {
+     "q": "Tbilisi, Georgia",
+     "name": "Tbilisi",
+     "wiki": "Tbilisi",
+     "text": "Into the Caucasus."
+    },
+    {
+     "q": "Baku, Azerbaijan",
+     "name": "Baku",
+     "wiki": "Baku",
+     "text": "Waiting days for a cargo ferry over the Caspian."
+    },
+    {
+     "q": "Aktau, Kazakhstan",
+     "name": "Aktau",
+     "by": "ferry",
+     "wiki": "Aktau",
+     "text": "Off the boat into the Kazakh steppe."
+    },
+    {
+     "q": "Nukus, Uzbekistan",
+     "name": "Nukus",
+     "wiki": "Nukus",
+     "text": "Terrible roads past the dried-up Aral Sea."
+    },
+    {
+     "q": "Samarkand, Uzbekistan",
+     "name": "Samarkand",
+     "wiki": "Registan",
+     "text": "Where the southern and northern routes often meet."
+    },
+    {
+     "q": "Almaty, Kazakhstan",
+     "name": "Almaty",
+     "wiki": "Almaty",
+     "text": "North-east along the Tian Shan."
+    },
+    {
+     "q": "Oskemen, Kazakhstan",
+     "name": "Oskemen",
+     "wiki": "Oskemen",
+     "text": "The 2025 finish, in East Kazakhstan."
+    },
+    {
+     "q": "Gorno-Altaysk, Russia",
+     "name": "Altai",
+     "wiki": "Altai Republic",
+     "text": "Through the Russian Altai towards the Mongolian border at Tashanta."
+    },
+    {
+     "q": "Ölgii, Mongolia",
+     "name": "Ölgii",
+     "wiki": "Ölgii (city)",
+     "text": "Into western Mongolia: dirt tracks and river crossings."
+    },
+    {
+     "q": "Khovd, Mongolia",
+     "name": "Khovd",
+     "wiki": "Khovd (city)",
+     "text": "Across the steppe; cars break, teams help each other."
+    },
+    {
+     "q": "Ulaanbaatar, Mongolia",
+     "name": "Ulaanbaatar",
+     "wiki": "Ulaanbaatar",
+     "text": "The original finish line."
+    },
+    {
+     "q": "Ulan-Ude, Russia",
+     "name": "Ulan-Ude",
+     "wiki": "Ulan-Ude",
+     "text": "The later finish in Siberia, by the giant Lenin head."
+    }
+   ]
+  },
+  {
+   "id": "rickshaw-run",
+   "title": "Rickshaw Run: Kochi to Jaisalmer",
+   "who": "The Adventurists · since 2006",
+   "when": "Three times a year (January, April, August–September)",
+   "vehicle": "A 7-horsepower auto-rickshaw",
+   "kind": "rally",
+   "color": "#16a34a",
+   "summary": "Teams drive three-wheeled auto-rickshaws across India, about 2,800–3,500 km in two weeks, with no set route and no support, raising money for charity. Recent editions run between Fort Kochi in Kerala and Jaisalmer in the Thar Desert, alternating direction; earlier ones went to Shillong, Darjeeling, Gangtok or Kathmandu and Pokhara in Nepal.",
+   "sources": [
+    {
+     "label": "Wikipedia: Rickshaw Run",
+     "url": "https://en.wikipedia.org/wiki/Rickshaw_Run"
+    },
+    {
+     "label": "The Adventurists: Rickshaw Run India",
+     "url": "https://www.theadventurists.com/?p=2431"
+    },
+    {
+     "label": "Scroll.in: 2,764 km from Cochin to Jaisalmer by auto-rickshaw",
+     "url": "https://scroll.in/video/861469/scroll_in"
+    }
+   ],
+   "approximate": "One common route up the west coast and through Rajasthan; every team picks its own way.",
+   "stops": [
+    {
+     "q": "Fort Kochi, Kerala",
+     "name": "Fort Kochi",
+     "wiki": "Fort Kochi",
+     "text": "The start among Chinese fishing nets, after a day learning to drive a rickshaw."
+    },
+    {
+     "q": "Mangalore, India",
+     "name": "Mangalore",
+     "wiki": "Mangalore",
+     "text": "North up the Malabar coast."
+    },
+    {
+     "q": "Panaji, Goa",
+     "name": "Goa",
+     "wiki": "Goa",
+     "text": "Beaches and a breather."
+    },
+    {
+     "q": "Mumbai, India",
+     "name": "Mumbai",
+     "wiki": "Mumbai",
+     "text": "Rickshaws in megacity traffic."
+    },
+    {
+     "q": "Ahmedabad, India",
+     "name": "Ahmedabad",
+     "wiki": "Ahmedabad",
+     "text": "Into Gujarat."
+    },
+    {
+     "q": "Udaipur, India",
+     "name": "Udaipur",
+     "wiki": "Udaipur",
+     "text": "Lakes and palaces of Rajasthan."
+    },
+    {
+     "q": "Jodhpur, India",
+     "name": "Jodhpur",
+     "wiki": "Jodhpur",
+     "text": "The blue city under its fort."
+    },
+    {
+     "q": "Jaisalmer, India",
+     "name": "Jaisalmer",
+     "wiki": "Jaisalmer Fort",
+     "text": "The golden fort in the Thar Desert: finish party."
+    }
+   ]
+  },
 ];

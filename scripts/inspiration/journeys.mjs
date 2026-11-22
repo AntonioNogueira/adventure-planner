@@ -2401,4 +2401,102 @@ export const JOURNEYS = [
     }
    ]
   },
+  {
+   "id": "ate-la-abaixo-2010",
+   "title": "Até Lá Abaixo: Lisbon to the 2010 World Cup",
+   "who": "Tiago Carrasco, João Henriques and João Fontes",
+   "when": "2010, about 150 days",
+   "vehicle": "4x4 jeep",
+   "kind": "4x4",
+   "color": "#b91c1c",
+   "media": [
+    {
+     "kind": "book",
+     "title": "Até Lá Abaixo",
+     "by": "Tiago Carrasco"
+    },
+    {
+     "kind": "film",
+     "title": "Até Lá Abaixo: O Outro Lado do Futebol em África",
+     "by": "João Fontes",
+     "note": "Documentary, premiered at the Offside Lisboa festival"
+    }
+   ],
+   "summary": "A journalist, a photographer and a cameraman quit their jobs to drive a jeep from Portugal to South Africa for the first World Cup played in Africa: about 30,000 km through 21 African countries in five months. Football as a common language from Morocco to Johannesburg, and a journey about fear and setbacks too; in Zimbabwe a gang of street kids slashed a tyre and tried to steal their gear. It became a book (2011) and a documentary.",
+   "sources": [
+    {
+     "label": "Observador: Cinco meses num jipe para ver jogos de futebol? (2018)",
+     "url": "https://observador.pt/2018/05/25/cinco-meses-num-jipe-para-ver-jogos-de-futebol-isso-e-muito-mais/"
+    },
+    {
+     "label": "Bertrand: Até Lá Abaixo (book)",
+     "url": "https://www.bertrand.pt/livro/ate-la-abaixo-tiago-carrasco/10918180"
+    },
+    {
+     "label": "Ludopédio: the documentary",
+     "url": "https://ludopedio.org.br/biblioteca/ate-la-abaixo-filme/"
+    }
+   ],
+   "approximate": "Only the countries named in the sources (21 were crossed); the order between them and the roads are approximate, and the long stretch from The Gambia to Angola is not drawn.",
+   "stops": [
+    {
+     "q": "Lisboa, Portugal",
+     "name": "Lisboa",
+     "date": "2010",
+     "wiki": "Lisbon",
+     "text": "Three friends leave their jobs and set off south in a jeep."
+    },
+    {
+     "q": "Tarifa, Spain",
+     "name": "Tarifa",
+     "wiki": "Tarifa",
+     "text": "Through Spain to the Strait of Gibraltar."
+    },
+    {
+     "q": "Tangier, Morocco",
+     "name": "Tangier",
+     "by": "ferry",
+     "wiki": "Tangier",
+     "text": "The ferry over the strait into Africa."
+    },
+    {
+     "q": "Marrakech, Morocco",
+     "name": "Morocco",
+     "wiki": "Marrakesh",
+     "text": "South through Morocco, the first of 21 African countries."
+    },
+    {
+     "q": "Banjul, Gambia",
+     "name": "The Gambia",
+     "wiki": "Banjul",
+     "text": "Down the West African coast."
+    },
+    {
+     "q": "Luanda, Angola",
+     "name": "Angola",
+     "by": "unknown",
+     "wiki": "Luanda",
+     "text": "Portuguese-speaking Angola, after West and Central Africa."
+    },
+    {
+     "q": "Lusaka, Zambia",
+     "name": "Zambia",
+     "wiki": "Lusaka",
+     "text": "East across the continent."
+    },
+    {
+     "q": "Harare, Zimbabwe",
+     "name": "Zimbabwe",
+     "wiki": "Harare",
+     "text": "A gang of street kids slashed a tyre and tried to steal their equipment."
+    },
+    {
+     "q": "Johannesburg, South Africa",
+     "name": "Johannesburg",
+     "date": "June 2010",
+     "wiki": "Soccer City",
+     "text": "The World Cup, after about 30,000 km."
+    }
+   ]
+  },
 ];
