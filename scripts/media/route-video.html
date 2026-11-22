@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Route video</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1622; overflow: hidden; font-family: 'Liberation Sans', 'DejaVu Sans', Arial, sans-serif; }
+  #map { position: absolute; inset: 0; }
+  .maplibregl-ctrl-attrib { display: none; }
+  .card { position: absolute; left: 50%; transform: translateX(-50%); width: 88%; box-sizing: border-box; background: rgba(255, 252, 244, .96);
+    border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.35); color: #1e293b; transition: none; }
+  #title { top: 7%; padding: 22px 24px; border-left: 8px solid var(--c); }
+  #title .kicker { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #047857; font-weight: 700; }
+  #title h1 { margin: 6px 0 6px; font-size: 30px; line-height: 1.1; }
+  #title p { margin: 0; font-size: 15px; color: #475569; }
+  #stop { bottom: 9%; padding: 14px; display: flex; gap: 14px; align-items: center; }
+  #stop img { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; flex: none; }
+  #stop .n { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; background: var(--c); }
+  #stop h2 { margin: 4px 0 2px; font-size: 22px; }
+  #stop .date { font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  #stop .text { font-size: 15px; line-height: 1.35; margin-top: 4px; }
+  #stop .credit { font-size: 9px; color: #94a3b8; margin-top: 4px; }
+  #end { top: 50%; transform: translate(-50%, -50%); padding: 26px; text-align: center; border-top: 8px solid var(--c); }
+  #end h1 { margin: 0 0 8px; font-size: 28px; }
+  #end .stats { font-size: 18px; color: #334155; margin: 10px 0 16px; font-weight: 700; }
+  #end .cta { display: inline-block; background: #047857; color: #fff; padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 17px; }
+  #end .brand { margin-top: 14px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: #64748b; font-weight: 700; }
+  #counter { position: absolute; top: 3%; right: 5%; background: rgba(11,22,34,.75); color: #fff; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; }
+  #brandmark { position: absolute; bottom: 2.5%; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.85); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  .wide #title { width: 46%; left: 4%; transform: none; top: 8%; }
+  .wide #stop { width: 46%; left: auto; right: 3%; transform: none; bottom: 8%; }
+  .wide #end { width: 50%; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="title" class="card hidden"><div class="kicker"></div><h1></h1><p class="who"></p><p class="veh"></p></div>
+<div id="stop" class="card hidden"><img alt="" /><div><span class="n"></span><h2></h2><div class="date"></div><div class="text"></div><div class="credit"></div></div></div>
+<div id="end" class="card hidden"><h1></h1><div class="stats"></div><div class="cta"></div><div class="brand"></div></div>
+<div id="counter" class="hidden"></div>
+<div id="brandmark">Adventure Planner</div>
+<script type="module" src="./route-video.ts"></script>
+</body>
+</html>
