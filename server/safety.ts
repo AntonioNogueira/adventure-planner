@@ -163,6 +163,8 @@ export interface SafetyData {
   updated: string; adviceUpdated: string;
   countries: SafetyCountry[]; areas: SafetyArea[]; incidents: SafetyIncident[]; events: SafetyEvent[];
   sources: { label: string; url: string }[];
+  /** Country → the advice update its areas were last read from (so a country with none isn't read again). */
+  checked?: Record<string, string>;
 }
 
 /** Reads the advice areas from a country's warnings text (AI); supplied by the server, which has the AI keys. */
@@ -448,12 +450,20 @@ async function geocode(q: string): Promise<[number, number] | null> {
   return at;
 }
 
-async function adviceAreas(country: Country, uk: UkAdvice, read: AreaReader | undefined, previous: SafetyArea[]): Promise<SafetyArea[]> {
+/** The AI shares its quota with the travellers' trip planning: at most this many advice texts are read per build
+ *  (the rest wait for the next one), and a text already read is never read again. */
+const MAX_AI_READS = 8;
+interface AreaBudget { reads: number; checked: Record<string, string> }
+
+async function adviceAreas(country: Country, uk: UkAdvice, read: AreaReader | undefined, previous: SafetyArea[], budget: AreaBudget): Promise<SafetyArea[]> {
   if (!uk.partial && uk.report.level < 4) return [];
-  // Same advice as last time: keep the areas already placed.
+  // Same advice as last time: keep the areas already placed (or none, if it was read and named no places).
   const kept = previous.filter(a => a.country === country.name && a.updated === uk.report.updated);
-  if (kept.length || !read || !uk.warnings) return kept;
-  const found = await read(country.name, uk.warnings).catch(() => []);
+  if (kept.length || budget.checked[country.name] === uk.report.updated || !read || !uk.warnings || budget.reads >= MAX_AI_READS) return kept;
+  budget.reads++;
+  let found: Awaited<ReturnType<AreaReader>>;
+  try { found = await read(country.name, uk.warnings); } catch { return kept; } // busy: try again next build
+  budget.checked[country.name] = uk.report.updated;
   const out: SafetyArea[] = [];
   for (const a of found.slice(0, 14)) {
     const at = await geocode(a.place);
@@ -487,6 +497,8 @@ export async function buildSafety(opts: BuildOptions = {}): Promise<SafetyData> 
   ]);
   const areas: SafetyArea[] = [];
   const out: SafetyCountry[] = [];
+  // Countries whose areas were read before keep that mark (from the areas already placed, for older saved data).
+  const budget: AreaBudget = { reads: 0, checked: { ...Object.fromEntries((prev?.areas || []).map(a => [a.country, a.updated])), ...(prev?.checked || {}) } };
   const twoWeeks = Date.now() - 14 * 864e5;
   for (let i = 0; i < countries.length; i++) {
     const c = countries[i], u = uk[i];
@@ -495,7 +507,7 @@ export async function buildSafety(opts: BuildOptions = {}): Promise<SafetyData> 
     const deReport = caAdvice ? de.get(caAdvice.iso) : undefined;
     const reports = [u?.report, usReport, caAdvice?.report, deReport].filter((r): r is Report => Boolean(r)).sort((a, b) => Date.parse(b.updated || '0') - Date.parse(a.updated || '0'));
     if (!reports.some(r => r.source === 'UK' || r.source === 'US')) continue;
-    const mine = u ? await adviceAreas(c, u, opts.readAreas, prev?.areas || []) : [];
+    const mine = u ? await adviceAreas(c, u, opts.readAreas, prev?.areas || [], budget) : [];
     areas.push(...mine);
     // The UK or US level as before, raised only when at least two governments give the higher level (one government's
     // stricter notice alone doesn't move the pin; the card shows it and that they disagree).
@@ -509,7 +521,7 @@ export async function buildSafety(opts: BuildOptions = {}): Promise<SafetyData> 
   if (!out.length) throw new Error('no safety source answered');
   const now = new Date().toISOString();
   return {
-    updated: now, adviceUpdated: now, countries: await withPosts(out, inc).catch(() => out), areas, incidents: inc, events,
+    updated: now, adviceUpdated: now, countries: await withPosts(out, inc).catch(() => out), areas, incidents: inc, events, checked: budget.checked,
     sources: [
       { label: 'UK FCDO travel advice', url: 'https://www.gov.uk/foreign-travel-advice' },
       { label: 'US State Department travel advisories', url: 'https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html' },

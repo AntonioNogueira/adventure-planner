@@ -14,8 +14,11 @@ const opt = (name, def) => { const i = process.argv.indexOf(`--${name}`); return
 const fps = Number(opt('fps', 25));
 const base = opt('url', 'http://localhost:5179');
 const cta = opt('cta', '');
+const lang = opt('lang', '');
+const stats = opt('stats', '');
+const name = opt('name', `${id}-${format}`);
 const out = path.resolve(opt('out', 'marketing/out'));
-const frames = path.join(out, `.frames-${id}-${format}`);
+const frames = path.join(out, `.frames-${id}-${format}-${process.pid}`);
 rmSync(frames, { recursive: true, force: true });
 mkdirSync(frames, { recursive: true });
 
@@ -23,7 +26,7 @@ const size = format === 'horizontal' ? { width: 960, height: 540 } : { width: 54
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: size, deviceScaleFactor: 2 });
 page.on('pageerror', e => console.error('page error:', e.message));
-const url = `${base}/scripts/media/route-video.html?id=${encodeURIComponent(id)}&format=${format}${cta ? `&cta=${encodeURIComponent(cta)}` : ''}`;
+const url = `${base}/scripts/media/route-video.html?id=${encodeURIComponent(id)}&format=${format}${cta ? `&cta=${encodeURIComponent(cta)}` : ''}${lang ? `&lang=${lang}` : ''}${stats ? `&stats=${encodeURIComponent(stats)}` : ''}`;
 const open = async () => {
   await page.goto(url);
   await page.waitForFunction(() => window.videoReady || window.videoError, null, { timeout: 120000 });
@@ -51,7 +54,7 @@ for (let i = 0; i < count; i++) {
   if (i % 100 === 0) console.log(`  frame ${i}/${count} (${Math.round((Date.now() - started) / 1000)} s)`);
 }
 await browser.close();
-const file = path.join(out, `${id}-${format}.mp4`);
+const file = path.join(out, `${name}.mp4`);
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(frames, '%05d.jpg'),
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', file]);
 rmSync(frames, { recursive: true, force: true });

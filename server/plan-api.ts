@@ -7,6 +7,7 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { verifyIdToken, readPlanRecord, isAdmin, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 import { isLocalUrl, readLink, linkAsText } from './link';
+import { parseQuickIntent, quickReply } from './quickIntent';
 import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourneyChatPrompt, buildScreeningPrompt, emailAdmin, readSubmission, screeningJsonSchema } from './submissions';
 
 // Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
@@ -360,7 +361,7 @@ async function runClaude(env: PlanEnv, task: string, prompt: string, schema: Rec
   }
   content.push({ type: 'text', text: prompt });
 
-  const model = env.CLAUDE_MODEL || 'claude-opus-5-5';
+  const model = env.CLAUDE_MODEL || 'claude-haiku-5-5';
   const started = Date.now();
   const response = await client.beta.messages.create({
     model,
@@ -405,7 +406,7 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
 
   let lastError: unknown;
   for (const model of models) {
-    for (const delay of [0, 4000, 10000]) {
+    for (const delay of [0, 2500, 6000]) {
       if (delay) await sleep(delay);
       const started = Date.now();
       try {
@@ -430,6 +431,8 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
         lastError = err;
         if (err instanceof ApiError) logUsage(task, model, started, { error: `${err.status}${GEMINI_RETRYABLE.has(err.status) ? ' (busy, will retry)' : ''}` });
         if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
+        // A used-up quota (per minute or per day) won't come back in seconds: try the next model straight away.
+        if (err.status === 429 && /quota|RESOURCE_EXHAUSTED|per day|PerDay/i.test(err.message)) break;
       }
     }
   }
@@ -937,6 +940,15 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         console.log(`[ai] understood: ${describeIntent(intent)}`);
         return sendJson(res, 200, { provider, plan: intent });
       } catch (err) {
+        // Every AI busy or out of quota: read a plain request ourselves so the traveller still gets a trip.
+        if (err instanceof AllFailed || err instanceof NoProvider) {
+          const quick = parseQuickIntent(request, current);
+          if (quick) {
+            quick.reply = quickReply(language);
+            console.log(`[ai] unavailable, quick plan: ${describeIntent(quick)}`);
+            return sendJson(res, 200, { provider: 'quick', plan: quick });
+          }
+        }
         return sendTaskError(res, err);
       }
     }
