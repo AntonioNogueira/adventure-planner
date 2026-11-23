@@ -17,7 +17,10 @@ interface Journey { id: string; title: string; who: string; when: string; vehicl
 const params = new URLSearchParams(location.search);
 const id = params.get('id') || 'long-way-round';
 const wide = params.get('format') === 'horizontal';
-const cta = params.get('cta') || 'Follow every stop and plan your own: link in bio';
+const pt = params.get('lang') === 'pt';
+const cta = params.get('cta') || (pt ? 'Segue cada paragem e planeia a tua: link na bio' : 'Follow every stop and plan your own: link in bio');
+/** Overrides the end card's figures when the map shows only part of the journey. */
+const statsOverride = params.get('stats');
 if (wide) document.body.classList.add('wide');
 
 const ROAD = new Set(['ride', 'walk', 'truck', 'bus']);
@@ -95,7 +98,7 @@ async function main() {
   const span = Math.max(Math.max(...lngs) - Math.min(...lngs), (Math.max(...lats) - Math.min(...lats)) * 1.4, 1);
   const followZoom = clamp(Math.log2(360 / span) + (wide ? 1.4 : 0.9), 2.2, 7.5);
 
-  const map = new maplibregl.Map({ container: 'map', style: GLOBE_STYLE, center: [at(0)[1], at(0)[0]], zoom: followZoom - 0.8, attributionControl: false, interactive: false, fadeDuration: 0, preserveDrawingBuffer: true });
+  const map = new maplibregl.Map({ container: 'map', style: GLOBE_STYLE, center: [at(0)[1], at(0)[0]], zoom: followZoom - 0.8, attributionControl: false, interactive: false, fadeDuration: 0, canvasContextAttributes: { preserveDrawingBuffer: true } });
   await new Promise<void>(r => map.on('load', () => r()));
   map.setProjection({ type: 'globe' });
   map.addSource('done', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -112,12 +115,12 @@ async function main() {
 
   const endCam = map.cameraForBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: wide ? 120 : 80 }) || { center: map.getCenter(), zoom: 2 };
 
-  $('#title .kicker').textContent = 'Famous journeys, mapped';
+  $('#title .kicker').textContent = pt ? 'Viagens famosas, no mapa' : 'Famous journeys, mapped';
   $('#title h1').textContent = j.title;
   $('#title .who').textContent = [j.who, j.when].filter(Boolean).join(' · ');
   $('#title .veh').textContent = j.vehicle;
   $('#end h1').textContent = j.title;
-  $('#end .stats').textContent = `${Math.round(j.km).toLocaleString('en')} km · ${j.stops.length} stops${j.when ? ` · ${j.when}` : ''}`;
+  $('#end .stats').textContent = statsOverride || `${Math.round(j.km).toLocaleString('en')} km · ${j.stops.length} stops${j.when ? ` · ${j.when}` : ''}`;
   $('#end .cta').textContent = cta;
   $('#end .brand').textContent = 'Adventure Planner';
 
