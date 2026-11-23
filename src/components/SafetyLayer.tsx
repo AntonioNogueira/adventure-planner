@@ -1,14 +1,16 @@
 // Overland safety informer on the Inspiration map: what is happening now, placed as precisely as the sources allow.
-// Advice areas (where the UK advises against travel), country advice (UK and US, newest first), incidents reported
-// in the news in the last 24 hours (GDELT) and natural hazards (GDACS). Data from /api/safety (incidents and hazards
+// Advice areas (where the UK advises against travel), country advice (UK, US, Canada, Germany, newest first), incidents
+// reported in the news in the last 24 hours (GDELT), natural hazards (GDACS, USGS), recent Mastodon posts and links to
+// search live posts and local news by hashtag (src/lib/safetyTags.ts). Data from /api/safety (incidents and hazards
 // refreshed every 3 hours, advice every 12), or the copy saved with the app. See server/safety.ts.
 import React, { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { createRoot, Root } from 'react-dom/client';
-import { AlertTriangle, ExternalLink, Flame, MapPin, ShieldAlert, X } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Flame, Hash, MapPin, ShieldAlert, X } from 'lucide-react';
 import { useSettings } from '../lib/settings';
 import { cn } from '../lib/utils';
-import type { SafetyArea, SafetyCountry, SafetyData, SafetyEvent, SafetyIncident } from '../../server/safety';
+import { liveLinks } from '../lib/safetyTags';
+import type { Report, SafetyArea, SafetyCountry, SafetyData, SafetyEvent, SafetyIncident } from '../../server/safety';
 
 export const LEVEL_COLORS = ['', '#16a34a', '#eab308', '#f97316', '#dc2626'] as const;
 const LEVEL_WORDS = ['', 'Normal precautions', 'Increased caution', 'Reconsider travel / avoid parts', 'Do not travel'] as const;
@@ -34,6 +36,20 @@ const Link: React.FC<{ href: string; children: React.ReactNode }> = ({ href, chi
   <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-emerald-800 hover:underline">{children}<ExternalLink size={11} /></a>
 );
 
+const SOURCE_NAME: Record<Report['source'], string> = { UK: 'UK Foreign Office', US: 'US State Department', CA: 'Global Affairs Canada', DE: 'German Foreign Office' };
+
+/** Links to search live posts and local news by hashtag (they open in a new tab). */
+const LiveLinks: React.FC<{ country: string; place?: string }> = ({ country, place }) => {
+  const { t } = useSettings();
+  return (
+    <div className="rounded border border-slate-200 p-2">
+      <p className="flex items-center gap-1 text-[10px] font-bold uppercase text-slate-500"><Hash size={11} />{t('Live posts and local news')}</p>
+      <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">{liveLinks(country, place).map(l => <Link key={l.url} href={l.url}>{l.label}</Link>)}</p>
+      <p className="mt-0.5 text-[10px] text-slate-500">{t('Social media is unverified: use it to see what people report now, then check official advice.')}</p>
+    </div>
+  );
+};
+
 const CountryCard: React.FC<{ c: SafetyCountry }> = ({ c }) => {
   const { t } = useSettings();
   const date = useDate();
@@ -46,16 +62,31 @@ const CountryCard: React.FC<{ c: SafetyCountry }> = ({ c }) => {
       </div>
       <p className="font-semibold" style={{ color: LEVEL_COLORS[c.level] }}>{t(LEVEL_WORDS[c.level])}</p>
       {c.areas > 0 && <p className="text-[11px] text-slate-500">{t('{n} specific areas are marked on the map.', { n: c.areas })}</p>}
+      {(() => {
+        const ls = c.reports.map(r => r.level);
+        return Math.max(...ls) - Math.min(...ls) >= 2
+          ? <p className="rounded bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-800">{t('Governments disagree: from level {min} to {max}. Read each one below.', { min: Math.min(...ls), max: Math.max(...ls) })}</p>
+          : null;
+      })()}
       {/* Newest report first. */}
       {c.reports.map((r, i) => (
         <div key={i} className="rounded border border-slate-200 p-2">
-          <p className="text-[10px] font-bold uppercase text-slate-500">{t(r.source === 'UK' ? 'UK Foreign Office' : 'US State Department')} · {date(r.updated)}</p>
-          <p className="font-semibold">{r.source === 'UK' ? t(r.headline) : r.headline}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-500">{t(SOURCE_NAME[r.source])} · {t('Level {n}', { n: r.level })} · {date(r.updated)}</p>
+          <p className="font-semibold">{r.source === 'US' ? r.headline : t(r.headline)}</p>
           {r.latest && <p className="mt-1"><span className="font-semibold">{t('Latest update')}:</span> {r.latest}</p>}
           {r.summary && <p className="mt-1 text-slate-600">{r.summary}</p>}
-          <p className="mt-1"><Link href={r.url}>{t(r.source === 'UK' ? 'Read the full advice' : 'Read the full advisory')}</Link></p>
+          <p className="mt-1"><Link href={r.url}>{t(r.source === 'US' ? 'Read the full advisory' : 'Read the full advice')}</Link></p>
         </div>
       ))}
+      {c.posts && c.posts.length > 0 && (
+        <div className="rounded border border-slate-200 p-2">
+          <p className="text-[10px] font-bold uppercase text-slate-500">{t('Recent posts (Mastodon, unverified)')}</p>
+          <ul className="mt-1 space-y-1">{c.posts.map(p => (
+            <li key={p.url}><a href={p.url} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:underline">{p.text}</a> <span className="text-[10px] text-slate-400">· {p.by} · {date(p.at)}</span></li>
+          ))}</ul>
+        </div>
+      )}
+      <LiveLinks country={c.name} />
     </div>
   );
 };
@@ -86,6 +117,7 @@ const IncidentCard: React.FC<{ e: SafetyIncident }> = ({ e }) => {
       <p>{t('{n} news reports in the last 24 hours.', { n: e.sources })}</p>
       <ul className="space-y-0.5">{e.links.map(l => <li key={l.url}><a href={l.url} target="_blank" rel="noopener noreferrer" className="text-emerald-800 hover:underline">{l.title}</a></li>)}</ul>
       <p className="text-[10.5px] text-slate-500">{t('Read automatically from news reports (GDELT): it can be wrong; check the reports.')}</p>
+      <LiveLinks country={e.country} place={e.place} />
     </div>
   );
 };
@@ -96,10 +128,10 @@ const EventCard: React.FC<{ e: SafetyEvent }> = ({ e }) => {
   return (
     <div className="space-y-1 text-xs text-slate-700">
       <p className="flex items-center gap-1.5 text-sm font-bold text-slate-900"><AlertTriangle size={14} style={{ color: e.level === 'Red' ? '#dc2626' : '#f97316' }} />{t(e.kind)}</p>
-      <p className="text-[10px] font-bold uppercase" style={{ color: e.level === 'Red' ? '#dc2626' : '#f97316' }}>{t(e.level === 'Red' ? 'Red alert' : 'Orange alert')} · GDACS</p>
+      <p className="text-[10px] font-bold uppercase" style={{ color: e.level === 'Red' ? '#dc2626' : '#f97316' }}>{t(e.level === 'Red' ? 'Red alert' : 'Orange alert')} · {e.source === 'USGS' ? 'USGS' : 'GDACS'}</p>
       <p>{e.name}</p>
       <p className="text-slate-500">{date(e.from)} – {date(e.to)}</p>
-      <Link href={e.url}>{t('GDACS report')}</Link>
+      <Link href={e.url}>{t(e.source === 'USGS' ? 'USGS report' : 'GDACS report')}</Link>
     </div>
   );
 };
@@ -207,7 +239,7 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean;
           <p className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2" style={{ background: LEVEL_COLORS[3], borderColor: RECENT }} />{t('Dark ring: advice changed in the last 2 weeks')}</p>
           <p className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border-2 border-white shadow" style={{ background: LEVEL_COLORS[4] }} />{t('Area to avoid (from the UK advice)')}</p>
           <p className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full" style={{ background: INCIDENT }} />{t('Incidents in the news, last 24 h')}{data ? ` (${data.incidents.length})` : ''}</p>
-          <p className="flex items-center gap-1.5"><span className="flex h-3 w-3 items-center justify-center rounded-full text-[8px] font-extrabold text-white" style={{ background: HAZARD }}>!</span>{t('Natural hazard (GDACS)')}{data ? ` (${data.events.length})` : ''}</p>
+          <p className="flex items-center gap-1.5"><span className="flex h-3 w-3 items-center justify-center rounded-full text-[8px] font-extrabold text-white" style={{ background: HAZARD }}>!</span>{t('Natural hazard (GDACS, USGS)')}{data ? ` (${data.events.length})` : ''}</p>
           {!data && !error && <p className="mt-1 text-slate-400">{t('Loading…')}</p>}
           {error && <p className="mt-1 text-red-700">{t('Couldn\'t load the safety data.')}</p>}
           {data && (
