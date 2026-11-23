@@ -847,8 +847,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 4–5 days, refugios or campsites',
     kind: 'walk',
     color: '#1e40af',
-    summary: 'About 80 km in the shape of a W through Chile\'s most famous park: the granite towers at dawn, the French Valley between hanging glaciers, and the blue icebergs of Grey Glacier. Fierce winds; no wild camping, so book the refugios months ahead.',
+    summary: 'About 80 km in the shape of a W through Chile\'s most famous park: the granite towers at dawn, the French Valley between hanging glaciers, and the blue icebergs of Grey Glacier. Fierce winds; no wild camping, so book the refugios months ahead. In June and July the W closes except Base Torres with a guide, and a new park pass system started in May 2026.',
     sources: [
+      REPORT('The Clinic: CONAF closes the W for winter (May 2026)', 'https://www.theclinic.cl/2026/05/25/conaf-anuncia-cierre-temporal-del-circuito-w-en-torres-del-paine-y-las-navegaciones-en-lagos-pehoe-y-grey-por-temporada-de-invierno/?noamp=mobile'),
       REPORT('Global Summit Guide: W Trek complete guide (January 2025 trip)', 'https://globalsummitguide.com/w-trek-torres-del-paine-complete-guide/'),
       REPORT('RMI Guides: Torres del Paine dispatch (February 2025)', 'https://www.rmiguides.com/blog/expedition/torres_020125/desc'),
     ],
@@ -899,8 +900,9 @@ export const CLASSICS = [
     vehicle: 'On foot (or bike), about 12 days',
     kind: 'walk',
     color: '#1e3a8a',
-    summary: 'Brazil\'s answer to the Camino de Santiago: 318 km on the main branch from Águas da Prata to the Basilica of Our Lady of Aparecida, through the coffee farms and mountains of southern Minas Gerais and the Serra da Mantiqueira. Pousadas for pilgrims, a credential to stamp, and steep climbs.',
+    summary: 'Brazil\'s answer to the Camino de Santiago: 318 km on the main branch from Águas da Prata to the Basilica of Our Lady of Aparecida, through the coffee farms and mountains of southern Minas Gerais and the Serra da Mantiqueira. Pousadas for pilgrims, a credential to stamp, and steep climbs. Made an official national tourist route in 2026; about 34,000 pilgrims walked it in 2025.',
     sources: [
+      REPORT('CNN Brasil: Caminho da Fé becomes an official tourist route (2026)', 'https://www.cnnbrasil.com.br/viagemegastronomia/viagem/caminho-da-fe-brasil-oficializa-rota-turistica-ate-santuario-de-aparecida/'),
       REPORT('Gazeta SP: Caminho da Fé, 318 km and the Serra da Mantiqueira', 'https://www.gazetasp.com.br/turismo/caminho-da-fe-rota-de-318-km-ate-aparecida-exige-atencao-aos-desafios-da-serra-da-mantiqueira/'),
       REPORT('Associação dos Amigos do Caminho da Fé', 'https://caminhodafe.com.br/ptbr/'),
     ],
@@ -949,8 +951,9 @@ export const CLASSICS = [
     vehicle: '4x4 (or guided), 4–7 days',
     kind: '4x4',
     color: '#ea580c',
-    summary: 'A loop from Palmas into the empty heart of Tocantins: orange dunes under a table mountain, spring-fed "fervedouros" where the water pushes you up so you can\'t sink, waterfalls, golden-grass crafts in quilombola villages. Over 165 km of sand and stone with no phone signal; carry fuel and spares.',
+    summary: 'A loop from Palmas into the empty heart of Tocantins: orange dunes under a table mountain, spring-fed "fervedouros" where the water pushes you up so you can\'t sink, waterfalls, golden-grass crafts in quilombola villages. Over 165 km of sand and stone with no phone signal; carry fuel and spares. The dunes are visited only with a guide, the best-known fervedouros are on private land with their own fee, and Mateiros charges a visitor fee since May 2026.',
     sources: [
+      REPORT('Pontos pra Voar: new Jalapão visitor fee from 1 May 2026', 'https://pontospravoar.com/jalapao-tera-nova-taxa-para-visitantes-a-partir-de-1o-de-maio/'),
       REPORT('Mala de Aventuras: roteiro Jalapão em 4, 5 ou 7 dias', 'https://maladeaventuras.com/roteiro-jalapao'),
       REPORT('Melhores Destinos: como se locomover no Jalapão', 'https://guia.melhoresdestinos.com.br/como-se-locomover-no-jalapao.html'),
     ],
@@ -972,8 +975,9 @@ export const CLASSICS = [
     vehicle: 'Car or 4x4, 3–5 days with boat trips',
     kind: 'car',
     color: '#15803d',
-    summary: 'The MT-060: about 145 km of dirt road and over a hundred wooden bridges from Poconé into the world\'s largest wetland, with caimans, capybaras, hyacinth macaws and jabirus all along it. At Porto Jofre the road ends; boats go up the rivers to look for jaguars. No fuel on the way.',
+    summary: 'The MT-060: about 145 km of dirt road and over a hundred bridges (the wooden ones are slowly being replaced by concrete) from Poconé into the world\'s largest wetland, with caimans, capybaras, hyacinth macaws and jabirus all along it. At Porto Jofre the road ends; boats go up the rivers to look for jaguars. No fuel on the way.',
     sources: [
+      REPORT('Estado de Minas: the dirt road across the Pantanal and its bridges (July 2026)', 'https://www.em.com.br/emfoco/2026/07/23/estrada-de-terra-atravessa-o-pantanal-sobre-dezenas-de-pontes-e-termina-numa-regiao-conhecida-pelos-encontros-com-oncas/'),
       REPORT('Lorenzo Expeditions: from Poconé to Porto Jofre, the jaguar trail', 'https://www.lorenzoexpeditions.com/from-pocone-to-porto-jofre-the-jaguar-trail'),
       REPORT('Seguro Viagem: guia da Transpantaneira', 'https://www.seguroviagem.srv.br/blog/viagem-estrada-transpantaneira/'),
     ],
