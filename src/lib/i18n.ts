@@ -444,6 +444,8 @@ export const PT: Record<string, string> = {
   '4x4 & overland': '4x4 e overland',
   'Road trip': 'Viagem de carro',
   'Rally': 'Rali',
+  'Getting the latest news…': 'A obter as últimas notícias…',
+  'Getting the latest news… this list updates by itself in a minute or two.': 'A obter as últimas notícias… esta lista atualiza-se sozinha dentro de um ou dois minutos.',
   'What is happening now in the area on the map, newest first. Move or zoom the map to see other places.': 'O que está a acontecer agora na zona do mapa, do mais recente para o mais antigo. Mova ou aproxime o mapa para ver outros sítios.',
   '{n} reports in view': '{n} avisos à vista',
   'Nothing reported in this area right now.': 'Nada reportado nesta zona neste momento.',

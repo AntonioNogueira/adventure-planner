@@ -53,7 +53,9 @@ export function useSafetyData(on: boolean) {
     if (on) ensureSafety();
     return () => { listeners.delete(l); };
   }, [on]);
-  return { data: current, error: failed };
+  // The server's copy was old (it rebuilds after waking up): fresher data is on its way.
+  const stale = Boolean(current && Date.now() - Date.parse(current.updated) > STALE);
+  return { data: current, error: failed, stale };
 }
 /** Opens a pin's card from outside the map (the list in the panel). */
 export const openSafetyItem = (kind: string, i: number) => window.dispatchEvent(new CustomEvent('safety-open', { detail: { kind, i } }));
@@ -155,7 +157,7 @@ export const SafetyButton: React.FC<{ on: boolean; onToggle: () => void }> = ({ 
 /** The legend and the pins, while `on`. */
 export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean; on: boolean; setOn: (on: boolean) => void }> = ({ map, ready, on, setOn }) => {
   const { t, locale } = useSettings();
-  const { data, error } = useSafetyData(on);
+  const { data, error, stale } = useSafetyData(on);
   const markers = useRef<maplibregl.Marker[]>([]);
   const popup = useRef<{ p: maplibregl.Popup; root: Root } | null>(null);
 
@@ -243,6 +245,7 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean;
           <p className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border-2 border-white shadow" style={{ background: LEVEL_COLORS[4] }} />{t('Area to avoid (from the UK advice)')}</p>
           <p className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full" style={{ background: INCIDENT }} />{t('Incidents in the news, last 24 h')}{data ? ` (${data.incidents.length})` : ''}</p>
           <p className="flex items-center gap-1.5"><span className="flex h-3 w-3 items-center justify-center rounded-full text-[8px] font-extrabold text-white" style={{ background: HAZARD }}>!</span>{t('Natural hazard (GDACS)')}{data ? ` (${data.events.length})` : ''}</p>
+          {stale && <p className="mt-1 flex items-center gap-1 text-amber-700"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />{t('Getting the latest news…')}</p>}
           {!data && !error && <p className="mt-1 text-slate-400">{t('Loading…')}</p>}
           {error && <p className="mt-1 text-red-700">{t('Couldn\'t load the safety data.')}</p>}
           {data && (
@@ -260,7 +263,7 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean;
 /** The left panel while the safety layer is on: what is shown on the map, newest first, only what is in view. */
 export const SafetyPanel: React.FC<{ map: maplibregl.Map | null; onClose: () => void }> = ({ map, onClose }) => {
   const { t, locale } = useSettings();
-  const { data, error } = useSafetyData(true);
+  const { data, error, stale } = useSafetyData(true);
   const [view, setView] = useState<{ bounds: maplibregl.LngLatBounds | null; zoom: number }>({ bounds: null, zoom: 0 });
   useEffect(() => {
     if (!map) return;
@@ -307,6 +310,7 @@ export const SafetyPanel: React.FC<{ map: maplibregl.Map | null; onClose: () => 
         </div>
         <button onClick={onClose} aria-label={t('Close')} className="rounded p-1 text-slate-500 hover:bg-slate-100"><X size={15} /></button>
       </div>
+      {stale && <p className="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-800"><span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />{t('Getting the latest news… this list updates by itself in a minute or two.')}</p>}
       {!data && !error && <p className="text-xs text-slate-500">{t('Loading…')}</p>}
       {error && <p className="text-xs text-red-700">{t('Couldn\'t load the safety data.')}</p>}
       {data && items.length === 0 && <p className="text-xs text-slate-500">{t('Nothing reported in this area right now.')}</p>}
