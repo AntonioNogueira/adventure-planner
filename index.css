@@ -152,3 +152,10 @@ input, select, textarea, button {
 }
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: #faf6ec !important; }
 .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: #faf6ec !important; }
+
+/* Mappa Mundi: an arrow over the map (the hand only over a journey you can open), the grabbing hand while dragging. */
+.inspire-map .maplibregl-canvas-container.maplibregl-interactive { cursor: default; }
+.inspire-map .maplibregl-canvas-container.maplibregl-interactive:active { cursor: grabbing; }
+.journey-label .maplibregl-popup-content { padding: 4px 9px; font-size: 12px; font-weight: 700; color: #1e293b; border-radius: 8px; pointer-events: none; }
+.journey-label .maplibregl-popup-tip { display: none; }
+.journey-label { pointer-events: none; }
