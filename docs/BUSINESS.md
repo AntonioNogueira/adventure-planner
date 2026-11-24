@@ -443,5 +443,5 @@ their knowledge, responsible for the text and material) and send it. It needs an
   munditrails/app. To do: Instagram/Threads/TikTok/YouTube @munditrails; domains at Cloudflare; hello@munditrails.com
   via Cloudflare Email Routing; Render, Firebase, AI keys and Resend moved to the new email.
 - Kept on purpose: the browser storage keys (`adventure-planner.*`, so users keep their settings).
-- Hosting: render.yaml now creates **munditrails** and **munditrails-open** in Frankfurt (New → Blueprint). The old
-  Oregon services (adventure-planner, adventure-planner-open) are deleted once the new ones work.
+- Hosting: one Render service, **munditrails** (Frankfurt, branch main): https://munditrails.onrender.com. The old Oregon
+  services (adventure-planner, adventure-planner-open) and the duplicate munditrails-open are suspended.

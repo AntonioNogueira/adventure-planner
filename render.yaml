@@ -1,7 +1,7 @@
 # Render blueprint: https://render.com → New → Blueprint → pick munditrails/app.
 # Render asks for the secret values (sync: false) when the services are created.
-# Two services in Frankfurt (closest to the users and the European map services): munditrails (branch main) and
-# munditrails-open (branch open), with the same settings. A service's region can't be changed after it's created.
+# One service in Frankfurt (closest to the users and the European map services), branch main. A service's region
+# can't be changed after it's created. (A second copy, munditrails-open on branch open, was dropped: same code.)
 services:
   - type: web
     name: munditrails
@@ -12,7 +12,7 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npx vite preview
     healthCheckPath: /
-    envVars: &settings
+    envVars:
       - key: NODE_VERSION
         value: "22"
       # Claude is tried first when its key is set (from platform.claude.com, billed separately from a Claude.ai plan).
@@ -69,13 +69,3 @@ services:
       # MapTiler browser key: second place-name service (restrict it to this site in MapTiler Cloud).
       - key: MAPTILER_KEY
         sync: false
-  - type: web
-    name: munditrails-open
-    runtime: node
-    region: frankfurt
-    plan: free
-    branch: open
-    buildCommand: npm ci && npm run build
-    startCommand: npx vite preview
-    healthCheckPath: /
-    envVars: *settings
