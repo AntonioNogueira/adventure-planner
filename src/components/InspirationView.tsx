@@ -12,7 +12,7 @@ import { checkAdmin, loadPendingSubmissions, loadPublished, loadSubmission, summ
 import AddJourneyChat from './AddJourneyChat';
 import ReviewJourney from './ReviewJourney';
 import ImportJourney from './ImportJourney';
-import { SafetyButton, SafetyLayer } from './SafetyLayer';
+import { SafetyButton, SafetyLayer, SafetyPanel } from './SafetyLayer';
 import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
 import { maptilerKey } from '../lib/maptiler';
 import { mediaLinks } from '../lib/affiliate';
@@ -436,6 +436,8 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
         ) : importing && uid ? (
           <ImportJourney uid={uid} preview={preview} onPreview={setPreview} onClose={() => setImporting(false)}
             onPublished={(j) => { setPublished(list => [j, ...list]); setPreview(null); setImporting(false); setJourney(j); }} />
+        ) : safety && !journey ? (
+          <SafetyPanel map={ready ? mapRef.current : null} onClose={() => setSafety(false)} />
         ) : !journey ? (
           <div className="space-y-3">
             <div>
