@@ -442,5 +442,6 @@ their knowledge, responsible for the text and material) and send it. It needs an
 - Accounts: munditrails@gmail.com (recovery: the founder's personal Gmail); GitHub organization munditrails, repo
   munditrails/app. To do: Instagram/Threads/TikTok/YouTube @munditrails; domains at Cloudflare; hello@munditrails.com
   via Cloudflare Email Routing; Render, Firebase, AI keys and Resend moved to the new email.
-- Kept on purpose: the browser storage keys (`adventure-planner.*`, so users keep their settings) and the Render
-  service name in render.yaml (renaming it there would create a new service).
+- Kept on purpose: the browser storage keys (`adventure-planner.*`, so users keep their settings).
+- Hosting: render.yaml now creates **munditrails** and **munditrails-open** in Frankfurt (New → Blueprint). The old
+  Oregon services (adventure-planner, adventure-planner-open) are deleted once the new ones work.
