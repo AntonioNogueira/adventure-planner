@@ -1,6 +1,6 @@
 {
-  "name": "Adventure Planner",
-  "short_name": "Adventure",
+  "name": "Munditrails",
+  "short_name": "Munditrails",
   "description": "Plan your next adventure with AI, then ride it day by day.",
   "id": "/",
   "start_url": "/?source=app",

@@ -229,7 +229,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="rounded-lg bg-emerald-600 p-1.5 text-white shadow-lg shadow-emerald-900/20">
             <Navigation size={20} />
           </div>
-          <h1 className="truncate text-sm font-semibold uppercase text-emerald-950">Adventure Planner</h1>
+          <h1 className="truncate text-sm font-semibold uppercase text-emerald-950">Munditrails</h1>
         </div>
         <div className="relative flex shrink-0 items-center gap-1">
           <button

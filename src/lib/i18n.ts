@@ -558,7 +558,7 @@ export const PT: Record<string, string> = {
   'Since 1990': 'Desde 1990',
   'No journey matches these filters yet.': 'Ainda nenhuma viagem corresponde a estes filtros.',
   'All': 'Todas',
-  'Or get inspired by famous journeys': 'Ou inspire-se em viagens famosas',
+  'Or explore famous journeys on the Mappa Mundi': 'Ou explore viagens famosas no Mappa Mundi',
   'Reading the story…': 'A ler a história…',
   'Building the map: {step}…': 'A construir o mapa: {step}…',
   'Publishing…': 'A publicar…',
@@ -673,7 +673,7 @@ export const PT: Record<string, string> = {
   'Not sure yet': 'Ainda não sei',
 
   // Welcome and messages
-  'Welcome to Adventure Planner': 'Bem-vindo ao Adventure Planner',
+  'Welcome to Munditrails': 'Bem-vindo ao Munditrails',
   "Describe your next multi-day roadtrip or adventure. I'll help you plan it!": 'Descreva a sua próxima viagem ou aventura de vários dias. Eu ajudo a planear!',
   'e.g., Bikepacking from Cádiz to Silves, about 70 km per day, camping where possible...': 'ex.: bikepacking de Cádis a Silves, cerca de 70 km por dia, em parques de campismo sempre que possível...',
   'Locating...': 'A localizar...',
@@ -1111,7 +1111,7 @@ export const PT_BR: Record<string, string> = {
   'Camping': 'Camping',
   'Anything': 'Tanto faz',
   "When do you start? I'll add dates and the weather forecast to each day.": 'Quando você começa? Coloco as datas e a previsão do tempo em cada dia.',
-  'Welcome to Adventure Planner': 'Boas-vindas ao Adventure Planner',
+  'Welcome to Munditrails': 'Boas-vindas ao Munditrails',
   "Describe your next multi-day roadtrip or adventure. I'll help you plan it!": 'Descreva sua próxima viagem ou aventura de vários dias. Eu ajudo a planejar!',
   'e.g., Bikepacking from Cádiz to Silves, about 70 km per day, camping where possible...': 'ex.: cicloturismo de Cádiz a Silves, cerca de 70 km por dia, acampando sempre que possível...',
   'Locating...': 'Localizando...',

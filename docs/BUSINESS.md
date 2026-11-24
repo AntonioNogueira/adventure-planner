@@ -1,4 +1,4 @@
-# Adventure Planner – business notes (for later)
+# Munditrails – business notes
 
 Ideas and decisions saved for when the project moves from prototype to product. Nothing here is built yet
 except where it says so.
@@ -14,7 +14,7 @@ partner or sold, and so personal email stays separate.
 | Domain | e.g. `adventureplanner.app` (~€15–20/year) | Also gives the app a proper address instead of `onrender.com`. |
 | Google Cloud / Firebase | Add the project email as **Owner** of project `gen-lang-client-0295109398` (IAM), later remove the personal account; or create a new project and move | Billing account in the project's name; budget alerts at €1/€10/€50. New Maps key restricted to the app's domains. |
 | Gemini / AI keys | New keys created by the project account | Keep keys only in Render settings and `.env.local`, never in git. |
-| GitHub | A GitHub **organization** (free) owned by the project email; transfer `adventure-planner` to it | Keeps history; Render reconnects to the new owner. |
+| GitHub | Done: organization **munditrails**, repository **munditrails/app** (moved from AntonioNogueira/adventure-planner) | Keeps history; Render reconnects to the new owner. |
 | Render (hosting) | A Render account or team with the project email | Connect the Blueprint (`render.yaml`); every push to `main` deploys. |
 | Payments | Paddle or Lemon Squeezy (they handle EU VAT as merchant of record) or Stripe (+ Stripe Tax) | Needs business/tax details (NIF, address, IBAN). Pix for Brazil via Stripe or Mercado Pago. |
 | Map/route services for production | MapTiler or Thunderforest (topo tiles), own BRouter/Valhalla or GraphHopper | The free public servers (OpenTopoMap, brouter.de, valhalla1.openstreetmap.de, Overpass) are fair-use only. |
@@ -433,3 +433,14 @@ their knowledge, responsible for the text and material) and send it. It needs an
   the `inspiration` collection, live for everyone) or Reject.
 - Setup: publish the updated firestore.rules; create a Resend account with the admin's address, add the API key and
   ADMIN_EMAIL in Render; the admin account needs a document admins/{uid} (already there for the import tool).
+
+## 17. Name and accounts (Nov 2026)
+
+- Name: **Munditrails** (munditrails.com, munditrails.app and munditrail.com were free at the registries on 24 Nov
+  2026; "Mappa Mundi" alone was taken: mappamundi.com since 1997, mappamundi.app since May 2026, and a US history app
+  of that name). The famous-journeys map inside the app is called **Mappa Mundi**.
+- Accounts: munditrails@gmail.com (recovery: the founder's personal Gmail); GitHub organization munditrails, repo
+  munditrails/app. To do: Instagram/Threads/TikTok/YouTube @munditrails; domains at Cloudflare; hello@munditrails.com
+  via Cloudflare Email Routing; Render, Firebase, AI keys and Resend moved to the new email.
+- Kept on purpose: the browser storage keys (`adventure-planner.*`, so users keep their settings) and the Render
+  service name in render.yaml (renaming it there would create a new service).

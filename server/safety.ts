@@ -163,7 +163,7 @@ export interface SafetyData {
 /** Reads the advice areas from a country's warnings text (AI); supplied by the server, which has the AI keys. */
 export type AreaReader = (country: string, text: string) => Promise<{ name: string; place: string; level: 'all' | 'essential'; note: string }[]>;
 
-const UA = 'AdventurePlanner/1.0 (overland safety informer)';
+const UA = 'Munditrails/1.0 (overland safety informer)';
 const get = async (url: string, timeout = 30000) => {
   const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: '*/*' }, signal: AbortSignal.timeout(timeout) });
   if (!res.ok) throw new Error(`${res.status} ${url}`);

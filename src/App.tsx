@@ -134,7 +134,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400">
             <Sparkles size={32} />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-emerald-900">{t('Welcome to Adventure Planner')}</h2>
+          <h2 className="mb-2 text-2xl font-bold text-emerald-900">{t('Welcome to Munditrails')}</h2>
           <p className="text-muted-foreground">{t("Describe your next multi-day roadtrip or adventure. I'll help you plan it!")}</p>
         </div>
 
@@ -167,7 +167,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
             </button>
             <button onClick={onInspire}
               className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
-              <Compass size={16} />{t('Or get inspired by famous journeys')}
+              <Compass size={16} />{t('Or explore famous journeys on the Mappa Mundi')}
             </button>
           </div>
         </div>

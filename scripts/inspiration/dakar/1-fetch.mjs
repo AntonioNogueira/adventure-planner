@@ -1,6 +1,6 @@
 import { writeFileSync, existsSync, readFileSync } from 'node:fs';
 const dir = process.argv[2];
-const UA = 'AdventurePlannerInspiration/1.0 (journey map builder)';
+const UA = 'Munditrails/1.0 (journey map builder)';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function raw(host, title) {
   for (let hop = 0; hop < 3; hop++) {

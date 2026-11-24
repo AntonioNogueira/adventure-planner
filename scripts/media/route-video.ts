@@ -122,7 +122,7 @@ async function main() {
   $('#end h1').textContent = j.title;
   $('#end .stats').textContent = statsOverride || `${Math.round(j.km).toLocaleString('en')} km · ${j.stops.length} stops${j.when ? ` · ${j.when}` : ''}`;
   $('#end .cta').textContent = cta;
-  $('#end .brand').textContent = 'Adventure Planner';
+  $('#end .brand').textContent = 'Munditrails';
 
   const camAt = (d: number): Pt => {
     // A little behind the head and smoothed, so the camera doesn't jerk at corners.

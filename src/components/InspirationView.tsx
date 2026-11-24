@@ -439,7 +439,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
         ) : !journey ? (
           <div className="space-y-3">
             <div>
-              <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Compass size={16} />{t('Inspiration')}</h2>
+              <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Compass size={16} />Mappa Mundi</h2>
               <p className="mt-0.5 text-xs text-slate-600">{t('Famous journeys to dream about. Pick one to follow it stop by stop, then plan any stretch of it as your own trip.')}</p>
               {list && <p className="mt-1 text-[10.5px] text-slate-400">{t('{n} journeys · {d} of adventure', { n: all.length, d: dist(totalKm, 0) })}</p>}
             </div>
