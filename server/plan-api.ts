@@ -22,6 +22,8 @@ import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourney
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
 export interface PlanEnv extends SubmissionEnv {
+  /** Longest wait for the AI on a plan before the quick reading answers (ms, default 25000). */
+  AI_DEADLINE_MS?: string;
   ANTHROPIC_API_KEY?: string;
   CLAUDE_MODEL?: string;
   GEMINI_API_KEY?: string;
@@ -898,13 +900,19 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       // A route the Mappa Mundi knows ("Ecopista do Dão", "the EN2"): its real line is given to the AI.
       const known = findKnownRoute(request);
       try {
-        const { provider, result: intent } = await runTaskResult(env, {
-          name: 'plan',
-          prompt: buildPrompt(request, history, current, language, body.profile) + (known ? knownRouteHint(known) : ''),
-          geminiSchema: responseSchema,
-          claudeSchema: planJsonSchema,
-          allowOpenAI: true,
-        });
+        // At most ~25 s for the AI: a busy provider's retries could take over a minute, and the traveller is waiting.
+        // After that the quick reading answers (below), and the AI is there again for the next message.
+        const AI_DEADLINE_MS = Number(env.AI_DEADLINE_MS) || 25_000;
+        const { provider, result: intent } = await Promise.race([
+          runTaskResult(env, {
+            name: 'plan',
+            prompt: buildPrompt(request, history, current, language, body.profile) + (known ? knownRouteHint(known) : ''),
+            geminiSchema: responseSchema,
+            claudeSchema: planJsonSchema,
+            allowOpenAI: true,
+          }),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new AllFailed([`deadline: no answer in ${AI_DEADLINE_MS / 1000} s (busy)`])), AI_DEADLINE_MS)),
+        ]);
         if (!intent.vehicle || intent.vehicle === 'unknown' || intent.travelMode !== 'DRIVING') intent.vehicle = '';
         cleanStyle(intent);
         if (known && applyKnownRoute(intent, known)) console.log(`[ai] put back the known route: ${known.title}`);
