@@ -51,6 +51,11 @@ function isCountry(name: string): boolean {
   return countryNames.has(fold(name));
 }
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+/** Just a country ("France", "Spain"), without a town. */
+export function isBareCountry(name: unknown): boolean {
+  return typeof name === 'string' && isCountry(name.split(',')[0]) && !name.includes(',');
+}
+
 /** A start or finish the map can find as one place (a town or city), not a region, route or country. */
 export function placeLike(name: string): boolean {
   const n = name.trim();

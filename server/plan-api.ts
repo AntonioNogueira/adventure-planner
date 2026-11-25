@@ -7,7 +7,7 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { verifyIdToken, readPlanRecord, isAdmin, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 import { isLocalUrl, readLink, linkAsText } from './link';
-import { parseQuickIntent, quickReply } from './quickIntent';
+import { parseQuickIntent, placeLike, isBareCountry, quickReply } from './quickIntent';
 import { applyKnownRoute, findKnownRoute, knownRouteHint } from './knownRoutes';
 import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourneyChatPrompt, buildScreeningPrompt, emailAdmin, readSubmission, screeningJsonSchema } from './submissions';
 
@@ -91,7 +91,7 @@ export function profileText(profile: unknown): string {
   return text.length > 3000 ? '' : text;
 }
 
-export function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string, profile?: unknown) {
+export function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string, profile?: unknown, timeZone?: string) {
   const historyContext = history
     .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
     .join('\n');
@@ -130,7 +130,12 @@ ${historyContext || '(none)'}
 NEW REQUEST: "${request}"
 
 Return the complete plan:
-- origin, destination: specific geocodable places, e.g. "Cádiz, Spain".
+- origin, destination: each ONE specific town or city with its country, e.g. "Cádiz, Spain". Never a country, a region,
+  a coast or a route network ("France", "the Alps", "the coast", "EuroVelo" are not places).
+  A named route (a EuroVelo route, a Camino, a national road, a famous trail) means its real towns: its usual start and
+  finish, or the part the request implies ("…to France" ends at the first French town on it or the one they name).
+  When the request doesn't say where it starts, start where the traveller probably is${/^[A-Za-z_]+\/[A-Za-z_]+/.test(timeZone || '') ? ` (their browser's time zone is ${String(timeZone).slice(0, 40)})` : ''}, or at the route's
+  usual start, and say in reply which start you assumed so they can change it. The route places must lie between them.
 - travelMode: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips, TRANSIT only for public transport.
 - travelModeStated: true if the NEW REQUEST says or clearly implies how they travel, in any language and even misspelled
   ("biccicle", "bycicle", "bicicleta", "vélo", "bikepacking", "GS", "on foot", "Camino"); false if you had to guess.
@@ -963,7 +968,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         const { provider, result: intent } = await Promise.race([
           runTaskResult(env, {
             name: 'plan',
-            prompt: buildPrompt(request, history, current, language, body.profile) + (known ? knownRouteHint(known) : ''),
+            prompt: buildPrompt(request, history, current, language, body.profile, typeof body.timeZone === 'string' ? body.timeZone : undefined) + (known ? knownRouteHint(known) : ''),
             geminiSchema: responseSchema,
             claudeSchema: planJsonSchema,
             allowOpenAI: true,
@@ -973,6 +978,12 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         if (!intent.vehicle || intent.vehicle === 'unknown' || intent.travelMode !== 'DRIVING') intent.vehicle = '';
         cleanStyle(intent);
         if (known && applyKnownRoute(intent, known)) console.log(`[ai] put back the known route: ${known.title}`);
+        // A country or a vague name as the start or finish ("France → France"): use the first and last places of its
+        // route instead, which are real towns.
+        if (Array.isArray(intent.route) && intent.route.length) {
+          if (!placeLike(String(intent.origin || '').split(',')[0]) || isBareCountry(intent.origin)) { intent.origin = intent.route[0].place; intent.route = intent.route.slice(1); }
+          if (intent.route.length && (!placeLike(String(intent.destination || '').split(',')[0]) || isBareCountry(intent.destination))) { intent.destination = intent.route[intent.route.length - 1].place; intent.route = intent.route.slice(0, -1); }
+        }
         // Places that are just the origin or destination again (the AI sometimes repeats them) make empty days.
         const town = (p: string) => String(p || '').split(',')[0].trim().toLowerCase();
         if (Array.isArray(intent.route)) intent.route = intent.route.filter((r: any) => ![town(intent.origin), town(intent.destination)].includes(town(r.place)));

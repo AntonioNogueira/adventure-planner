@@ -37,6 +37,8 @@ function whoIsDown(): string {
   return `\n\n${tr('Not answering right now: {services}. Using backups where there are any.', { services: down.map(s => `${SERVICE_NAMES[s]} (${tr(SERVICE_ROLES[s])})`).join(', ') })}`;
 }
 
+const browserTimeZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { return ''; } };
+
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
   // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
   const response = await authFetch('/api/plan', {
@@ -44,7 +46,8 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
     headers: { 'Content-Type': 'application/json' },
     // The current plan travels with the request, so the AI changes only what the user asks.
     // The traveller's habits from earlier trips: defaults for a new trip (the AI uses them only when starting fresh).
-    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language, profile: current ? undefined : profileForAI() }),
+    // The browser's time zone (e.g. Europe/Lisbon): roughly where they are, for a request that doesn't say where it starts.
+    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language, profile: current ? undefined : profileForAI(), timeZone: browserTimeZone() }),
   });
   await checkLimit(response);
   refreshAccount();
