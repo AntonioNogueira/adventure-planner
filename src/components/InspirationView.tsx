@@ -199,12 +199,15 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       : { top: 90, left: 410, right: 60, bottom: addingRef.current ? Math.round(Math.min(h * 0.62, 520)) : 50 };
   };
 
+  const addAfterLogin = useRef(false);
   useEffect(() => {
     loadJourneys().then(setList).catch(() => setFailed(true));
     loadPublished().then(setPublished);
     return onAuthStateChanged(auth, user => {
       setUid(user?.uid || null);
       if (user) checkAdmin(user.uid).then(setAdmin); else setAdmin(false);
+      // Logged in from "Add your journey": open it right away.
+      if (user && addAfterLogin.current) { addAfterLogin.current = false; setJourney(null); setAdding(true); }
     });
   }, []);
   // "Add your journey" (the chat), and for admins the journeys sent for review.
@@ -427,9 +430,9 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
           {!adding && (uid ? (
             <button onClick={() => { setJourney(null); setAdding(true); }} className={cn(MAP_BUTTON, 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800')}><Plus size={13} />{t('Add your journey')}</button>
           ) : (
-            // Logged out: shown, but faded and inactive, with a hint (sending a journey needs an account).
+            // Logged out: shown faded, with a hint; clicking opens the login (sending a journey needs an account).
             <div title={t('Log in to add your journey')}>
-              <button disabled aria-disabled="true" className={cn(MAP_BUTTON, 'cursor-not-allowed border-slate-300 bg-slate-100/90 text-slate-400 shadow-none')}><Plus size={13} />{t('Add your journey')}</button>
+              <button onClick={() => { addAfterLogin.current = true; onLogin?.(); }} className={cn(MAP_BUTTON, 'border-slate-300 bg-slate-100/90 text-slate-400 shadow-none hover:bg-slate-200 hover:text-slate-500')}><Plus size={13} />{t('Add your journey')}</button>
               <p className="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-center text-[10px] leading-tight text-slate-600 shadow-sm">{t('Log in to add your journey')}</p>
             </div>
           ))}
