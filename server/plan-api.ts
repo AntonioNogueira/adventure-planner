@@ -134,7 +134,8 @@ Return the complete plan:
 - days: only if the user states a number of days themselves; otherwise the current plan's value (0 if none).
   Never copy a day count from the assistant's summaries.
 - dailyKm: the daily distance if the user gives one (e.g. "about 60 km per day"), otherwise 0 (or the current plan's value).
-- route: places in travel order between origin and destination that the route must pass through.
+- route: places in travel order between origin and destination that the route must pass through, each with its country
+  so the map finds the right one (e.g. "Trient, Switzerland", not "Trient", which is also Trento in Italy).
   Include a place only if the user names it, or if the requested style needs it.
   For "along the coast" / "by the coast": list coastal towns about every 100-150 km along that stretch, in order, so the
   whole stretch stays on the coast (e.g. Cádiz → Valencia along the coast: Tarifa, Algeciras, Marbella, Málaga, Motril,

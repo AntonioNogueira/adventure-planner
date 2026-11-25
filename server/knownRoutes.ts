@@ -17,7 +17,7 @@ const ALIASES: Record<string, string[]> = {
   'pamir-highway': ['pamir highway', 'm41'],
   'karakoram-highway': ['karakoram highway', 'kkh'],
   'north-coast-500': ['nc500', 'north coast 500'],
-  'tour-du-mont-blanc': ['tmb', 'tour du mont blanc'],
+  'tour-du-mont-blanc': ['tmb', 'tour du mont blanc', 'tour de mont blanc', 'tour of mont blanc', 'tour mont blanc', 'volta ao mont blanc', 'vuelta al mont blanc', 'giro del monte bianco'],
   'ruta-40-argentina': ['ruta 40', 'route 40 argentina'],
   'ecopista-do-dao': ['ecopista do dao', 'ecopista dao'],
   'fishermens-trail': ['fishermens trail', 'fishermen s trail', 'trilho dos pescadores', 'rota vicentina'],

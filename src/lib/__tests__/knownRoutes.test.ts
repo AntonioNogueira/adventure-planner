@@ -24,3 +24,11 @@ describe('routes the Mappa Mundi knows', () => {
     expect(applyKnownRoute(reversed, r)).toBe(false);
   });
 });
+
+describe('known route spellings', () => {
+  it('finds the Tour du Mont Blanc however it is written', async () => {
+    const { findKnownRoute } = await import('../../../server/knownRoutes');
+    for (const q of ['tour de mont blanc bikepacking', 'TMB on foot', 'Tour du Mont-Blanc'])
+      expect(findKnownRoute(q)?.id).toBe('tour-du-mont-blanc');
+  });
+});

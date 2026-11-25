@@ -7,7 +7,7 @@ import { stageDone } from './planTimer';
 import { t } from './settings';
 import { lodgingNear, settlementAt } from './overpass';
 import { progressOn } from './ride';
-import { geocodeAddress } from './geocode';
+import { geocodeAddress, namesakeNear } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
 import { haversineKm, pathWithDistances, pointAt, LatLng, downsample } from './geo';
 import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange } from './elevation';
@@ -84,7 +84,24 @@ export interface OvernightPlan {
 async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> {
   const [start, end] = await Promise.all([geocodeAddress(intent.origin), geocodeAddress(intent.destination)]);
   if (!start || !end) return intent.route;
-  const located = (await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) }))))
+  const found = await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) })));
+  // A name without its country can find a far-off namesake ("Trient" is a Swiss village and Trento's German name):
+  // when a place is far from the one before it, prefer a place of the same name close to it.
+  for (let i = 0; i < found.length; i++) {
+    const r = found[i];
+    if (!r.at) continue;
+    const prev = found.slice(0, i).reverse().find(x => x.at)?.at || start;
+    const gap = haversineKm(prev, r.at);
+    const lineRatio = (haversineKm(start, r.at) + haversineKm(r.at, end)) / Math.max(1, haversineKm(start, end));
+    const suspect = (!r.place.includes(',') && gap > 60) || (haversineKm(start, end) >= 15 && lineRatio > 2.5);
+    if (!suspect) continue;
+    const near = await namesakeNear(r.place, prev, Math.min(gap / 2, 150)).catch(() => null);
+    if (near) {
+      console.info(`"${r.place}": using ${near.name}, near the route, instead of a namesake ${Math.round(gap)} km away`);
+      found[i] = { ...r, place: near.name, at: near.at };
+    }
+  }
+  const located = found
     // The origin or destination listed again (within 3 km) would only make an empty day.
     .filter(r => !r.at || (haversineKm(r.at, start) > 3 && haversineKm(r.at, end) > 3));
   const kept: typeof located = [];
