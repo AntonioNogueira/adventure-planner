@@ -134,8 +134,10 @@ Return the complete plan:
   a coast or a route network ("France", "the Alps", "the coast", "EuroVelo" are not places).
   A named route (a EuroVelo route, a Camino, a national road, a famous trail) means its real towns: its usual start and
   finish, or the part the request implies ("…to France" ends at the first French town on it or the one they name).
-  When the request doesn't say where it starts, start where the traveller probably is${/^[A-Za-z_]+\/[A-Za-z_]+/.test(timeZone || '') ? ` (their browser's time zone is ${String(timeZone).slice(0, 40)})` : ''}, or at the route's
-  usual start, and say in reply which start you assumed so they can change it. The route places must lie between them.
+  "…to X" without a start means the trip ENDS in X (at its first town on the way, or the one they name) and starts where
+  the traveller probably is${/^[A-Za-z_]+\/[A-Za-z_]+/.test(timeZone || '') ? ` (their browser's time zone is ${String(timeZone).slice(0, 40)}: start in or near that city)` : ''}. Other requests without a start begin
+  there too, or at the route's usual start. Say in reply which start you assumed, so they can change it.
+  Route places go in travel order strictly between origin and destination: none beyond either end, none off the way.
 - travelMode: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips, TRANSIT only for public transport.
 - travelModeStated: true if the NEW REQUEST says or clearly implies how they travel, in any language and even misspelled
   ("biccicle", "bycicle", "bicicleta", "vélo", "bikepacking", "GS", "on foot", "Camino"); false if you had to guess.
