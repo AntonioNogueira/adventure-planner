@@ -395,6 +395,8 @@ export const PT: Record<string, string> = {
   'Loading weather…': 'A carregar o tempo…',
   "Weather isn't available for this day.": 'O tempo não está disponível para este dia.',
   'Rain {pct}%': 'Chuva {pct}%',
+  'Slope': 'Inclinação',
+  'At the top ({h}): {max}/{min}': 'No topo ({h}): {max}/{min}',
   'At the highest point ({h}): about {max} / {min}': 'No ponto mais alto ({h}): cerca de {max} / {min}',
   'Forecast from 16 days before.': 'Previsão a partir de 16 dias antes.',
   'Add a start date for the forecast.': 'Adicione uma data de início para ver a previsão.',

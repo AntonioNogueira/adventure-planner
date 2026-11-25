@@ -61,7 +61,7 @@ const SurfaceStrip: React.FC<{ runs: SurfaceRun[]; totalKm: number; axis?: boole
 // `axis: false` leaves the km labels to the surface strip drawn right below.
 const ProfileChart: React.FC<{ elevations: number[]; totalKm: number; axis?: boolean; tall?: boolean }> = ({ elevations, totalKm, axis = true, tall }) => {
   const { t, toDist, distUnit, elev } = useSettings();
-  const w = CHART_W, left = CHART_LEFT, bottom = axis ? 18 : 2, top = 6, h = (tall ? 128 : 102) + bottom;
+  const w = CHART_W, left = CHART_LEFT, bottom = axis ? 18 : 2, top = 6, h = (tall ? 92 : 102) + bottom;
   const min = Math.min(...elevations);
   const max = Math.max(...elevations);
   const range = Math.max(max - min, 50);
@@ -87,6 +87,19 @@ const ProfileChart: React.FC<{ elevations: number[]; totalKm: number; axis?: boo
         <text key={t.f} x={left + t.f * (w - left - 4)} y={h - 5} textAnchor={t.f === 0 ? 'start' : t.f === 1 ? 'end' : 'middle'} fontSize="9" fill="#475569">{t.km} {distUnit}</text>
       ))}
     </svg>
+  );
+};
+
+/** The slope colours, small, on one line. */
+const SlopeKey = () => {
+  const { t } = useSettings();
+  return (
+    <span className="flex items-center gap-1.5 text-[10.5px] text-slate-600">
+      <span className="font-semibold">{t('Slope')}</span>
+      {[['#6f8f5a', '0–3%'], ['#c9a227', '3–6%'], ['#c56a2c', '6–10%'], ['#9b2c22', '>10%']].map(([c, l]) => (
+        <span key={l} className="flex items-center gap-0.5"><span className="h-2 w-2.5 rounded-sm" style={{ background: c }} />{l}</span>
+      ))}
+    </span>
   );
 };
 
@@ -254,42 +267,33 @@ const DayWeatherPanel: React.FC<{ at: { lat: number; lng: number }; date: string
   const top = elevations?.length ? Math.max(...elevations) : null;
   const cold = base != null && top != null && top - base >= 400;
   return (
-    <div className={cn('rounded-lg p-2 text-sky-950', o.kind === 'typical' ? 'border border-dashed border-sky-300 bg-white/70' : 'bg-sky-50')}>
-      <p className="flex items-baseline justify-between gap-2 text-[11px] text-sky-800">
+    <div className={cn('rounded-lg px-2 py-1.5 text-[11px] leading-snug text-sky-950', o.kind === 'typical' ? 'border border-dashed border-sky-300 bg-white/70' : 'bg-sky-50')}>
+      <p className="flex justify-between gap-2 text-[10px] text-sky-700">
         <span className="font-bold uppercase tracking-wide">{t('Weather')}</span>
         <span>{when} · {o.kind === 'typical' ? t('typical') : t('forecast')}</span>
       </p>
-      <div className="mt-1 flex items-center gap-2">
-        <span className="text-3xl leading-none">{emoji}</span>
-        <div>
-          <p className="text-lg font-bold leading-tight">{deg(w.tempMax)} <span className="text-sm font-semibold text-sky-700">/ {deg(w.tempMin)}</span></p>
-          <p className="text-[11px] text-sky-800">{t(label)}</p>
-        </div>
-      </div>
-      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-sky-900">
-        {w.rainChance != null && <span className="flex items-center gap-0.5"><Droplets size={11} />{t('Rain {pct}%', { pct: w.rainChance })}</span>}
-        <span className="flex items-center gap-0.5"><Wind size={11} />{speed(w.windMax)}</span>
-        {o.sunrise && <span className="flex items-center gap-0.5"><Sunrise size={11} />{o.sunrise}</span>}
-        {o.sunset && <span className="flex items-center gap-0.5"><Sunset size={11} />{o.sunset}</span>}
+      <p className="flex items-center gap-1.5">
+        <span className="text-lg leading-none" title={t(label)}>{emoji}</span>
+        <span className="text-sm font-bold">{deg(w.tempMax)}<span className="font-semibold text-sky-700">/{deg(w.tempMin)}</span></span>
+        <span className="truncate text-sky-800">{t(label)}</span>
+      </p>
+      <p className="flex flex-wrap gap-x-2 text-sky-900">
+        {w.rainChance != null && <span className="flex items-center gap-0.5"><Droplets size={10} />{w.rainChance}%</span>}
+        <span className="flex items-center gap-0.5"><Wind size={10} />{speed(w.windMax)}</span>
+        {o.sunrise && <span className="flex items-center gap-0.5"><Sunrise size={10} />{o.sunrise}</span>}
+        {o.sunset && <span className="flex items-center gap-0.5"><Sunset size={10} />{o.sunset}</span>}
       </p>
       {o.hours && (
-        <div className="mt-1.5 grid grid-cols-4 gap-1 text-center text-[10.5px]">
+        <div className="mt-0.5 grid grid-cols-4 gap-0.5 text-center text-[10px]">
           {o.hours.map(h => (
-            <div key={h.hour} className="rounded bg-white/80 py-0.5">
-              <p className="text-sky-700">{String(h.hour).padStart(2, '0')}h</p>
-              <p className="text-sm leading-tight">{describeWeather(h.code).emoji}</p>
-              <p className="font-semibold">{deg(h.temp)}</p>
-              {h.rain != null && h.rain >= 10 && <p className="text-sky-700">💧{h.rain}%</p>}
-            </div>
+            <span key={h.hour} className="rounded bg-white/80" title={h.rain != null ? `${t('Rain {pct}%', { pct: h.rain })}` : undefined}>
+              <span className="text-sky-700">{h.hour}h</span> {describeWeather(h.code).emoji}<br /><b>{deg(h.temp)}</b>{h.rain != null && h.rain >= 20 && <span className="text-sky-700"> {h.rain}%</span>}
+            </span>
           ))}
         </div>
       )}
-      {cold && (
-        <p className="mt-1.5 text-[11px] text-sky-900">
-          🏔 {t('At the highest point ({h}): about {max} / {min}', { h: `${Math.round(top!).toLocaleString()} m`, max: deg(atHeight(w.tempMax, base!, top!)), min: deg(atHeight(w.tempMin, base!, top!)) })}
-        </p>
-      )}
-      {o.kind === 'typical' && <p className="mt-1 text-[10px] text-sky-700">{dated ? t('Forecast from 16 days before.') : t('Add a start date for the forecast.')}</p>}
+      {cold && <p className="mt-0.5 text-sky-900">🏔 {t('At the top ({h}): {max}/{min}', { h: `${Math.round(top!).toLocaleString()} m`, max: deg(atHeight(w.tempMax, base!, top!)), min: deg(atHeight(w.tempMin, base!, top!)) })}</p>}
+      {o.kind === 'typical' && <p className="text-[10px] text-sky-700">{dated ? t('Forecast from 16 days before.') : t('Add a start date for the forecast.')}</p>}
     </div>
   );
 };
@@ -313,7 +317,7 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode,
         <p className="flex items-center gap-1 text-xs text-sky-800"><Ship size={12} />{t('Includes {d} by ferry', { d: dist(roads.ferryKm) })}</p>
       )}
 
-      <div className={wide ? 'grid gap-x-5 gap-y-2 md:grid-cols-[3fr_2fr]' : 'space-y-2'}>
+      <div className={wide ? 'grid items-start gap-x-4 gap-y-2 md:grid-cols-[minmax(0,1fr)_200px]' : 'space-y-2'}>
       {motor ? (
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-700">
@@ -343,6 +347,7 @@ const SegmentDetails: React.FC<SegmentDetailsProps> = ({ label, leg, travelMode,
           {elevations === null && <p className="text-xs text-slate-500">{t("Elevation data isn't available for this segment.")}</p>}
           {elevations && <ProfileChart elevations={elevations} totalKm={km} axis={!road?.surfaceRuns.length} tall />}
           {road && <SurfaceStrip runs={road.surfaceRuns} totalKm={km} axis />}
+          {elevations && <SlopeKey />}
           <SurfaceTotals leg={leg} travelMode={travelMode} />
         </div>
       )}
