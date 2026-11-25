@@ -144,6 +144,8 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
               autoFocus
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              // Enter plans (like the button); Shift+Enter starts a new line.
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); handleStart(); } }}
               placeholder={t('e.g., {example}', { example })}
               className="min-h-[120px] w-full rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900 dark:bg-emerald-900/20"
             />
@@ -167,7 +169,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
             </button>
             <button onClick={onInspire}
               className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
-              <Compass size={16} />{t('Or explore famous journeys on the Mappa Mundi')}
+              <Compass size={16} />{t('Or explore historic journeys on Mappa Mundi')}
             </button>
           </div>
         </div>

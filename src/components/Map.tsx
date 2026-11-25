@@ -9,7 +9,7 @@ maplibregl.setWorkerUrl(mapWorkerUrl);
 import type { FeatureCollection, LineString } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
-import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
+import { Layers, Map as MapIcon, Globe, Mountain, Box } from 'lucide-react';
 import { Waypoint, RouteInfo, StopRef, InterestItem, Via, Story } from '../types';
 import { cn } from '../lib/utils';
 import SegmentDetails from './SegmentDetails';
@@ -179,6 +179,11 @@ const MapView: React.FC<MapProps> = ({
   const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, travelMode });
   callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, travelMode };
   const [mapType, setMapType] = useState<MapType>('topo');
+  // 3D: the map tilted over the terrain (free elevation tiles), to see the climbs of a bike or hiking route.
+  const [terrain3d, setTerrain3d] = useState(false);
+  const terrain3dRef = useRef(false);
+  terrain3dRef.current = terrain3d;
+  const tiltedRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
   // The day whose details show in the banner (a banner, not a popup, so the map stays free to zoom and pan).
@@ -434,6 +439,30 @@ const MapView: React.FC<MapProps> = ({
     return () => { map.remove(); mapRef.current = null; };
   }, []);
 
+  // 3D terrain on or off; a new style drops it, so it's put back on 'style.load'.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    const apply = () => {
+      try {
+        if (terrain3dRef.current) {
+          if (!map.getSource('terrain-dem')) map.addSource('terrain-dem', {
+            type: 'raster-dem', encoding: 'terrarium', tileSize: 256, maxzoom: 15,
+            tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+            attribution: 'Terrain: Mapzen, AWS Open Data',
+          });
+          map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+        } else if (map.getTerrain()) map.setTerrain(null);
+      } catch { /* style still loading: 'style.load' applies it */ }
+    };
+    apply();
+    // Tilt only when the button changes it (not when the map first loads).
+    if (terrain3d !== tiltedRef.current) map.easeTo(terrain3d ? { pitch: 62, bearing: map.getBearing() || -20, duration: 900 } : { pitch: 0, bearing: 0, duration: 700 });
+    tiltedRef.current = terrain3d;
+    map.on('style.load', apply);
+    return () => { map.off('style.load', apply); };
+  }, [terrain3d, isReady]);
+
   // Switching style replaces all layers; the route is re-added on 'style.load'.
   useEffect(() => {
     if (mapRef.current && isReady) styleFor(mapType).then(style => mapRef.current?.setStyle(style)).catch(err => console.warn('Map style unavailable', err));
@@ -609,6 +638,18 @@ const MapView: React.FC<MapProps> = ({
               <span className="hidden sm:inline">{t(label)}</span>
             </button>
           ))}
+          <button
+            onClick={() => setTerrain3d(v => !v)}
+            aria-pressed={terrain3d}
+            title={terrain3d ? t('Back to the flat map') : t('Tilt the map to see the terrain in 3D (right-drag or two fingers to turn)')}
+            className={cn(
+              "flex items-center gap-2 rounded-lg border-emerald-900/10 px-2.5 py-2 text-xs font-bold transition-all md:mt-1 md:border-t md:px-3",
+              terrain3d ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
+            )}
+          >
+            <Box size={14} />
+            <span className="hidden sm:inline">3D</span>
+          </button>
         </div>
       </div>
     </div>
