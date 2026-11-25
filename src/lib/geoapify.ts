@@ -59,7 +59,7 @@ export function geoapifyElement(f: GeoapifyFeature, wanted: string[] = []): OsmE
   const raw = p.datasource?.raw || {};
   const tags: Record<string, string> = {};
   for (const [k, v] of Object.entries(raw)) if (typeof v === 'string' || typeof v === 'number') tags[k] = String(v);
-  delete tags.osm_id; delete tags.osm_type;
+  for (const k of ['osm_id', 'osm_type', 'lat', 'lon']) delete tags[k];
   // No OSM kind in the raw tags: take it from the category asked for (else any category it has).
   if (!tags.tourism && !tags.amenity && !tags.shop && !tags.historic && !tags.natural) {
     const cats = p.categories || [];
