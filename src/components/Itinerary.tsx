@@ -148,7 +148,11 @@ const Itinerary: React.FC<ItineraryProps> = ({
                 <span className="flex items-center gap-1"><CalendarDays size={11} />{t('Day {n}', { n: n + 1 })}</span>
                 {day.date && <span className="text-[10px] font-medium">{formatDate(day.date)}</span>}
               </span>
-              <div className="min-w-0 flex-1 space-y-0.5">
+              {/* Clicking the day shows it on the map (zoomed to it, with its details). */}
+              <div role="button" tabIndex={0} title={t('Show day {n} on the map', { n: n + 1 })}
+                onClick={() => window.dispatchEvent(new CustomEvent('focus-day', { detail: i }))}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.dispatchEvent(new CustomEvent('focus-day', { detail: i })); } }}
+                className="-m-1 min-w-0 flex-1 cursor-pointer space-y-0.5 rounded p-1 hover:bg-emerald-50/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
                 <p className="truncate font-medium" title={`${leg.from} → ${leg.to}`}>{leg.from} → {leg.to}</p>
                 <p className="text-muted-foreground">
                   {leg.ferryKm

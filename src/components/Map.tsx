@@ -406,23 +406,29 @@ const MapView: React.FC<MapProps> = ({
     map.on('mouseup', endDrag);
     map.on('touchend', endDrag);
 
+    // A day: highlighted, its details open, and the whole day in view, clear of the banner (also from the day list).
+    const focusDay = (index: number) => {
+      const segment = segmentsRef.current[index];
+      if (!segment?.path.length) return;
+      popupRef.current?.remove();
+      setOpenSegment(index);
+      setActiveSegment(index);
+      openStopRef.current = null;
+      const bounds = new maplibregl.LngLatBounds();
+      segment.path.forEach(p => bounds.extend([p.lng, p.lat]));
+      const h = map.getContainer().clientHeight;
+      map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: Math.round(h * 0.45), bottom: Math.round(h * 0.42), left: 30, right: 30 } : { top: 90, left: 60, right: 60, bottom: 340 }, duration: 600, maxZoom: 14 });
+    };
+    const onFocusDay = (e: Event) => focusDay((e as CustomEvent<number>).detail);
+    window.addEventListener('focus-day', onFocusDay);
+    map.on('remove', () => window.removeEventListener('focus-day', onFocusDay));
+
     map.on('click', (e) => {
       if (justDragged) return;
       const hit = map.getLayer('route-line') ? map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['route-line'] }) : [];
       const at = { lat: e.lngLat.lat, lng: e.lngLat.lng };
       if (hit.length) {
-        const index = hit[0].properties?.index as number;
-        const segment = segmentsRef.current[index];
-        if (!segment) return;
-        popupRef.current?.remove();
-        setOpenSegment(index);
-        setActiveSegment(index);
-        openStopRef.current = null;
-        // Show the whole day, clear of the banner.
-        const bounds = new maplibregl.LngLatBounds();
-        segment.path.forEach(p => bounds.extend([p.lng, p.lat]));
-        const h = map.getContainer().clientHeight;
-        map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: Math.round(h * 0.45), bottom: Math.round(h * 0.42), left: 30, right: 30 } : { top: 90, left: 60, right: 60, bottom: 340 }, duration: 600, maxZoom: 14 });
+        focusDay(hit[0].properties?.index as number);
         return;
       }
       if (!callbacksRef.current.onAddStop && !callbacksRef.current.onMarkPlace) return;
