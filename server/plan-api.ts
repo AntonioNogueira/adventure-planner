@@ -422,7 +422,8 @@ export function hedged<T>(attempts: (() => Promise<T>)[], staggerMs: number): Pr
       }, err => {
         if (done) return;
         errors.push(err); failed++;
-        if (failed === attempts.length) { done = true; clearTimeout(timer); reject(errors[0]); }
+        // All failed: the first error, carrying every attempt's error (for logs and messages).
+        if (failed === attempts.length) { done = true; clearTimeout(timer); const e = errors[0]; try { (e as { all?: unknown[] }).all = errors; } catch { /* frozen */ } reject(e); }
         else if (failed === started) startNext();
       });
     };
@@ -431,12 +432,17 @@ export function hedged<T>(attempts: (() => Promise<T>)[], staggerMs: number): Pr
   });
 }
 
+/** Models whose daily quota ran out: skipped until this time, so they don't cost seconds on every request. */
+const modelRestUntil = new Map<string, number>();
+
 async function runGemini(env: PlanEnv, task: string, prompt: string, responseSchema: object, file?: UploadedFile) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
-  const models = [...new Set([
+  const configured = [...new Set([
     env.GEMINI_MODEL || 'gemini-flash-lite-latest',
     env.GEMINI_FALLBACK_MODEL || 'gemini-flash-latest',
   ])];
+  const ready = configured.filter(m => (modelRestUntil.get(m) || 0) < Date.now());
+  const models = ready.length ? ready : configured;
 
   // Each model with a quick retry; the second model joins after 6 s (or as soon as the first gives up).
   const attempt = (model: string) => async () => {
@@ -467,14 +473,25 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
         lastError = err;
         if (err instanceof ApiError) logUsage(task, model, started, { error: `${err.status}${GEMINI_RETRYABLE.has(err.status) ? ' (busy, will retry)' : ''}` });
         if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
-        // A used-up quota (per minute or per day) won't come back in seconds: give up on this model now.
+        // A used-up quota (per minute or per day) won't come back in seconds: give up on this model now; a daily
+        // one (or the free tier's) rests the model for an hour.
+        if (err.status === 429 && /per day|PerDay|free_tier/i.test(err.message)) modelRestUntil.set(model, Date.now() + 3600_000);
         if (err.status === 429 && /quota|RESOURCE_EXHAUSTED|per day|PerDay/i.test(err.message)) break;
       }
     }
   }
   throw lastError;
   };
-  return hedged(models.map(attempt), 6000);
+  try {
+    return await hedged(models.map(attempt), 6000);
+  } catch (err) {
+    // Say what each model answered (one can be out of quota while the other is only busy).
+    const all = ((err as { all?: unknown[] }).all || [err]).map(e => (e instanceof Error ? e.message : String(e)).replace(/\s+/g, ' '));
+    if (all.length < 2) throw err;
+    const combined = new Error(all.map((m, i) => `[${i + 1}] ${m.slice(0, 600)}`).join(' || '));
+    if (err instanceof ApiError) Object.assign(combined, { status: err.status });
+    throw combined;
+  }
 }
 
 // OpenAI is only used for trip planning (text in, JSON out).
@@ -1002,7 +1019,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
             console.log(`[ai] unavailable, quick plan: ${describeIntent(quick)}`);
             // Why the AI didn't answer (status and Google's reason, no keys), for checking quota or billing.
             // A quota error names the exact limit ("Quota exceeded for metric: …, limit: …, model: …"): keep that part.
-            const brief = (d: string) => { const t = d.replace(/\\n|\s+/g, ' '); const q = t.match(/Quota exceeded for metric:[^"]{0,220}/); return (q ? `${t.slice(0, 40)} … ${q[0]}` : t).slice(0, 300); };
+            const brief = (d: string) => d.replace(/\\n|\s+/g, ' ').split(' || ').map(t => { const q = t.match(/Quota exceeded for metric:[^"]{0,220}/); return (q ? `${t.slice(0, 40)} … ${q[0]}` : t).slice(0, 300); }).join(' || ');
             const aiError = err instanceof AllFailed ? err.details.map(brief).slice(0, 3) : ['no provider'];
             return sendJson(res, 200, { provider: 'quick', plan: quick, aiError });
           }
