@@ -89,7 +89,10 @@ export function applyKnownRoute(intent: { origin: string; destination: string; r
     intent.origin = byTown.get(a)!;
     intent.destination = byTown.get(b)!;
     if (!(intent.route || []).length) {
-      const [i, j] = [r.places.findIndex(p => town(p) === a), r.places.findIndex(p => town(p) === b)];
+      // For a loop (same start and finish) the finish is the route's last place of that name, not its first.
+      const i = r.places.findIndex(p => town(p) === a);
+      const later = r.places.findIndex((p, k) => k > i && town(p) === b);
+      const j = later >= 0 ? later : r.places.findIndex(p => town(p) === b);
       const between = i < j ? r.places.slice(i + 1, j) : r.places.slice(j + 1, i).reverse();
       intent.route = between.map(place => ({ place, overnight: false }));
     } else intent.route = intent.route!.map(x => ({ ...x, place: byTown.get(town(x.place)) || x.place }));

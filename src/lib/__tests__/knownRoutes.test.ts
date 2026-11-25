@@ -32,3 +32,14 @@ describe('known route spellings', () => {
       expect(findKnownRoute(q)?.id).toBe('tour-du-mont-blanc');
   });
 });
+
+describe('known loops', () => {
+  it('fills the places of a loop when the AI gave only its start and finish', async () => {
+    const { applyKnownRoute, findKnownRoute } = await import('../../../server/knownRoutes');
+    const r = findKnownRoute('tour du mont blanc')!;
+    const intent = { origin: 'Les Houches, France', destination: 'Les Houches', route: [] as { place: string; overnight: boolean }[] };
+    applyKnownRoute(intent, r);
+    expect(intent.route.length).toBeGreaterThan(5);
+    expect(intent.route.map(x => x.place)).toContain('Trient, Switzerland');
+  });
+});
