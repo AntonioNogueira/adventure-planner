@@ -4,7 +4,7 @@ const data = JSON.parse(readFileSync(`${dir}/stages.json`, 'utf8'));
 const CACHE = `${dir}/geo.json`;
 const geo = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {};
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const UA = 'AdventurePlannerInspiration/1.0 (journey map builder)';
+const UA = 'Munditrails/1.0 (journey map builder)';
 const FLAG = { FRA:'fr', ESP:'es', POR:'pt', ITA:'it', MAR:'ma', ALG:'dz', TUN:'tn', LBY:'ly', LBA:'ly', EGY:'eg', NIG:'ne', NER:'ne', MLI:'ml', MTN:'mr', MRT:'mr', SEN:'sn', BUR:'bf', BFA:'bf', CIV:'ci', GUI:'gn', CHA:'td', TCD:'td', CMR:'cm', CAF:'cf', GAB:'ga', CGO:'cg', ANG:'ao', NAM:'na', RSA:'za', ESH:'eh', ARG:'ar', CHI:'cl', CHL:'cl', PER:'pe', BOL:'bo', PAR:'py', KSA:'sa', SAU:'sa', GHA:'gh', GAM:'gm', NGR:'ng', ZAI:'cd', MAW:'mw' };
 const ERA = y => y <= 2007 ? 'fr,es,pt,it,ma,eh,dz,tn,ly,eg,ne,ml,mr,sn,bf,ci,gn,td,cm,cf,ga,cg,ao,na,za,gm,gh,ng' : y <= 2019 ? 'ar,cl,pe,bo,py' : 'sa';
 const JUNK = /^(cars|trucks|bikes|mi|winner|liaison|total|fia|fim|transportation|non-timed|finish in|bivouac refuge|empty quarter|marathon|rest day|\/)/i;

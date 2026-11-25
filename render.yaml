@@ -1,10 +1,14 @@
-# Render blueprint: https://render.com → New → Blueprint → pick this repository.
-# Render asks for the secret values (sync: false) when the service is created.
+# Render blueprint: https://render.com → New → Blueprint → pick munditrails/app.
+# Render asks for the secret values (sync: false) when the services are created.
+# One service in Frankfurt (closest to the users and the European map services), branch main. A service's region
+# can't be changed after it's created. (A second copy, munditrails-open on branch open, was dropped: same code.)
 services:
   - type: web
-    name: adventure-planner
+    name: munditrails
     runtime: node
+    region: frankfurt
     plan: free
+    branch: main
     buildCommand: npm ci && npm run build
     startCommand: npx vite preview
     healthCheckPath: /

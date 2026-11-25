@@ -18,7 +18,7 @@ const JOURNEYS = [...FAMOUS, ...CLASSICS, ...DAKAR];
 
 const OUT = new URL('../../public/inspiration/', import.meta.url);
 const CACHE = process.env.INSPIRATION_CACHE || new URL('./.cache.json', import.meta.url).pathname;
-const UA = 'AdventurePlannerInspiration/1.0 (journey map builder)';
+const UA = 'Munditrails/1.0 (journey map builder)';
 const ROAD = new Set(['ride', 'walk', 'truck', 'bus']);
 
 const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {};

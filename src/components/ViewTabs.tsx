@@ -16,7 +16,7 @@ const TABS: { id: AppView; label: string; icon: typeof RouteIcon }[] = [
   { id: 'budget', label: 'Budget', icon: Wallet },
   { id: 'documents', label: 'Documents', icon: FolderOpen },
   { id: 'ride', label: 'Ride', icon: Navigation },
-  { id: 'inspire', label: 'Inspire', icon: Compass },
+  { id: 'inspire', label: 'Mappa Mundi', icon: Compass },
 ];
 
 /** Distance units, currency and language (defaults come from the browser's locale). */
@@ -110,7 +110,7 @@ const ViewTabs: React.FC<{ view: AppView; onChange: (view: AppView) => void; doc
           aria-label={t(label)}
           aria-pressed={view === id}
           className={cn(
-            'flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold transition-all sm:px-3',
+            'flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-xs font-bold transition-all sm:px-3',
             view === id ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700',
           )}
         >

@@ -1,5 +1,5 @@
 {
-  "name": "Adventure Planner",
+  "name": "Munditrails",
   "description": "Plan your next Adventure. Map it. Save it.",
   "requestFramePermissions": [
     "geolocation"

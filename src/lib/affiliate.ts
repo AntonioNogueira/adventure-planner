@@ -64,7 +64,7 @@ export function bookingUrl(name: string, town: string, nights?: Nights, ids: Aff
   const params = new URLSearchParams({ ss: [name, searchTown(town)].filter(Boolean).join(', ') });
   if (nights) { params.set('checkin', nights.checkIn); params.set('checkout', nights.checkOut); }
   if (kind && BOOKING_TYPE[kind]) params.set('nflt', `ht_id=${BOOKING_TYPE[kind]}`);
-  if (ids.booking) { params.set('aid', ids.booking); params.set('label', 'adventure-planner'); }
+  if (ids.booking) { params.set('aid', ids.booking); params.set('label', 'munditrails'); }
   return `https://www.booking.com/searchresults.html?${params}`;
 }
 
@@ -84,7 +84,7 @@ export function stayUrl(item: { name: string; stayKind?: string }, town: string,
 /** GetYourGuide search for tickets and tours at a sight. */
 export function toursUrl(name: string, town: string, ids: AffiliateConfig = partners()): string {
   const params = new URLSearchParams({ q: [name, searchTown(town)].filter(Boolean).join(' ') });
-  if (ids.getyourguide) { params.set('partner_id', ids.getyourguide); params.set('cmp', 'adventure-planner'); }
+  if (ids.getyourguide) { params.set('partner_id', ids.getyourguide); params.set('cmp', 'munditrails'); }
   return `https://www.getyourguide.com/s/?${params}`;
 }
 

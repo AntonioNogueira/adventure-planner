@@ -1,4 +1,4 @@
-# Adventure Planner
+# Munditrails
 
 Plan your next adventure with AI. Map it. Save it.
 

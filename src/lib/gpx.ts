@@ -33,7 +33,7 @@ export function buildGpx(name: string, tracks: GpxTrack[], waypoints: GpxWaypoin
   ].join('\n'));
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<gpx version="1.1" creator="Adventure Planner" xmlns="http://www.topografix.com/GPX/1/1">',
+    '<gpx version="1.1" creator="Munditrails" xmlns="http://www.topografix.com/GPX/1/1">',
     `  <metadata><name>${escapeXml(name)}</name></metadata>`,
     ...wpts,
     ...trks,

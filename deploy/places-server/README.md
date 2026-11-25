@@ -16,7 +16,7 @@ Nothing here has been run yet; try it on a test server first.
 ## Start it
 
 ```
-git clone https://github.com/AntonioNogueira/adventure-planner && cd adventure-planner/deploy/places-server
+git clone https://github.com/munditrails/app && cd app/deploy/places-server
 DOMAIN=places.yourdomain.com \
 APP_ORIGIN=https://yourdomain.com \
 OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/portugal-latest.osm.pbf \

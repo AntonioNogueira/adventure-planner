@@ -13,7 +13,7 @@ export interface SubmissionEnv {
   RESEND_API_KEY?: string;
   /** Who gets "new journey to review" emails (comma-separated). */
   ADMIN_EMAIL?: string;
-  /** Sender, e.g. "Adventure Planner <journeys@yourdomain>"; default Resend's test sender (can only email the account owner). */
+  /** Sender, e.g. "Munditrails <journeys@munditrails.com>"; default Resend's test sender (can only email the account owner). */
   EMAIL_FROM?: string;
   /** The app's public address for links in emails, e.g. https://adventure-planner-otj3.onrender.com (default: the request's host). */
   PUBLIC_URL?: string;
@@ -156,7 +156,7 @@ export async function emailAdmin(env: SubmissionEnv, sub: Submission, report: Sc
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: env.EMAIL_FROM || 'Adventure Planner <onboarding@resend.dev>', to, subject: `Journey to review: ${sub.title}`, html, text }),
+      body: JSON.stringify({ from: env.EMAIL_FROM || 'Munditrails <onboarding@resend.dev>', to, subject: `Journey to review: ${sub.title}`, html, text }),
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) console.warn('[submissions] email failed', res.status, (await res.text()).slice(0, 200));

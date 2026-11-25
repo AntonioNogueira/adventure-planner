@@ -8,6 +8,7 @@ import { verifyIdToken, readPlanRecord, isAdmin, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 import { isLocalUrl, readLink, linkAsText } from './link';
 import { parseQuickIntent, quickReply } from './quickIntent';
+import { applyKnownRoute, findKnownRoute, knownRouteHint } from './knownRoutes';
 import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourneyChatPrompt, buildScreeningPrompt, emailAdmin, readSubmission, screeningJsonSchema } from './submissions';
 
 // Server-side AI endpoints, run inside the Vite dev/preview server so API keys never reach the browser bundle:
@@ -21,6 +22,8 @@ import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourney
 // Provider order: Claude (ANTHROPIC_API_KEY), then Gemini (GEMINI_API_KEY), then OpenAI (OPENAI_API_KEY).
 
 export interface PlanEnv extends SubmissionEnv {
+  /** Longest wait for the AI on a plan before the quick reading answers (ms, default 25000). */
+  AI_DEADLINE_MS?: string;
   ANTHROPIC_API_KEY?: string;
   CLAUDE_MODEL?: string;
   GEMINI_API_KEY?: string;
@@ -894,16 +897,25 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       const current = body.current && typeof body.current === 'object' ? body.current : undefined;
       const language = typeof body.language === 'string' ? body.language.slice(0, 8) : undefined;
       if (!request) return sendJson(res, 400, { error: 'Prompt is required' });
+      // A route the Mappa Mundi knows ("Ecopista do Dão", "the EN2"): its real line is given to the AI.
+      const known = findKnownRoute(request);
       try {
-        const { provider, result: intent } = await runTaskResult(env, {
-          name: 'plan',
-          prompt: buildPrompt(request, history, current, language, body.profile),
-          geminiSchema: responseSchema,
-          claudeSchema: planJsonSchema,
-          allowOpenAI: true,
-        });
+        // At most ~25 s for the AI: a busy provider's retries could take over a minute, and the traveller is waiting.
+        // After that the quick reading answers (below), and the AI is there again for the next message.
+        const AI_DEADLINE_MS = Number(env.AI_DEADLINE_MS) || 25_000;
+        const { provider, result: intent } = await Promise.race([
+          runTaskResult(env, {
+            name: 'plan',
+            prompt: buildPrompt(request, history, current, language, body.profile) + (known ? knownRouteHint(known) : ''),
+            geminiSchema: responseSchema,
+            claudeSchema: planJsonSchema,
+            allowOpenAI: true,
+          }),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new AllFailed([`deadline: no answer in ${AI_DEADLINE_MS / 1000} s (busy)`])), AI_DEADLINE_MS)),
+        ]);
         if (!intent.vehicle || intent.vehicle === 'unknown' || intent.travelMode !== 'DRIVING') intent.vehicle = '';
         cleanStyle(intent);
+        if (known && applyKnownRoute(intent, known)) console.log(`[ai] put back the known route: ${known.title}`);
         // Places that are just the origin or destination again (the AI sometimes repeats them) make empty days.
         const town = (p: string) => String(p || '').split(',')[0].trim().toLowerCase();
         if (Array.isArray(intent.route)) intent.route = intent.route.filter((r: any) => ![town(intent.origin), town(intent.destination)].includes(town(r.place)));
@@ -942,7 +954,9 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       } catch (err) {
         // Every AI busy or out of quota: read a plain request ourselves so the traveller still gets a trip.
         if (err instanceof AllFailed || err instanceof NoProvider) {
-          const quick = parseQuickIntent(request, current);
+          const quick = parseQuickIntent(request, current)
+            || (known ? parseQuickIntent(`${known.places[0]} to ${known.places[known.places.length - 1]} ${request}`, null) : null);
+          if (quick && known) applyKnownRoute(quick, known);
           if (quick) {
             quick.reply = quickReply(language);
             console.log(`[ai] unavailable, quick plan: ${describeIntent(quick)}`);

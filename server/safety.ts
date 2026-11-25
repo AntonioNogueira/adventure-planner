@@ -163,7 +163,7 @@ export interface SafetyData {
 /** Reads the advice areas from a country's warnings text (AI); supplied by the server, which has the AI keys. */
 export type AreaReader = (country: string, text: string) => Promise<{ name: string; place: string; level: 'all' | 'essential'; note: string }[]>;
 
-const UA = 'AdventurePlanner/1.0 (overland safety informer)';
+const UA = 'Munditrails/1.0 (overland safety informer)';
 const get = async (url: string, timeout = 30000) => {
   const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: '*/*' }, signal: AbortSignal.timeout(timeout) });
   if (!res.ok) throw new Error(`${res.status} ${url}`);
@@ -428,7 +428,11 @@ export function safetyApi(readAreas?: AreaReader): Plugin {
   const refresh = () => {
     const base = data || saved();
     const adviceToo = !base || !base.adviceUpdated || Date.now() - Date.parse(base.adviceUpdated) > SLOW;
-    building ??= buildSafety({ readAreas, previous: base, adviceToo }).then(d => { data = d; }).catch(err => console.warn('[safety]', String(err))).finally(() => { building = null; });
+    // Incidents and hazards first (seconds), so visitors get fresh news while the advice rebuild (minutes) runs.
+    building ??= (async () => {
+      if (adviceToo && base) data = await buildSafety({ readAreas, previous: base, adviceToo: false }).catch(() => data);
+      data = await buildSafety({ readAreas, previous: data || base, adviceToo });
+    })().catch(err => console.warn('[safety]', String(err))).finally(() => { building = null; });
     return building;
   };
   const handler = (file: string): Connect.NextHandleFunction => async (req, res: ServerResponse, next) => {

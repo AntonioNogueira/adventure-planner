@@ -12,7 +12,7 @@ import { checkAdmin, loadPendingSubmissions, loadPublished, loadSubmission, summ
 import AddJourneyChat from './AddJourneyChat';
 import ReviewJourney from './ReviewJourney';
 import ImportJourney from './ImportJourney';
-import { SafetyButton, SafetyLayer } from './SafetyLayer';
+import { SafetyButton, SafetyLayer, SafetyPanel } from './SafetyLayer';
 import { GLOBE_STYLE, closeSatellite } from '../lib/mapStyle';
 import { maptilerKey } from '../lib/maptiler';
 import { mediaLinks } from '../lib/affiliate';
@@ -309,10 +309,29 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 3, 8, 5.5], 'line-opacity': 0.85 } });
       map.addLayer({ id: 'journey-road', type: 'line', source: 'journey', filter: ['get', 'road'], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.6, 8, 3.2] } });
       map.addLayer({ id: 'journey-other', type: 'line', source: 'journey', filter: ['!', ['get', 'road']], layout: { 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.4, 8, 2.6], 'line-dasharray': [1.5, 1.5] } });
+      // The line under the mouse stands out, with its name; a wide invisible band around each line makes it easy to hit.
+      map.addLayer({ id: 'overview-hover', type: 'line', source: 'overview', filter: ['==', ['get', 'id'], ''], layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 3, 6, 6], 'line-opacity': 0.95 } });
+      map.addLayer({ id: 'overview-hit', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#000000', 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 12, 6, 20], 'line-opacity': 0.01 } });
+      const label = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'journey-label', maxWidth: '260px' });
+      let hovered = '';
       const pick = (e: maplibregl.MapLayerMouseEvent) => { const id = e.features?.[0]?.properties?.id; if (id) selectRef.current(String(id)); };
-      map.on('click', 'overview-line', pick);
-      map.on('mouseenter', 'overview-line', () => { map.getCanvas().style.cursor = 'pointer'; });
-      map.on('mouseleave', 'overview-line', () => { map.getCanvas().style.cursor = ''; });
+      map.on('click', 'overview-hit', pick);
+      map.on('mousemove', 'overview-hit', (e) => {
+        const f = e.features?.[0];
+        const id = String(f?.properties?.id || '');
+        if (!id) return;
+        map.getCanvas().style.cursor = 'pointer';
+        if (id !== hovered) { hovered = id; map.setFilter('overview-hover', ['==', ['get', 'id'], id]); }
+        label.setLngLat(e.lngLat).setText(String(f?.properties?.title || '')).addTo(map);
+      });
+      map.on('mouseleave', 'overview-hit', () => {
+        hovered = '';
+        map.getCanvas().style.cursor = '';
+        map.setFilter('overview-hover', ['==', ['get', 'id'], '']);
+        label.remove();
+      });
       setReady(true);
       spin();
     });
@@ -334,7 +353,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
     // While a journey is open only its detailed line shows: the rough overview lines (its own and the others',
     // several of which follow the same roads) would run beside it as shortcuts. They come back when it's closed.
     (map.getSource('overview') as maplibregl.GeoJSONSource).setData(collection(
-      shown || adding ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)).map(part => feature(part, { id: j.id, color: j.color, dim: false }))),
+      shown || adding ? [] : all.flatMap(j => j.overview.flatMap(o => splitJumps(o)).map(part => feature(part, { id: j.id, color: j.color, dim: false, title: j.title }))),
     ));
     (map.getSource('heat') as maplibregl.GeoJSONSource).setData(heatPoints(shown || adding ? [] : all.filter(j => !j.crossing).flatMap(j => j.overview.flatMap(o => splitJumps(o)))));
   }, [ready, all, shown, adding]);
@@ -393,7 +412,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
 
   return (
     <div className="absolute inset-0 z-[17] bg-[radial-gradient(ellipse_at_center,#1e3a4f_0%,#0b1622_70%)]">
-      <div ref={container} className="h-full w-full" />
+      <div ref={container} className="inspire-map h-full w-full" />
       <div className="absolute bottom-[calc(50dvh+8px)] left-2 z-10 flex overflow-hidden md:bottom-3 md:left-[388px] rounded-md border border-slate-300 bg-white text-[10.5px] font-semibold shadow" role="group" aria-label={t('Map style when zoomed in')}>
         {(['topo', 'satellite'] as const).map(b => (
           <button key={b} onClick={() => setBasemap(b)} aria-pressed={basemap === b}
@@ -436,10 +455,12 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
         ) : importing && uid ? (
           <ImportJourney uid={uid} preview={preview} onPreview={setPreview} onClose={() => setImporting(false)}
             onPublished={(j) => { setPublished(list => [j, ...list]); setPreview(null); setImporting(false); setJourney(j); }} />
+        ) : safety && !journey ? (
+          <SafetyPanel map={ready ? mapRef.current : null} onClose={() => setSafety(false)} />
         ) : !journey ? (
           <div className="space-y-3">
             <div>
-              <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Compass size={16} />{t('Inspiration')}</h2>
+              <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Compass size={16} />Mappa Mundi</h2>
               <p className="mt-0.5 text-xs text-slate-600">{t('Famous journeys to dream about. Pick one to follow it stop by stop, then plan any stretch of it as your own trip.')}</p>
               {list && <p className="mt-1 text-[10.5px] text-slate-400">{t('{n} journeys · {d} of adventure', { n: all.length, d: dist(totalKm, 0) })}</p>}
             </div>

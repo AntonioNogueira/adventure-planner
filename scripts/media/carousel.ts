@@ -17,7 +17,7 @@ type Slide =
 
 const DECKS: Record<string, { brand: string; swipe: string; slides: Slide[] }> = {
   africa: {
-    brand: 'Adventure Planner', swipe: 'Swipe →',
+    brand: 'Munditrails', swipe: 'Swipe →',
     slides: [
       { type: 'cover', kicker: 'Overland classics', title: '7 classic overland routes in Africa', lede: 'From the Sahara to the Cape: the routes overlanders dream about. Save this for your next trip.', ids: ['lisbon-dakar', 'west-africa-overland', 'morocco-atlas-sahara', 'skeleton-coast-kaokoland', 'botswana-overland', 'sani-pass-lesotho', 'congo-nile-trail'] },
       { type: 'route', n: 1, id: 'lisbon-dakar', why: 'The old rally road: the Atlas, the Western Sahara coast and the Mauritanian desert, all the way to Senegal.' },
@@ -27,11 +27,11 @@ const DECKS: Record<string, { brand: string; swipe: string; slides: Slide[] }> =
       { type: 'route', n: 5, id: 'botswana-overland', why: 'From the Okavango Delta to Chobe: wild camps with elephants walking past the tent.' },
       { type: 'route', n: 6, id: 'sani-pass-lesotho', why: 'Switchbacks up to the “highest pub in Africa”, then across the roof of Lesotho.' },
       { type: 'route', n: 7, id: 'congo-nile-trail', why: 'Along the shore of Lake Kivu by bike, through Rwanda’s tea and coffee hills.' },
-      { type: 'cta', title: 'Follow every stop, then plan your own', lede: 'All 7 routes are on the Adventure Planner map, with their stops, photos and stories. Planning your own trip takes one sentence.', button: 'Link in bio', note: 'Always check the official travel advice before you go: our map shows it too.' },
+      { type: 'cta', title: 'Follow every stop, then plan your own', lede: 'All 7 routes are on the Munditrails Mappa Mundi, with their stops, photos and stories. Planning your own trip takes one sentence.', button: 'Link in bio', note: 'Always check the official travel advice before you go: our map shows it too.' },
     ],
   },
   'ate-la-abaixo': {
-    brand: 'Adventure Planner', swipe: 'Desliza →',
+    brand: 'Munditrails', swipe: 'Desliza →',
     slides: [
       { type: 'cover', kicker: 'Viagens famosas, no mapa', title: '3 amigos, 1 jipe, 21 países', lede: 'Em 2010 largaram os empregos e foram de Lisboa a Joanesburgo de jipe… para ver o Mundial.', ids: ['ate-la-abaixo-2010'], dark: true },
       { type: 'map', kicker: 'Até Lá Abaixo · 2010', title: 'Lisboa → Joanesburgo', id: 'ate-la-abaixo-2010', facts: [['≈ 30 000 km', 'distância'], ['≈ 150 dias', 'na estrada'], ['21', 'países']] },
@@ -46,7 +46,7 @@ const DECKS: Record<string, { brand: string; swipe: string; slides: Slide[] }> =
       ] },
       { type: 'photo', id: 'ate-la-abaixo-2010', stop: 'Angola', kicker: 'O outro lado do futebol', title: 'Uma língua comum, de Marrocos a Joanesburgo', text: 'Uma viagem pelo futebol em África, e também sobre o medo e a superação.' },
       { type: 'text', kicker: 'Para ler e ver', title: 'O livro e o documentário', text: '“Até Lá Abaixo”, de Tiago Carrasco (Oficina do Livro, 2011), com fotografias de João Henriques, e o documentário “Até Lá Abaixo: O Outro Lado do Futebol em África”, de João Fontes.' },
-      { type: 'cta', title: 'Segue cada paragem e planeia a tua', lede: 'A viagem está no mapa do Adventure Planner, com as paragens e a história. Planear a tua demora uma frase.', button: 'Link na bio', note: 'Percurso aproximado, a partir de fontes públicas.' },
+      { type: 'cta', title: 'Segue cada paragem e planeia a tua', lede: 'A viagem está no Mappa Mundi do Munditrails, com as paragens e a história. Planear a tua demora uma frase.', button: 'Link na bio', note: 'Percurso aproximado, a partir de fontes públicas.' },
     ],
   },
 };
