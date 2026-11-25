@@ -8,6 +8,7 @@ import { SERVICES } from '../lib/services';
 import { SERVICE_NAMES, SERVICE_ROLES, ServiceId, report } from '../lib/serviceHealth';
 import { lastPlan } from '../lib/planTimer';
 import { maptilerKey } from '../lib/maptiler';
+import { geoapifyKey } from '../lib/geoapify';
 
 interface Result { id: string; service: ServiceId; label: string; status: 'checking' | 'ok' | 'slow' | 'down'; ms?: number; note?: string }
 
@@ -20,6 +21,7 @@ function probes(): { id: string; service: ServiceId; label: string; run: () => P
     { id: 'ai', service: 'ai', label: SERVICE_NAMES.ai, run: () => fetch('/api/health', { signal: t(60000) }) },
     { id: 'photon', service: 'photon', label: 'Photon', run: () => fetch(`${SERVICES.photon}/api/?q=Lisbon&limit=1`, { signal: t(8000) }) },
     ...(maptilerKey() ? [{ id: 'maptiler', service: 'maptiler' as ServiceId, label: 'MapTiler', run: () => fetch(`https://api.maptiler.com/geocoding/Lisbon.json?limit=1&key=${maptilerKey()}`, { signal: t(8000) }) }] : []),
+    ...(geoapifyKey() ? [{ id: 'geoapify', service: 'geoapify' as ServiceId, label: 'Geoapify (places)', run: () => fetch(`https://api.geoapify.com/v2/places?categories=catering.cafe&filter=circle:-9.1394,38.7139,500&limit=1&apiKey=${geoapifyKey()}`, { signal: t(10000) }) }] : []),
     { id: 'nominatim', service: 'nominatim', label: 'Nominatim', run: () => fetch(`${SERVICES.nominatim}/search?q=Lisbon&format=jsonv2&limit=1`, { signal: t(10000) }) },
     ...SERVICES.overpass.map((url, i) => ({
       id: `overpass-${i}`, service: 'overpass' as ServiceId, label: `Overpass (${new URL(url).host})`,

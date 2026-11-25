@@ -10,6 +10,8 @@ declare global {
     services?: { overpass?: string | string[]; photon?: string; nominatim?: string; osrm?: string; valhalla?: string; brouter?: string };
     /** MapTiler's browser key (restricted to the app's sites in MapTiler Cloud): a second place-name service. */
     maptilerKey?: string;
+    /** Geoapify's browser key (restricted to the app's sites): places near stops, before Overpass. */
+    geoapifyKey?: string;
   } }
 }
 

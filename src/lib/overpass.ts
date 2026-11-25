@@ -1,9 +1,11 @@
-// OpenStreetMap places. Overpass first (full details: website, stars, opening hours), trying each server in
-// OVERPASS_URL in turn; if none answers, Photon (names, kinds and positions only), so places never go missing.
-// The free public servers are fair use and often busy or refuse cloud traffic: production sets its own.
+// OpenStreetMap places. Geoapify first when GEOAPIFY_KEY is set (a paid service on OSM data, reliable); then
+// Overpass (full details: website, stars, opening hours), trying each server in OVERPASS_URL in turn; if none
+// answers, Photon (names, kinds and positions only), then Nominatim, so places never go missing.
+// The free public Overpass servers are fair use and often busy or refuse cloud traffic.
 import { InterestCategory, InterestItem } from '../types';
 import { trackedFetch, isDown } from './serviceHealth';
 import { maptilerKey, maptilerPlaceAt } from './maptiler';
+import { geoapifyKey, geoapifyNear } from './geoapify';
 import { LatLng, haversineKm } from './geo';
 import { townAt, placeAt, photon, PhotonFeature, nominatim, NominatimPlace } from './geocode';
 import { SERVICES } from './services';
@@ -184,7 +186,57 @@ export function osmSuggestions(center: LatLng, travelMode: string, lodging: Lodg
   return cache.get(key)!;
 }
 
+// ---- Geoapify categories for the same kinds of places ----
+
+const GEO_LODGING: Record<LodgingPreference, string[]> = {
+  any: ['accommodation.hotel', 'accommodation.hostel', 'accommodation.guest_house', 'accommodation.motel', 'accommodation.hut', 'accommodation.chalet', 'accommodation.apartment', 'camping.camp_site'],
+  camping: ['camping.camp_site', 'camping.caravan_site'],
+  hostel: ['accommodation.hostel'],
+  hotel: ['accommodation.hotel', 'accommodation.guest_house', 'accommodation.motel'],
+};
+const GEO_FOOD = ['catering.restaurant', 'catering.cafe', 'commercial.supermarket', 'commercial.convenience', 'commercial.food_and_drink.bakery', 'commercial.food_and_drink.farm', 'commercial.marketplace'];
+export function geoShops(travelMode: string, vehicle = ''): string[] {
+  if (travelMode === 'BICYCLING') return ['commercial.outdoor_and_sport.bicycle', 'commercial.outdoor_and_sport'];
+  if (travelMode === 'WALKING') return ['commercial.outdoor_and_sport'];
+  if (vehicle.startsWith('motorcycle')) return ['service.vehicle.repair.motorcycle'];
+  if (['car', 'suv', '4x4', 'campervan', 'truck'].includes(vehicle)) return ['service.vehicle.repair.car'];
+  return ['service.vehicle.repair'];
+}
+const geoUtilities = (travelMode: string) => travelMode === 'DRIVING'
+  ? ['service.vehicle.fuel', 'service.vehicle.charging_station', 'amenity.toilet']
+  : ['amenity.drinking_water', 'waterway.water_point', 'amenity.toilet'];
+const GEO_SIGHTS: Record<Interest, string[]> = {
+  nature: ['tourism.attraction.viewpoint', 'natural.mountain.peak', 'natural.mountain.cave_entrance', 'natural.water.hot_spring', 'beach'],
+  history: ['tourism.sights.castle', 'tourism.sights.fort', 'tourism.sights.ruines', 'tourism.sights.archaeological_site', 'tourism.sights.city_gate', 'tourism.sights.monastery', 'tourism.sights.memorial.monument', 'entertainment.museum'],
+  contemporary: ['entertainment.museum', 'entertainment.culture.gallery', 'tourism.attraction.artwork', 'tourism.attraction', 'entertainment.culture.arts_centre', 'entertainment.culture.theatre'],
+};
+export function geoSights(interests: Interest[] = []): string[] {
+  const list = interests.length ? interests.flatMap(i => GEO_SIGHTS[i] || [])
+    : ['tourism.attraction', 'tourism.sights.castle', 'tourism.sights.fort', 'tourism.sights.ruines', 'tourism.sights.memorial.monument', 'entertainment.museum', 'natural.mountain.peak', 'beach'];
+  return [...new Set(list)];
+}
+
+/** The same five categories from Geoapify: one request each, all at once. */
+async function geoapifyElements(center: LatLng, travelMode: string, lodging: LodgingPreference, count: number, vehicle = ''): Promise<OsmElement[]> {
+  const r = travelMode === 'DRIVING' ? 8000 : 4000;
+  const n = Math.min(Math.max(count * 4, 12), 20);
+  const plan: [string[], number][] = [
+    [GEO_LODGING[lodging], r], [GEO_FOOD, r], [geoShops(travelMode, vehicle), r * 4],
+    [geoUtilities(travelMode), Math.round(r * 0.75)], [geoSights(travelInterests()), r * 2],
+  ];
+  const found = await Promise.allSettled(plan.map(([cats, radius]) => geoapifyNear(center, cats, radius, n)));
+  if (found.every(f => f.status === 'rejected')) throw (found[0] as PromiseRejectedResult).reason;
+  return found.flatMap(f => (f.status === 'fulfilled' ? f.value : []));
+}
+
 async function fetchSuggestions(center: LatLng, travelMode: string, lodging: LodgingPreference, count: number, vehicle = '') {
+  if (geoapifyKey() && !isDown('geoapify')) {
+    try {
+      return rankSuggestions(center, await geoapifyElements(center, travelMode, lodging, count, vehicle), count);
+    } catch (err) {
+      console.warn('Geoapify unavailable; places from Overpass instead.', err);
+    }
+  }
   const r = travelMode === 'DRIVING' ? 8000 : 4000;
   const around = (radius: number) => `(around:${radius},${center.lat},${center.lng})`;
   const any = (list: string[]) => `"^(${list.join('|')})$"`;
@@ -209,6 +261,13 @@ async function fetchSuggestions(center: LatLng, travelMode: string, lodging: Lod
       return nominatimSuggestions(center, travelMode, lodging, count, vehicle);
     }
   }
+  return rankSuggestions(center, elements, count);
+}
+
+/** Elements sorted into the five categories, best documented first (nearest for water). */
+function rankSuggestions(center: LatLng, elements: OsmElement[], count: number): InterestCategory[] {
+  const seen = new Set<string>();
+  elements = elements.filter(e => { const k = `${e.type}/${e.id}`; if (seen.has(k)) return false; seen.add(k); return true; });
   const byCategory: Record<CategoryId, { e: OsmElement; score: number; km: number }[]> = { stay: [], food: [], shop: [], water: [], sights: [] };
   for (const e of elements) {
     const category = e.tags && classify(e.tags);
@@ -345,6 +404,15 @@ export async function lodgingNear(points: LatLng[], lodging: LodgingPreference, 
   if (!points.length) return [];
   const r = Math.round(radiusKm * 1000);
   let elements: OsmElement[] = [];
+  if (geoapifyKey() && !isDown('geoapify')) {
+    const found = await Promise.allSettled(points.map(p => geoapifyNear(p, GEO_LODGING[lodging], r, 20)));
+    if (found.some(f => f.status === 'fulfilled')) {
+      elements = found.flatMap(f => (f.status === 'fulfilled' ? f.value : []));
+      const spots: { at: LatLng | null; name?: string }[] = elements.map(e => ({ at: position(e), name: e.tags?.name }));
+      return spots.filter((x): x is LodgingSpot => x.at !== null);
+    }
+    console.warn('Geoapify unavailable; places to stay from Overpass instead.', (found[0] as PromiseRejectedResult).reason);
+  }
   try {
     const clauses = points.map(p => `nwr["tourism"~"${LODGING[lodging]}"](around:${r},${p.lat.toFixed(5)},${p.lng.toFixed(5)});`).join('\n');
     // Planning waits for this: at most 10 s on Overpass, then Photon.
