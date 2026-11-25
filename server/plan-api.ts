@@ -401,6 +401,33 @@ async function runClaude(env: PlanEnv, task: string, prompt: string, schema: Rec
 const GEMINI_RETRYABLE = new Set([429, 500, 503]);
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+/** Runs attempts in a staggered race: the first starts now, each next one when the previous fails or after
+ *  `staggerMs` without an answer; the first success wins (a busy server then costs seconds, not the whole wait). */
+export function hedged<T>(attempts: (() => Promise<T>)[], staggerMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let started = 0, failed = 0, done = false;
+    const errors: unknown[] = [];
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const startNext = () => {
+      if (done || started >= attempts.length) return;
+      const run = attempts[started++];
+      clearTimeout(timer);
+      if (started < attempts.length) timer = setTimeout(startNext, staggerMs);
+      run().then(value => {
+        if (done) return;
+        done = true; clearTimeout(timer); resolve(value);
+      }, err => {
+        if (done) return;
+        errors.push(err); failed++;
+        if (failed === attempts.length) { done = true; clearTimeout(timer); reject(errors[0]); }
+        else if (failed === started) startNext();
+      });
+    };
+    if (!attempts.length) reject(new Error('Nothing to run'));
+    else startNext();
+  });
+}
+
 async function runGemini(env: PlanEnv, task: string, prompt: string, responseSchema: object, file?: UploadedFile) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
   const models = [...new Set([
@@ -408,9 +435,11 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
     env.GEMINI_FALLBACK_MODEL || 'gemini-flash-latest',
   ])];
 
+  // Each model with a quick retry; the second model joins after 6 s (or as soon as the first gives up).
+  const attempt = (model: string) => async () => {
   let lastError: unknown;
-  for (const model of models) {
-    for (const delay of [0, 2500, 6000]) {
+  {
+    for (const delay of [0, 1500, 4000]) {
       if (delay) await sleep(delay);
       const started = Date.now();
       try {
@@ -435,12 +464,14 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
         lastError = err;
         if (err instanceof ApiError) logUsage(task, model, started, { error: `${err.status}${GEMINI_RETRYABLE.has(err.status) ? ' (busy, will retry)' : ''}` });
         if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
-        // A used-up quota (per minute or per day) won't come back in seconds: try the next model straight away.
+        // A used-up quota (per minute or per day) won't come back in seconds: give up on this model now.
         if (err.status === 429 && /quota|RESOURCE_EXHAUSTED|per day|PerDay/i.test(err.message)) break;
       }
     }
   }
   throw lastError;
+  };
+  return hedged(models.map(attempt), 6000);
 }
 
 // OpenAI is only used for trip planning (text in, JSON out).
@@ -526,16 +557,21 @@ export async function runTaskResult(env: PlanEnv, task: AiTask): Promise<{ provi
   const available = providers(env, task);
   if (available.length === 0) throw new NoProvider();
   const failures: string[] = [];
-  for (const provider of available) {
-    try {
-      return { provider: provider.name, result: await provider.run() };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`[plan-api] ${provider.name} failed:`, message);
-      failures.push(`${provider.name}: ${message.slice(0, 200)}`);
-    }
+  // The next provider joins after 9 s without an answer (or as soon as one fails); the first answer wins.
+  try {
+    return await hedged(available.map(provider => async () => {
+      try {
+        return { provider: provider.name, result: await provider.run() };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[plan-api] ${provider.name} failed:`, message);
+        failures.push(`${provider.name}: ${message.slice(0, 200)}`);
+        throw err;
+      }
+    }), 9000);
+  } catch {
+    throw new AllFailed(failures);
   }
-  throw new AllFailed(failures);
 }
 
 function sendTaskError(res: ServerResponse, err: unknown) {
