@@ -396,6 +396,8 @@ export const PT: Record<string, string> = {
   "Weather isn't available for this day.": 'O tempo não está disponível para este dia.',
   'Rain {pct}%': 'Chuva {pct}%',
   'Slope': 'Declive',
+  '{n} in the map view': '{n} na área do mapa',
+  'No journey in this part of the map: zoom out or move it.': 'Nenhuma viagem nesta parte do mapa: afaste ou mova o mapa.',
   'Show day {n} on the map': 'Ver o dia {n} no mapa',
   'At the top ({h}): {max}/{min}': 'No topo ({h}): {max}/{min}',
   'At the highest point ({h}): about {max} / {min}': 'No ponto mais alto ({h}): cerca de {max} / {min}',

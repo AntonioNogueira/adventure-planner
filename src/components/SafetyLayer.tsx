@@ -166,7 +166,6 @@ export const SafetyLayer: React.FC<{ map: maplibregl.Map | null; ready: boolean;
     markers.current = [];
     popup.current?.p.remove();
     // The journeys' heatmap would hide the pins: off while they show.
-    if (ready && map?.getLayer('heat')) map.setLayoutProperty('heat', 'visibility', on ? 'none' : 'visible');
     if (!on || !ready || !map || !data) return;
     const open = (at: [number, number], node: React.ReactNode) => {
       popup.current?.p.remove();
