@@ -396,6 +396,7 @@ export const PT: Record<string, string> = {
   "Weather isn't available for this day.": 'O tempo não está disponível para este dia.',
   'Rain {pct}%': 'Chuva {pct}%',
   'Slope': 'Declive',
+  'Car & campervan': 'Carro e autocaravana',
   '1 trip': '1 viagem',
   'any': 'qualquer',
   'Correct these habits': 'Corrigir estes hábitos',

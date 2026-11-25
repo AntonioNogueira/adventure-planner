@@ -32,7 +32,7 @@ interface Props {
 /** The buttons at the map's top left: one size. */
 /** Line colours by how they travelled (the legend on the map). */
 const KIND_COLORS: Record<string, string> = { moto: '#e8590c', bike: '#1971c2', walk: '#2f9e44', '4x4': '#9c36b5', car: '#c2255c', rally: '#d4a106', other: '#64748b' };
-const KIND_LEGEND: [string, string][] = [['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Road trip'], ['rally', 'Rally'], ['other', 'Other']];
+const KIND_LEGEND: [string, string][] = [['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Car & campervan'], ['rally', 'Rally'], ['other', 'Other']];
 
 const MAP_BUTTON = 'flex w-full items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-bold uppercase tracking-wide shadow';
 
@@ -311,14 +311,13 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
         paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 4.5, 0, 6.5, 1] } });
       map.addSource('heat', { type: 'geojson', data: heatPoints([]) });
       // From far away: a glow where the journeys are; zoom in and it gives way to the individual (thin) lines.
-      map.addLayer({ id: 'heat', type: 'heatmap', source: 'heat', maxzoom: 5, layout: { visibility: 'none' }, paint: {
+      map.addLayer({ id: 'heat', type: 'heatmap', source: 'heat', maxzoom: 5, paint: {
         'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 5, 2, 10, 4, 20],
         'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 4, 1.2],
         'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 2.4, 0.85, 3.8, 0],
         'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.15, 'rgba(253,224,71,0.45)', 0.4, 'rgba(251,146,60,0.75)', 0.7, '#f97316', 1, '#dc2626'],
       } });
-      // The lines show at every zoom (coloured by how they travelled), a little fainter from far away.
-      const fade = (low: number, high: number) => ['interpolate', ['linear'], ['zoom'], 1.8, Math.max(low, high * 0.75), 3.4, high] as unknown as number;
+      const fade = (low: number, high: number) => ['interpolate', ['linear'], ['zoom'], 1.8, low, 3.4, high] as unknown as number;
       map.addLayer({ id: 'overview-casing', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 1.5, 6, 3.5], 'line-opacity': fade(0.05, 0.55) } });
       map.addLayer({ id: 'overview-line', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 1.3, 6, 2.2], 'line-opacity': fade(0.2, 0.95) } });
       map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 3, 8, 5.5], 'line-opacity': 0.85 } });
@@ -494,7 +493,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
               <input value={words} onChange={(e) => setWords(e.target.value)} placeholder={t('Search: a place, a rider, a bike…')} aria-label={t('Search journeys')}
                 className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs focus:border-emerald-400 focus:outline-none" />
               <div className="flex flex-wrap gap-1">
-                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Road trip'], ['rally', 'Rally']] as const).map(([id, label]) => (
+                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Car & campervan'], ['rally', 'Rally']] as const).map(([id, label]) => (
                   <button key={id || 'all'} onClick={() => setKind(id)} aria-pressed={kind === id}
                     className={cn('rounded-full border px-2 py-0.5 text-[10.5px] font-semibold', kind === id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50')}>{t(label)}</button>
                 ))}
