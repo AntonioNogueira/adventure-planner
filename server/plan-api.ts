@@ -482,7 +482,13 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
         if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
         // A used-up quota (per minute or per day) won't come back in seconds: give up on this model now; a daily
         // one (or the free tier's) rests the model for an hour.
-        if (err.status === 429 && /per day|PerDay|free_tier/i.test(err.message)) modelRestUntil.set(model, Date.now() + 3600_000);
+        if (err.status === 429 && /per day|PerDay|free_tier/i.test(err.message)) {
+          // Rest it as long as Google says ("Please retry in 13h8m7s"), at least an hour.
+          const r = err.message.match(/retry in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?/i);
+          const waitMs = r ? ((Number(r[1] || 0) * 60 + Number(r[2] || 0)) * 60 + Number(r[3] || 0)) * 1000 : 0;
+          modelRestUntil.set(model, Date.now() + Math.max(3600_000, Math.min(waitMs, 26 * 3600_000)));
+          console.log(`[ai] ${model}: daily quota used up, resting it for ${Math.round(Math.max(3600_000, waitMs) / 60_000)} min`);
+        }
         if (err.status === 429 && /quota|RESOURCE_EXHAUSTED|per day|PerDay/i.test(err.message)) break;
       }
     }
