@@ -997,7 +997,9 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
           if (quick) {
             quick.reply = quickReply(language);
             console.log(`[ai] unavailable, quick plan: ${describeIntent(quick)}`);
-            return sendJson(res, 200, { provider: 'quick', plan: quick });
+            // Why the AI didn't answer (status and Google's reason, no keys), for checking quota or billing.
+            const aiError = err instanceof AllFailed ? err.details.map(d => d.replace(/\s+/g, ' ').slice(0, 160)).slice(0, 3) : ['no provider'];
+            return sendJson(res, 200, { provider: 'quick', plan: quick, aiError });
           }
         }
         return sendTaskError(res, err);
