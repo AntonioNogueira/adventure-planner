@@ -186,3 +186,66 @@ export function weatherFacts(days: (TripDayWeather | null)[]) {
     cold: known.filter(d => d.tempMin <= 3).map(d => d.day),
   };
 }
+
+// ---- One day in more detail (the day's popup on the map) ----
+
+export interface DayOutlook {
+  kind: 'forecast' | 'typical';
+  weather: DayWeather;
+  /** Forecast only: a few hours of the riding day. */
+  hours?: { hour: number; code: number; temp: number; rain: number | null }[];
+  sunrise?: string;
+  sunset?: string;
+}
+
+const outlookCache = new Map<string, Promise<DayOutlook | null>>();
+
+/** The day's forecast with hours, sunrise and sunset when the date is within the forecast (and `dated`); otherwise
+ *  what that date is typically like. */
+export function dayOutlook(at: Pt, date: string, dated: boolean): Promise<DayOutlook | null> {
+  const key = `${at.lat.toFixed(2)},${at.lng.toFixed(2)},${date},${dated}`;
+  if (!outlookCache.has(key)) {
+    const pending = fetchOutlook(at, date, dated);
+    outlookCache.set(key, pending);
+    pending.then(r => { if (!r) outlookCache.delete(key); }, () => outlookCache.delete(key));
+  }
+  return outlookCache.get(key)!;
+}
+
+async function fetchOutlook(at: Pt, date: string, dated: boolean): Promise<DayOutlook | null> {
+  const last = shiftDays(today(), FORECAST_DAYS - 1);
+  if (dated && date >= today() && date <= last) {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${at.lat.toFixed(4)}&longitude=${at.lng.toFixed(4)}`
+        + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset'
+        + '&hourly=temperature_2m,precipitation_probability,weather_code'
+        + `&timezone=auto&start_date=${date}&end_date=${date}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (res.ok) {
+        const data = await res.json();
+        const d = data.daily, h = data.hourly;
+        if (d?.time?.length) {
+          const hours = [8, 11, 14, 17].map(hour => ({
+            hour, code: h?.weather_code?.[hour] ?? d.weather_code[0], temp: Math.round(h?.temperature_2m?.[hour] ?? d.temperature_2m_max[0]),
+            rain: h?.precipitation_probability?.[hour] ?? null,
+          }));
+          return {
+            kind: 'forecast',
+            weather: {
+              code: d.weather_code[0], tempMax: Math.round(d.temperature_2m_max[0]), tempMin: Math.round(d.temperature_2m_min[0]),
+              rainChance: d.precipitation_probability_max?.[0] ?? null, windMax: Math.round(d.wind_speed_10m_max[0]),
+            },
+            hours, sunrise: String(d.sunrise?.[0] || '').slice(11, 16), sunset: String(d.sunset?.[0] || '').slice(11, 16),
+          };
+        }
+      }
+    } catch { /* typical below */ }
+  }
+  const [typical] = await typicalWeather([{ at, date }]);
+  return typical ? { kind: 'typical', weather: typical } : null;
+}
+
+/** Air cools about 6.5 °C per 1,000 m of climb: the temperature at `height` from one measured at `base`. */
+export function atHeight(temp: number, base: number, height: number): number {
+  return Math.round(temp - (6.5 * (height - base)) / 1000);
+}

@@ -25,7 +25,7 @@ import { raster, TOPO_STYLE } from '../lib/mapStyle';
 
 interface MapProps {
   onLoad: (map: unknown) => void;
-  segments?: { path: LatLng[]; label: string; leg: RoutedLeg }[];
+  segments?: { path: LatLng[]; label: string; leg: RoutedLeg; date?: string; dated?: boolean }[];
   travelMode?: string;
   waypoints?: Waypoint[];
   origin?: string;
@@ -563,7 +563,7 @@ const MapView: React.FC<MapProps> = ({
           className="absolute inset-x-2 top-[6.5rem] z-[16] max-h-[36%] overflow-y-auto rounded-xl border border-[#d6cbb3] bg-[#faf6ec] p-2.5 shadow-xl md:inset-x-auto md:bottom-16 md:left-6 md:top-auto md:max-h-[34%] md:w-[min(760px,calc(100%-3rem))]">
           <button onClick={() => { setOpenSegment(null); setActiveSegment(-1); }} aria-label={t('Close')}
             className="absolute right-2 top-2 rounded p-1 text-slate-500 hover:bg-slate-200/60">✕</button>
-          <SegmentDetails wide label={segments[openSegment].label} leg={segments[openSegment].leg} travelMode={travelMode} />
+          <SegmentDetails wide label={segments[openSegment].label} leg={segments[openSegment].leg} travelMode={travelMode} date={segments[openSegment].date} dated={segments[openSegment].dated} />
         </div>
       )}
 

@@ -1009,12 +1009,17 @@ const App: React.FC = () => {
   const segments = useMemo(() => (trip?.legs || []).map((leg, i) => {
     const dayNumber = schedule.findIndex(d => d.kind === 'ride' && d.legIndex === i) + 1;
     const info = routeInfo?.legs?.[i];
+    // The day's date (assumed from today without a start date), for its weather.
+    const n = Math.max(0, dayNumber - 1);
+    const assumed = new Date(); assumed.setUTCDate(assumed.getUTCDate() + n);
     return {
       path: leg.path,
       leg,
+      date: schedule[n]?.date || assumed.toISOString().slice(0, 10),
+      dated: Boolean(startDate),
       label: `${tr('Day {n}', { n: dayNumber || i + 1 })}: ${info?.from.split(',')[0] || ''} → ${info?.to.split(',')[0] || ''} · ${fmt.dist(leg.distanceMeters / 1000)} · ${formatDuration(leg.durationSeconds)}`,
     };
-  }), [trip, schedule, routeInfo?.legs, appSettings]);
+  }), [trip, schedule, routeInfo?.legs, appSettings, startDate]);
 
   const handleRestDaysChange = (stopIndex: number, restDays: number) => {
     const apply = (list: Waypoint[]) => list.map((wp, i) => i === stopIndex ? { ...wp, restDays: Math.max(0, restDays) } : wp);
