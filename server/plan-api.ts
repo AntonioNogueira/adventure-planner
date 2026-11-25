@@ -568,7 +568,7 @@ export async function runTaskResult(env: PlanEnv, task: AiTask): Promise<{ provi
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.error(`[plan-api] ${provider.name} failed:`, message);
-        failures.push(`${provider.name}: ${message.slice(0, 200)}`);
+        failures.push(`${provider.name}: ${message.slice(0, 1200)}`);
         throw err;
       }
     }), 9000);
@@ -1001,7 +1001,9 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
             quick.reply = quickReply(language);
             console.log(`[ai] unavailable, quick plan: ${describeIntent(quick)}`);
             // Why the AI didn't answer (status and Google's reason, no keys), for checking quota or billing.
-            const aiError = err instanceof AllFailed ? err.details.map(d => d.replace(/\s+/g, ' ').slice(0, 160)).slice(0, 3) : ['no provider'];
+            // A quota error names the exact limit ("Quota exceeded for metric: …, limit: …, model: …"): keep that part.
+            const brief = (d: string) => { const t = d.replace(/\\n|\s+/g, ' '); const q = t.match(/Quota exceeded for metric:[^"]{0,220}/); return (q ? `${t.slice(0, 40)} … ${q[0]}` : t).slice(0, 300); };
+            const aiError = err instanceof AllFailed ? err.details.map(brief).slice(0, 3) : ['no provider'];
             return sendJson(res, 200, { provider: 'quick', plan: quick, aiError });
           }
         }
