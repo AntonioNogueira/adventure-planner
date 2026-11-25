@@ -344,6 +344,13 @@ const planJsonSchema = {
 
 // ---- Usage log: one line per AI call plus running totals, printed in the terminal ----
 const usage = { calls: 0, failed: 0, inputTokens: 0, outputTokens: 0 };
+/** AI use since the server started, per model and per task (what /api/health reports; Render restarts reset it). */
+const usageSince = new Date().toISOString();
+const usageBy: Record<string, { calls: number; failed: number; input: number; output: number; seconds: number }> = {};
+const tally = (key: string, failed: boolean, input: number, output: number, seconds: number) => {
+  const u = usageBy[key] || (usageBy[key] = { calls: 0, failed: 0, input: 0, output: 0, seconds: 0 });
+  u.calls++; if (failed) u.failed++; u.input += input; u.output += output; u.seconds = Math.round((u.seconds + seconds) * 10) / 10;
+};
 
 function logUsage(task: string, model: string, started: number, result: { input?: number; output?: number; error?: string }) {
   usage.calls++;
@@ -351,6 +358,8 @@ function logUsage(task: string, model: string, started: number, result: { input?
   usage.inputTokens += result.input || 0;
   usage.outputTokens += result.output || 0;
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
+  tally(`model:${model}`, Boolean(result.error), result.input || 0, result.output || 0, Number(seconds));
+  tally(`task:${task}`, Boolean(result.error), result.input || 0, result.output || 0, Number(seconds));
   const outcome = result.error ? `FAILED ${result.error}` : `ok, tokens ${result.input ?? '?'} in / ${result.output ?? '?'} out`;
   console.log(`[ai] ${task} · ${model} · ${seconds}s · ${outcome}`);
   console.log(`[ai] session total: ${usage.calls} calls (${usage.failed} failed), ${usage.inputTokens} in / ${usage.outputTokens} out tokens`);
@@ -940,7 +949,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
           }
         })() };
       }
-      return sendJson(res, 200, await healthCheck.result);
+      return sendJson(res, 200, { ...(await healthCheck.result), usage: { since: usageSince, total: usage, by: usageBy } });
     }
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     if (req.url !== '/api/usage' && overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSettings } from '../lib/settings';
-import { X, Navigation, Clock, Trash2, ArrowRight } from 'lucide-react';
+import { X, Navigation, Trash2, ArrowRight } from 'lucide-react';
 import { RouteInfo } from '../types';
 
 interface SavedRoutesProps {
@@ -50,11 +50,8 @@ const SavedRoutes: React.FC<SavedRoutesProps> = ({ routes, onClose, onLoad, onDe
                           {route.name}
                         </h3>
                       )}
+                      {/* The distance only: the total riding time (e.g. "1 d 12 h") reads like the trip's length in days. */}
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1 text-sm font-bold text-emerald-600">
-                          <Clock size={14} />
-                          {route.duration}
-                        </div>
                         <div className="text-sm font-medium text-muted-foreground">
                           {localizeText(route.distance)}
                         </div>
