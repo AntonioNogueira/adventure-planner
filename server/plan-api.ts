@@ -1011,8 +1011,11 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       } catch (err) {
         // Every AI busy or out of quota: read a plain request ourselves so the traveller still gets a trip.
         if (err instanceof AllFailed || err instanceof NoProvider) {
-          const quick = parseQuickIntent(request, current)
-            || (known ? parseQuickIntent(`${known.places[0]} to ${known.places[known.places.length - 1]} ${request}`, null) : null);
+          // How they usually travel (their profile), for a request that doesn't say.
+          const prof = body.profile as { usualStyle?: string; habitsByStyle?: Record<string, { travelMode?: string }> } | undefined;
+          const usualMode = prof?.usualStyle ? prof.habitsByStyle?.[prof.usualStyle]?.travelMode : undefined;
+          const quick = parseQuickIntent(request, current, usualMode)
+            || (known ? parseQuickIntent(`${known.places[0]} to ${known.places[known.places.length - 1]} ${request}`, null, usualMode) : null);
           if (quick && known) applyKnownRoute(quick, known);
           if (quick) {
             quick.reply = quickReply(language);

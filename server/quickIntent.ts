@@ -2,6 +2,8 @@
 // simple request ("lisbon to porto bikepacking", "Porto para Lisboa de bicicleta em 5 dias") still draws a trip.
 // It understands start and finish, places to pass ("via X and Y"), how they travel, days or km a day, where they
 // sleep and off-road; anything subtler waits for the AI ("ask me to refine it").
+import fs from 'fs';
+import path from 'path';
 
 export interface QuickIntent {
   origin: string; destination: string; travelMode: 'DRIVING' | 'WALKING' | 'BICYCLING' | 'TRANSIT'; travelModeStated: boolean;
@@ -32,7 +34,30 @@ function numberWord(s: string): number {
   return Number(s) || words[s.toLowerCase()] || 0;
 }
 
-export function parseQuickIntent(request: string, current?: Partial<QuickIntent> | null): QuickIntent | null {
+// Names that aren't one findable place: a route network, a whole coast, a country (too big to start or end a trip
+// at). Without the AI, guessing those draws nonsense ("Eurovelo" near Gibraltar, "France" in North America), so the
+// quick planner gives up and the traveller is asked to try again.
+const ROUTE_NETWORK = /\b(eurovelo|euro ?velo|ev ?\d+)\b/i;
+const GENERIC = new Set(['home', 'casa', 'coast', 'the coast', 'costa', 'a costa', 'cote', 'route', 'trail', 'camino', 'caminho', 'alps', 'the alps', 'pyrenees', 'the pyrenees', 'pirineus', 'mountains', 'the mountains', 'montanhas', 'desert', 'the desert', 'anywhere', 'somewhere', 'island', 'islands']);
+let countryNames: Set<string> | null = null;
+function isCountry(name: string): boolean {
+  if (!countryNames) {
+    countryNames = new Set();
+    try {
+      for (const c of JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'server/safety-countries.json'), 'utf8')) as { name: string }[]) countryNames.add(fold(c.name));
+    } catch { /* no list: only the words above */ }
+    ['portugal', 'espanha', 'spain', 'españa', 'franca', 'france', 'frança', 'italia', 'italy', 'germany', 'alemanha', 'morocco', 'marrocos', 'uk', 'usa', 'europe', 'europa', 'africa', 'asia'].forEach(n => countryNames!.add(fold(n)));
+  }
+  return countryNames.has(fold(name));
+}
+const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+/** A start or finish the map can find as one place (a town or city), not a region, route or country. */
+export function placeLike(name: string): boolean {
+  const n = name.trim();
+  return n.length >= 2 && !ROUTE_NETWORK.test(n) && !GENERIC.has(fold(n)) && (n.includes(',') || !isCountry(n));
+}
+
+export function parseQuickIntent(request: string, current?: Partial<QuickIntent> | null, usualMode?: string): QuickIntent | null {
   const text = ` ${request.replace(/[→–—]/g, ' to ').replace(/\s+/g, ' ')} `;
 
   // Start and finish: "from A to B", "A to B", "de A a/para/até B", "A - B".
@@ -47,6 +72,10 @@ export function parseQuickIntent(request: string, current?: Partial<QuickIntent>
   // A change to the trip on the map ("make it 5 days", "by bike instead") keeps its start and finish.
   if ((!origin || !destination) && current?.origin && current?.destination) { origin = current.origin; destination = current.destination; }
   if (!origin || !destination || origin.length > 60 || destination.length > 60) return null;
+  // Not one findable place at either end (and not the trip already on the map): don't guess.
+  if (!(current?.origin === origin && current?.destination === destination) && (!placeLike(origin) || !placeLike(destination))) return null;
+  // Nor a request about a route network ("eurovelo along the coast to …"): which one, from where?
+  if (!current?.origin && /\b(eurovelo|euro velo|ev ?\d+)\b/i.test(text)) return null;
 
   // Places to pass: "via X, Y and Z" / "passando por X e Y".
   const viaMatch = text.match(/\b(?:via|through|passing|passando por|por)\s+(.+?)(?:\s+(?:in|em|en|by|de|on|with|com)\s+\d|\s*[.;!?]|$)/i);
@@ -54,7 +83,9 @@ export function parseQuickIntent(request: string, current?: Partial<QuickIntent>
     ? viaMatch[1].split(/,|\band\b|\be\b|\by\b/i).map(cleanPlace).filter(p => p && p.length < 50 && p.toLowerCase() !== origin.toLowerCase() && p.toLowerCase() !== destination.toLowerCase()).slice(0, 12).map(place => ({ place, overnight: false }))
     : (current?.route as QuickIntent['route']) || [];
 
-  let travelMode: QuickIntent['travelMode'] = (current?.travelMode as QuickIntent['travelMode']) || 'DRIVING';
+  // Not said how: the trip's mode, else how they usually travel (their profile), else driving.
+  let travelMode: QuickIntent['travelMode'] = (current?.travelMode as QuickIntent['travelMode'])
+    || (['BICYCLING', 'WALKING', 'DRIVING'].includes(usualMode || '') ? usualMode as QuickIntent['travelMode'] : 'DRIVING');
   let vehicle = (current?.vehicle as string) || '';
   let stated = false;
   for (const [re, mode, veh] of MODES) {
