@@ -129,6 +129,39 @@ async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> 
   return kept.map(({ place, overnight }) => ({ place, overnight }));
 }
 
+const SPUR_KM = 1.5;
+
+/** How far a route goes back the way it came after a place: the length of the start of `out` that runs along the
+ *  end of `into` (within about 120 m), in km. A place on the way gives ~0; one at the end of a dead end, its length. */
+export function spurKm(into: LatLng[], out: LatLng[]): number {
+  if (into.length < 2 || out.length < 2) return 0;
+  const end = into[into.length - 1];
+  // Only the last 40 km of the way in can be retraced.
+  const tail: LatLng[] = [];
+  for (let i = into.length - 1, km = 0; i >= 0 && km < 40; i--) {
+    if (tail.length) km += haversineKm(tail[tail.length - 1], into[i]);
+    tail.push(into[i]);
+  }
+  const kx = Math.cos((end.lat * Math.PI) / 180) * 111.32, ky = 110.57;
+  const offKm = (q: LatLng) => {
+    let best = Infinity;
+    for (let i = 1; i < tail.length; i++) {
+      const ax = tail[i - 1].lng * kx, ay = tail[i - 1].lat * ky, bx = tail[i].lng * kx, by = tail[i].lat * ky;
+      const px = q.lng * kx, py = q.lat * ky, dx = bx - ax, dy = by - ay;
+      const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy))) : 0;
+      best = Math.min(best, Math.hypot(px - ax - t * dx, py - ay - t * dy));
+    }
+    return best;
+  };
+  let km = 0;
+  for (let j = 1; j < out.length; j++) {
+    if (offKm(out[j]) > 0.12) break;
+    km += haversineKm(out[j - 1], out[j]);
+    if (km > 40) break;
+  }
+  return km;
+}
+
 export async function planOvernightStops(original: TripIntent, options?: RouteOptions): Promise<OvernightPlan> {
   const intent = { ...original, route: await withoutDetours(original) };
   stageDone('Finding the places named in the request');
@@ -143,8 +176,17 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     options,
   });
   // Cycling/walking routes aren't available everywhere; driving distances are close enough to split days.
-  const { legs } = await request(intent.travelMode).catch(() => request('DRIVING'));
+  let { legs } = await request(intent.travelMode).catch(() => request('DRIVING'));
   stageDone('First route');
+  // A place passed through at the end of a dead end (a mountain hut, a lake up a side valley) would draw a spike
+  // there and back: such places are left out and the route is drawn again without them. Nights stay.
+  const spurs = new Set(intent.route.map((r, i) => (!r.overnight && legs[i + 1] && spurKm(legs[i].path, legs[i + 1].path) > SPUR_KM ? i : -1)).filter(i => i >= 0));
+  if (spurs.size) {
+    intent.route.forEach((r, i) => spurs.has(i) && console.info(`Leaving out ${r.place}: a dead end off the route (there and back)`));
+    intent.route = intent.route.filter((_, i) => !spurs.has(i));
+    legs = (await request(intent.travelMode).catch(() => request('DRIVING')).catch(() => ({ legs }))).legs;
+    stageDone('Route without dead ends');
+  }
 
   // Group legs into segments that end at an overnight place (or the finish).
   const segments: { legs: RoutedLeg[]; end: string | null; vias: string[] }[] = [];

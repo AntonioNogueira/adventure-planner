@@ -424,9 +424,15 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       {!importing && !reviewing && (
         <div className="absolute left-2 top-[72px] z-10 flex w-[176px] flex-col gap-1 md:left-[388px] xl:top-2.5">
           <SafetyButton on={safety} onToggle={() => setSafety(v => !v)} />
-          {!adding && (
+          {!adding && (uid ? (
             <button onClick={() => { setJourney(null); setAdding(true); }} className={cn(MAP_BUTTON, 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800')}><Plus size={13} />{t('Add your journey')}</button>
-          )}
+          ) : (
+            // Logged out: shown, but faded and inactive, with a hint (sending a journey needs an account).
+            <div title={t('Log in to add your journey')}>
+              <button disabled aria-disabled="true" className={cn(MAP_BUTTON, 'cursor-not-allowed border-slate-300 bg-slate-100/90 text-slate-400 shadow-none')}><Plus size={13} />{t('Add your journey')}</button>
+              <p className="mt-0.5 rounded bg-white/90 px-1.5 py-0.5 text-center text-[10px] leading-tight text-slate-600 shadow-sm">{t('Log in to add your journey')}</p>
+            </div>
+          ))}
           {journey && (
             <button onClick={backToAll} className={cn(MAP_BUTTON, 'border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50')}><ArrowLeft size={13} />{t('All journeys')}</button>
           )}
