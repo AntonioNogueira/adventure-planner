@@ -110,9 +110,12 @@ form and buttons, not in this chat: a message like "max 40 km a day, camping" is
   const habits = profileText(profile);
   const profileBlock = habits && !current ? `
 TRAVELLER PROFILE (learned from this traveller's earlier trips): ${habits}
-- Use it as the defaults for a NEW trip when the request doesn't say otherwise: if they don't say how they travel, use
-  usualTravelMode; then take that mode's habits (ride, dailyKm, lodging, party, interests, budgetStyle, maxStayPrice,
-  vehicle, vehicleModel, offroad) and follow their preferences. Anything the request says wins over the profile.
+- Use it as the defaults for a NEW trip when the request doesn't say otherwise. habitsByStyle has one set of habits per
+  travel style (e.g. "bike-gravel", "bike-mtb", "moto-adventure", "car", "4x4", "camper", "walk-trek"; "+family" =
+  trips with children). Pick the style that matches the request (how they travel, the bike or vehicle, a family trip);
+  if the request doesn't say how they travel, use usualStyle. Then take that style's habits (travelMode, ride, dailyKm,
+  lodging, party, interests, budgetStyle, maxStayPrice, vehicle, vehicleModel, offroad) and follow their preferences.
+  Don't mix styles: a gravel trip doesn't take the motorcycle's daily distance. Anything the request says wins.
 - List in fromProfile the fields you filled from the profile (e.g. ["dailyKm", "lodging"]).
 ` : '';
 

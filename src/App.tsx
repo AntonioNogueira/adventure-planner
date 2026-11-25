@@ -22,7 +22,7 @@ import type { TripStyle, Via, Story, StoryPhoto } from './types';
 import { pendingPhoto } from './lib/photos';
 import { stageDone } from './lib/planTimer';
 import { randomExample } from './lib/examples';
-import { adoptProfile, getProfile, onProfileChange } from './lib/profile';
+import { adoptProfile, getProfile, habitsFor, onProfileChange } from './lib/profile';
 import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
@@ -935,7 +935,7 @@ const App: React.FC = () => {
   // built with the fields and buttons is planned like one asked for in the chat, and the chat can refine it.
   const mapIntent = useMemo((): TripIntent | null => {
     if (!origin.trim() || !destination.trim()) return null;
-    const habits = getProfile().modes[travelMode as 'BICYCLING' | 'WALKING' | 'DRIVING'];
+    const habits = habitsFor(travelMode as string, { vehicle: (vehicle || '') as TripIntent['vehicle'], ride: tripStyle.ride, party: tripStyle.party });
     return {
       origin, destination, travelMode: travelMode as string, days: 0,
       dailyKm: lastIntentRef.current?.origin === origin && lastIntentRef.current?.destination === destination ? lastIntentRef.current.dailyKm : habits?.dailyKm || 0,
