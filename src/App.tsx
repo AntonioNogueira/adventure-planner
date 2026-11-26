@@ -711,8 +711,8 @@ const App: React.FC = () => {
 
   const attachFailed = (err: unknown, fallback: string) => {
     if (err instanceof LimitError) {
-      setToast({ message: tr("You've used today's document reads on your plan."), type: 'error' });
-      openPlans('documents');
+      // A safety cap, not a paywall: reading more documents pauses until tomorrow.
+      setToast({ message: tr("You've added a lot of documents today: back tomorrow."), type: 'error' });
       return;
     }
     console.error('Reservation import failed:', err);
@@ -872,8 +872,8 @@ const App: React.FC = () => {
     if (!refs.length) return;
     // Each stop's suggestions count as one place search (the costly part of a trip).
     if (!(await takePlaceSearches(refs.length))) {
-      setToast({ message: tr("You've used today's place searches on your plan."), type: 'error' });
-      openPlans('placeSearches');
+      // A safety cap, not a paywall: the trip and its editing keep working, only new suggestions pause.
+      setToast({ message: tr("You've looked up a lot of places today: suggestions are back tomorrow. The trip keeps working."), type: 'success' });
       return;
     }
     let failed = false;

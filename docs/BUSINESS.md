@@ -19,24 +19,48 @@ partner or sold, and so personal email stays separate.
 | Payments | Paddle or Lemon Squeezy (they handle EU VAT as merchant of record) or Stripe (+ Stripe Tax) | Needs business/tax details (NIF, address, IBAN). Pix for Brazil via Stripe or Mercado Pago. |
 | Map/route services for production | MapTiler or Thunderforest (topo tiles), own BRouter/Valhalla or GraphHopper | The free public servers (OpenTopoMap, brouter.de, valhalla1.openstreetmap.de, Overpass) are fair-use only. |
 
-## 2. Plans and prices (prototype built: `src/lib/plans.ts`)
+## 2. Plans and prices (decided 26 Nov 2026; numbers in `src/lib/plans.ts`)
+
+**Principle: plan for free, pay for depth and convenience.** Free is honestly usable; the only visible limit is how
+many trips are kept. Nothing anyone made is ever taken away.
 
 | | Visitor | Free | Explorer | Trip Pass | Pro |
 |---|---|---|---|---|---|
 | Price | – | €0 | €2.99/month or €19/year | €4.99 once (3 months) | €24/month |
-| Saved trips | – | 3 | unlimited | unlimited | unlimited |
-| AI plans / day | 5 | 10 | 100 | 100 | 400 |
-| Place searches / day | 10 | 20 | 300 | 300 | 1500 |
-| Documents / day | 2 | 5 | 200 | 200 | 1000 |
+| Saved trips | – (log in to save) | **3** | unlimited | unlimited | unlimited |
+| AI planner, all editing, budget, weather, GPX, sharing | yes | yes | yes | yes | yes |
+| Documents and bookings | yes | yes (~50–100 MB, storage cap to add) | more storage | more storage | more storage |
+| Road app (online navigation) | – | yes | yes | yes | yes |
+| Offline maps, live location for family/group, planning together | – | – | yes (soon) | yes (soon) | yes |
+| Group trips, branded itineraries | – | – | – | – | yes (soon) |
+| Hidden daily safety caps (AI / places / documents) | 10 / 60 / 5 | 30 / 150 / 20 | 150 / 600 / 200 | 150 / 600 / 200 | 400 / 1500 / 1000 |
 
+- **Safety caps are not a paywall.** They stop bots and abuse; a normal traveller never reaches them. At a cap only that
+  service pauses until the next day ("You've planned a lot today: the AI planner is back tomorrow") and editing keeps
+  working. No upgrade screen opens for them.
+- **The one upgrade moment:** saving a 4th trip ("delete one to free a slot, or keep them all with Explorer").
+  Later also: offline maps, live location, planning together. Never in the middle of planning.
+- A free user can plan, share, delete and reuse the 3 slots for ever: that's fine. Occasional travellers were never
+  going to pay; they share trips, book through the links and bring others. Frequent travellers pay for convenience.
+- Idea: share links follow their trip (deleting a trip ends its link), which gives a natural reason to keep trips.
+- Cost of a free user: AI ≈ €0.0015 per plan (measured 25 Nov 2026: ~4,500 tokens in / 1,500 out on Claude Haiku 5.5),
+  so 30 plans a month ≈ €0.05. The real costs are fixed per month (hosting, routing, map tiles, weather licence), not
+  per click: section 11.
 - Market check: Komoot ~€60/year, Ride with GPS ~€8–10/month, Calimoto ~€50/year, Kurviger Tourer+ ~€30/year,
   Wanderlog ~€40–60/year. €30/month only works for businesses (guides, tour operators).
-- "Unlimited" = fair use with soft caps (AI and place-server load).
-- Decided (Nov 2026): one version on OpenStreetMap data for everyone; no Google Places (section 10).
-- **Limits are switched off while testing (Nov 2026):** usage is counted, nothing is refused, the app shows ∞.
-  At launch on the own domain: set `ENFORCE_LIMITS=true` on the server, then the table above applies.
-  Visitors are counted per internet connection (one 5-day trip ≈ 6 place searches), so consider raising
-  the visitor and free place searches (e.g. 40 / 80) with `PLAN_LIMITS` if the place servers allow it.
+- One version on OpenStreetMap data for everyone; no Google Places (section 10).
+- **Limits are switched off while testing:** usage is counted, nothing is refused. At launch on the own domain set
+  `ENFORCE_LIMITS=true` on the server; `PLAN_LIMITS` (JSON) overrides numbers without a code change.
+- Native apps: developer accounts (Apple $99/year, Google $25 once); subscriptions bought inside the apps pay the stores
+  15% (small-business rate): sell them on the website where possible.
+
+### Where the money comes from (in this order)
+1. **Bookings through the app's links** (accommodation, activities): ~€4–8 per booking. Every trip has nights to
+   sleep somewhere; 10–15 bookings a month cover the ~€80/month running costs. See section 5.
+2. **Explorer / Trip Pass** for frequent travellers and the one big trip: ~55 yearly subscribers cover the costs alone.
+3. **Pro** for guides, clubs and tour operators.
+4. **Creators** on the Mappa Mundi (later): profile, stats, a share of bookings from their stories.
+5. **"Support the project"** (Ko-fi) during the beta.
 
 ## 3. Costs to watch
 
@@ -85,6 +109,23 @@ Affiliate links fit better than ads: the popups already have a named place, its 
 - Stops can carry a `video` (episode link, "Watch episode" in the balloon). Ongoing travellers (Itchy Boots first)
   need a YouTube Data API key in the environment (network secret for www.googleapis.com, header X-Goog-Api-Key);
   map only published episodes, never a live position.
+
+### Getting started (26 Nov 2026)
+- **Who signs up:** you, as a person (name, address, NIF), with munditrails@gmail.com as the contact email. The
+  programmes pay a person or a company, never an email address.
+- **What they check:** a live website with real content (better on the own domain than onrender.com), a privacy
+  policy, and a short affiliate disclosure ("We may earn a commission when you book through our links").
+- **Getting paid:** most pay by **bank transfer (IBAN)**; many networks also offer **PayPal** (or Payoneer). A PayPal
+  account in your name with the munditrails email works where offered. A separate bank account (or a free
+  Revolut/Wise account) keeps the project's money apart from personal money. Payouts start from a minimum
+  (often €50–100) and arrive 30–60 days after the stay or activity.
+- **Tax:** commissions are self-employed income in Portugal: open the activity at Finanças before the first payment
+  (section 8). US programmes ask for a W-8BEN tax form (non-US person).
+- **Order:** (1) Booking.com Affiliate Partner Programme → `BOOKING_AID`; (2) GetYourGuide Partner Programme →
+  `GETYOURGUIDE_PARTNER_ID`; (3) a network that bundles many travel brands and pays by PayPal (e.g. Travelpayouts)
+  for hostels, campsites and rentals → `AFFILIATE_HOSTELS_URL` / `AFFILIATE_CAMPSITES_URL` / `AFFILIATE_RENTALS_URL`;
+  (4) Amazon Associates (books, gear) → `AMAZON_TAG` with `AMAZON_DOMAIN=amazon.es`. Each value goes in Render →
+  munditrails → Environment; the app adds them to its links automatically.
 
 ## 6. When does it pay? (rough model, per monthly active user)
 
