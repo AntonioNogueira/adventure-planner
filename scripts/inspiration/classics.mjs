@@ -1324,8 +1324,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 7–10 days',
     kind: 'moto',
     color: '#0e7490',
-    summary: 'A loop of the island by ferry from mainland Italy: the SS125 Orientale Sarda through the wild mountains of the east between Baunei and Dorgali, nuraghe towers from the Bronze Age, the white coves of the Gulf of Orosei, and the coast road from Bosa to Catalan Alghero. Watch for goats and tourists in the curves.',
+    summary: 'A loop of the island by ferry from mainland Italy: the SS125 Orientale Sarda through the wild mountains of the east between Baunei and Dorgali, nuraghe towers from the Bronze Age, the white coves of the Gulf of Orosei, and the coast road from Bosa to Catalan Alghero. Watch for goats and tourists in the curves. The SS125 between Baunei and Dorgali got 11 km of new asphalt in 2026, and rockfall nets are going up near Urzulei.',
     sources: [
+      REPORT('Unione Sarda: 11 km of new asphalt between Baunei and Dorgali (April 2026)', 'https://www.unionesarda.it/en/sardinia/between-baunei-and-dorgali-11-kilometers-of-new-asphalt-along-the-eastern-highway-jw62k3u6?amp=1'),
       REPORT('Moto.it: Sardinia, 1,500 km on the BMW R 1300 GS', 'https://www.moto.it/accessori/sardegna-in-moto-viaggio-bmw-r-1300-gs.html'),
       REPORT('ADAC: the most beautiful motorcycle tours in Sardinia', 'https://www.adac.de/reise-freizeit/reisen-mit-motorrad/motorradtouren/sardinien/'),
     ],
@@ -1350,8 +1351,9 @@ export const CLASSICS = [
     vehicle: 'Touring bike, 12–15 days',
     kind: 'bike',
     color: '#0284c7',
-    summary: 'Blue-tiled cities of the old caravan road: Samarkand\'s Registan, the Nuratau mountains and yurt camps by Aydarkul lake, holy Bukhara, then across the Kyzylkum desert to the walled town of Khiva. Hot in summer; ride in spring or autumn.',
+    summary: 'Blue-tiled cities of the old caravan road: Samarkand\'s Registan, the Nuratau mountains and yurt camps by Aydarkul lake, holy Bukhara, then across the Kyzylkum desert to the walled town of Khiva. Hot in summer; ride in spring or autumn. Visa-free for citizens of more than 90 countries in 2026 (stays differ by nationality); the border with Afghanistan stays closed.',
     sources: [
+      REPORT('Euronews: visitors stay longer and venture further across Uzbekistan (September 2026)', 'https://www.euronews.com/2026/09/15/beyond-the-silk-road-visitors-stay-longer-spend-more-and-venture-further-across-uzbekistan'),
       REPORT('Skedaddle: the Silk Road and beyond, cycling Uzbekistan', 'https://www.skedaddle.com/blog/the-silk-road-and-beyond-pedal-through-time-on-our-new-uzbek-cycling-adventure/'),
       REPORT('Overland Europe: Bukhara to Samarkand by bike', 'https://overland-europe.com/breaking-the-cycle-central-asia-the-zerafshan-karakum-corridor-part-2-bukhara-to-samarkand/'),
     ],
@@ -1430,8 +1432,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 12–14 days, teahouses',
     kind: 'walk',
     color: '#0369a1',
-    summary: 'From the steep airstrip at Lukla up the Dudh Kosi to the Sherpa capital Namche Bazaar, Tengboche monastery, and the moraines to Gorak Shep and the base camp at 5,364 m, with sunrise on Everest from Kala Patthar. Two acclimatisation days, prayer flags and yak trains.',
+    summary: 'From the steep airstrip at Lukla up the Dudh Kosi to the Sherpa capital Namche Bazaar, Tengboche monastery, and the moraines to Gorak Shep and the base camp at 5,364 m, with sunrise on Everest from Kala Patthar. Two acclimatisation days, prayer flags and yak trains. Two permits: the Sagarmatha National Park fee and the Khumbu Pasang Lhamu municipality permit.',
     sources: [
+      REPORT('Barchart: budgeting the Everest Base Camp trek in 2026, permits and teahouses', 'https://www.barchart.com/story/news/37238416/how-to-budget-for-everest-base-camp-trek-2026-permit-and-teahouse-costs'),
       REPORT('Adventure Peaks: Ultimate Everest Base Camp trek news (March 2025)', 'https://www.adventurepeaks.com/news/ultimate-everest-base-camp-trek-news-29th-march-2025/'),
       REPORT('YAMAP: Everest Base Camp trip log (December 2025)', 'https://yamap.com/activities/45226359/article'),
     ],
