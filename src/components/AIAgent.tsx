@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSettings, getSettings, t as tr } from '../lib/settings';
-import { authFetch, checkLimit, LimitError, refreshAccount } from '../lib/account';
+import { authFetch, checkLimit, LimitError, refreshAccount, openLogin } from '../lib/account';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent, TripStyle } from '../types';
 import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf, profileLine } from '../lib/conversation';
@@ -228,9 +228,11 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
     } catch (error) {
       if (error instanceof LimitError) {
         // A safety cap, not a paywall: only the AI pauses; editing on the map keeps working.
-        say({ text: error.plan === 'anonymous'
-          ? t("You've planned a lot today. Log in (free) to keep using the AI planner; you can keep editing the trip on the map.")
-          : t("You've planned a lot today: the AI planner is back tomorrow. You can keep editing the trip on the map.") });
+        // Visitors: logging in (free) gives a bigger allowance, so the login window opens.
+        if (error.plan === 'anonymous') {
+          say({ text: t("You've planned a lot today. Log in (free) to keep using the AI planner; you can keep editing the trip on the map.") });
+          openLogin();
+        } else say({ text: t("You've planned a lot today: the AI planner is back tomorrow. You can keep editing the trip on the map.") });
         return;
       }
       console.error('AI Planning failed:', error);

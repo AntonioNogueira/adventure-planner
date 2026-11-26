@@ -41,7 +41,7 @@ import { BudgetSettings, defaultBudget } from './lib/budget';
 import type { Vehicle } from './lib/fuel';
 import { authErrorMessage } from './lib/authErrors';
 import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
-import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, openPlans, getAccount, PlansReason } from './lib/account';
+import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, onOpenLogin, openPlans, getAccount, PlansReason } from './lib/account';
 import ConsentBanner from './components/ConsentBanner';
 import { onConsentChange } from './lib/affiliate';
 
@@ -232,6 +232,7 @@ const App: React.FC = () => {
   // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
   const [plansReason, setPlansReason] = useState<PlansReason | undefined>(undefined);
   useEffect(() => onOpenPlans(reason => setPlansReason(reason)), []);
+  useEffect(() => onOpenLogin(() => setShowLogin(true)), []);
   // Booking links change with the privacy choice (partner ids only after it's accepted).
   const [, setConsentVersion] = useState(0);
   useEffect(() => onConsentChange(() => setConsentVersion(v => v + 1)), []);
@@ -661,8 +662,19 @@ const App: React.FC = () => {
   // `ref` is where the user attached it; it wins unless the address is clearly at another stop.
   // A file (PDF, email, image) or a link (Booking/Airbnb share, Google Maps place, a post) becomes a booking or saved
   // place on the matching stop; a link far from every stop becomes a new stop on the route.
-  const handleAttachFile = (ref: StopRef | null, input: File | string) =>
-    typeof input === 'string' ? handleAttachLink(ref, input) : handleAttachDocument(ref, input);
+  // How many documents the trip holds (set further down, read when one is added).
+  const documentCountRef = useRef(0);
+  const handleAttachFile = (ref: StopRef | null, input: File | string) => {
+    // Documents are limited per trip (the free plan keeps 20 in a trip), not per day.
+    const most = getAccount().limits.docsPerTrip;
+    if (getAccount().enforced && most != null && documentCountRef.current >= most) {
+      if (!getAccount().signedIn) { setToast({ message: tr('Log in (free) to add more documents to this trip.'), type: 'error' }); setShowLogin(true); return; }
+      setToast({ message: tr('This trip has {n} documents, the most on the free plan. To add more, consider upgrading to Explorer.', { n: most }), type: 'error' });
+      openPlans('documents');
+      return;
+    }
+    return typeof input === 'string' ? handleAttachLink(ref, input) : handleAttachDocument(ref, input);
+  };
 
   /** The stop a booking belongs to: the one it was attached to, unless its address is clearly nearer another. */
   const placeOnStop = async (ref: StopRef | null, stopIndex: number, position: LatLng | null) => {
@@ -1006,6 +1018,7 @@ const App: React.FC = () => {
   const documentCount = useMemo(() => routeInfo ? [
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ].flat().reduce((n, cat) => n + cat.items.filter(item => item.source === 'reservation').length, 0) : 0, [routeInfo]);
+  documentCountRef.current = documentCount;
 
   // Map segments: one per riding day, labelled with the day number (rest days included).
   const segments = useMemo(() => (trip?.legs || []).map((leg, i) => {
@@ -1148,7 +1161,7 @@ const App: React.FC = () => {
     const isNew = !currentTripId || viewingShared;
     const maxTrips = getAccount().enforced ? getAccount().limits.savedTrips : null;
     if (isNew && maxTrips !== null && savedRoutes.length >= maxTrips) {
-      setToast({ message: tr("You've saved as many trips as your plan allows."), type: 'error' });
+      setToast({ message: tr('You have {n} saved trips, to add more consider upgrading to Explorer.', { n: maxTrips }), type: 'error' });
       openPlans('savedTrips');
       return;
     }

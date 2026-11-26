@@ -29,16 +29,18 @@ many trips are kept. Nothing anyone made is ever taken away.
 | Price | – | €0 | €2.99/month or €19/year | €4.99 once (3 months) | €24/month |
 | Saved trips | – (log in to save) | **3** | unlimited | unlimited | unlimited |
 | AI planner, all editing, budget, weather, GPX, sharing | yes | yes | yes | yes | yes |
-| Documents and bookings | yes | yes (~50–100 MB, storage cap to add) | more storage | more storage | more storage |
+| Documents and bookings (total per trip, not per day) | 5 per trip | **20 per trip** | unlimited | unlimited | unlimited |
 | Road app (online navigation) | – | yes | yes | yes | yes |
 | Offline maps, live location for family/group, planning together | – | – | yes (soon) | yes (soon) | yes |
 | Group trips, branded itineraries | – | – | – | – | yes (soon) |
-| Hidden daily safety caps (AI / places / documents) | 10 / 60 / 5 | 30 / 150 / 20 | 150 / 600 / 200 | 150 / 600 / 200 | 400 / 1500 / 1000 |
+| Hidden daily safety caps (AI / places / documents read) | 10 / 60 / 20 | 30 / 150 / 60 | 150 / 600 / 200 | 150 / 600 / 200 | 400 / 1500 / 1000 |
 
 - **Safety caps are not a paywall.** They stop bots and abuse; a normal traveller never reaches them. At a cap only that
   service pauses until the next day ("You've planned a lot today: the AI planner is back tomorrow") and editing keeps
   working. No upgrade screen opens for them.
-- **The one upgrade moment:** saving a 4th trip ("delete one to free a slot, or keep them all with Explorer").
+- **The upgrade moments:** saving a 4th trip ("You have 3 saved trips, to add more consider upgrading to Explorer") and a
+  21st document in a trip. A visitor at the AI cap gets the login window (free account = bigger allowance).
+- **Until the activity is open at Finanças,** the paid plans show "Coming soon" (no checkout links set).
   Later also: offline maps, live location, planning together. Never in the middle of planning.
 - A free user can plan, share, delete and reuse the 3 slots for ever: that's fine. Occasional travellers were never
   going to pay; they share trips, book through the links and bring others. Frequent travellers pay for convenience.

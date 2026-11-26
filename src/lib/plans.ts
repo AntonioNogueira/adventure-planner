@@ -10,7 +10,10 @@ export interface Limits {
   /** Per day (UTC). */
   aiPlans: number;
   placeSearches: number;
+  /** Documents read per day: a hidden safety cap. */
   documents: number;
+  /** Documents (bookings, tickets, links) kept in one trip (null = unlimited): the visible limit. */
+  docsPerTrip: number | null;
 }
 
 export interface Plan {
@@ -31,27 +34,27 @@ export const PLANS: Record<PlanId, Plan> = {
   // normal traveller doesn't reach; at one, only that service pauses until the next day (editing keeps working).
   anonymous: {
     id: 'anonymous', name: 'Visitor', price: '',
-    limits: { savedTrips: 0, aiPlans: 10, placeSearches: 60, documents: 5 },
+    limits: { savedTrips: 0, aiPlans: 10, placeSearches: 60, documents: 20, docsPerTrip: 5 },
     features: [],
   },
   free: {
     id: 'free', name: 'Free', price: '',
-    limits: { savedTrips: 3, aiPlans: 30, placeSearches: 150, documents: 20 },
-    features: ['3 saved trips', 'AI trip planner', 'All editing, budget, weather and GPX', 'Documents and bookings', 'Share trips by link'],
+    limits: { savedTrips: 3, aiPlans: 30, placeSearches: 150, documents: 60, docsPerTrip: 20 },
+    features: ['3 saved trips', 'AI trip planner', 'All editing, budget, weather and GPX', '20 documents per trip', 'Share trips by link'],
   },
   explorer: {
     id: 'explorer', name: 'Explorer', price: '€2.99 / month', priceAlt: '€19 / year',
-    limits: { savedTrips: null, aiPlans: 150, placeSearches: 600, documents: 200 },
-    features: ['Unlimited saved trips', 'Offline maps in the app (soon)', 'Live location for family or the group (soon)', 'Plan trips together (soon)', 'Everything in Free'],
+    limits: { savedTrips: null, aiPlans: 150, placeSearches: 600, documents: 200, docsPerTrip: null },
+    features: ['Unlimited saved trips and documents', 'Offline maps in the app (soon)', 'Live location for family or the group (soon)', 'Plan trips together (soon)', 'Everything in Free'],
   },
   trip_pass: {
     id: 'trip_pass', name: 'Trip Pass', price: '€4.99 once',
-    limits: { savedTrips: null, aiPlans: 150, placeSearches: 600, documents: 200 },
+    limits: { savedTrips: null, aiPlans: 150, placeSearches: 600, documents: 200, docsPerTrip: null },
     features: ['Explorer for 3 months', 'One payment, no subscription', 'For the one big trip a year'],
   },
   pro: {
     id: 'pro', name: 'Pro', price: '€24 / month',
-    limits: { savedTrips: null, aiPlans: 400, placeSearches: 1500, documents: 1000 },
+    limits: { savedTrips: null, aiPlans: 400, placeSearches: 1500, documents: 1000, docsPerTrip: null },
     features: ['For guides, clubs and tour operators', 'Group trips with several riders (soon)', 'Branded PDF itineraries (soon)', 'Everything in Explorer'],
   },
 };
