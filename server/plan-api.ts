@@ -7,7 +7,7 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { verifyIdToken, readPlanRecord, isAdmin, Caller } from './auth';
 import { PlanId, UsageKind, UsageCounter, effectivePlan, limitsFor, parsePlanOverrides, Limits } from '../src/lib/plans';
 import { isLocalUrl, readLink, linkAsText } from './link';
-import { parseQuickIntent, quickReply } from './quickIntent';
+import { parseQuickIntent, placeLike, isBareCountry, quickReply } from './quickIntent';
 import { applyKnownRoute, findKnownRoute, knownRouteHint } from './knownRoutes';
 import { ChatTurn, ScreeningReport, SubmissionEnv, automaticChecks, buildJourneyChatPrompt, buildScreeningPrompt, emailAdmin, readSubmission, screeningJsonSchema } from './submissions';
 
@@ -91,7 +91,7 @@ export function profileText(profile: unknown): string {
   return text.length > 3000 ? '' : text;
 }
 
-export function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string, profile?: unknown) {
+export function buildPrompt(request: string, history: ChatMessage[], current?: unknown, language?: string, profile?: unknown, timeZone?: string) {
   const historyContext = history
     .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
     .join('\n');
@@ -110,9 +110,12 @@ form and buttons, not in this chat: a message like "max 40 km a day, camping" is
   const habits = profileText(profile);
   const profileBlock = habits && !current ? `
 TRAVELLER PROFILE (learned from this traveller's earlier trips): ${habits}
-- Use it as the defaults for a NEW trip when the request doesn't say otherwise: if they don't say how they travel, use
-  usualTravelMode; then take that mode's habits (ride, dailyKm, lodging, party, interests, budgetStyle, maxStayPrice,
-  vehicle, vehicleModel, offroad) and follow their preferences. Anything the request says wins over the profile.
+- Use it as the defaults for a NEW trip when the request doesn't say otherwise. habitsByStyle has one set of habits per
+  travel style (e.g. "bike-gravel", "bike-mtb", "moto-adventure", "car", "4x4", "camper", "walk-trek"; "+family" =
+  trips with children). Pick the style that matches the request (how they travel, the bike or vehicle, a family trip);
+  if the request doesn't say how they travel, use usualStyle. Then take that style's habits (travelMode, ride, dailyKm,
+  lodging, party, interests, budgetStyle, maxStayPrice, vehicle, vehicleModel, offroad) and follow their preferences.
+  Don't mix styles: a gravel trip doesn't take the motorcycle's daily distance. Anything the request says wins.
 - List in fromProfile the fields you filled from the profile (e.g. ["dailyKm", "lodging"]).
 ` : '';
 
@@ -127,14 +130,22 @@ ${historyContext || '(none)'}
 NEW REQUEST: "${request}"
 
 Return the complete plan:
-- origin, destination: specific geocodable places, e.g. "Cádiz, Spain".
+- origin, destination: each ONE specific town or city with its country, e.g. "Cádiz, Spain". Never a country, a region,
+  a coast or a route network ("France", "the Alps", "the coast", "EuroVelo" are not places).
+  A named route (a EuroVelo route, a Camino, a national road, a famous trail) means its real towns: its usual start and
+  finish, or the part the request implies ("…to France" ends at the first French town on it or the one they name).
+  "…to X" without a start means the trip ENDS in X (at its first town on the way, or the one they name) and starts where
+  the traveller probably is${/^[A-Za-z_]+\/[A-Za-z_]+/.test(timeZone || '') ? ` (their browser's time zone is ${String(timeZone).slice(0, 40)}: start in or near that city)` : ''}. Other requests without a start begin
+  there too, or at the route's usual start. Say in reply which start you assumed, so they can change it.
+  Route places go in travel order strictly between origin and destination: none beyond either end, none off the way.
 - travelMode: BICYCLING for bike trips, WALKING for hikes, DRIVING for motorcycle/car trips, TRANSIT only for public transport.
 - travelModeStated: true if the NEW REQUEST says or clearly implies how they travel, in any language and even misspelled
   ("biccicle", "bycicle", "bicicleta", "vélo", "bikepacking", "GS", "on foot", "Camino"); false if you had to guess.
 - days: only if the user states a number of days themselves; otherwise the current plan's value (0 if none).
   Never copy a day count from the assistant's summaries.
 - dailyKm: the daily distance if the user gives one (e.g. "about 60 km per day"), otherwise 0 (or the current plan's value).
-- route: places in travel order between origin and destination that the route must pass through.
+- route: places in travel order between origin and destination that the route must pass through, each with its country
+  so the map finds the right one (e.g. "Trient, Switzerland", not "Trient", which is also Trento in Italy).
   Include a place only if the user names it, or if the requested style needs it.
   For "along the coast" / "by the coast": list coastal towns about every 100-150 km along that stretch, in order, so the
   whole stretch stays on the coast (e.g. Cádiz → Valencia along the coast: Tarifa, Algeciras, Marbella, Málaga, Motril,
@@ -333,6 +344,13 @@ const planJsonSchema = {
 
 // ---- Usage log: one line per AI call plus running totals, printed in the terminal ----
 const usage = { calls: 0, failed: 0, inputTokens: 0, outputTokens: 0 };
+/** AI use since the server started, per model and per task (what /api/health reports; Render restarts reset it). */
+const usageSince = new Date().toISOString();
+const usageBy: Record<string, { calls: number; failed: number; input: number; output: number; seconds: number }> = {};
+const tally = (key: string, failed: boolean, input: number, output: number, seconds: number) => {
+  const u = usageBy[key] || (usageBy[key] = { calls: 0, failed: 0, input: 0, output: 0, seconds: 0 });
+  u.calls++; if (failed) u.failed++; u.input += input; u.output += output; u.seconds = Math.round((u.seconds + seconds) * 10) / 10;
+};
 
 function logUsage(task: string, model: string, started: number, result: { input?: number; output?: number; error?: string }) {
   usage.calls++;
@@ -340,6 +358,8 @@ function logUsage(task: string, model: string, started: number, result: { input?
   usage.inputTokens += result.input || 0;
   usage.outputTokens += result.output || 0;
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
+  tally(`model:${model}`, Boolean(result.error), result.input || 0, result.output || 0, Number(seconds));
+  tally(`task:${task}`, Boolean(result.error), result.input || 0, result.output || 0, Number(seconds));
   const outcome = result.error ? `FAILED ${result.error}` : `ok, tokens ${result.input ?? '?'} in / ${result.output ?? '?'} out`;
   console.log(`[ai] ${task} · ${model} · ${seconds}s · ${outcome}`);
   console.log(`[ai] session total: ${usage.calls} calls (${usage.failed} failed), ${usage.inputTokens} in / ${usage.outputTokens} out tokens`);
@@ -400,16 +420,51 @@ async function runClaude(env: PlanEnv, task: string, prompt: string, schema: Rec
 const GEMINI_RETRYABLE = new Set([429, 500, 503]);
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+/** Runs attempts in a staggered race: the first starts now, each next one when the previous fails or after
+ *  `staggerMs` without an answer; the first success wins (a busy server then costs seconds, not the whole wait). */
+export function hedged<T>(attempts: (() => Promise<T>)[], staggerMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let started = 0, failed = 0, done = false;
+    const errors: unknown[] = [];
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const startNext = () => {
+      if (done || started >= attempts.length) return;
+      const run = attempts[started++];
+      clearTimeout(timer);
+      if (started < attempts.length) timer = setTimeout(startNext, staggerMs);
+      run().then(value => {
+        if (done) return;
+        done = true; clearTimeout(timer); resolve(value);
+      }, err => {
+        if (done) return;
+        errors.push(err); failed++;
+        // All failed: the first error, carrying every attempt's error (for logs and messages).
+        if (failed === attempts.length) { done = true; clearTimeout(timer); const e = errors[0]; try { (e as { all?: unknown[] }).all = errors; } catch { /* frozen */ } reject(e); }
+        else if (failed === started) startNext();
+      });
+    };
+    if (!attempts.length) reject(new Error('Nothing to run'));
+    else startNext();
+  });
+}
+
+/** Models whose daily quota ran out: skipped until this time, so they don't cost seconds on every request. */
+const modelRestUntil = new Map<string, number>();
+
 async function runGemini(env: PlanEnv, task: string, prompt: string, responseSchema: object, file?: UploadedFile) {
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY! });
-  const models = [...new Set([
+  const configured = [...new Set([
     env.GEMINI_MODEL || 'gemini-flash-lite-latest',
     env.GEMINI_FALLBACK_MODEL || 'gemini-flash-latest',
   ])];
+  const ready = configured.filter(m => (modelRestUntil.get(m) || 0) < Date.now());
+  const models = ready.length ? ready : configured;
 
+  // Each model with a quick retry; the second model joins after 6 s (or as soon as the first gives up).
+  const attempt = (model: string) => async () => {
   let lastError: unknown;
-  for (const model of models) {
-    for (const delay of [0, 2500, 6000]) {
+  {
+    for (const delay of [0, 1500, 4000]) {
       if (delay) await sleep(delay);
       const started = Date.now();
       try {
@@ -434,12 +489,31 @@ async function runGemini(env: PlanEnv, task: string, prompt: string, responseSch
         lastError = err;
         if (err instanceof ApiError) logUsage(task, model, started, { error: `${err.status}${GEMINI_RETRYABLE.has(err.status) ? ' (busy, will retry)' : ''}` });
         if (!(err instanceof ApiError && GEMINI_RETRYABLE.has(err.status))) throw err;
-        // A used-up quota (per minute or per day) won't come back in seconds: try the next model straight away.
+        // A used-up quota (per minute or per day) won't come back in seconds: give up on this model now; a daily
+        // one (or the free tier's) rests the model for an hour.
+        if (err.status === 429 && /per day|PerDay|free_tier/i.test(err.message)) {
+          // Rest it as long as Google says ("Please retry in 13h8m7s"), at least an hour.
+          const r = err.message.match(/retry in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?/i);
+          const waitMs = r ? ((Number(r[1] || 0) * 60 + Number(r[2] || 0)) * 60 + Number(r[3] || 0)) * 1000 : 0;
+          modelRestUntil.set(model, Date.now() + Math.max(3600_000, Math.min(waitMs, 26 * 3600_000)));
+          console.log(`[ai] ${model}: daily quota used up, resting it for ${Math.round(Math.max(3600_000, waitMs) / 60_000)} min`);
+        }
         if (err.status === 429 && /quota|RESOURCE_EXHAUSTED|per day|PerDay/i.test(err.message)) break;
       }
     }
   }
   throw lastError;
+  };
+  try {
+    return await hedged(models.map(attempt), 6000);
+  } catch (err) {
+    // Say what each model answered (one can be out of quota while the other is only busy).
+    const all = ((err as { all?: unknown[] }).all || [err]).map(e => (e instanceof Error ? e.message : String(e)).replace(/\s+/g, ' '));
+    if (all.length < 2) throw err;
+    const combined = new Error(all.map((m, i) => `[${i + 1}] ${m.slice(0, 600)}`).join(' || '));
+    if (err instanceof ApiError) Object.assign(combined, { status: err.status });
+    throw combined;
+  }
 }
 
 // OpenAI is only used for trip planning (text in, JSON out).
@@ -525,16 +599,21 @@ export async function runTaskResult(env: PlanEnv, task: AiTask): Promise<{ provi
   const available = providers(env, task);
   if (available.length === 0) throw new NoProvider();
   const failures: string[] = [];
-  for (const provider of available) {
-    try {
-      return { provider: provider.name, result: await provider.run() };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`[plan-api] ${provider.name} failed:`, message);
-      failures.push(`${provider.name}: ${message.slice(0, 200)}`);
-    }
+  // The next provider joins after 9 s without an answer (or as soon as one fails); the first answer wins.
+  try {
+    return await hedged(available.map(provider => async () => {
+      try {
+        return { provider: provider.name, result: await provider.run() };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[plan-api] ${provider.name} failed:`, message);
+        failures.push(`${provider.name}: ${message.slice(0, 1200)}`);
+        throw err;
+      }
+    }), 9000);
+  } catch {
+    throw new AllFailed(failures);
   }
-  throw new AllFailed(failures);
 }
 
 function sendTaskError(res: ServerResponse, err: unknown) {
@@ -870,7 +949,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
           }
         })() };
       }
-      return sendJson(res, 200, await healthCheck.result);
+      return sendJson(res, 200, { ...(await healthCheck.result), usage: { since: usageSince, total: usage, by: usageBy } });
     }
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     if (req.url !== '/api/usage' && overLimit(env, req)) return sendJson(res, 429, { error: 'Too many requests. Please try again in a while.' });
@@ -906,7 +985,7 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         const { provider, result: intent } = await Promise.race([
           runTaskResult(env, {
             name: 'plan',
-            prompt: buildPrompt(request, history, current, language, body.profile) + (known ? knownRouteHint(known) : ''),
+            prompt: buildPrompt(request, history, current, language, body.profile, typeof body.timeZone === 'string' ? body.timeZone : undefined) + (known ? knownRouteHint(known) : ''),
             geminiSchema: responseSchema,
             claudeSchema: planJsonSchema,
             allowOpenAI: true,
@@ -916,6 +995,12 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
         if (!intent.vehicle || intent.vehicle === 'unknown' || intent.travelMode !== 'DRIVING') intent.vehicle = '';
         cleanStyle(intent);
         if (known && applyKnownRoute(intent, known)) console.log(`[ai] put back the known route: ${known.title}`);
+        // A country or a vague name as the start or finish ("France → France"): use the first and last places of its
+        // route instead, which are real towns.
+        if (Array.isArray(intent.route) && intent.route.length) {
+          if (!placeLike(String(intent.origin || '').split(',')[0]) || isBareCountry(intent.origin)) { intent.origin = intent.route[0].place; intent.route = intent.route.slice(1); }
+          if (intent.route.length && (!placeLike(String(intent.destination || '').split(',')[0]) || isBareCountry(intent.destination))) { intent.destination = intent.route[intent.route.length - 1].place; intent.route = intent.route.slice(0, -1); }
+        }
         // Places that are just the origin or destination again (the AI sometimes repeats them) make empty days.
         const town = (p: string) => String(p || '').split(',')[0].trim().toLowerCase();
         if (Array.isArray(intent.route)) intent.route = intent.route.filter((r: any) => ![town(intent.origin), town(intent.destination)].includes(town(r.place)));
@@ -954,13 +1039,20 @@ function createHandler(env: PlanEnv): Connect.NextHandleFunction {
       } catch (err) {
         // Every AI busy or out of quota: read a plain request ourselves so the traveller still gets a trip.
         if (err instanceof AllFailed || err instanceof NoProvider) {
-          const quick = parseQuickIntent(request, current)
-            || (known ? parseQuickIntent(`${known.places[0]} to ${known.places[known.places.length - 1]} ${request}`, null) : null);
+          // How they usually travel (their profile), for a request that doesn't say.
+          const prof = body.profile as { usualStyle?: string; habitsByStyle?: Record<string, { travelMode?: string }> } | undefined;
+          const usualMode = prof?.usualStyle ? prof.habitsByStyle?.[prof.usualStyle]?.travelMode : undefined;
+          const quick = parseQuickIntent(request, current, usualMode)
+            || (known ? parseQuickIntent(`${known.places[0]} to ${known.places[known.places.length - 1]} ${request}`, null, usualMode) : null);
           if (quick && known) applyKnownRoute(quick, known);
           if (quick) {
             quick.reply = quickReply(language);
             console.log(`[ai] unavailable, quick plan: ${describeIntent(quick)}`);
-            return sendJson(res, 200, { provider: 'quick', plan: quick });
+            // Why the AI didn't answer (status and Google's reason, no keys), for checking quota or billing.
+            // A quota error names the exact limit ("Quota exceeded for metric: …, limit: …, model: …"): keep that part.
+            const brief = (d: string) => d.replace(/\\n|\s+/g, ' ').split(' || ').map(t => { const q = t.match(/Quota exceeded for metric:[^"]{0,220}/); return (q ? `${t.slice(0, 40)} … ${q[0]}` : t).slice(0, 300); }).join(' || ');
+            const aiError = err instanceof AllFailed ? err.details.map(brief).slice(0, 3) : ['no provider'];
+            return sendJson(res, 200, { provider: 'quick', plan: quick, aiError });
           }
         }
         return sendTaskError(res, err);

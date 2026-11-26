@@ -7,7 +7,7 @@ import { stageDone } from './planTimer';
 import { t } from './settings';
 import { lodgingNear, settlementAt } from './overpass';
 import { progressOn } from './ride';
-import { geocodeAddress } from './geocode';
+import { geocodeAddress, namesakeNear } from './geocode';
 import { computeTrip, RouteOptions, RoutedLeg } from './routing';
 import { haversineKm, pathWithDistances, pointAt, LatLng, downsample } from './geo';
 import { EFFORT_KM_PER_1000M, effortKm, elevationsAlong, splitByEffort, KmRange } from './elevation';
@@ -84,7 +84,24 @@ export interface OvernightPlan {
 async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> {
   const [start, end] = await Promise.all([geocodeAddress(intent.origin), geocodeAddress(intent.destination)]);
   if (!start || !end) return intent.route;
-  const located = (await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) }))))
+  const found = await Promise.all(intent.route.map(async r => ({ ...r, at: await geocodeAddress(r.place) })));
+  // A name without its country can find a far-off namesake ("Trient" is a Swiss village and Trento's German name):
+  // when a place is far from the one before it, prefer a place of the same name close to it.
+  for (let i = 0; i < found.length; i++) {
+    const r = found[i];
+    if (!r.at) continue;
+    const prev = found.slice(0, i).reverse().find(x => x.at)?.at || start;
+    const gap = haversineKm(prev, r.at);
+    const lineRatio = (haversineKm(start, r.at) + haversineKm(r.at, end)) / Math.max(1, haversineKm(start, end));
+    const suspect = (!r.place.includes(',') && gap > 60) || (haversineKm(start, end) >= 15 && lineRatio > 2.5);
+    if (!suspect) continue;
+    const near = await namesakeNear(r.place, prev, Math.min(gap / 2, 150)).catch(() => null);
+    if (near) {
+      console.info(`"${r.place}": using ${near.name}, near the route, instead of a namesake ${Math.round(gap)} km away`);
+      found[i] = { ...r, place: near.name, at: near.at };
+    }
+  }
+  const located = found
     // The origin or destination listed again (within 3 km) would only make an empty day.
     .filter(r => !r.at || (haversineKm(r.at, start) > 3 && haversineKm(r.at, end) > 3));
   const kept: typeof located = [];
@@ -112,6 +129,39 @@ async function withoutDetours(intent: TripIntent): Promise<TripIntent['route']> 
   return kept.map(({ place, overnight }) => ({ place, overnight }));
 }
 
+const SPUR_KM = 1.5;
+
+/** How far a route goes back the way it came after a place: the length of the start of `out` that runs along the
+ *  end of `into` (within about 120 m), in km. A place on the way gives ~0; one at the end of a dead end, its length. */
+export function spurKm(into: LatLng[], out: LatLng[]): number {
+  if (into.length < 2 || out.length < 2) return 0;
+  const end = into[into.length - 1];
+  // Only the last 40 km of the way in can be retraced.
+  const tail: LatLng[] = [];
+  for (let i = into.length - 1, km = 0; i >= 0 && km < 40; i--) {
+    if (tail.length) km += haversineKm(tail[tail.length - 1], into[i]);
+    tail.push(into[i]);
+  }
+  const kx = Math.cos((end.lat * Math.PI) / 180) * 111.32, ky = 110.57;
+  const offKm = (q: LatLng) => {
+    let best = Infinity;
+    for (let i = 1; i < tail.length; i++) {
+      const ax = tail[i - 1].lng * kx, ay = tail[i - 1].lat * ky, bx = tail[i].lng * kx, by = tail[i].lat * ky;
+      const px = q.lng * kx, py = q.lat * ky, dx = bx - ax, dy = by - ay;
+      const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy))) : 0;
+      best = Math.min(best, Math.hypot(px - ax - t * dx, py - ay - t * dy));
+    }
+    return best;
+  };
+  let km = 0;
+  for (let j = 1; j < out.length; j++) {
+    if (offKm(out[j]) > 0.12) break;
+    km += haversineKm(out[j - 1], out[j]);
+    if (km > 40) break;
+  }
+  return km;
+}
+
 export async function planOvernightStops(original: TripIntent, options?: RouteOptions): Promise<OvernightPlan> {
   const intent = { ...original, route: await withoutDetours(original) };
   stageDone('Finding the places named in the request');
@@ -126,8 +176,17 @@ export async function planOvernightStops(original: TripIntent, options?: RouteOp
     options,
   });
   // Cycling/walking routes aren't available everywhere; driving distances are close enough to split days.
-  const { legs } = await request(intent.travelMode).catch(() => request('DRIVING'));
+  let { legs } = await request(intent.travelMode).catch(() => request('DRIVING'));
   stageDone('First route');
+  // A place passed through at the end of a dead end (a mountain hut, a lake up a side valley) would draw a spike
+  // there and back: such places are left out and the route is drawn again without them. Nights stay.
+  const spurs = new Set(intent.route.map((r, i) => (!r.overnight && legs[i + 1] && spurKm(legs[i].path, legs[i + 1].path) > SPUR_KM ? i : -1)).filter(i => i >= 0));
+  if (spurs.size) {
+    intent.route.forEach((r, i) => spurs.has(i) && console.info(`Leaving out ${r.place}: a dead end off the route (there and back)`));
+    intent.route = intent.route.filter((_, i) => !spurs.has(i));
+    legs = (await request(intent.travelMode).catch(() => request('DRIVING')).catch(() => ({ legs }))).legs;
+    stageDone('Route without dead ends');
+  }
 
   // Group legs into segments that end at an overnight place (or the finish).
   const segments: { legs: RoutedLeg[]; end: string | null; vias: string[] }[] = [];

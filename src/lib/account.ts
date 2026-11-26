@@ -72,3 +72,8 @@ export type PlansReason = UsageKind | 'savedTrips' | null;
 const openListeners = new Set<(reason: PlansReason) => void>();
 export function onOpenPlans(l: (reason: PlansReason) => void) { openListeners.add(l); return () => { openListeners.delete(l); }; }
 export function openPlans(reason: PlansReason = null) { openListeners.forEach(l => l(reason)); }
+
+/** Ask the app to show the login window (e.g. a visitor reached the AI's daily cap). */
+const loginListeners = new Set<() => void>();
+export function onOpenLogin(l: () => void) { loginListeners.add(l); return () => { loginListeners.delete(l); }; }
+export function openLogin() { loginListeners.forEach(l => l()); }

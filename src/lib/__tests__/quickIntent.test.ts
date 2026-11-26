@@ -39,3 +39,23 @@ describe('quick plan without the AI', () => {
     expect(parseQuickIntent('what is the best season?')).toBeNull();
   });
 });
+
+describe('quick plans never guess what is not one place', () => {
+  it('gives up on route networks, coasts and whole countries', () => {
+    expect(parseQuickIntent('eurovelo along the coas to france')).toBeNull();
+    expect(parseQuickIntent('along the coast to france')).toBeNull();
+    expect(parseQuickIntent('lisbon to spain by bike')).toBeNull();
+    expect(parseQuickIntent('from home to the alps')).toBeNull();
+  });
+  it('still reads plain town-to-town requests, and uses the usual way of travelling when not said', () => {
+    expect(parseQuickIntent('lisbon to porto by bike')).toMatchObject({ origin: 'Lisbon', destination: 'Porto', travelMode: 'BICYCLING' });
+    expect(parseQuickIntent('lisbon to porto', null, 'BICYCLING')).toMatchObject({ travelMode: 'BICYCLING' });
+    expect(parseQuickIntent('Les Houches, France to Les Houches, France 6 days')).toMatchObject({ origin: 'Les Houches', destination: 'Les Houches' });
+  });
+});
+
+describe('real places with generic words in their names', () => {
+  it('keeps Costa da Caparica and the like', () => {
+    expect(parseQuickIntent('lisbon to costa da caparica by bike')).toMatchObject({ destination: 'Costa Da Caparica' });
+  });
+});

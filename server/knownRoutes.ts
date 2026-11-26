@@ -17,7 +17,7 @@ const ALIASES: Record<string, string[]> = {
   'pamir-highway': ['pamir highway', 'm41'],
   'karakoram-highway': ['karakoram highway', 'kkh'],
   'north-coast-500': ['nc500', 'north coast 500'],
-  'tour-du-mont-blanc': ['tmb', 'tour du mont blanc'],
+  'tour-du-mont-blanc': ['tmb', 'tour du mont blanc', 'tour de mont blanc', 'tour of mont blanc', 'tour mont blanc', 'volta ao mont blanc', 'vuelta al mont blanc', 'giro del monte bianco'],
   'ruta-40-argentina': ['ruta 40', 'route 40 argentina'],
   'ecopista-do-dao': ['ecopista do dao', 'ecopista dao'],
   'fishermens-trail': ['fishermens trail', 'fishermen s trail', 'trilho dos pescadores', 'rota vicentina'],
@@ -89,7 +89,10 @@ export function applyKnownRoute(intent: { origin: string; destination: string; r
     intent.origin = byTown.get(a)!;
     intent.destination = byTown.get(b)!;
     if (!(intent.route || []).length) {
-      const [i, j] = [r.places.findIndex(p => town(p) === a), r.places.findIndex(p => town(p) === b)];
+      // For a loop (same start and finish) the finish is the route's last place of that name, not its first.
+      const i = r.places.findIndex(p => town(p) === a);
+      const later = r.places.findIndex((p, k) => k > i && town(p) === b);
+      const j = later >= 0 ? later : r.places.findIndex(p => town(p) === b);
       const between = i < j ? r.places.slice(i + 1, j) : r.places.slice(j + 1, i).reverse();
       intent.route = between.map(place => ({ place, overnight: false }));
     } else intent.route = intent.route!.map(x => ({ ...x, place: byTown.get(town(x.place)) || x.place }));

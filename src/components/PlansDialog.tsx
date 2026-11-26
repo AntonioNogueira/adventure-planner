@@ -8,10 +8,10 @@ import { auth } from '../firebase';
 import { cn } from '../lib/utils';
 
 const REASONS: Record<Exclude<PlansReason, null>, string> = {
-  aiPlans: "You've used today's AI plans on your plan.",
-  placeSearches: "You've used today's place searches on your plan.",
-  documents: "You've used today's document reads on your plan.",
-  savedTrips: "You've saved as many trips as your plan allows.",
+  aiPlans: "You've planned a lot today: the AI planner is back tomorrow.",
+  placeSearches: "You've looked up a lot of places today: suggestions are back tomorrow.",
+  documents: 'This trip has as many documents as the free plan keeps. To add more, consider upgrading to Explorer.',
+  savedTrips: 'You have 3 saved trips, to add more consider upgrading to Explorer.',
 };
 
 const USAGE_LABELS: Record<UsageKind, string> = {

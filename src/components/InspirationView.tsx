@@ -30,6 +30,10 @@ interface Props {
 }
 
 /** The buttons at the map's top left: one size. */
+/** Line colours by how they travelled (the legend on the map). */
+const KIND_COLORS: Record<string, string> = { moto: '#e8590c', bike: '#1971c2', walk: '#2f9e44', '4x4': '#9c36b5', car: '#c2255c', rally: '#d4a106', other: '#64748b' };
+const KIND_LEGEND: [string, string][] = [['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Car & campervan'], ['rally', 'Rally'], ['other', 'Other']];
+
 const MAP_BUTTON = 'flex w-full items-center justify-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-bold uppercase tracking-wide shadow';
 
 type Line = [number, number][];
@@ -199,12 +203,15 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       : { top: 90, left: 410, right: 60, bottom: addingRef.current ? Math.round(Math.min(h * 0.62, 520)) : 50 };
   };
 
+  const addAfterLogin = useRef(false);
   useEffect(() => {
     loadJourneys().then(setList).catch(() => setFailed(true));
     loadPublished().then(setPublished);
     return onAuthStateChanged(auth, user => {
       setUid(user?.uid || null);
       if (user) checkAdmin(user.uid).then(setAdmin); else setAdmin(false);
+      // Logged in from "Add your journey": open it right away.
+      if (user && addAfterLogin.current) { addAfterLogin.current = false; setJourney(null); setAdding(true); }
     });
   }, []);
   // "Add your journey" (the chat), and for admins the journeys sent for review.
@@ -238,6 +245,8 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
   const [kind, setKind] = useState('');
   const [era, setEra] = useState('');
   const [words, setWords] = useState('');
+  // Lines coloured by how they travelled; with a travel filter on, each journey gets its own colour instead.
+  const tint = <J extends { kind: string; color: string }>(j: J): J => (kind ? j : { ...j, color: KIND_COLORS[j.kind] || KIND_COLORS.other });
   const all = useMemo(() => every.filter(j => {
     const year = Number(j.when.match(/\d{4}/)?.[0] || 0);
     if (kind && j.kind !== kind) return false;
@@ -246,14 +255,18 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
     if (era === 'new' && !(year >= 1990)) return false;
     const q = words.trim().toLowerCase();
     return !q || [j.title, j.who, j.vehicle, j.summary].join(' ').toLowerCase().includes(q);
-  }), [every, kind, era, words]);
+  }).map(tint), [every, kind, era, words]);
+  // The list shows the journeys in the part of the map in view (all of them when the whole globe shows).
+  const [view, setView] = useState<{ bounds: maplibregl.LngLatBounds; zoom: number } | null>(null);
+  const inView = useMemo(() => !view || view.zoom < 2.2 ? all
+    : all.filter(j => j.overview.some(line => line.some(([lat, lng]) => view.bounds.contains([lng, lat])))), [all, view]);
 
   const select = async (id: string) => {
     if (!journey && asideRef.current) listScroll.current = asideRef.current.scrollTop;
     const mine = published.find(j => j.id === id);
-    if (mine) { setJourney(mine); return; }
+    if (mine) { setJourney(tint(mine)); return; }
     setLoading(id);
-    try { setJourney(await loadJourney(id)); } catch { setFailed(true); } finally { setLoading(null); }
+    try { setJourney(tint(await loadJourney(id))); } catch { setFailed(true); } finally { setLoading(null); }
   };
   useLayoutEffect(() => {
     if (!journey && !reviewing && listScroll.current != null && asideRef.current) {
@@ -286,6 +299,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       if (map.getZoom() < 3 && !map.isMoving()) map.easeTo({ center: [map.getCenter().lng + 6, map.getCenter().lat], duration: 1000, easing: t => t });
     };
     map.on('moveend', spin);
+    map.on('moveend', () => setView({ bounds: map.getBounds(), zoom: map.getZoom() }));
     spinRef.current = stop;
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     mapRef.current = map;
@@ -305,7 +319,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
       } });
       const fade = (low: number, high: number) => ['interpolate', ['linear'], ['zoom'], 1.8, low, 3.4, high] as unknown as number;
       map.addLayer({ id: 'overview-casing', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 1.5, 6, 3.5], 'line-opacity': fade(0.05, 0.55) } });
-      map.addLayer({ id: 'overview-line', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.8, 6, 2], 'line-opacity': fade(0.2, 0.95) } });
+      map.addLayer({ id: 'overview-line', type: 'line', source: 'overview', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 1, 1.3, 6, 2.2], 'line-opacity': fade(0.2, 0.95) } });
       map.addLayer({ id: 'journey-casing', type: 'line', source: 'journey', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fffcf4', 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 3, 8, 5.5], 'line-opacity': 0.85 } });
       map.addLayer({ id: 'journey-road', type: 'line', source: 'journey', filter: ['get', 'road'], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.6, 8, 3.2] } });
       map.addLayer({ id: 'journey-other', type: 'line', source: 'journey', filter: ['!', ['get', 'road']], layout: { 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.4, 8, 2.6], 'line-dasharray': [1.5, 1.5] } });
@@ -420,12 +434,22 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
         ))}
       </div>
       <SafetyLayer map={ready ? mapRef.current : null} ready={ready} on={safety} setOn={setSafety} />
+      {/* What the line colours mean (only while they're by travel type: no travel filter, no journey open). */}
+      {!kind && !journey && !adding && !importing && !reviewing && !safety && (
+        <div className="absolute bottom-[calc(50dvh+8px)] right-2.5 z-10 rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-[10px] text-slate-600 shadow md:bottom-10">
+          {KIND_LEGEND.map(([id, label]) => (
+            <span key={id} className="flex items-center gap-1.5 leading-[15px]"><span className="h-[3px] w-3.5 rounded-full" style={{ background: KIND_COLORS[id] }} />{t(label)}</span>
+          ))}
+        </div>
+      )}
       {/* Top left of the map: the way back to all journeys, and "Add your journey". */}
       {!importing && !reviewing && (
         <div className="absolute left-2 top-[72px] z-10 flex w-[176px] flex-col gap-1 md:left-[388px] xl:top-2.5">
           <SafetyButton on={safety} onToggle={() => setSafety(v => !v)} />
           {!adding && (
-            <button onClick={() => { setJourney(null); setAdding(true); }} className={cn(MAP_BUTTON, 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800')}><Plus size={13} />{t('Add your journey')}</button>
+            // Logged out, it opens the login first (sending a journey needs an account), then the chat.
+            <button onClick={() => { if (uid) { setJourney(null); setAdding(true); } else { addAfterLogin.current = true; onLogin?.(); } }}
+              className={cn(MAP_BUTTON, 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800')}><Plus size={13} />{t('Add your journey')}</button>
           )}
           {journey && (
             <button onClick={backToAll} className={cn(MAP_BUTTON, 'border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50')}><ArrowLeft size={13} />{t('All journeys')}</button>
@@ -462,13 +486,14 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
             <div>
               <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-emerald-800"><Compass size={16} />Mappa Mundi</h2>
               <p className="mt-0.5 text-xs text-slate-600">{t('Famous journeys to dream about. Pick one to follow it stop by stop, then plan any stretch of it as your own trip.')}</p>
-              {list && <p className="mt-1 text-[10.5px] text-slate-400">{t('{n} journeys · {d} of adventure', { n: all.length, d: dist(totalKm, 0) })}</p>}
+              {list && <p className="mt-1 text-[10.5px] text-slate-400">{t('{n} journeys · {d} of adventure', { n: all.length, d: dist(totalKm, 0) })}
+                {inView.length < all.length && <> · <span className="font-semibold text-emerald-700">{t('{n} in the map view', { n: inView.length })}</span></>}</p>}
             </div>
             <div className="space-y-1.5">
               <input value={words} onChange={(e) => setWords(e.target.value)} placeholder={t('Search: a place, a rider, a bike…')} aria-label={t('Search journeys')}
                 className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs focus:border-emerald-400 focus:outline-none" />
               <div className="flex flex-wrap gap-1">
-                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Road trip'], ['rally', 'Rally']] as const).map(([id, label]) => (
+                {([['', 'All'], ['moto', 'Motorcycle'], ['bike', 'Bicycle'], ['walk', 'On foot'], ['4x4', '4x4 & overland'], ['car', 'Car & campervan'], ['rally', 'Rally']] as const).map(([id, label]) => (
                   <button key={id || 'all'} onClick={() => setKind(id)} aria-pressed={kind === id}
                     className={cn('rounded-full border px-2 py-0.5 text-[10.5px] font-semibold', kind === id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50')}>{t(label)}</button>
                 ))}
@@ -479,6 +504,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
                 ))}
               </div>
               {list && all.length === 0 && <p className="text-xs text-slate-500">{t('No journey matches these filters yet.')}</p>}
+              {list && all.length > 0 && inView.length === 0 && <p className="text-xs text-slate-500">{t('No journey in this part of the map: zoom out or move it.')}</p>}
               {list && kind !== 'rally' && !words.trim() && every.some(archived) && (
                 <button onClick={() => setKind('rally')} className="text-[10.5px] font-semibold text-emerald-700 hover:underline">
                   {t('+{n} more Dakar Rally editions under Rally', { n: every.filter(archived).length })}
@@ -501,7 +527,7 @@ const InspirationView: React.FC<Props> = ({ onPlan, onLogin }) => {
             )}
             {failed && <p className="text-xs text-red-600">{t("Couldn't load the journeys. Check your connection and try again.")}</p>}
             {!list && !failed && <p className="flex items-center gap-1.5 text-xs text-slate-500"><Loader2 size={13} className="animate-spin" />{t('Loading journeys…')}</p>}
-            {list && all.map(j => (
+            {list && inView.map(j => (
               <button key={j.id} onClick={() => select(j.id)} disabled={loading === j.id}
                 className="group block w-full overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition-shadow hover:shadow-md">
                 {j.cover?.kind === 'book'

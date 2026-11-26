@@ -9,7 +9,7 @@ maplibregl.setWorkerUrl(mapWorkerUrl);
 import type { FeatureCollection, LineString } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRoot, Root } from 'react-dom/client';
-import { Layers, Map as MapIcon, Globe, Mountain } from 'lucide-react';
+import { Layers, Map as MapIcon, Globe, Mountain, Box } from 'lucide-react';
 import { Waypoint, RouteInfo, StopRef, InterestItem, Via, Story } from '../types';
 import { cn } from '../lib/utils';
 import SegmentDetails from './SegmentDetails';
@@ -25,7 +25,7 @@ import { raster, TOPO_STYLE } from '../lib/mapStyle';
 
 interface MapProps {
   onLoad: (map: unknown) => void;
-  segments?: { path: LatLng[]; label: string; leg: RoutedLeg }[];
+  segments?: { path: LatLng[]; label: string; leg: RoutedLeg; date?: string; dated?: boolean }[];
   travelMode?: string;
   waypoints?: Waypoint[];
   origin?: string;
@@ -179,6 +179,11 @@ const MapView: React.FC<MapProps> = ({
   const callbacksRef = useRef({ onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, travelMode });
   callbacksRef.current = { onMoveStop, onAddStop, onMarkPlace, onRemoveStop, onFindPlaces, onGoto, onRemoveItem, onAttachFile, onShapeRoute, onMoveVia, onRemoveVia, onStoryChange, travelMode };
   const [mapType, setMapType] = useState<MapType>('topo');
+  // 3D: the map tilted over the terrain (free elevation tiles), to see the climbs of a bike or hiking route.
+  const [terrain3d, setTerrain3d] = useState(false);
+  const terrain3dRef = useRef(false);
+  terrain3dRef.current = terrain3d;
+  const tiltedRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<CategoryId[]>([]);
   // The day whose details show in the banner (a banner, not a popup, so the map stays free to zoom and pan).
@@ -401,23 +406,29 @@ const MapView: React.FC<MapProps> = ({
     map.on('mouseup', endDrag);
     map.on('touchend', endDrag);
 
+    // A day: highlighted, its details open, and the whole day in view, clear of the banner (also from the day list).
+    const focusDay = (index: number) => {
+      const segment = segmentsRef.current[index];
+      if (!segment?.path.length) return;
+      popupRef.current?.remove();
+      setOpenSegment(index);
+      setActiveSegment(index);
+      openStopRef.current = null;
+      const bounds = new maplibregl.LngLatBounds();
+      segment.path.forEach(p => bounds.extend([p.lng, p.lat]));
+      const h = map.getContainer().clientHeight;
+      map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: Math.round(h * 0.45), bottom: Math.round(h * 0.42), left: 30, right: 30 } : { top: 90, left: 60, right: 60, bottom: 340 }, duration: 600, maxZoom: 14 });
+    };
+    const onFocusDay = (e: Event) => focusDay((e as CustomEvent<number>).detail);
+    window.addEventListener('focus-day', onFocusDay);
+    map.on('remove', () => window.removeEventListener('focus-day', onFocusDay));
+
     map.on('click', (e) => {
       if (justDragged) return;
       const hit = map.getLayer('route-line') ? map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['route-line'] }) : [];
       const at = { lat: e.lngLat.lat, lng: e.lngLat.lng };
       if (hit.length) {
-        const index = hit[0].properties?.index as number;
-        const segment = segmentsRef.current[index];
-        if (!segment) return;
-        popupRef.current?.remove();
-        setOpenSegment(index);
-        setActiveSegment(index);
-        openStopRef.current = null;
-        // Show the whole day, clear of the banner.
-        const bounds = new maplibregl.LngLatBounds();
-        segment.path.forEach(p => bounds.extend([p.lng, p.lat]));
-        const h = map.getContainer().clientHeight;
-        map.fitBounds(bounds, { padding: window.innerWidth < 768 ? { top: Math.round(h * 0.45), bottom: Math.round(h * 0.42), left: 30, right: 30 } : { top: 90, left: 60, right: 60, bottom: 340 }, duration: 600, maxZoom: 14 });
+        focusDay(hit[0].properties?.index as number);
         return;
       }
       if (!callbacksRef.current.onAddStop && !callbacksRef.current.onMarkPlace) return;
@@ -433,6 +444,30 @@ const MapView: React.FC<MapProps> = ({
     if (import.meta.env.DEV) (window as any).__osmMap = map;
     return () => { map.remove(); mapRef.current = null; };
   }, []);
+
+  // 3D terrain on or off; a new style drops it, so it's put back on 'style.load'.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    const apply = () => {
+      try {
+        if (terrain3dRef.current) {
+          if (!map.getSource('terrain-dem')) map.addSource('terrain-dem', {
+            type: 'raster-dem', encoding: 'terrarium', tileSize: 256, maxzoom: 15,
+            tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+            attribution: 'Terrain: Mapzen, AWS Open Data',
+          });
+          map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+        } else if (map.getTerrain()) map.setTerrain(null);
+      } catch { /* style still loading: 'style.load' applies it */ }
+    };
+    apply();
+    // Tilt only when the button changes it (not when the map first loads).
+    if (terrain3d !== tiltedRef.current) map.easeTo(terrain3d ? { pitch: 62, bearing: map.getBearing() || -20, duration: 900 } : { pitch: 0, bearing: 0, duration: 700 });
+    tiltedRef.current = terrain3d;
+    map.on('style.load', apply);
+    return () => { map.off('style.load', apply); };
+  }, [terrain3d, isReady]);
 
   // Switching style replaces all layers; the route is re-added on 'style.load'.
   useEffect(() => {
@@ -560,10 +595,10 @@ const MapView: React.FC<MapProps> = ({
       {/* The day's details (terrain, surface, roads): top on phones (the planner sheet is at the bottom), bottom on desktop. */}
       {openSegment !== null && !ride && segments[openSegment] && (
         <div role="region" aria-label={segments[openSegment].label}
-          className="absolute inset-x-2 top-[6.5rem] z-[16] max-h-[36%] overflow-y-auto rounded-xl border border-[#d6cbb3] bg-[#faf6ec] p-2.5 shadow-xl md:inset-x-auto md:bottom-16 md:left-6 md:top-auto md:max-h-[34%] md:w-[min(760px,calc(100%-3rem))]">
+          className="absolute inset-x-2 top-[6.5rem] z-[16] max-h-[45%] overflow-y-auto rounded-xl border border-[#d6cbb3] bg-[#faf6ec] px-3 py-2 shadow-xl md:inset-x-auto md:bottom-16 md:left-6 md:top-auto md:max-h-[60%] md:w-[min(720px,calc(100%-3rem))]">
           <button onClick={() => { setOpenSegment(null); setActiveSegment(-1); }} aria-label={t('Close')}
             className="absolute right-2 top-2 rounded p-1 text-slate-500 hover:bg-slate-200/60">✕</button>
-          <SegmentDetails wide label={segments[openSegment].label} leg={segments[openSegment].leg} travelMode={travelMode} />
+          <SegmentDetails wide label={segments[openSegment].label} leg={segments[openSegment].leg} travelMode={travelMode} date={segments[openSegment].date} dated={segments[openSegment].dated} />
         </div>
       )}
 
@@ -609,6 +644,18 @@ const MapView: React.FC<MapProps> = ({
               <span className="hidden sm:inline">{t(label)}</span>
             </button>
           ))}
+          <button
+            onClick={() => setTerrain3d(v => !v)}
+            aria-pressed={terrain3d}
+            title={terrain3d ? t('Back to the flat map') : t('Tilt the map to see the terrain in 3D (right-drag or two fingers to turn)')}
+            className={cn(
+              "flex items-center gap-2 rounded-lg border-emerald-900/10 px-2.5 py-2 text-xs font-bold transition-all md:mt-1 md:border-t md:px-3",
+              terrain3d ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20" : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600"
+            )}
+          >
+            <Box size={14} />
+            <span className="hidden sm:inline">3D</span>
+          </button>
         </div>
       </div>
     </div>

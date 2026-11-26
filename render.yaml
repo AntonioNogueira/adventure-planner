@@ -69,3 +69,6 @@ services:
       # MapTiler browser key: second place-name service (restrict it to this site in MapTiler Cloud).
       - key: MAPTILER_KEY
         sync: false
+      # Geoapify browser key: places near stops (hotels, food, shops, sights) before Overpass. Restrict it to this site.
+      - key: GEOAPIFY_KEY
+        sync: false

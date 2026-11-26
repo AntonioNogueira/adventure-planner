@@ -22,7 +22,7 @@ import type { TripStyle, Via, Story, StoryPhoto } from './types';
 import { pendingPhoto } from './lib/photos';
 import { stageDone } from './lib/planTimer';
 import { randomExample } from './lib/examples';
-import { adoptProfile, getProfile, onProfileChange } from './lib/profile';
+import { adoptProfile, getProfile, habitsFor, onProfileChange } from './lib/profile';
 import { progressOn } from './lib/ride';
 import { setTravelContext, placeSuggestions, LodgingPreference, CATEGORIES, CategoryId, categoryId, categoryLabel } from './lib/places';
 import type { PlanSummary } from './components/AIAgent';
@@ -41,7 +41,7 @@ import { BudgetSettings, defaultBudget } from './lib/budget';
 import type { Vehicle } from './lib/fuel';
 import { authErrorMessage } from './lib/authErrors';
 import { useSettings, t as tr, getSettings, formatters } from './lib/settings';
-import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, openPlans, getAccount, PlansReason } from './lib/account';
+import { authFetch, checkLimit, LimitError, refreshAccount, takePlaceSearches, onOpenPlans, onOpenLogin, openPlans, getAccount, PlansReason } from './lib/account';
 import ConsentBanner from './components/ConsentBanner';
 import { onConsentChange } from './lib/affiliate';
 
@@ -144,6 +144,8 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
               autoFocus
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              // Enter plans (like the button); Shift+Enter starts a new line.
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); handleStart(); } }}
               placeholder={t('e.g., {example}', { example })}
               className="min-h-[120px] w-full rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900 dark:bg-emerald-900/20"
             />
@@ -167,7 +169,7 @@ const WelcomeDialog: React.FC<{ onStart: (prompt: string) => void; onInspire: ()
             </button>
             <button onClick={onInspire}
               className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
-              <Compass size={16} />{t('Or explore famous journeys on the Mappa Mundi')}
+              <Compass size={16} />{t('Or explore historic journeys on Mappa Mundi')}
             </button>
           </div>
         </div>
@@ -230,6 +232,7 @@ const App: React.FC = () => {
   // The plans screen: undefined = closed; otherwise why it opened (a limit, or null from the menu).
   const [plansReason, setPlansReason] = useState<PlansReason | undefined>(undefined);
   useEffect(() => onOpenPlans(reason => setPlansReason(reason)), []);
+  useEffect(() => onOpenLogin(() => setShowLogin(true)), []);
   // Booking links change with the privacy choice (partner ids only after it's accepted).
   const [, setConsentVersion] = useState(0);
   useEffect(() => onConsentChange(() => setConsentVersion(v => v + 1)), []);
@@ -659,8 +662,19 @@ const App: React.FC = () => {
   // `ref` is where the user attached it; it wins unless the address is clearly at another stop.
   // A file (PDF, email, image) or a link (Booking/Airbnb share, Google Maps place, a post) becomes a booking or saved
   // place on the matching stop; a link far from every stop becomes a new stop on the route.
-  const handleAttachFile = (ref: StopRef | null, input: File | string) =>
-    typeof input === 'string' ? handleAttachLink(ref, input) : handleAttachDocument(ref, input);
+  // How many documents the trip holds (set further down, read when one is added).
+  const documentCountRef = useRef(0);
+  const handleAttachFile = (ref: StopRef | null, input: File | string) => {
+    // Documents are limited per trip (the free plan keeps 20 in a trip), not per day.
+    const most = getAccount().limits.docsPerTrip;
+    if (getAccount().enforced && most != null && documentCountRef.current >= most) {
+      if (!getAccount().signedIn) { setToast({ message: tr('Log in (free) to add more documents to this trip.'), type: 'error' }); setShowLogin(true); return; }
+      setToast({ message: tr('This trip has {n} documents, the most on the free plan. To add more, consider upgrading to Explorer.', { n: most }), type: 'error' });
+      openPlans('documents');
+      return;
+    }
+    return typeof input === 'string' ? handleAttachLink(ref, input) : handleAttachDocument(ref, input);
+  };
 
   /** The stop a booking belongs to: the one it was attached to, unless its address is clearly nearer another. */
   const placeOnStop = async (ref: StopRef | null, stopIndex: number, position: LatLng | null) => {
@@ -709,8 +723,8 @@ const App: React.FC = () => {
 
   const attachFailed = (err: unknown, fallback: string) => {
     if (err instanceof LimitError) {
-      setToast({ message: tr("You've used today's document reads on your plan."), type: 'error' });
-      openPlans('documents');
+      // A safety cap, not a paywall: reading more documents pauses until tomorrow.
+      setToast({ message: tr("You've added a lot of documents today: back tomorrow."), type: 'error' });
       return;
     }
     console.error('Reservation import failed:', err);
@@ -870,8 +884,8 @@ const App: React.FC = () => {
     if (!refs.length) return;
     // Each stop's suggestions count as one place search (the costly part of a trip).
     if (!(await takePlaceSearches(refs.length))) {
-      setToast({ message: tr("You've used today's place searches on your plan."), type: 'error' });
-      openPlans('placeSearches');
+      // A safety cap, not a paywall: the trip and its editing keep working, only new suggestions pause.
+      setToast({ message: tr("You've looked up a lot of places today: suggestions are back tomorrow. The trip keeps working."), type: 'success' });
       return;
     }
     let failed = false;
@@ -933,7 +947,7 @@ const App: React.FC = () => {
   // built with the fields and buttons is planned like one asked for in the chat, and the chat can refine it.
   const mapIntent = useMemo((): TripIntent | null => {
     if (!origin.trim() || !destination.trim()) return null;
-    const habits = getProfile().modes[travelMode as 'BICYCLING' | 'WALKING' | 'DRIVING'];
+    const habits = habitsFor(travelMode as string, { vehicle: (vehicle || '') as TripIntent['vehicle'], ride: tripStyle.ride, party: tripStyle.party });
     return {
       origin, destination, travelMode: travelMode as string, days: 0,
       dailyKm: lastIntentRef.current?.origin === origin && lastIntentRef.current?.destination === destination ? lastIntentRef.current.dailyKm : habits?.dailyKm || 0,
@@ -1004,17 +1018,23 @@ const App: React.FC = () => {
   const documentCount = useMemo(() => routeInfo ? [
     routeInfo.originInterests || [], ...routeInfo.waypoints.map(wp => wp.interests || []), routeInfo.destinationInterests || [],
   ].flat().reduce((n, cat) => n + cat.items.filter(item => item.source === 'reservation').length, 0) : 0, [routeInfo]);
+  documentCountRef.current = documentCount;
 
   // Map segments: one per riding day, labelled with the day number (rest days included).
   const segments = useMemo(() => (trip?.legs || []).map((leg, i) => {
     const dayNumber = schedule.findIndex(d => d.kind === 'ride' && d.legIndex === i) + 1;
     const info = routeInfo?.legs?.[i];
+    // The day's date (assumed from today without a start date), for its weather.
+    const n = Math.max(0, dayNumber - 1);
+    const assumed = new Date(); assumed.setUTCDate(assumed.getUTCDate() + n);
     return {
       path: leg.path,
       leg,
+      date: schedule[n]?.date || assumed.toISOString().slice(0, 10),
+      dated: Boolean(startDate),
       label: `${tr('Day {n}', { n: dayNumber || i + 1 })}: ${info?.from.split(',')[0] || ''} → ${info?.to.split(',')[0] || ''} · ${fmt.dist(leg.distanceMeters / 1000)} · ${formatDuration(leg.durationSeconds)}`,
     };
-  }), [trip, schedule, routeInfo?.legs, appSettings]);
+  }), [trip, schedule, routeInfo?.legs, appSettings, startDate]);
 
   const handleRestDaysChange = (stopIndex: number, restDays: number) => {
     const apply = (list: Waypoint[]) => list.map((wp, i) => i === stopIndex ? { ...wp, restDays: Math.max(0, restDays) } : wp);
@@ -1141,7 +1161,7 @@ const App: React.FC = () => {
     const isNew = !currentTripId || viewingShared;
     const maxTrips = getAccount().enforced ? getAccount().limits.savedTrips : null;
     if (isNew && maxTrips !== null && savedRoutes.length >= maxTrips) {
-      setToast({ message: tr("You've saved as many trips as your plan allows."), type: 'error' });
+      setToast({ message: tr('You have {n} saved trips, to add more consider upgrading to Explorer.', { n: maxTrips }), type: 'error' });
       openPlans('savedTrips');
       return;
     }

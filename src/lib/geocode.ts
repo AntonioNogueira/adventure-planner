@@ -162,6 +162,23 @@ export function nominatimTown(r: NominatimPlace | null): string | null {
   return area ? `${t('Near {place}', { place: area })}${a.country ? `, ${a.country}` : ''}` : null;
 }
 
+/** A place with the same name as `address` near `near` (a village that shares its name with a far-off city, e.g.
+ *  Trient in Switzerland, not Trento in Italy), with a full name that finds it again ("Trient, Valais, Switzerland"). */
+export async function namesakeNear(address: string, near: LatLng, maxKm: number): Promise<{ name: string; at: LatLng } | null> {
+  const name = fold(address.split(',')[0]);
+  if (name.length < 3) return null;
+  const features = await photon(`/api/?q=${encodeURIComponent(address.split(',')[0])}&limit=10&lat=${near.lat.toFixed(4)}&lon=${near.lng.toFixed(4)}`).catch(() => []);
+  const found = features
+    .filter(f => fold(f.properties.name || '') === name)
+    .map(f => ({ f, km: haversineKm(at(f), near) }))
+    .filter(x => x.km <= maxKm)
+    .sort((a, b) => Number(isSettlement(b.f)) - Number(isSettlement(a.f)) || a.km - b.km)[0];
+  if (!found) return null;
+  const p = found.f.properties;
+  // "Valais/Wallis" → "Valais": the first of a bilingual region's names.
+  return { name: [p.name, p.state?.split('/')[0], p.country?.split('/')[0]].filter(Boolean).join(', '), at: at(found.f) };
+}
+
 export function geocodeAddress(address: string): Promise<LatLng | null> {
   const key = address.trim().toLowerCase();
   if (key.length < 3 || PLACEHOLDERS.includes(key)) return Promise.resolve(null);

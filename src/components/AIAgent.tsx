@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSettings, getSettings, t as tr } from '../lib/settings';
-import { authFetch, checkLimit, LimitError, refreshAccount, openPlans } from '../lib/account';
+import { authFetch, checkLimit, LimitError, refreshAccount, openLogin } from '../lib/account';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { TripIntent, TripStyle } from '../types';
 import { PlanSummary, Question, Topic, summaryText, nextQuestion, applyAnswer, changesRoute, mentionsTravelMode, mergeIntent, vehicleNote, styleOf, profileLine } from '../lib/conversation';
@@ -37,6 +37,8 @@ function whoIsDown(): string {
   return `\n\n${tr('Not answering right now: {services}. Using backups where there are any.', { services: down.map(s => `${SERVICE_NAMES[s]} (${tr(SERVICE_ROLES[s])})`).join(', ') })}`;
 }
 
+const browserTimeZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { return ''; } };
+
 async function requestPlan(prompt: string, history: Message[], current: TripIntent | null) {
   // The AI call runs server-side (server/plan-api.ts) so API keys are never exposed to the browser.
   const response = await authFetch('/api/plan', {
@@ -44,7 +46,8 @@ async function requestPlan(prompt: string, history: Message[], current: TripInte
     headers: { 'Content-Type': 'application/json' },
     // The current plan travels with the request, so the AI changes only what the user asks.
     // The traveller's habits from earlier trips: defaults for a new trip (the AI uses them only when starting fresh).
-    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language, profile: current ? undefined : profileForAI() }),
+    // The browser's time zone (e.g. Europe/Lisbon): roughly where they are, for a request that doesn't say where it starts.
+    body: JSON.stringify({ prompt, history: history.map(({ role, text }) => ({ role, text })), current, language: getSettings().language, profile: current ? undefined : profileForAI(), timeZone: browserTimeZone() }),
   });
   await checkLimit(response);
   refreshAccount();
@@ -224,8 +227,12 @@ const AIAgent: React.FC<AIAgentProps> = ({ onPlanTrip, initialPrompt, startDate,
       await runPlan(intent);
     } catch (error) {
       if (error instanceof LimitError) {
-        say({ text: t("You've used today's {n} AI plans on your plan. You can still edit the route by hand, or see the plans for more.", { n: error.limit }) });
-        openPlans('aiPlans');
+        // A safety cap, not a paywall: only the AI pauses; editing on the map keeps working.
+        // Visitors: logging in (free) gives a bigger allowance, so the login window opens.
+        if (error.plan === 'anonymous') {
+          say({ text: t("You've planned a lot today. Log in (free) to keep using the AI planner; you can keep editing the trip on the map.") });
+          openLogin();
+        } else say({ text: t("You've planned a lot today: the AI planner is back tomorrow. You can keep editing the trip on the map.") });
         return;
       }
       console.error('AI Planning failed:', error);
