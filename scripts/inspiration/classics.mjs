@@ -1672,8 +1672,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 6–8 days',
     kind: 'moto',
     color: '#e11d48',
-    summary: 'The legendary roads of the Alps: the Stelvio\'s 48 hairpins, the narrow Gavia, the Bernina into Switzerland, the Timmelsjoch, and Austria\'s Grossglockner High Alpine Road under the country\'s highest peak, with the Dolomites in between. Ride early to beat the crowds.',
+    summary: 'The legendary roads of the Alps: the Stelvio\'s 48 hairpins, the narrow Gavia, the Bernina into Switzerland, the Timmelsjoch, and Austria\'s Grossglockner High Alpine Road under the country\'s highest peak, with the Dolomites in between. Ride early to beat the crowds. Since June 2026 South Tyrol bans organised motorcycle rides on its passes above 1,600 m (Stelvio, Timmelsjoch, Gardena, Sella); private riders can still go. The Gavia and Stelvio close to motor traffic on a few car-free cycling days each summer.',
     sources: [
+      REPORT('Visordown: South Tyrol bans organised motorcycle rides (2026)', 'https://www.visordown.com/news/south-tyrol-bans-organised-motorcycle-rides-stelvio-pass-and-roads-above-1600m'),
       REPORT('Rider Magazine: Edelweiss Grand Alps tour review (January 2025)', 'https://ridermagazine.com/2025/01/29/edelweiss-grand-alps-tour-review/'),
       REPORT('Motovibes: 8-day Central Alps challenge', 'https://motovibes-shop.fourthwall.com/products/8-day-central-alps-challenge-self-guided-motorcycle-tour'),
     ],
@@ -1698,8 +1699,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 6–8 days',
     kind: 'moto',
     color: '#1d4ed8',
-    summary: 'From Bergen north through the fjord country: Stegastein above the Aurlandsfjord, the Sognefjord ferries, Geiranger and the Eagle Road, the eleven hairpins of Trollstigen, and the bridges of the Atlantic Road hopping over the sea. Wet weather, tolls and many ferries; long light nights.',
+    summary: 'From Bergen north through the fjord country: Stegastein above the Aurlandsfjord, the Sognefjord ferries, Geiranger and the Eagle Road, the eleven hairpins of Trollstigen, and the bridges of the Atlantic Road hopping over the sea. Wet weather, tolls and many ferries; long light nights. Trollstigen can close at short notice for rockfall or heavy rain, and it had weekday works closures in autumn 2026; check Statens vegvesen before you go.',
     sources: [
+      REPORT('Fjord Norway: Trollstigen road closure', 'https://www.fjordnorway.com/en/inspiration/information-about-the-closure-of-trollstigen-road'),
       REPORT('UKGSer: trip report Norway, July 2025', 'https://www.ukgser.com/community/threads/trip-report-norway-july-2025.491204/'),
       REPORT('Lonely Planet: road-tripping Norway\'s west coast', 'https://www.lonelyplanet.com/articles/winding-through-the-wilds-road-tripping-norways-west-coast'),
     ],
@@ -1723,8 +1725,9 @@ export const CLASSICS = [
     vehicle: 'Adventure or enduro motorcycle, 8–10 days',
     kind: 'moto',
     color: '#b91c1c',
-    summary: 'From Shkodër into the Albanian Alps at Theth, the Komani lake ferry to Valbona, down through the mountains to the Ottoman stone towns of Berat and Gjirokastër, and over the Llogara pass to the Riviera\'s coves. Dirt tracks, goats, bunkers and a warm welcome.',
+    summary: 'From Shkodër into the Albanian Alps at Theth, the Komani lake ferry to Valbona, down through the mountains to the Ottoman stone towns of Berat and Gjirokastër, and over the Llogara pass to the Riviera\'s coves. Dirt tracks, goats, bunkers and a warm welcome. The road from Shkodër to Theth closes for winter (about November–March), and the Komani ferry runs a reduced service or stops then.',
     sources: [
+      REPORT('Albania Spirit: seasonal road closures', 'https://www.albania-spirit.com/guides/seasonal-road-closures-albania/'),
       REPORT('Motorrad: Albania, turquoise coasts and mountain roads', 'https://www.motorradonline.de/reise/motorradreise-albanien-tuerkisblaue-kuesten-und-abenteuerliche-bergstrassen/'),
       REPORT('Albanian Riviera motorcycle guide', 'https://himara.pages.dev/blog/albanian-riviera-motorcycle-guide'),
     ],
@@ -1749,8 +1752,9 @@ export const CLASSICS = [
     vehicle: 'Motorbike, 4–7 days',
     kind: 'moto',
     color: '#ea580c',
-    summary: 'About 600 km and, it is said, 1,864 curves on Routes 1095 and 108 through the mountains on the Myanmar border: hippie Pai, the Tham Lod cave, misty Mae Hong Son and its lakeside temple, Mae Sariang, and Doi Inthanon, Thailand\'s highest mountain. Use a bigger bike than a 125.',
+    summary: 'About 600 km and, it is said, 1,864 curves on Routes 1095 and 108 through the mountains on the Myanmar border: hippie Pai, the Tham Lod cave, misty Mae Hong Son and its lakeside temple, Mae Sariang, and Doi Inthanon, Thailand\'s highest mountain. Use a bigger bike than a 125. The 2026 rains brought landslides and a rockfall closure on Highway 108 and blocked the Pai road in Wiang Haeng; check the road status after the wet season.',
     sources: [
+      REPORT('Chiang Mai CityLife: rockfall closes lane on Highway 108', 'https://www.chiangmaicitylife.com/citynews/general/rockfall-closes-lane-on-highway-108-in-mae-hong-son/'),
       REPORT('Backpack Moments: Mae Hong Son Loop, the full guide', 'https://backpackmoments.com/mae-hong-son-loop-full-guide/'),
       REPORT('Nomadasaurus: riding the Mae Hong Son Loop', 'https://www.nomadasaurus.com/mae-hong-son-loop-motorbike-travel-guide/'),
     ],
