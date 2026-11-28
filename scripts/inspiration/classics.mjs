@@ -74,6 +74,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Patrick Lam: TMB trip report, July–August 2025', 'https://patricklam.ca/post/20250824-tmb'),
       REPORT('Kenji Saito: TMB day by day (September 2025)', 'https://kenjisaito.com/tour-du-mont-blanc-tmb-day-2'),
+      REPORT('Mon Tour du Mont Blanc: booking a refuge, the complete guide', 'https://montourdumontblanc.com/en/actualites/booking-a-refuge-the-complete-guide'),
     ],
     approximate: 'The classic anticlockwise stages; the line follows mountain paths near the official route.',
     stops: [
@@ -103,6 +104,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Halfway Anywhere: PCT best moments, class of 2025', 'https://www.halfwayanywhere.com/trails/pacific-crest-trail/pct-best-moments-2025/'),
       REPORT('Halfway Anywhere: PCT tips from the class of 2025', 'https://www.halfwayanywhere.com/trails/pacific-crest-trail/pacific-crest-trail-tips-2025-2026/'),
+      REPORT('KUOW: new monument marks the northern end of the fire-blocked PCT (2026)', 'https://www.kuow.org/climate/2026-08-14/new-monument-marks-northern-end-of-fire-blocked-pacific-crest-trail'),
     ],
     approximate: 'The usual resupply towns and landmarks; the line follows trails near the PCT where they were found.',
     stops: [
@@ -129,7 +131,7 @@ export const CLASSICS = [
       { q: 'Packwood, Washington', name: 'Goat Rocks', wiki: 'Goat Rocks', text: 'The Knife\'s Edge in the Goat Rocks, with Mount Rainier close.' },
       { q: 'Snoqualmie Pass, Washington', name: 'Snoqualmie Pass', wiki: 'Snoqualmie Pass', text: 'Into the steep, wet North Cascades.' },
       { q: 'Stehekin, Washington', name: 'Stehekin', wiki: 'Stehekin, Washington', text: 'A village reached only by boat, plane or trail, with a famous bakery.' },
-      { q: 'Manning Park, British Columbia', name: 'Northern Terminus', wiki: 'E. C. Manning Provincial Park', text: 'The monument at the Canadian border, and on to Manning Park: about 4,265 km from Mexico.' },
+      { q: 'Manning Park, British Columbia', name: 'Northern Terminus', wiki: 'E. C. Manning Provincial Park', text: 'The monument at the Canadian border, and on to Manning Park: about 4,265 km from Mexico. Wildfire closures in the North Cascades have often stopped hikers short of it; in 2026 they finished at a temporary monument near Rainy Pass.', source: REPORT('KUOW (2026)', 'https://www.kuow.org/climate/2026-08-14/new-monument-marks-northern-end-of-fire-blocked-pacific-crest-trail') },
     ],
   },
   {
@@ -169,10 +171,11 @@ export const CLASSICS = [
     vehicle: 'Motorbike or with an easy rider, 3–4 days',
     kind: 'moto',
     color: '#c2410c',
-    summary: 'A loop of 350–450 km through the karst mountains on the Chinese border: the Ma Pi Leng pass above the Nho Que river, Hmong villages and markets, terraced valleys and homestays. Most go anticlockwise from Ha Giang; many ride pillion with a local driver.',
+    summary: 'A loop of 350–450 km through the karst mountains on the Chinese border: the Ma Pi Leng pass above the Nho Que river, Hmong villages and markets, terraced valleys and homestays. Most go anticlockwise from Ha Giang; many ride pillion with a local driver. Riding yourself needs a valid motorbike licence: police checks and fines were stepped up in 2026.',
     sources: [
       REPORT('Kreier: the Ha Giang Loop a second time (2025)', 'https://kreier.github.io/quartz/Travel/2025/Ha-Giang-loop-a-second-time-in-2025'),
       REPORT('Team-BHP travelogue: Ha Giang Loop (May 2025)', 'https://www.team-bhp.com/forum/travelogues/294466-ha-giang-loop-vietnam.html'),
+      REPORT('Lonely Planet: how to tackle the Ha Giang Loop (2026)', 'https://www.lonelyplanet.com/articles/ultimate-itinerary-ha-giang-loop-vietnam'),
     ],
     approximate: 'The usual anticlockwise loop and overnight villages.',
     stops: [
@@ -229,6 +232,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Andy & Ness: the Gibb River Road, part III (September 2025)', 'https://andyandnessas-allaussieadventures.blogspot.com/2025/09/the-gibb-river-road-part-iii.html'),
       REPORT('Australia.com: Gibb River Road itinerary', 'https://australia.com/en/trips-and-itineraries/broome-and-surrounds/the-gibb-river-road-itinerary.html'),
+      REPORT('Main Roads WA: Gibb River Road upgrades and sealing', 'https://www.mainroads.wa.gov.au/projects-initiatives/all-projects/regional/gibb-river-road'),
     ],
     approximate: 'The usual west-to-east stops; the line follows the road where the router found it.',
     stops: [
@@ -255,6 +259,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Bikepacking.com: Lagunas y Salares route', 'https://bikepacking.com/routes/lagunas-y-salares/'),
       REPORT('Itchy Boots: 10 tips for the Ruta de las Lagunas', 'https://www.itchyboots.com/bikers-guide/10-tips-for-riding-the-ruta-de-las-lagunas-in-bolivia'),
+      REPORT('Mad or Nomad: how to ride the Ruta de las Lagunas on a motorcycle', 'https://www.madornomad.com/how-to-ride-bolivias-ruta-de-las-lagunas-on-a-motorcycle/'),
     ],
     approximate: 'The usual villages, lagoons and refuges; the tracks shift every season, so the line is a guide only.',
     stops: [
@@ -302,7 +307,7 @@ export const CLASSICS = [
     id: 'manali-leh',
     title: 'Manali to Leh',
     who: 'Classic route · the Himalayan highway by motorcycle',
-    when: 'Mid-June to September, when the passes are open',
+    when: 'June to September; the road usually opens in May or June',
     vehicle: 'Royal Enfield or any adventure bike, 4–6 days',
     kind: 'moto',
     color: '#ea580c',
@@ -310,6 +315,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Notes from Chetan: Manali to Leh by bicycle, July 2025', 'https://notesfromchetan.blogspot.com/2025/12'),
       REPORT('Vargis Khan: Pang to Manali by motorcycle', 'https://vargiskhan.com/log/pang-to-manali/'),
+      REPORT('Discover with Dheeraj: Manali–Leh highway status 2026', 'https://discoverwithdheeraj.com/manali-leh-highway-status-2026/'),
     ],
     approximate: 'The usual overnight stops; the line follows the Manali–Leh highway.',
     stops: [
@@ -338,6 +344,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Walk with Vicky: Chennai to Spiti (October 2025)', 'https://walkwithvicky.blogspot.com/2025/10/chennai-to-spiti-ultimate-himalayan-adventure.html'),
       REPORT('Discover with Dheeraj: Kinnaur–Spiti circuit itinerary', 'https://discoverwithdheeraj.com/kinnaur-spiti-circuit-itinerary-2026/'),
+      REPORT('Travel Coffee: Spiti Valley road status (May 2026)', 'https://travelcoffee.in/blog/spiti-valley-road-status'),
     ],
     approximate: 'The common clockwise loop and overnight villages.',
     stops: [
@@ -391,6 +398,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Vintage Rides: The Spices Route, a travel story', 'https://www.vintagerides.com/gb/blog/the-spices-route-a-travel-story-by-paul-ollett/'),
       REPORT('xBHP: the southern escapade, riding solo across 5 states', 'https://www.xbhp.com/talkies/tourer/30136-the-southern-escapade-riding-solo-across-5-states'),
+      REPORT('Bike India: Coorg–Ooty–Munnar crowned the world\'s ultimate riding wonder', 'https://bikeindia.in/india-route-crowned-the-worlds-ultimate-riding-wonder/'),
     ],
     approximate: 'A common loop of hill stations; the roads are the router\'s choice.',
     stops: [
@@ -443,13 +451,14 @@ export const CLASSICS = [
     color: '#c2410c',
     summary: 'The classic self-drive: from Windhoek over the escarpment to the red dunes of Sossusvlei, along the foggy Atlantic coast at Swakopmund and Cape Cross, through Spitzkoppe and the rock art of Damaraland, to the waterholes of Etosha. Long gravel roads, few people, huge skies.',
     sources: [
+      REPORT('This Is Pure Felicity: Namibia road trip, 4,460 km (April 2026)', 'https://thisispurefelicity.blogspot.com/2026/04/namibia-road-trip-4460-kilometers-of.html'),
       REPORT('Lizy Travels the World: Namibia road trip day by day', 'https://lizytravelstheworld.com/namibia-road-trip-two-week-itinerary-day-by-day/'),
       REPORT('Rough Guides: planning a self-drive safari in Namibia', 'https://www.roughguides.com/namibia/self-drive-safari/'),
     ],
     approximate: 'A common two-week loop; the gravel roads are the router\'s choice.',
     stops: [
       { q: 'Windhoek, Namibia', name: 'Windhoek', wiki: 'Windhoek', text: 'Pick up the 4x4, stock up on water and food.' },
-      { q: 'Sesriem, Namibia', name: 'Sossusvlei', wiki: 'Sossusvlei', text: 'Over the Spreetshoogte pass to Sesriem; at dawn, the dunes and the dead trees of Deadvlei.' },
+      { q: 'Sesriem, Namibia', name: 'Sossusvlei', wiki: 'Sossusvlei', text: 'Over the Spreetshoogte pass to Sesriem; at dawn, the dunes and the dead trees of Deadvlei. After rain the access roads can flood.', source: REPORT('This Is Pure Felicity (2026)', 'https://thisispurefelicity.blogspot.com/2026/04/namibia-road-trip-4460-kilometers-of.html') },
       { q: 'Solitaire, Namibia', name: 'Solitaire', wiki: 'Solitaire, Namibia', text: 'A desert stop famous for its apple pie.' },
       { q: 'Swakopmund, Namibia', name: 'Swakopmund', wiki: 'Swakopmund', text: 'Through the Kuiseb canyon to a German-era town in the coastal fog.', source: REPORT('Lizy Travels the World', 'https://lizytravelstheworld.com/namibia-road-trip-two-week-itinerary-day-by-day/') },
       { q: 'Cape Cross, Namibia', name: 'Cape Cross', wiki: 'Cape Cross', text: 'Tens of thousands of fur seals on the Skeleton Coast.' },
@@ -471,6 +480,7 @@ export const CLASSICS = [
     color: '#4d7c0f',
     summary: 'Salt pans and baobabs, then into the wild: Moremi on the edge of the Okavango Delta, the Khwai river, the deep sand to Savuti, and the Chobe riverfront\'s elephant herds. Unfenced campsites, river crossings, and park bookings made months ahead.',
     sources: [
+      REPORT('Bluewater Dive Travel: 21 days overland through Botswana (April 2026)', 'https://www.bluewaterdivetravel.com/article/baobabs-butterflies-and-bat-eared-foxes-my-21-day-overland-trip-through-botswana-april-2026'),
       REPORT('Getaway: road-tripping northern Botswana', 'https://getaway.co.za/photography/road-tripping-northern-botswana-photo-blog'),
       REPORT('We Will Nomad: Botswana by road, a self-drive diary', 'https://www.wewillnomad.com/post/botswana-by-road-our-self-drive-safari-diary'),
     ],
@@ -481,7 +491,7 @@ export const CLASSICS = [
       { q: 'Maun, Botswana', name: 'Maun', wiki: 'Maun', text: 'The safari town: fuel, food, permits, and scenic flights over the Delta.', source: REPORT('Getaway: northern Botswana', 'https://getaway.co.za/photography/road-tripping-northern-botswana-photo-blog') },
       { q: 'Third Bridge, Moremi', name: 'Third Bridge', at: [-19.2386, 23.3531], wiki: 'Moremi Game Reserve', text: 'Moremi\'s famous camp in the Delta, with lions and wild dogs about.' },
       { q: 'Khwai, Botswana', name: 'Khwai', wiki: 'Khwai River', text: 'A river of hippos and elephants on Moremi\'s northern edge.' },
-      { q: 'Savuti', name: 'Savuti', at: [-18.5667, 24.0667], wiki: 'Savuti', text: 'Deep sand across the Mababe depression to the Savuti channel, lion country.' },
+      { q: 'Savuti', name: 'Savuti', at: [-18.5667, 24.0667], wiki: 'Savuti', text: 'Deep sand across the Mababe depression to the Savuti channel, lion country. Hyenas raid the public campsite at night.', source: REPORT('Tracks4Africa: three wilderness wonders of northern Botswana', 'https://blog.tracks4africa.co.za/three-must-see-wilderness-wonders-in-botswanas-north/') },
       { q: 'Chobe Riverfront', name: 'Chobe Riverfront', at: [-17.8167, 25.0333], wiki: 'Chobe National Park', text: 'Hundreds of elephants coming to drink in the afternoon.' },
       { q: 'Kasane, Botswana', name: 'Kasane', wiki: 'Kasane', text: 'The end, a short hop from Victoria Falls.' },
     ],
@@ -524,6 +534,7 @@ export const CLASSICS = [
     sources: [
       REPORT('Bikepacking.com: the Congo Nile Trail (bikepacker\'s edition)', 'https://bikepacking.com/routes/congo-nile-trail/'),
       REPORT('Afar: five days biking Rwanda\'s Congo Nile Trail', 'https://www.afar.com/magazine/what-its-like-biking-rwandas-congo-nile-trail'),
+      REPORT('Pro Cycling UK: cycling the Congo Nile Trail, stages and advice', 'https://procyclinguk.com/cycling-in-congo-nile-trail/'),
     ],
     approximate: 'The usual stages; the line follows tracks near the marked trail.',
     stops: [
@@ -542,8 +553,9 @@ export const CLASSICS = [
     vehicle: 'Adventure motorcycle, 3–4 weeks',
     kind: 'moto',
     color: '#9a3412',
-    summary: 'The old rally\'s spirit on public roads: from Lisbon to the Strait of Gibraltar, through Morocco and down the long Atlantic desert road, across Mauritania\'s Sahara and the Senegal river to Saint-Louis and Dakar. Borders take hours; plan visas and the Diama crossing.',
+    summary: 'The old rally\'s spirit on public roads: from Lisbon to the Strait of Gibraltar, through Morocco and down the long Atlantic desert road, across Mauritania\'s Sahara and the Senegal river to Saint-Louis and Dakar. Borders take hours: Mauritania now needs an e-visa arranged in advance (since 2025), and the Diama crossing into Senegal needs planning.',
     sources: [
+      REPORT('Sahara Overland: Mauritania (updated May 2026)', 'https://sahara-overland.com/mauritania/'),
       REPORT('Ducati: route to Dakar with the Multistrada V4 Rally', 'https://www.ducati.com/au/en/stories/travel/route-to-dakar-with-the-multistrada-v4-rally'),
       REPORT('JB\'s Trails: riding a motorcycle across Mauritania', 'https://jbstrails.com/?p=24857'),
     ],
@@ -574,6 +586,7 @@ export const CLASSICS = [
     color: '#be123c',
     summary: 'The emperors\' old pilgrimage route through the forested mountains of the Kii peninsula to the three Grand Shrines of Kumano: stone paths under cedars, small oji shrines, hot springs at night and dinners in family inns. Walkers of both this and the Camino de Santiago can become "dual pilgrims".',
     sources: [
+      REPORT('Camino forum: Kumano Kodo Nakahechi trip report (June 2026)', 'https://www.caminodesantiago.me/community/threads/kumano-kodo-nakahechi-route-trip-report-june-2026.97252/'),
       REPORT('Third Eye Mom: Chikatsuyu to Hongu (October 2025)', 'https://thirdeyemom.com/2025/10/21/hiking-the-kumano-kodo-nakahechi-trail-chikatsuyu-to-hongu-grand-shrine/'),
       REPORT('Ski Kangae: Kumano Kodo day 1 (March 2025)', 'https://skikangae.blogspot.com/2025/03/kumano-kodo-day-1.html'),
     ],
@@ -598,10 +611,11 @@ export const CLASSICS = [
     vehicle: 'On foot, 2–5 weeks (or highlights in a week)',
     kind: 'walk',
     color: '#0284c7',
-    summary: 'About 540 km of old mule paths and Roman roads along the Turquoise Coast from Fethiye towards Antalya: cliff paths above turquoise bays, the ruins of Lycian cities, rock tombs and sunken Kekova, with village pensions and camping. Hot in summer; spring and autumn are best.',
+    summary: 'About 540 km on the classic line (the full waymarked trail now runs about 760 km, to Geyikbayırı near Antalya) of old mule paths and Roman roads along the Turquoise Coast from Fethiye: cliff paths above turquoise bays, the ruins of Lycian cities, rock tombs and sunken Kekova, with village pensions and camping. Hot in summer; spring and autumn are best.',
     sources: [
+      REPORT('FKT: Mikhail Kulaha, the whole Lycian Way in 7½ days (April 2026)', 'https://fastestknowntime.com/fkt/mikhail-kulaha-lycian-way-turkiye-2026-04-17'),
       REPORT('The Gone Goat: hiking the Lycian Way in a week', 'https://www.thegonegoat.com/turkey/hiking-the-lycian-way-turkey'),
-      REPORT('Novo-Monde: the Lycian Way from Fethiye to Kabak', 'https://www.novo-monde.com/en/lycian-way-fethiye-kabak/'),
+      REPORT('Antalya tourism: the Lycian Way (2026)', 'https://antalya.tc/explore/places/lycian-way'),
     ],
     approximate: 'Main stages from Ölüdeniz to Çıralı; the line follows paths near the marked trail.',
     stops: [
@@ -626,9 +640,10 @@ export const CLASSICS = [
     vehicle: 'Touring bike with camping gear, 3–4 weeks',
     kind: 'bike',
     color: '#2563eb',
-    summary: 'About 1,350 km round the island on Route 1: lava fields, waterfalls, the north\'s fjords and Mývatn\'s craters, the empty east, glaciers and the iceberg lagoon in the south. The wind decides the day: carry warm and waterproof clothes, and time for bad weather.',
+    summary: 'About 1,320 km round the island on Route 1 (more with side trips): lava fields, waterfalls, the north\'s fjords and Mývatn\'s craters, the empty east, glaciers and the iceberg lagoon in the south. The wind decides the day: carry warm and waterproof clothes, and time for bad weather.',
     sources: [
       REPORT('AliceAlain: the call of Iceland, 22 days by bike (2025)', 'https://findpenguins.com/alicealain/trip/the-call-of-iceland'),
+      REPORT('Guide to Iceland: cycling around the Ring Road', 'https://guidetoiceland.is/best-of-iceland/cycling-around-icelands-ring-road'),
       REPORT('Cycling West: bike touring Iceland\'s Ring Road', 'https://cyclingwest.com/?p=33927'),
     ],
     approximate: 'The Ring Road and the usual overnight towns.',
@@ -656,8 +671,9 @@ export const CLASSICS = [
     vehicle: 'Any bike (lots of e-bikes), 10–14 days',
     kind: 'bike',
     color: '#0891b2',
-    summary: 'About 630 km downhill along the Danube through Austria, Slovakia and Hungary: the best-signposted, smoothest stretch of EuroVelo 6 to Vienna, the vineyards and abbeys of the Wachau, three capitals, and a quieter, rougher Hungarian half. Easy, social, and good for families.',
+    summary: 'About 630 km downhill along the Danube through Austria, Slovakia and Hungary: the best-signposted, smoothest stretch of EuroVelo 6 to Vienna, the vineyards and abbeys of the Wachau, three capitals, and a quieter, rougher Hungarian half. Easy, social, and good for families. Check the official closure lists before you go: there are signed detours, such as through Mautern until April 2027.',
     sources: [
+      REPORT('Donauregion Upper Austria: current closures on the Danube Cycle Path', 'https://donauregion.at/en/closures.html'),
       REPORT('Epsom CC: Graeme Aston, Regensburg to Budapest (August 2025)', 'https://www.epsomcc.co.uk/?p=11148'),
       REPORT('Cycloscope: Danube Cycling Path, the ultimate guide', 'https://cycloscope.net/danube-cycling-path-map/'),
     ],
@@ -686,8 +702,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle (a Harley, traditionally), 2–3 weeks',
     kind: 'moto',
     color: '#b91c1c',
-    summary: 'About 3,900 km from Chicago to the Pacific through eight states, on what is left of the 1926 highway: diners, motels and gas stations frozen in time, the plains, the desert Southwest and the Mojave. The road turns 100 in 2026; old alignments run beside the interstates.',
+    summary: 'About 3,900 km from Chicago to the Pacific through eight states, on what is left of the 1926 highway: diners, motels and gas stations frozen in time, the plains, the desert Southwest and the Mojave. The road turned 100 on 11 November 2026; old alignments run beside the interstates.',
     sources: [
+      REPORT('ADOT: Route 66 celebrates 100 years', 'https://azdot.gov/adot-blog/route-66-celebrates-100-years-travel'),
       REPORT('Rider Magazine: recollections of a Route 66 motorcycle ride (July 2025)', 'https://ridermagazine.com/2025/07/17/yore-mother-road-recollections-of-a-route-66-motorcycle-ride/'),
       REPORT('Reflections Around the Campfire: Route 66 start to finish (October 2025)', 'https://reflectionsaroundthecampfire.blogspot.com/2025/10/route-66-start-to-finish-chicago-to.html'),
     ],
@@ -721,8 +738,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle (or car), 2–3 days',
     kind: 'moto',
     color: '#0e7490',
-    summary: 'About 250 km of coast road built by soldiers back from the First World War: surf beaches, rainforest in the Otways, koalas in the trees and the limestone stacks of the Twelve Apostles. Wet shaded corners and tourist traffic; ride it early.',
+    summary: 'About 250 km of coast road built by soldiers back from the First World War: surf beaches, rainforest in the Otways, koalas in the trees and the limestone stacks of the Twelve Apostles. Wet shaded corners and tourist traffic; ride it early. Landslip repairs in 2026 bring roadworks and single-lane sections, such as at Fairhaven.',
     sources: [
+      REPORT('Transport Victoria: Great Ocean Road landslip works (2026)', 'https://transport.vic.gov.au/news-and-resources/projects/great-ocean-road-and-inland-routes-landslip-works'),
       REPORT('Adam Ch: Great Ocean Road trip, Adelaide to Melbourne by motorcycle', 'https://adamch.com/great-ocean-road-trip/'),
       REPORT('Adventure Bike Rider: is this the best coastal road in the world?', 'https://www.adventurebikerider.com/is-this-the-best-coastal-road-in-the-world/'),
     ],
@@ -742,12 +760,13 @@ export const CLASSICS = [
     id: 'transfagarasan-transalpina',
     title: 'Transfăgărășan and Transalpina',
     who: 'Classic route · Romania\'s Carpathian high roads',
-    when: 'July to October, when the passes are open',
+    when: 'Transalpina from late May, Transfăgărășan from about July; both close around 1 November',
     vehicle: 'Motorcycle, 4–5 days',
     kind: 'moto',
     color: '#7c3aed',
     summary: 'Two of Europe\'s great mountain roads in the Carpathians: the Transfăgărășan, carved by the army in the 1970s, with its wall of hairpins up to Bâlea Lake, and the Transalpina, higher and wilder, at 2,145 m. Between them, Dracula\'s real castle and the monasteries of Wallachia.',
     sources: [
+      REPORT('Romania Insider: Transalpina reopens after winter (May 2026)', 'https://romania-insider.com/traffic-reopens-transalpina-may-2026'),
       REPORT('Horizons Unlimited: Romania solo motorcycle trip (2025 thread)', 'https://www.horizonsunlimited.com/hubb/europe/romania-solo-motorcycle-trip-sept-106165-print'),
       REPORT('Calimoto: motorcycle tours in Romania', 'https://calimoto.com/en/blog/article/motorcycle-tours-romania'),
     ],
@@ -773,8 +792,9 @@ export const CLASSICS = [
     vehicle: 'Adventure motorcycle, 10–14 days',
     kind: 'moto',
     color: '#b45309',
-    summary: 'From Tbilisi up the old Georgian Military Highway to Gergeti church under Mount Kazbek, then west to Svaneti, a valley of medieval stone towers, and on dirt to Ushguli, one of Europe\'s highest villages, under Shkhara. Wine, feasts and wild driving; afternoon storms in the mountains.',
+    summary: 'From Tbilisi up the old Georgian Military Highway to Gergeti church under Mount Kazbek, then west to Svaneti, a valley of medieval stone towers, and on dirt to Ushguli, one of Europe\'s highest villages, under Shkhara. Wine, feasts and wild driving; afternoon storms in the mountains. The Military Highway past Gudauri closes for avalanche risk in winter and for floods in the Dariali gorge at times.',
     sources: [
+      REPORT('Caliber.az: Georgian Military Road reopens after overnight closure', 'https://caliber.az/en/post/georgian-military-road-reopens-after-overnight-closure'),
       REPORT('Travelogue: Georgia, ten days and Ushguli (August 2025)', 'https://mdwdotla.medium.com/travelogue-georgia-3f39363773b3'),
       REPORT('BMW Motorrad: panoramic Caucasus routes', 'https://fuelforlife.bmw-motorrad.com/en/travel/panoramic-caucasus-routes.html'),
     ],
@@ -800,8 +820,9 @@ export const CLASSICS = [
     vehicle: 'Car or camper, 7–12 days',
     kind: 'car',
     color: '#c2410c',
-    summary: 'Zion\'s canyon, Bryce\'s hoodoos, Capitol Reef\'s orchards and cliffs, then Arches and Canyonlands around Moab, linked by Scenic Byway 12, one of America\'s great drives. Book Arches timed entry in season and start hikes early.',
+    summary: 'Zion\'s canyon, Bryce\'s hoodoos, Capitol Reef\'s orchards and cliffs, then Arches and Canyonlands around Moab, linked by Scenic Byway 12, one of America\'s great drives. Arches dropped its timed-entry reservations for 2026 (check before you go); start hikes early to beat the crowds.',
     sources: [
+      REPORT('NPS: Arches drops timed entry for 2026 (February 2026)', 'https://www.nps.gov/arch/learn/news/news02182026.htm'),
       REPORT('Senthil Jayaseelan: Utah Mighty 5, June 2025', 'https://senthiljayaseelan.blogspot.com/2025/07/utah-mighty-5-national-parks-june-2025.html'),
       REPORT('Von\'s SW America road trip: the Mighty 5 (May 2025)', 'https://vonsswamericaroadtrip.blogspot.com/2025/05/utahs-mighty-5-national-parks-they-did.html'),
     ],
@@ -826,8 +847,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 4–5 days, refugios or campsites',
     kind: 'walk',
     color: '#1e40af',
-    summary: 'About 80 km in the shape of a W through Chile\'s most famous park: the granite towers at dawn, the French Valley between hanging glaciers, and the blue icebergs of Grey Glacier. Fierce winds; no wild camping, so book the refugios months ahead.',
+    summary: 'About 80 km in the shape of a W through Chile\'s most famous park: the granite towers at dawn, the French Valley between hanging glaciers, and the blue icebergs of Grey Glacier. Fierce winds; no wild camping, so book the refugios months ahead. In June and July the W closes except Base Torres with a guide, and a new park pass system started in May 2026.',
     sources: [
+      REPORT('The Clinic: CONAF closes the W for winter (May 2026)', 'https://www.theclinic.cl/2026/05/25/conaf-anuncia-cierre-temporal-del-circuito-w-en-torres-del-paine-y-las-navegaciones-en-lagos-pehoe-y-grey-por-temporada-de-invierno/?noamp=mobile'),
       REPORT('Global Summit Guide: W Trek complete guide (January 2025 trip)', 'https://globalsummitguide.com/w-trek-torres-del-paine-complete-guide/'),
       REPORT('RMI Guides: Torres del Paine dispatch (February 2025)', 'https://www.rmiguides.com/blog/expedition/torres_020125/desc'),
     ],
@@ -878,8 +900,9 @@ export const CLASSICS = [
     vehicle: 'On foot (or bike), about 12 days',
     kind: 'walk',
     color: '#1e3a8a',
-    summary: 'Brazil\'s answer to the Camino de Santiago: 318 km on the main branch from Águas da Prata to the Basilica of Our Lady of Aparecida, through the coffee farms and mountains of southern Minas Gerais and the Serra da Mantiqueira. Pousadas for pilgrims, a credential to stamp, and steep climbs.',
+    summary: 'Brazil\'s answer to the Camino de Santiago: 318 km on the main branch from Águas da Prata to the Basilica of Our Lady of Aparecida, through the coffee farms and mountains of southern Minas Gerais and the Serra da Mantiqueira. Pousadas for pilgrims, a credential to stamp, and steep climbs. Made an official national tourist route in 2026; about 34,000 pilgrims walked it in 2025.',
     sources: [
+      REPORT('CNN Brasil: Caminho da Fé becomes an official tourist route (2026)', 'https://www.cnnbrasil.com.br/viagemegastronomia/viagem/caminho-da-fe-brasil-oficializa-rota-turistica-ate-santuario-de-aparecida/'),
       REPORT('Gazeta SP: Caminho da Fé, 318 km and the Serra da Mantiqueira', 'https://www.gazetasp.com.br/turismo/caminho-da-fe-rota-de-318-km-ate-aparecida-exige-atencao-aos-desafios-da-serra-da-mantiqueira/'),
       REPORT('Associação dos Amigos do Caminho da Fé', 'https://caminhodafe.com.br/ptbr/'),
     ],
@@ -928,8 +951,9 @@ export const CLASSICS = [
     vehicle: '4x4 (or guided), 4–7 days',
     kind: '4x4',
     color: '#ea580c',
-    summary: 'A loop from Palmas into the empty heart of Tocantins: orange dunes under a table mountain, spring-fed "fervedouros" where the water pushes you up so you can\'t sink, waterfalls, golden-grass crafts in quilombola villages. Over 165 km of sand and stone with no phone signal; carry fuel and spares.',
+    summary: 'A loop from Palmas into the empty heart of Tocantins: orange dunes under a table mountain, spring-fed "fervedouros" where the water pushes you up so you can\'t sink, waterfalls, golden-grass crafts in quilombola villages. Over 165 km of sand and stone with no phone signal; carry fuel and spares. The dunes are visited only with a guide, the best-known fervedouros are on private land with their own fee, and Mateiros charges a visitor fee since May 2026.',
     sources: [
+      REPORT('Pontos pra Voar: new Jalapão visitor fee from 1 May 2026', 'https://pontospravoar.com/jalapao-tera-nova-taxa-para-visitantes-a-partir-de-1o-de-maio/'),
       REPORT('Mala de Aventuras: roteiro Jalapão em 4, 5 ou 7 dias', 'https://maladeaventuras.com/roteiro-jalapao'),
       REPORT('Melhores Destinos: como se locomover no Jalapão', 'https://guia.melhoresdestinos.com.br/como-se-locomover-no-jalapao.html'),
     ],
@@ -951,8 +975,9 @@ export const CLASSICS = [
     vehicle: 'Car or 4x4, 3–5 days with boat trips',
     kind: 'car',
     color: '#15803d',
-    summary: 'The MT-060: about 145 km of dirt road and over a hundred wooden bridges from Poconé into the world\'s largest wetland, with caimans, capybaras, hyacinth macaws and jabirus all along it. At Porto Jofre the road ends; boats go up the rivers to look for jaguars. No fuel on the way.',
+    summary: 'The MT-060: about 145 km of dirt road and over a hundred bridges (the wooden ones are slowly being replaced by concrete) from Poconé into the world\'s largest wetland, with caimans, capybaras, hyacinth macaws and jabirus all along it. At Porto Jofre the road ends; boats go up the rivers to look for jaguars. No fuel on the way.',
     sources: [
+      REPORT('Estado de Minas: the dirt road across the Pantanal and its bridges (July 2026)', 'https://www.em.com.br/emfoco/2026/07/23/estrada-de-terra-atravessa-o-pantanal-sobre-dezenas-de-pontes-e-termina-numa-regiao-conhecida-pelos-encontros-com-oncas/'),
       REPORT('Lorenzo Expeditions: from Poconé to Porto Jofre, the jaguar trail', 'https://www.lorenzoexpeditions.com/from-pocone-to-porto-jofre-the-jaguar-trail'),
       REPORT('Seguro Viagem: guia da Transpantaneira', 'https://www.seguroviagem.srv.br/blog/viagem-estrada-transpantaneira/'),
     ],
@@ -972,8 +997,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 3–5 days',
     kind: 'moto',
     color: '#4338ca',
-    summary: 'Santa Catarina\'s mountain loop: 284 curves in 24 km up the Serra do Rio do Rastro, the cold highlands of São Joaquim and Urubici with frost and vineyards, the rock cut of the Serra do Corvo Branco, and canyons at the edge of the Serra Geral. Check the Corvo Branco\'s state before going.',
+    summary: 'Santa Catarina\'s mountain loop: 284 curves in 24 km up the Serra do Rio do Rastro, the cold highlands of São Joaquim and Urubici with frost and vineyards, the rock cut of the Serra do Corvo Branco, and canyons at the edge of the Serra Geral. The Corvo Branco is being paved (works due to finish around the end of 2026, with closures of several days while asphalt goes down): check before going.',
     sources: [
+      REPORT('NSC Total: until when the Serra do Corvo Branco paving works run', 'https://www.nsctotal.com.br/?p=7482435'),
       REPORT('Motonline: Serra do Rio do Rastro, a place every rider must know', 'https://www.motonline.com.br/noticia/serra-do-rio-do-rastro-lugar-que-todo-motociclista-deve-conhecer/'),
       REPORT('Viagens e Caminhos: Serra do Rio do Rastro', 'https://www.viagensecaminhos.com/serra-do-rio-do-rastro-sc/'),
     ],
@@ -1017,8 +1043,9 @@ export const CLASSICS = [
     vehicle: 'Adventure motorcycle or 4x4, 2–3 weeks',
     kind: 'moto',
     color: '#9a3412',
-    summary: 'The 1970s highway pushed across the Amazon: from the Tocantins at Marabá west past Altamira and the Xingu, Itaituba on the Tapajós, to Humaitá on the Madeira. Long stretches are still dirt, with dust, potholes, mud and wooden bridges; one 2025 couple called it harder than the Andes.',
+    summary: 'The 1970s highway pushed across the Amazon: from the Tocantins at Marabá west past Altamira and the Xingu, Itaituba on the Tapajós, to Humaitá on the Madeira. Long stretches are still dirt, with dust, potholes, mud and wooden bridges; one 2025 couple called it harder than the Andes. A R$1 billion tender (June 2026) is to pave about 125 km between Uruará and Rurópolis.',
     sources: [
+      REPORT('NSC Total: R$1 billion for asphalt on the Transamazônica (2026)', 'https://www.nsctotal.com.br/?p=7948870'),
       REPORT('Portal Amazônia: Amapá couple crosses South America by motorcycle (2025)', 'https://portalamazonia.com/turismo/andes-casal-ap-cruza-america-sul/'),
       REPORT('Horizons Unlimited: BR-230, Humaitá and the BR-163', 'https://horizonsunlimited.com/hubb/south-america/br-230-humaita-br-163-a-72836'),
     ],
@@ -1043,8 +1070,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 4–5 days, camps and lodges',
     kind: 'walk',
     color: '#0f766e',
-    summary: 'From the glacier lake of Humantay over the 4,630 m Salkantay pass, under one of the Andes\' holy mountains, then down through cloud forest and coffee farms to Machu Picchu: from snow to jungle in two days. No permits needed, unlike the classic Inca Trail.',
+    summary: 'From the glacier lake of Humantay over the 4,630 m Salkantay pass, under one of the Andes\' holy mountains, then down through cloud forest and coffee farms to Machu Picchu: from snow to jungle in two days. No permits needed, unlike the classic Inca Trail, but Machu Picchu itself needs a timed ticket bought ahead, with daily visitor limits.',
     sources: [
+      REPORT('Andina: Machu Picchu 2026 ticket rates and visitor limits', 'https://andina.pe/ingles/noticia-planning-to-visit-machu-picchu-in-2026-check-out-new-ticket-rates-and-visitor-limits-1050546.aspx'),
       REPORT('Matador Network: the Salkantay trek (July 2025)', 'https://matadornetwork.com/read/salkantay-trek-peru/'),
       REPORT('Salkantay Trekking: Salkantay to Machu Picchu, 5 days', 'https://www.salkantaytrekking.com/trekking-in-peru/cusco/salkantay-explorer-machu-picchu-5d'),
     ],
@@ -1067,8 +1095,9 @@ export const CLASSICS = [
     vehicle: 'On foot with burros, 8–12 days, camping',
     kind: 'walk',
     color: '#1e40af',
-    summary: 'A loop round a compact range of ice peaks including Yerupajá and Siula Grande, of "Touching the Void" fame: passes up to 5,000 m almost every day, glacier lakes, hot springs and herders\' villages. Wild, high and remote; community fees are paid on the way.',
+    summary: 'A loop round a compact range of ice peaks including Yerupajá and Siula Grande, of "Touching the Void" fame: passes up to 5,000 m almost every day, glacier lakes, hot springs and herders\' villages. Wild, high and remote; community fees are paid on the way. In 2026 some communities restricted unguided groups after fee disputes: check access before going.',
     sources: [
+      REPORT('Huayhuash Alpine Circuit: access issues and the non-guided group ban (Feb 2026)', 'https://www.huayhuashalpinecircuit.com/access-issues.html'),
       REPORT('Trail Hiking Australia: hiking the Huayhuash Circuit (June 2025)', 'https://www.trailhiking.com.au/trip-reports/hiking-the-huayhuash-circuit-in-peru/'),
       REPORT('The Mountaineers: trek Peru\'s Cordillera Huayhuash (2025)', 'https://www.mountaineers.org/activities/trip-reports/global-adventure-trek-perus-cordillera-huayhuash'),
     ],
@@ -1091,8 +1120,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 3–4 days, hostels',
     kind: 'walk',
     color: '#059669',
-    summary: 'A walk between Andean villages from Sigchos to the crater lake of Quilotoa, through canyons, farmland and indigenous Kichwa communities, sleeping in friendly hostels with dinner included. Saving the green crater lake for the end is the classic way.',
+    summary: 'A walk between Andean villages from Sigchos to the crater lake of Quilotoa, through canyons, farmland and indigenous Kichwa communities, sleeping in friendly hostels with dinner included. Saving the green crater lake for the end is the classic way. Check the travel advice first: parts of Cotopaxi province (La Maná canton, west of the loop) are under a state of emergency.',
     sources: [
+      REPORT('Global Affairs Canada: Ecuador travel advice', 'https://travel.gc.ca/destinations/ecuador'),
       REPORT('Novo-Monde: Quilotoa Loop in 3 or 4 days', 'https://www.novo-monde.com/en/ecuador-quilotoa-loop-trekking/'),
       REPORT('Goats on the Road: hiking the Quilotoa Loop', 'https://goatsontheroad.com/quilotoa-loop'),
     ],
@@ -1113,8 +1143,9 @@ export const CLASSICS = [
     vehicle: 'Adventure motorcycle, 3–5 weeks',
     kind: 'moto',
     color: '#0284c7',
-    summary: 'About 5,000 km along the Andes, from the glaciers of Santa Cruz to the high desert of the north-west: Perito Moreno, Fitz Roy, Patagonian wind on endless steppe, the lakes of Bariloche, the wine of Mendoza and Cafayate, and the coloured gorges near Salta. Mostly paved now, with wild gravel stretches left.',
+    summary: 'About 5,000 km along the Andes, from the glaciers of Santa Cruz to the high desert of the north-west: Perito Moreno, Fitz Roy, Patagonian wind on endless steppe, the lakes of Bariloche, the wine of Mendoza and Cafayate, and the coloured gorges near Salta. Mostly paved now, with wild gravel stretches left, and roadworks in 2026 (repaving between Bariloche and El Bolsón; the widening south of San Juan is stalled).',
     sources: [
+      REPORT('Noticias NQN: Vialidad reinforces Ruta 40 before winter (March 2026)', 'https://www.noticiasnqn.com.ar/noticias/2026/03/18/329643-vialidad-nacional-reforzara-la-ruta-40-con-2300-toneladas-de-asfalto-antes-del-invierno'),
       REPORT('La Gaceta: a Tucumán couple rides to Ushuaia (February 2025)', 'https://www.lagaceta.com.ar/nota/1070396/sociedad/pareja-tucumana-fue-ushuaia-moto-da-detalles-viaje-paisajes-ensueno'),
       REPORT('Argentina.travel: Ruta 40, an unforgettable journey', 'https://www.argentina.travel/novedades/la-ruta-40-un-viaje-inolvidable-por-el-corazon-de-argentina'),
     ],
@@ -1164,8 +1195,9 @@ export const CLASSICS = [
     vehicle: 'Mountain bike, one day, with an operator',
     kind: 'bike',
     color: '#78350f',
-    summary: 'The old road from La Paz down to Coroico, once called the world\'s most dangerous: a single dirt lane cut into cliffs, dropping from about 4,700 m at La Cumbre to the warm Yungas valleys. Traffic moved to a new road, and riders now come in their thousands. Cold at the top, hot at the bottom.',
+    summary: 'The old road from La Paz down to Coroico, once called the world\'s most dangerous: a single dirt lane cut into cliffs, dropping from about 4,700 m at La Cumbre to the warm Yungas valleys. Traffic moved to a new road, and riders now come in their thousands. Cold at the top, hot at the bottom. In 2026 road blockades, snow and landslides on the way up to La Cumbre cancelled rides at short notice: keep a spare day.',
     sources: [
+      REPORT('Bolivian Life: Death Road biking in 2026, prices and operators', 'https://www.bolivianlife.com/?p=161539'),
       REPORT('Bolivian Life: Death Road bike, 2025 guide from La Paz', 'https://www.bolivianlife.com/death-road-cycle-all-you-need-to-know/'),
       REPORT('A Globe Well Travelled: biking down Death Road (February 2025)', 'https://aglobewelltravelled.com/2025/02/21/bike-down-death-road-bolivia/'),
     ],
@@ -1187,8 +1219,9 @@ export const CLASSICS = [
     vehicle: 'Touring bike, 4–8 weeks, hiker-biker campsites',
     kind: 'bike',
     color: '#0369a1',
-    summary: 'About 3,000 km down the coast of Washington, Oregon and California: Olympic forests, Oregon\'s sea stacks and cheap hiker-biker campsites, redwoods, the Golden Gate, Big Sur\'s cliffs and the beach towns of the south. Almost all paved; watch the narrow tunnels and bridges.',
+    summary: 'About 3,000 km down the coast of Washington, Oregon and California: Olympic forests, Oregon\'s sea stacks and cheap hiker-biker campsites, redwoods, the Golden Gate, Big Sur\'s cliffs and the beach towns of the south. Almost all paved; watch the narrow tunnels and bridges. Highway 1 through Big Sur reopened in full in January 2026 after nearly three years of slide repairs; short closures after storms still happen.',
     sources: [
+      REPORT('Caltrans: Highway 1 reopens at Regent\'s Slide (January 2026)', 'https://dot.ca.gov/caltrans-near-me/district-5/d5-news/d5-news-1-14-26'),
       REPORT('Edinburgh Bicycle: bike the Pacific Coast Highway, part 4', 'https://www.edinburghbicycle.com/info/blog/bike-pacific-coast-highway-us-part-4-4'),
       REPORT('Adventure Cycling: Pacific Coast Bicycle Route', 'https://www.adventurecycling.org/routes-and-maps/adventure-cycling-route-network/pacific-coast/'),
     ],
@@ -1214,8 +1247,9 @@ export const CLASSICS = [
     vehicle: '4x4 with a driver or self-drive, 7–11 days',
     kind: '4x4',
     color: '#b45309',
-    summary: 'South from the capital across the steppe into the Gobi: the eroded White Stupa cliffs, the ice-filled Yolyn Am gorge, the singing dunes of Khongoryn Els, the dinosaur cliffs of Bayanzag, then north to the old capital Karakorum. Tracks, not roads; nights in gers with herding families.',
+    summary: 'South from the capital across the steppe into the Gobi: the eroded White Stupa cliffs, the ice-filled Yolyn Am gorge, the singing dunes of Khongoryn Els, the dinosaur cliffs of Bayanzag, then north to the old capital Karakorum. Tracks, not roads; nights in gers with herding families. Many nationalities, including UK citizens, can visit visa-free for up to 30 days until the end of 2026.',
     sources: [
+      REPORT('GOV.UK: Mongolia entry requirements', 'https://www.gov.uk/foreign-travel-advice/mongolia/entry-requirements'),
       REPORT('Adventures Overland: Mongolia overland', 'https://www.adventuresoverland.com/fixed-departure/mongolia-overland'),
       REPORT('Amateur Traveler: overlanding in Mongolia', 'https://amateurtraveler.com/?p=58475'),
     ],
@@ -1238,8 +1272,9 @@ export const CLASSICS = [
     vehicle: '4x4, often with a rooftop tent, 8–14 days',
     kind: '4x4',
     color: '#be123c',
-    summary: 'A loop of about 1,400 km from Muscat: the forts and souq of Nizwa, the gravel road up Jebel Shams to the edge of the "Grand Canyon of Arabia", the dunes of the Wahiba Sands, palm-filled wadis to swim in, turtles at Ras al-Jinz and dhow yards at Sur. Wild camping is a big part of it.',
+    summary: 'A loop of about 1,400 km from Muscat: the forts and souq of Nizwa, the gravel road up Jebel Shams to the edge of the "Grand Canyon of Arabia", the dunes of the Wahiba Sands, palm-filled wadis to swim in, turtles at Ras al-Jinz and dhow yards at Sur. Wild camping is a big part of it, but since 2026 nature reserves need permits for camping, and off-road driving there is fined.',
     sources: [
+      REPORT('Muscat Daily: new controls for nature reserves (February 2026)', 'https://www.muscatdaily.com/2026/02/01/ea-sets-new-controls-to-keep-nature-reserves-tourism-ready/'),
       REPORT('Mapping Megan: wild camping in Oman, 7-day 4WD itinerary', 'https://mappingmegan.com/wild-camping-oman-7-day-4wd-itinerary-self-drive-roadtrip-without-a-guide'),
       REPORT('Ountravela: Oman off-road itinerary and GPS tracks', 'https://ountravela.com/en/overlanding-off-road-trip/oman-travel-map-4x4/'),
     ],
@@ -1289,8 +1324,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 7–10 days',
     kind: 'moto',
     color: '#0e7490',
-    summary: 'A loop of the island by ferry from mainland Italy: the SS125 Orientale Sarda through the wild mountains of the east between Baunei and Dorgali, nuraghe towers from the Bronze Age, the white coves of the Gulf of Orosei, and the coast road from Bosa to Catalan Alghero. Watch for goats and tourists in the curves.',
+    summary: 'A loop of the island by ferry from mainland Italy: the SS125 Orientale Sarda through the wild mountains of the east between Baunei and Dorgali, nuraghe towers from the Bronze Age, the white coves of the Gulf of Orosei, and the coast road from Bosa to Catalan Alghero. Watch for goats and tourists in the curves. The SS125 between Baunei and Dorgali got 11 km of new asphalt in 2026, and rockfall nets are going up near Urzulei.',
     sources: [
+      REPORT('Unione Sarda: 11 km of new asphalt between Baunei and Dorgali (April 2026)', 'https://www.unionesarda.it/en/sardinia/between-baunei-and-dorgali-11-kilometers-of-new-asphalt-along-the-eastern-highway-jw62k3u6?amp=1'),
       REPORT('Moto.it: Sardinia, 1,500 km on the BMW R 1300 GS', 'https://www.moto.it/accessori/sardegna-in-moto-viaggio-bmw-r-1300-gs.html'),
       REPORT('ADAC: the most beautiful motorcycle tours in Sardinia', 'https://www.adac.de/reise-freizeit/reisen-mit-motorrad/motorradtouren/sardinien/'),
     ],
@@ -1315,8 +1351,9 @@ export const CLASSICS = [
     vehicle: 'Touring bike, 12–15 days',
     kind: 'bike',
     color: '#0284c7',
-    summary: 'Blue-tiled cities of the old caravan road: Samarkand\'s Registan, the Nuratau mountains and yurt camps by Aydarkul lake, holy Bukhara, then across the Kyzylkum desert to the walled town of Khiva. Hot in summer; ride in spring or autumn.',
+    summary: 'Blue-tiled cities of the old caravan road: Samarkand\'s Registan, the Nuratau mountains and yurt camps by Aydarkul lake, holy Bukhara, then across the Kyzylkum desert to the walled town of Khiva. Hot in summer; ride in spring or autumn. Visa-free for citizens of more than 90 countries in 2026 (stays differ by nationality); the border with Afghanistan stays closed.',
     sources: [
+      REPORT('Euronews: visitors stay longer and venture further across Uzbekistan (September 2026)', 'https://www.euronews.com/2026/09/15/beyond-the-silk-road-visitors-stay-longer-spend-more-and-venture-further-across-uzbekistan'),
       REPORT('Skedaddle: the Silk Road and beyond, cycling Uzbekistan', 'https://www.skedaddle.com/blog/the-silk-road-and-beyond-pedal-through-time-on-our-new-uzbek-cycling-adventure/'),
       REPORT('Overland Europe: Bukhara to Samarkand by bike', 'https://overland-europe.com/breaking-the-cycle-central-asia-the-zerafshan-karakum-corridor-part-2-bukhara-to-samarkand/'),
     ],
@@ -1395,8 +1432,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 12–14 days, teahouses',
     kind: 'walk',
     color: '#0369a1',
-    summary: 'From the steep airstrip at Lukla up the Dudh Kosi to the Sherpa capital Namche Bazaar, Tengboche monastery, and the moraines to Gorak Shep and the base camp at 5,364 m, with sunrise on Everest from Kala Patthar. Two acclimatisation days, prayer flags and yak trains.',
+    summary: 'From the steep airstrip at Lukla up the Dudh Kosi to the Sherpa capital Namche Bazaar, Tengboche monastery, and the moraines to Gorak Shep and the base camp at 5,364 m, with sunrise on Everest from Kala Patthar. Two acclimatisation days, prayer flags and yak trains. Two permits: the Sagarmatha National Park fee and the Khumbu Pasang Lhamu municipality permit.',
     sources: [
+      REPORT('Barchart: budgeting the Everest Base Camp trek in 2026, permits and teahouses', 'https://www.barchart.com/story/news/37238416/how-to-budget-for-everest-base-camp-trek-2026-permit-and-teahouse-costs'),
       REPORT('Adventure Peaks: Ultimate Everest Base Camp trek news (March 2025)', 'https://www.adventurepeaks.com/news/ultimate-everest-base-camp-trek-news-29th-march-2025/'),
       REPORT('YAMAP: Everest Base Camp trip log (December 2025)', 'https://yamap.com/activities/45226359/article'),
     ],
@@ -1421,8 +1459,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 6 days, huts and tent platforms',
     kind: 'walk',
     color: '#166534',
-    summary: 'About 65 km through the Cradle Mountain–Lake St Clair National Park: alpine moors, ancient pencil pines, waterfalls, wombats, side trips up Tasmania\'s highest peak Mount Ossa, ending with a ferry across Australia\'s deepest lake. Weather can bring snow even in summer.',
+    summary: 'About 65 km through the Cradle Mountain–Lake St Clair National Park: alpine moors, ancient pencil pines, waterfalls, wombats, side trips up Tasmania\'s highest peak Mount Ossa, ending with a ferry across Australia\'s deepest lake. Weather can bring snow even in summer. Bookings open in July; the December–March dates sold out within hours for 2026–27.',
     sources: [
+      REPORT('Tasmania Parks: Overland Track booking information', 'https://parks.tas.gov.au/explore-our-parks/cradle-mountain/overland-track/overland-track-booking-information'),
       REPORT('Tasmania Parks: Overland Track walk notes', 'https://parks.tas.gov.au/explore-our-parks/cradle-mountain/overland-track/overland-track-walk-notes'),
       REPORT('Bike Hike Safari: Overland Track 2025', 'https://bikehikesafari.com/?p=144'),
     ],
@@ -1472,8 +1511,9 @@ export const CLASSICS = [
     vehicle: 'On foot, 4–13 days',
     kind: 'walk',
     color: '#0e7490',
-    summary: 'A cliff-top path in soft sand along the south-west coast of Portugal, used by fishermen to reach their spots: storks nesting on sea stacks, hidden beaches, river mouths and whitewashed villages, through the Southwest Alentejo and Vicentine Coast Natural Park. The classic four stages run Porto Covo to Odeceixe; it now continues to the Cape St Vincent.',
+    summary: 'A cliff-top path in soft sand along the south-west coast of Portugal, used by fishermen to reach their spots: storks nesting on sea stacks, hidden beaches, river mouths and whitewashed villages, through the Southwest Alentejo and Vicentine Coast Natural Park. The classic four stages run Porto Covo to Odeceixe; it now continues to the Cape St Vincent. Cliff edges collapse in places: keep to the marked path and its diversions.',
     sources: [
+      REPORT('Rota Vicentina: update on the risk of landslides on the Fishermen\'s Trail', 'https://blog.rotavicentina.com/en/update-on-the-risk-of-landslides-on-the-fishermens-trail/'),
       REPORT('Monkey\'s Tale: hiking the Fishermen\'s Trail, northern section (January 2025)', 'https://monkeystale.ca/2025/01/21/hiking-the-fishermens-trail-the-northern-section/'),
       REPORT('Rota Vicentina: Fishermen\'s Trail', 'https://blog.rotavicentina.com/en/tag/fishermens-trail'),
     ],
@@ -1497,8 +1537,9 @@ export const CLASSICS = [
     vehicle: 'Any bike, 7–12 days',
     kind: 'bike',
     color: '#9333ea',
-    summary: 'About 480 km of well-signed, mostly flat paths along the Loire from Orléans to the Atlantic at Saint-Nazaire: the royal châteaux of Chambord, Blois, Amboise and Chenonceau, troglodyte houses and Saumur wine, Angers and Nantes, part of EuroVelo 6.',
+    summary: 'About 480 km of well-signed, mostly flat paths along the Loire from Orléans to the Atlantic at Saint-Nazaire: the royal châteaux of Chambord, Blois, Amboise and Chenonceau, troglodyte houses and Saumur wine, Angers and Nantes, part of EuroVelo 6. The February 2026 floods closed riverside sections for a while; check the official alerts for detours.',
     sources: [
+      REPORT('Loire by Bike: flood alert and vigilance for the Loire (2026)', 'https://www.loirebybike.co.uk/alert/flood-alert-and-vigilance-for-the-loire-river/'),
       REPORT('Jo Harrison: La Loire à Vélo, practical information (August 2025)', 'https://joharrisontour.blogspot.com/2025/08/la-loire-velo-practical-information.html'),
       REPORT('Loire by Bike: from Châteauneuf-sur-Loire to Saint-Brevin', 'https://loirebybike.co.uk/suggestion/thierry-on-the-loire-a-velo-from-chateauneuf-sur-loire-to-saint-brevin-les-pins'),
     ],
@@ -1523,8 +1564,9 @@ export const CLASSICS = [
     vehicle: 'Bike, 6–8 days',
     kind: 'bike',
     color: '#0891b2',
-    summary: '297 km across ten islands, six causeways and two ferries from Vatersay to the Butt of Lewis: white beaches and turquoise water, Gaelic-speaking crofting townships, the mountains of Harris and the standing stones of Calanais. Headwinds are part of the deal.',
+    summary: '297 km across ten islands, six causeways and two ferries from Vatersay to the Butt of Lewis: white beaches and turquoise water, Gaelic-speaking crofting townships, the mountains of Harris and the standing stones of Calanais. Headwinds are part of the deal, and so are ferry problems: in spring 2026 a third of CalMac\'s fleet was out of service. Keep spare days.',
     sources: [
+      REPORT('CalMac: network update (March 2026)', 'https://www.calmac.co.uk/en-gb/travel/latest-customer-updates/customer-update-network-update-march-2026/'),
       REPORT('Cycling UK: travellers\' tales, Hebridean e-biking (2025)', 'https://www.cyclinguk.org/cycle-magazine/travellers-tales-hebridean-e-biking'),
       REPORT('VisitScotland: Hebridean Way cycling route', 'https://www.visitscotland.com/things-to-do/outdoor-activities/cycling/hebridean-way-cycling-route'),
     ],
@@ -1549,8 +1591,9 @@ export const CLASSICS = [
     vehicle: 'Road or touring bike, 9–14 days',
     kind: 'bike',
     color: '#dc2626',
-    summary: 'About 950 km around the island, a rite of passage in Taiwan: the busy west coast and its night markets, the tropical south at Kenting, the Shouka pass, the rice paddies of the East Rift Valley on Highway 9, and the marble cliffs of the Pacific coast. 7-Elevens every few kilometres and bike-friendly police stations.',
+    summary: 'About 950 km around the island, a rite of passage in Taiwan: the busy west coast and its night markets, the tropical south at Kenting, the Shouka pass, the rice paddies of the East Rift Valley on Highway 9, and the marble cliffs of the Pacific coast. 7-Elevens every few kilometres and bike-friendly police stations. The Suhua Highway (Highway 9) north of Hualien had rockslide and mudslide closures in 2026; many riders take the train for that stretch.',
     sources: [
+      REPORT('Focus Taiwan: rockslide damages a Suhua Highway tunnel (April 2026)', 'https://focustaiwan.tw/society/202604260006'),
       REPORT('Albinger: a bike ride around Taiwan, part 2, the east coast (2025 trip)', 'https://albinger.me/2026/01/10/a-bike-ride-around-taiwan-part-2-the-east-coast/'),
       REPORT('CycleBlaze: Yuli south to Taitung City (January 2025)', 'https://cycleblaze.com/journals/2025cny/yuli-south-to-taitung-city'),
     ],
@@ -1629,8 +1672,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 6–8 days',
     kind: 'moto',
     color: '#e11d48',
-    summary: 'The legendary roads of the Alps: the Stelvio\'s 48 hairpins, the narrow Gavia, the Bernina into Switzerland, the Timmelsjoch, and Austria\'s Grossglockner High Alpine Road under the country\'s highest peak, with the Dolomites in between. Ride early to beat the crowds.',
+    summary: 'The legendary roads of the Alps: the Stelvio\'s 48 hairpins, the narrow Gavia, the Bernina into Switzerland, the Timmelsjoch, and Austria\'s Grossglockner High Alpine Road under the country\'s highest peak, with the Dolomites in between. Ride early to beat the crowds. Since June 2026 South Tyrol bans organised motorcycle rides on its passes above 1,600 m (Stelvio, Timmelsjoch, Gardena, Sella); private riders can still go. The Gavia and Stelvio close to motor traffic on a few car-free cycling days each summer.',
     sources: [
+      REPORT('Visordown: South Tyrol bans organised motorcycle rides (2026)', 'https://www.visordown.com/news/south-tyrol-bans-organised-motorcycle-rides-stelvio-pass-and-roads-above-1600m'),
       REPORT('Rider Magazine: Edelweiss Grand Alps tour review (January 2025)', 'https://ridermagazine.com/2025/01/29/edelweiss-grand-alps-tour-review/'),
       REPORT('Motovibes: 8-day Central Alps challenge', 'https://motovibes-shop.fourthwall.com/products/8-day-central-alps-challenge-self-guided-motorcycle-tour'),
     ],
@@ -1655,8 +1699,9 @@ export const CLASSICS = [
     vehicle: 'Motorcycle, 6–8 days',
     kind: 'moto',
     color: '#1d4ed8',
-    summary: 'From Bergen north through the fjord country: Stegastein above the Aurlandsfjord, the Sognefjord ferries, Geiranger and the Eagle Road, the eleven hairpins of Trollstigen, and the bridges of the Atlantic Road hopping over the sea. Wet weather, tolls and many ferries; long light nights.',
+    summary: 'From Bergen north through the fjord country: Stegastein above the Aurlandsfjord, the Sognefjord ferries, Geiranger and the Eagle Road, the eleven hairpins of Trollstigen, and the bridges of the Atlantic Road hopping over the sea. Wet weather, tolls and many ferries; long light nights. Trollstigen can close at short notice for rockfall or heavy rain, and it had weekday works closures in autumn 2026; check Statens vegvesen before you go.',
     sources: [
+      REPORT('Fjord Norway: Trollstigen road closure', 'https://www.fjordnorway.com/en/inspiration/information-about-the-closure-of-trollstigen-road'),
       REPORT('UKGSer: trip report Norway, July 2025', 'https://www.ukgser.com/community/threads/trip-report-norway-july-2025.491204/'),
       REPORT('Lonely Planet: road-tripping Norway\'s west coast', 'https://www.lonelyplanet.com/articles/winding-through-the-wilds-road-tripping-norways-west-coast'),
     ],
@@ -1680,8 +1725,9 @@ export const CLASSICS = [
     vehicle: 'Adventure or enduro motorcycle, 8–10 days',
     kind: 'moto',
     color: '#b91c1c',
-    summary: 'From Shkodër into the Albanian Alps at Theth, the Komani lake ferry to Valbona, down through the mountains to the Ottoman stone towns of Berat and Gjirokastër, and over the Llogara pass to the Riviera\'s coves. Dirt tracks, goats, bunkers and a warm welcome.',
+    summary: 'From Shkodër into the Albanian Alps at Theth, the Komani lake ferry to Valbona, down through the mountains to the Ottoman stone towns of Berat and Gjirokastër, and over the Llogara pass to the Riviera\'s coves. Dirt tracks, goats, bunkers and a warm welcome. The road from Shkodër to Theth closes for winter (about November–March), and the Komani ferry runs a reduced service or stops then.',
     sources: [
+      REPORT('Albania Spirit: seasonal road closures', 'https://www.albania-spirit.com/guides/seasonal-road-closures-albania/'),
       REPORT('Motorrad: Albania, turquoise coasts and mountain roads', 'https://www.motorradonline.de/reise/motorradreise-albanien-tuerkisblaue-kuesten-und-abenteuerliche-bergstrassen/'),
       REPORT('Albanian Riviera motorcycle guide', 'https://himara.pages.dev/blog/albanian-riviera-motorcycle-guide'),
     ],
@@ -1706,8 +1752,9 @@ export const CLASSICS = [
     vehicle: 'Motorbike, 4–7 days',
     kind: 'moto',
     color: '#ea580c',
-    summary: 'About 600 km and, it is said, 1,864 curves on Routes 1095 and 108 through the mountains on the Myanmar border: hippie Pai, the Tham Lod cave, misty Mae Hong Son and its lakeside temple, Mae Sariang, and Doi Inthanon, Thailand\'s highest mountain. Use a bigger bike than a 125.',
+    summary: 'About 600 km and, it is said, 1,864 curves on Routes 1095 and 108 through the mountains on the Myanmar border: hippie Pai, the Tham Lod cave, misty Mae Hong Son and its lakeside temple, Mae Sariang, and Doi Inthanon, Thailand\'s highest mountain. Use a bigger bike than a 125. The 2026 rains brought landslides and a rockfall closure on Highway 108 and blocked the Pai road in Wiang Haeng; check the road status after the wet season.',
     sources: [
+      REPORT('Chiang Mai CityLife: rockfall closes lane on Highway 108', 'https://www.chiangmaicitylife.com/citynews/general/rockfall-closes-lane-on-highway-108-in-mae-hong-son/'),
       REPORT('Backpack Moments: Mae Hong Son Loop, the full guide', 'https://backpackmoments.com/mae-hong-son-loop-full-guide/'),
       REPORT('Nomadasaurus: riding the Mae Hong Son Loop', 'https://www.nomadasaurus.com/mae-hong-son-loop-motorbike-travel-guide/'),
     ],

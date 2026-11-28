@@ -6,7 +6,7 @@ export const DAKAR = [
   "id": "dakar-1979",
   "title": "1979 Paris–Dakar Rally",
   "who": "Won by Alain Génestier (Range Rover) and Cyril Neveu (Yamaha XT500)",
-  "when": "1979",
+  "when": "26 December 1978 – 14 January 1979",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
@@ -27,7 +27,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1979 Paris–Dakar Rally."
+    "date": "26 Dec 1978",
+    "text": "The start of the first Paris–Dakar: 182 competitors (80 cars, 90 bikes, 12 trucks) leave the Place du Trocadéro on Boxing Day."
    },
    {
     "q": "Montlhéry",
@@ -37,7 +38,8 @@ export const DAKAR = [
      2.2711
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "26 Dec 1978",
+    "text": "Bivouac after stage 1's short opening special at the Montlhéry circuit, 3.6 km."
    },
    {
     "q": "Marseille",
@@ -47,7 +49,8 @@ export const DAKAR = [
      5.3778
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 27 December 1978."
+    "date": "27 Dec 1978",
+    "text": "A liaison south through France to the port; then three days' transport across the Mediterranean."
    },
    {
     "q": "Algiers",
@@ -58,7 +61,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "31 Dec 1978",
+    "text": "Back on land in Africa: stage 2 starts with a long liaison south into the Sahara."
    },
    {
     "q": "Reggane",
@@ -68,7 +72,8 @@ export const DAKAR = [
      0.1752
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "31 Dec 1978",
+    "text": "Bivouac on stage 2, deep in the Algerian Sahara."
    },
    {
     "q": "In Salah",
@@ -78,7 +83,8 @@ export const DAKAR = [
      3.5212
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1 January 1979."
+    "date": "1 Jan 1979",
+    "text": "New Year's Day: a 270 km special from Reggane to In Salah, still stage 2."
    },
    {
     "q": "Tamanrasset",
@@ -88,7 +94,8 @@ export const DAKAR = [
      4.3208
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2 January 1979."
+    "date": "2 Jan 1979",
+    "text": "A liaison down to Tamanrasset in the Hoggar mountains, the end of stage 2."
    },
    {
     "q": "In Guezzam",
@@ -98,7 +105,8 @@ export const DAKAR = [
      4.6766
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 1979",
+    "text": "Stage 3 begins: a 373 km special to In Guezzam, the last Algerian post before Niger."
    },
    {
     "q": "Assamaka",
@@ -108,7 +116,8 @@ export const DAKAR = [
      5.7731
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "4 Jan 1979",
+    "text": "Across the border: the day's 230 km special starts at the Niger frontier post."
    },
    {
     "q": "Arlit",
@@ -118,7 +127,8 @@ export const DAKAR = [
      7.3933
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4 January 1979."
+    "date": "4 Jan 1979",
+    "text": "Bivouac at the uranium-mining town of Arlit, still stage 3."
    },
    {
     "q": "Agadez",
@@ -128,7 +138,8 @@ export const DAKAR = [
      7.9907
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5 January 1979."
+    "date": "5 Jan 1979",
+    "text": "The 231 km Arlit–Agadez special, where about a quarter of the field got lost, early leader Christophe Neveu among them."
    },
    {
     "q": "Niamey",
@@ -138,7 +149,8 @@ export const DAKAR = [
      2.1098
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "6 Jan 1979",
+    "text": "Stage 4: 230 km timed on the way south-west to Niger's capital."
    },
    {
     "q": "Gao",
@@ -148,7 +160,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "7 Jan 1979",
+    "text": "Stage 5 into Mali; its special was cancelled. A rest day in Gao followed."
    },
    {
     "q": "Mopti",
@@ -158,7 +171,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "9 Jan 1979",
+    "text": "Stage 6: a 600 km special along the Niger, won among the cars by Alain Génestier."
    },
    {
     "q": "Bamako",
@@ -168,7 +182,8 @@ export const DAKAR = [
      -8.0003
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10 January 1979."
+    "date": "10 Jan 1979",
+    "text": "A liaison to Mali's capital to end stage 6."
    },
    {
     "q": "Nioro du Sahel",
@@ -178,7 +193,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "11 Jan 1979",
+    "text": "Stage 7: 417 km to Nioro du Sahel, a stage so hard its time limit was extended."
    },
    {
     "q": "Kayes",
@@ -188,7 +204,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "12 Jan 1979",
+    "text": "Stage 8 begins with a 270 km special to Kayes."
    },
    {
     "q": "Bakel",
@@ -198,7 +215,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13 January 1979."
+    "date": "13 Jan 1979",
+    "text": "Across the Senegal river into Senegal for the last night."
    },
    {
     "q": "Dakar",
@@ -208,7 +226,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1979 Paris–Dakar Rally (after stage 14 January 1979)."
+    "date": "14 Jan 1979",
+    "text": "The finish after a final 96 km special. 74 of 182 starters made it; Cyril Neveu won on a Yamaha XT500 without winning a single stage."
    }
   ]
  },
@@ -216,12 +235,16 @@ export const DAKAR = [
   "id": "dakar-1980",
   "title": "1980 Dakar Rally",
   "who": "Won by Freddy Kottulinsky (Volkswagen Iltis) and Cyril Neveu (Yamaha)",
-  "when": "1980",
+  "when": "1–23 January 1980",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1980 edition of the Dakar Rally, in its African era: 20 stage towns and bivouacs through France, Algeria, Mali, Burkina Faso, Senegal. Winners — Cars: Freddy Kottulinsky (Volkswagen Iltis); Bikes: Cyril Neveu (Yamaha).",
   "sources": [
+   {
+    "label": "The Drive: why VW entered its Iltis in the Paris–Dakar",
+    "url": "https://www.thedrive.com/accelerator/36348/vw-entered-its-iltis-suv-in-the-paris-dakar-rally-to-attract-orders-from-the-french-military"
+   },
    {
     "label": "Wikipedia: 1980 Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1980_Dakar_Rally"
@@ -237,7 +260,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1980 Dakar Rally."
+    "date": "1 Jan 1980",
+    "text": "The start of the second Paris–Dakar, with 216 competitors."
    },
    {
     "q": "Olivet",
@@ -247,7 +271,8 @@ export const DAKAR = [
      1.9016
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage P."
+    "date": "1 Jan 1980",
+    "text": "Bivouac after the 4 km prologue near Orléans."
    },
    {
     "q": "Marseille",
@@ -257,7 +282,8 @@ export const DAKAR = [
      5.3778
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2 January."
+    "date": "2 Jan 1980",
+    "text": "A liaison south to Marseille; then three days' transport to Algeria."
    },
    {
     "q": "Algiers",
@@ -268,7 +294,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "6 Jan 1980",
+    "text": "Stage 1 starts in Algiers after the crossing."
    },
    {
     "q": "In Salah",
@@ -278,6 +305,7 @@ export const DAKAR = [
      3.5212
     ],
     "route": "line",
+    "date": "6 Jan 1980",
     "text": "Bivouac at the end of stage 1."
    },
    {
@@ -288,7 +316,8 @@ export const DAKAR = [
      0.1752
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "7 Jan 1980",
+    "text": "Stage 2 begins: 270 km timed to Reggane."
    },
    {
     "q": "Bordj Badji Mokhtar",
@@ -298,7 +327,8 @@ export const DAKAR = [
      0.1276
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8 January."
+    "date": "8 Jan 1980",
+    "text": "A huge 630 km special south across the Tanezrouft to the Malian border."
    },
    {
     "q": "Gao",
@@ -308,7 +338,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9 January."
+    "date": "9 Jan 1980",
+    "text": "Another 675 km special into Mali, won by Freddy Kottulinsky's VW Iltis, then a rest day in Gao."
    },
    {
     "q": "Mopti",
@@ -318,7 +349,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "11 Jan 1980",
+    "text": "Stage 3 begins: 595 km to Mopti, Kottulinsky again fastest."
    },
    {
     "q": "Niono",
@@ -328,7 +360,8 @@ export const DAKAR = [
      -5.9783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12 January."
+    "date": "12 Jan 1980",
+    "text": "A liaison west to Niono."
    },
    {
     "q": "Tombouctou",
@@ -338,7 +371,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13 January."
+    "date": "13 Jan 1980",
+    "text": "A 570 km special north to Timbuktu."
    },
    {
     "q": "Gao",
@@ -348,7 +382,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14 January."
+    "date": "14 Jan 1980",
+    "text": "Back east along the Niger to Gao, the end of stage 3."
    },
    {
     "q": "Bobo-Dioulasso",
@@ -358,7 +393,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "15 Jan 1980",
+    "text": "Stage 4: a liaison south into Upper Volta (today Burkina Faso)."
    },
    {
     "q": "Kolokani",
@@ -368,7 +404,8 @@ export const DAKAR = [
      -8.0332
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "16 Jan 1980",
+    "text": "Stage 5 back into Mali, then a rest day."
    },
    {
     "q": "Nioro du Sahel",
@@ -378,7 +415,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "18 Jan 1980",
+    "text": "Stage 6 begins with 280 km timed."
    },
    {
     "q": "Kayes",
@@ -388,7 +426,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 19 January."
+    "date": "19 Jan 1980",
+    "text": "A 247 km special to Kayes to end stage 6."
    },
    {
     "q": "Bakel",
@@ -398,7 +437,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "20 Jan 1980",
+    "text": "Stage 7: a liaison across the river into Senegal."
    },
    {
     "q": "Linguère",
@@ -408,7 +448,8 @@ export const DAKAR = [
      -15.1153
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 21 January."
+    "date": "21 Jan 1980",
+    "text": "Liaison on across the Senegalese savanna."
    },
    {
     "q": "Lompoul",
@@ -418,7 +459,8 @@ export const DAKAR = [
      -16.7287
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 22 January."
+    "date": "22 Jan 1980",
+    "text": "An 87 km special to the dunes of Lompoul near the Atlantic."
    },
    {
     "q": "Dakar",
@@ -428,7 +470,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1980 Dakar Rally (after stage 23 January)."
+    "date": "23 Jan 1980",
+    "text": "The finish. Cyril Neveu won on a Yamaha for the second year running, Kottulinsky the cars in a VW Iltis, and Zohra Ataouat the first truck class."
    }
   ]
  },
@@ -436,12 +479,16 @@ export const DAKAR = [
   "id": "dakar-1981",
   "title": "1981 Paris–Dakar Rally",
   "who": "Won by René Metge (Range Rover) and Hubert Auriol (BMW)",
-  "when": "1981",
+  "when": "1–20 January 1981",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 1981 edition of the Dakar Rally, in its African era: 18 stage towns and bivouacs through France, Algeria, Mali, Burkina Faso, Ivory Coast, Senegal. Winners — Cars: René Metge (Range Rover); Bikes: Hubert Auriol (BMW).",
   "sources": [
+   {
+    "label": "BMW Group Classic: the BMW R80 G/S Paris–Dakar",
+    "url": "https://www.bmwgroup-classic.com/en/museum/bmw-motorcycle-racing/popup/bmw-r80-gs-paris-dakar.html"
+   },
    {
     "label": "Wikipedia: 1981 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1981_Paris%E2%80%93Dakar_Rally"
@@ -457,7 +504,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1981 Paris–Dakar Rally."
+    "date": "1 Jan 1981",
+    "text": "The start of the third Paris–Dakar."
    },
    {
     "q": "Olivet",
@@ -467,7 +515,8 @@ export const DAKAR = [
      1.9016
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 1981",
+    "text": "Bivouac at the end of stage 1, about 120 km from Paris."
    },
    {
     "q": "Sète",
@@ -477,7 +526,8 @@ export const DAKAR = [
      3.696
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1981",
+    "text": "Stage 2 runs about 625 km south to the port of Sète; then a day's transport to Algeria."
    },
    {
     "q": "Algiers",
@@ -488,7 +538,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 1981",
+    "text": "Stage 3 starts in Algiers, with the first night in Africa at Moudjbara to the south."
    },
    {
     "q": "Bordj Omar Driss",
@@ -498,7 +549,8 @@ export const DAKAR = [
      6.8208
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "5 Jan 1981",
+    "text": "A 949 km stage 4 deep into the Algerian Sahara."
    },
    {
     "q": "Tit",
@@ -508,7 +560,8 @@ export const DAKAR = [
      1.491
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "6 Jan 1981",
+    "text": "Stage 5: 605 km south to Tit in the Hoggar."
    },
    {
     "q": "Timiaouine",
@@ -518,7 +571,8 @@ export const DAKAR = [
      1.8125
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "7 Jan 1981",
+    "text": "Stage 6: 540 km to Timiaouine near the Malian border."
    },
    {
     "q": "Gao",
@@ -528,7 +582,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "8 Jan 1981",
+    "text": "Stage 7: 740 km into Mali, then a rest day in Gao."
    },
    {
     "q": "Tombouctou",
@@ -538,7 +593,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "10 Jan 1981",
+    "text": "Stage 8: 412 km up the Niger to Timbuktu."
    },
    {
     "q": "Niono",
@@ -548,7 +604,8 @@ export const DAKAR = [
      -5.9783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "11 Jan 1981",
+    "text": "Stage 9: 570 km south-west to Niono."
    },
    {
     "q": "Bobo-Dioulasso",
@@ -558,7 +615,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "12 Jan 1981",
+    "text": "Stage 10, the longest at about 1,080 km, into Upper Volta (today Burkina Faso)."
    },
    {
     "q": "Bouna",
@@ -568,7 +626,8 @@ export const DAKAR = [
      -2.999
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "13 Jan 1981",
+    "text": "Stage 11: 828 km into Côte d'Ivoire."
    },
    {
     "q": "Korhogo",
@@ -578,7 +637,8 @@ export const DAKAR = [
      -5.6316
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "14 Jan 1981",
+    "text": "Stage 12: 326 km across northern Côte d'Ivoire."
    },
    {
     "q": "Kolokani",
@@ -588,7 +648,8 @@ export const DAKAR = [
      -8.0332
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "15 Jan 1981",
+    "text": "Stage 13 back into Mali, then a rest day."
    },
    {
     "q": "Nioro du Sahel",
@@ -598,7 +659,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "17 Jan 1981",
+    "text": "Stage 14: 297 km to Nioro du Sahel."
    },
    {
     "q": "Bakel",
@@ -608,7 +670,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "18 Jan 1981",
+    "text": "Stage 15: 325 km into Senegal."
    },
    {
     "q": "Louga",
@@ -618,7 +681,8 @@ export const DAKAR = [
      -15.6779
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "19 Jan 1981",
+    "text": "Stage 16 across the Senegalese savanna."
    },
    {
     "q": "Dakar",
@@ -628,7 +692,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1981 Paris–Dakar Rally (after stage 17)."
+    "date": "20 Jan 1981",
+    "text": "The finish after a 96 km last stage. René Metge won the cars in a Range Rover despite gearbox trouble, and Hubert Auriol the bikes on a BMW R80 G/S."
    }
   ]
  },
@@ -636,12 +701,16 @@ export const DAKAR = [
   "id": "dakar-1982",
   "title": "1982 Paris–Dakar Rally",
   "who": "Won by Claude and Bernard Marreau (Renault 20) and Cyril Neveu (Honda)",
-  "when": "1982",
+  "when": "1–20 January 1982",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1982 edition of the Dakar Rally, in its African era: 18 stage towns and bivouacs through France, Algeria, Mali, Senegal. Winners — Cars: Claude and Bernard Marreau (Renault 20); Bikes: Cyril Neveu (Honda).",
   "sources": [
+   {
+    "label": "The Drive: five of the most heroic Dakar-winning cars",
+    "url": "https://www.thedrive.com/news/38732/here-are-five-of-the-most-heroic-dakar-rally-winning-cars-ever"
+   },
    {
     "label": "Wikipedia: 1982 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1982_Paris%E2%80%93Dakar_Rally"
@@ -657,7 +726,8 @@ export const DAKAR = [
      2.3484
     ],
     "route": "line",
-    "text": "Start of the 1982 Paris–Dakar Rally."
+    "date": "1 Jan 1982",
+    "text": "The start of the fourth Paris–Dakar."
    },
    {
     "q": "Olivet",
@@ -667,6 +737,7 @@ export const DAKAR = [
      1.9016
     ],
     "route": "line",
+    "date": "1 Jan 1982",
     "text": "Bivouac at the end of stage 1."
    },
    {
@@ -677,7 +748,8 @@ export const DAKAR = [
      3.696
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1982",
+    "text": "Stage 2 south to the port of Sète; then a day's transport to Algeria."
    },
    {
     "q": "Algiers",
@@ -688,7 +760,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 1982",
+    "text": "Stage 3 starts in Algiers after the crossing."
    },
    {
     "q": "Ouled Djellal",
@@ -698,7 +771,8 @@ export const DAKAR = [
      4.8203
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "4 Jan 1982",
+    "text": "Bivouac after a 470 km stage 3, on the edge of the Sahara."
    },
    {
     "q": "Hassi Messaoud",
@@ -708,7 +782,8 @@ export const DAKAR = [
      6.0604
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "5 Jan 1982",
+    "text": "Stage 4 to the oil town of Hassi Messaoud."
    },
    {
     "q": "Bordj Omar Driss",
@@ -718,7 +793,8 @@ export const DAKAR = [
      6.8208
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "6 Jan 1982",
+    "text": "Stage 5: 414 km into the deep desert."
    },
    {
     "q": "Tit",
@@ -728,7 +804,8 @@ export const DAKAR = [
      1.491
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "7 Jan 1982",
+    "text": "Stage 6: 568 km south to Tit in the Hoggar."
    },
    {
     "q": "Timiaouine",
@@ -738,7 +815,8 @@ export const DAKAR = [
      1.8125
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "8 Jan 1982",
+    "text": "Stage 7: 538 km to Timiaouine. Somewhere near the Malian border Mark Thatcher, son of the British prime minister, went missing for days with his Peugeot."
    },
    {
     "q": "Gao",
@@ -748,7 +826,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "9 Jan 1982",
+    "text": "Stage 8: 740 km into Mali, then a rest day in Gao."
    },
    {
     "q": "Mopti",
@@ -758,7 +837,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "11 Jan 1982",
+    "text": "Stage 9: 538 km along the Niger to Mopti."
    },
    {
     "q": "Gao",
@@ -768,7 +848,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "12 Jan 1982",
+    "text": "Stage 10: back to Gao, and another rest day."
    },
    {
     "q": "Tombouctou",
@@ -778,7 +859,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "14 Jan 1982",
+    "text": "Stage 11: 424 km to Timbuktu."
    },
    {
     "q": "Niono",
@@ -788,7 +870,8 @@ export const DAKAR = [
      -5.9783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "15 Jan 1982",
+    "text": "Stage 12: 558 km to Niono."
    },
    {
     "q": "Nioro du Sahel",
@@ -798,7 +881,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "16 Jan 1982",
+    "text": "Stage 13: 517 km west to Nioro du Sahel."
    },
    {
     "q": "Tambacounda",
@@ -808,7 +892,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "17 Jan 1982",
+    "text": "Stage 14: 310 km into Senegal."
    },
    {
     "q": "Dahra",
@@ -818,7 +903,8 @@ export const DAKAR = [
      -15.4783
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "18 Jan 1982",
+    "text": "Stage 15 to Dahra, then on via Tiougoune."
    },
    {
     "q": "Dakar",
@@ -828,7 +914,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1982 Paris–Dakar Rally (after stage 17)."
+    "date": "20 Jan 1982",
+    "text": "The finish. The Marreau brothers won the cars in their own Renault 20 Turbo 4x4, and Cyril Neveu the bikes for Honda, his third win."
    }
   ]
  },
@@ -836,12 +923,16 @@ export const DAKAR = [
   "id": "dakar-1990",
   "title": "1990 Paris–Dakar Rally",
   "who": "Won by Ari Vatanen (Peugeot) and Edi Orioli (Cagiva)",
-  "when": "1990",
+  "when": "25 December 1989 – 16 January 1990",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1990 edition of the Dakar Rally, in its African era: 21 stage towns and bivouacs through France, Libya, Niger, Chad, Mali, Mauritania, Senegal. Winners — Cars: Ari Vatanen (Peugeot); Bikes: Edi Orioli (Cagiva).",
   "sources": [
+   {
+    "label": "Autosport: review of the Paris–Dakar 1990",
+    "url": "https://www.autosport.com/reviews/news/138798/review-parisdakar-1990-dvd"
+   },
    {
     "label": "Wikipedia: 1990 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1990_Paris%E2%80%93Dakar_Rally"
@@ -857,7 +948,8 @@ export const DAKAR = [
      2.3469
     ],
     "route": "line",
-    "text": "Start of the 1990 Paris–Dakar Rally."
+    "date": "25 Dec 1989",
+    "text": "A 5 km prologue near Paris for the 12th Dakar, with 465 competitors."
    },
    {
     "q": "Marseille",
@@ -867,7 +959,8 @@ export const DAKAR = [
      5.3778
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "26 Dec 1989",
+    "text": "A second short prologue, 3.5 km, before the crossing to Libya."
    },
    {
     "q": "Tripoli",
@@ -878,7 +971,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "29 Dec 1989",
+    "text": "Stage 1 starts in Tripoli, the first Dakar to run through Libya."
    },
    {
     "q": "Ghadamès",
@@ -888,7 +982,8 @@ export const DAKAR = [
      9.4901
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "29 Dec 1989",
+    "text": "Stage 1: 273 km timed, in the dunes where the Mitsubishis lost ground to Peugeot."
    },
    {
     "q": "Ghat",
@@ -898,7 +993,8 @@ export const DAKAR = [
      10.434
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "30 Dec 1989",
+    "text": "Stage 2: a 609 km special south along the Algerian border."
    },
    {
     "q": "Sabha",
@@ -908,7 +1004,8 @@ export const DAKAR = [
      14.429
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "31 Dec 1989",
+    "text": "Stage 3: 446 km timed to Sabha."
    },
    {
     "q": "Tumu",
@@ -918,7 +1015,8 @@ export const DAKAR = [
      14.15
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "1 Jan 1990",
+    "text": "Stage 4: 641 km to the Libya–Niger border."
    },
    {
     "q": "Dirkou",
@@ -928,7 +1026,8 @@ export const DAKAR = [
      12.8937
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "2 Jan 1990",
+    "text": "Stage 5: 504 km through the Ténéré to the Dirkou oasis."
    },
    {
     "q": "N'Gourti",
@@ -938,7 +1037,8 @@ export const DAKAR = [
      13.1961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "3 Jan 1990",
+    "text": "Stage 6: 497 km south towards Lake Chad."
    },
    {
     "q": "N'Djamena",
@@ -948,7 +1048,8 @@ export const DAKAR = [
      15.0503
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "4 Jan 1990",
+    "text": "Stage 7: 499 km into Chad, to the capital."
    },
    {
     "q": "N'Guigmi",
@@ -958,7 +1059,8 @@ export const DAKAR = [
      13.1135
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "5 Jan 1990",
+    "text": "Stage 8: 425 km back into Niger."
    },
    {
     "q": "Agadez",
@@ -968,7 +1070,8 @@ export const DAKAR = [
      7.9907
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "6 Jan 1990",
+    "text": "Stage 9, at 780 km the longest special, then a rest day in Agadez."
    },
    {
     "q": "Tahoua",
@@ -978,7 +1081,8 @@ export const DAKAR = [
      5.2621
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "8 Jan 1990",
+    "text": "Stage 10: 198 km timed."
    },
    {
     "q": "Niamey",
@@ -988,7 +1092,8 @@ export const DAKAR = [
      2.1098
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "9 Jan 1990",
+    "text": "Stage 11: 222 km timed to Niger's capital."
    },
    {
     "q": "Gao",
@@ -998,7 +1103,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "10 Jan 1990",
+    "text": "Stage 12: 492 km into Mali."
    },
    {
     "q": "Tombouctou",
@@ -1008,7 +1114,8 @@ export const DAKAR = [
      -3.0281
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "11 Jan 1990",
+    "text": "Stage 13: 412 km up the Niger to Timbuktu."
    },
    {
     "q": "Néma",
@@ -1018,7 +1125,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "12 Jan 1990",
+    "text": "Stage 14: 674 km into Mauritania."
    },
    {
     "q": "Tidjikja",
@@ -1028,7 +1136,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "13 Jan 1990",
+    "text": "Stage 15: 458 km across the Mauritanian desert."
    },
    {
     "q": "Kayes",
@@ -1038,7 +1147,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "14 Jan 1990",
+    "text": "Stage 16: 485 km south into Mali."
    },
    {
     "q": "Saint Louis",
@@ -1048,7 +1158,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 17."
+    "date": "15 Jan 1990",
+    "text": "Stage 17 into Senegal, 838 km in all."
    },
    {
     "q": "Dakar",
@@ -1058,7 +1169,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1990 Paris–Dakar Rally (after stage 18)."
+    "date": "16 Jan 1990",
+    "text": "The finish after a 40 km last special. Ari Vatanen led a Peugeot 1-2-3 in the 405 T16, his third win in four years; Edi Orioli won the bikes on a Cagiva Elefant."
    }
   ]
  },
@@ -1066,12 +1178,16 @@ export const DAKAR = [
   "id": "dakar-1992",
   "title": "1992 Paris–Cape Town Rally",
   "who": "Won by Hubert Auriol (Mitsubishi) and Stéphane Peterhansel (Yamaha)",
-  "when": "1992",
+  "when": "23 December 1991 – 16 January 1992",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1992 edition of the Dakar Rally, in its African era: 24 stage towns and bivouacs through France, Libya, Niger, Chad, Central African Republic, Cameroon, Gabon, Congo-Brazzaville, Angola, Namibia, South Africa. Winners — Cars: Hubert Auriol (Mitsubishi); Bikes: Stéphane Peterhansel (Yamaha).",
   "sources": [
+   {
+    "label": "Cycle World, April 1992: race report",
+    "url": "https://magazine.cycleworld.com/article/1992/4/1/clipboard"
+   },
    {
     "label": "Wikipedia: 1992 Paris–Cape Town Rally",
     "url": "https://en.wikipedia.org/wiki/1992_Paris%E2%80%93Cape_Town_Rally"
@@ -1087,7 +1203,8 @@ export const DAKAR = [
      1.094
     ],
     "route": "line",
-    "text": "Start of the 1992 Paris–Cape Town Rally."
+    "date": "23 Dec 1991",
+    "text": "A 3.6 km prologue at Rouen opens the first rally to run all the way to Cape Town instead of Dakar."
    },
    {
     "q": "Paris",
@@ -1097,7 +1214,8 @@ export const DAKAR = [
      2.32
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "24 Dec 1991",
+    "text": "Stage 1, a 130 km liaison to Paris."
    },
    {
     "q": "Sète",
@@ -1107,7 +1225,8 @@ export const DAKAR = [
      3.696
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "25 Dec 1991",
+    "text": "Stage 2: 820 km south to the port of Sète, then across to Libya."
    },
    {
     "q": "Sirte",
@@ -1118,7 +1237,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "Bivouac at the end of stage 3."
+    "date": "26 Dec 1991",
+    "text": "Stage 3 from Misrata, with 204 km timed."
    },
    {
     "q": "Sabha",
@@ -1128,7 +1248,8 @@ export const DAKAR = [
      14.429
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "27 Dec 1991",
+    "text": "Stage 4: 375 km timed to Sabha."
    },
    {
     "q": "Waw al-Kabir",
@@ -1138,7 +1259,8 @@ export const DAKAR = [
      16.7153
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "28 Dec 1991",
+    "text": "Stage 5: 546 km to the Waw al-Kabir oasis."
    },
    {
     "q": "Tumu",
@@ -1148,7 +1270,8 @@ export const DAKAR = [
      14.15
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "29 Dec 1991",
+    "text": "Stage 6: 520 km to the border with Niger."
    },
    {
     "q": "Dirkou",
@@ -1158,7 +1281,8 @@ export const DAKAR = [
      12.8937
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "30 Dec 1991",
+    "text": "Stage 7: 738 km through the Ténéré to Dirkou."
    },
    {
     "q": "N'Guigmi",
@@ -1168,7 +1292,8 @@ export const DAKAR = [
      13.1135
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "31 Dec 1991",
+    "text": "Stage 8: 601 km towards Lake Chad."
    },
    {
     "q": "N'Djamena",
@@ -1178,7 +1303,8 @@ export const DAKAR = [
      15.0503
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "1 Jan 1992",
+    "text": "Stage 9, a liaison into Chad."
    },
    {
     "q": "Sarh",
@@ -1188,7 +1314,8 @@ export const DAKAR = [
      18.3938
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "2 Jan 1992",
+    "text": "Stage 10: 695 km south, 331 km of it timed."
    },
    {
     "q": "Bouar",
@@ -1198,7 +1325,8 @@ export const DAKAR = [
      15.5922
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "3 Jan 1992",
+    "text": "Stage 11 into the Central African Republic."
    },
    {
     "q": "Yaoundé",
@@ -1208,7 +1336,8 @@ export const DAKAR = [
      11.5213
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "4 Jan 1992",
+    "text": "Stage 12 into Cameroon's capital."
    },
    {
     "q": "Oyem",
@@ -1218,7 +1347,8 @@ export const DAKAR = [
      11.5751
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "5 Jan 1992",
+    "text": "Stage 13 into the rainforest of Gabon."
    },
    {
     "q": "Franceville",
@@ -1228,7 +1358,8 @@ export const DAKAR = [
      13.5895
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "6 Jan 1992",
+    "text": "Stage 14: 793 km, 619 km of it timed, across Gabon."
    },
    {
     "q": "Pointe-Noire",
@@ -1238,7 +1369,8 @@ export const DAKAR = [
      11.8503
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "7 Jan 1992",
+    "text": "Stage 15 to the Congolese coast; then two rest days and a transfer to Angola."
    },
    {
     "q": "Lobito",
@@ -1248,7 +1380,8 @@ export const DAKAR = [
      13.5464
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "10 Jan 1992",
+    "text": "Stage 16 starts at Lobito on the Angolan coast."
    },
    {
     "q": "Namibe",
@@ -1258,7 +1391,8 @@ export const DAKAR = [
      12.1458
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "10 Jan 1992",
+    "text": "End of stage 16, on the coast of southern Angola."
    },
    {
     "q": "Ruacana",
@@ -1268,7 +1402,8 @@ export const DAKAR = [
      14.3625
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 17."
+    "date": "11 Jan 1992",
+    "text": "Stage 17 into Namibia at the Ruacana falls."
    },
    {
     "q": "Grootfontein",
@@ -1278,7 +1413,8 @@ export const DAKAR = [
      18.1041
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 18."
+    "date": "12 Jan 1992",
+    "text": "Stage 18: 600 km to Grootfontein."
    },
    {
     "q": "Gobabis",
@@ -1288,7 +1424,8 @@ export const DAKAR = [
      18.9725
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 19."
+    "date": "13 Jan 1992",
+    "text": "Stage 19 east towards the Kalahari."
    },
    {
     "q": "Keetmanshoop",
@@ -1298,7 +1435,8 @@ export const DAKAR = [
      18.1342
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 20."
+    "date": "14 Jan 1992",
+    "text": "Stage 20 south through Namibia."
    },
    {
     "q": "Springbok",
@@ -1308,7 +1446,8 @@ export const DAKAR = [
      17.8831
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 21."
+    "date": "15 Jan 1992",
+    "text": "Stage 21 into South Africa."
    },
    {
     "q": "Cape Town",
@@ -1318,7 +1457,8 @@ export const DAKAR = [
      18.4172
     ],
     "route": "line",
-    "text": "Finish of the 1992 Paris–Cape Town Rally (after stage 22)."
+    "date": "16 Jan 1992",
+    "text": "The finish in Cape Town. Hubert Auriol won the cars in a Mitsubishi Pajero, adding to his two bike wins; Stéphane Peterhansel won the bikes on a Yamaha."
    }
   ]
  },
@@ -1326,12 +1466,16 @@ export const DAKAR = [
   "id": "dakar-1995",
   "title": "1995 Granada–Dakar Rally",
   "who": "Won by Pierre Lartigue / Michel Perin (Citroën) and Stéphane Peterhansel (Yamaha)",
-  "when": "1995",
+  "when": "1–15 January 1995",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 1995 edition of the Dakar Rally, in its African era: 14 stage towns and bivouacs through Spain, Morocco, Mauritania, Senegal, Guinea. Winners — Cars: Pierre Lartigue / Michel Perin (Citroën); Bikes: Stéphane Peterhansel (Yamaha); Trucks: Karel Loprais / Radomír Stachura / Josef Kalina (Tatra 815).",
   "sources": [
+   {
+    "label": "ESPN Deportes: Dakar winners through the years",
+    "url": "https://espndeportes.espn.com/deportemotor/noticias/ganadohis030119.html"
+   },
    {
     "label": "Wikipedia: 1995 Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1995_Granada%E2%80%93Dakar_Rally"
@@ -1347,7 +1491,8 @@ export const DAKAR = [
      -3.5208
     ],
     "route": "line",
-    "text": "Start of the 1995 Granada–Dakar Rally."
+    "date": "1 Jan 1995",
+    "text": "The first Dakar to start outside France: stage 1 left Granada and ran 275 km, 170 km of it timed, down to the coast here before the crossing to Morocco."
    },
    {
     "q": "Errachidia",
@@ -1358,7 +1503,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "2 Jan 1995",
+    "text": "Stage 2 from Nador: 619 km to the edge of the Sahara."
    },
    {
     "q": "Ouarzazate",
@@ -1368,7 +1514,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "3 Jan 1995",
+    "text": "Stage 3: 574 km over the Atlas, 405 km of it timed."
    },
    {
     "q": "Guelmim",
@@ -1378,7 +1525,8 @@ export const DAKAR = [
      -10.0574
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "4 Jan 1995",
+    "text": "Stage 4: 646 km to the gateway of the Sahara."
    },
    {
     "q": "Smara",
@@ -1388,7 +1536,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "5 Jan 1995",
+    "text": "Stage 5 into Western Sahara, 408 km timed."
    },
    {
     "q": "Aousserd",
@@ -1398,7 +1547,8 @@ export const DAKAR = [
      -14.4452
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "6 Jan 1995",
+    "text": "Stage 6: 577 km of special stage, almost all of the day."
    },
    {
     "q": "Zouérat",
@@ -1408,7 +1558,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "7 Jan 1995",
+    "text": "Stage 7: 625 km timed into Mauritania, then a rest day."
    },
    {
     "q": "Chinguetti",
@@ -1418,7 +1569,8 @@ export const DAKAR = [
      -12.3665
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "9 Jan 1995",
+    "text": "Stage 8: 504 km timed to the old caravan town of Chinguetti."
    },
    {
     "q": "Tidjikja",
@@ -1428,7 +1580,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "10 Jan 1995",
+    "text": "Stage 9: 347 km timed across the Mauritanian desert."
    },
    {
     "q": "Ayoun El Atrous",
@@ -1438,7 +1591,8 @@ export const DAKAR = [
      -9.6179
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "11 Jan 1995",
+    "text": "Stage 10: 375 km timed to the south of Mauritania."
    },
    {
     "q": "Bakel",
@@ -1448,7 +1602,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "12 Jan 1995",
+    "text": "Stage 11: 393 km timed into Senegal."
    },
    {
     "q": "Labe",
@@ -1458,7 +1613,8 @@ export const DAKAR = [
      -12.0119
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "13 Jan 1995",
+    "text": "Stage 12: 626 km timed into the hills of Guinea."
    },
    {
     "q": "Tambacounda",
@@ -1468,7 +1624,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "On the route."
+    "date": "14 Jan 1995",
+    "text": "Stage 13: 820 km back into Senegal."
    },
    {
     "q": "Dakar",
@@ -1478,7 +1635,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1995 Granada–Dakar Rally."
+    "date": "15 Jan 1995",
+    "text": "The finish. Pierre Lartigue and Michel Périn won the cars in a Citroën ZX, Stéphane Peterhansel his fourth bike title on a Yamaha, and Karel Loprais the trucks in a Tatra."
    }
   ]
  },
@@ -1486,12 +1644,16 @@ export const DAKAR = [
   "id": "dakar-1996",
   "title": "1996 Granada–Dakar Rally",
   "who": "Won by Pierre Lartigue / Michel Perin (Citroën) and Edi Orioli (Yamaha)",
-  "when": "1996",
+  "when": "29 December 1995 – 14 January 1996",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1996 edition of the Dakar Rally, in its African era: 17 stage towns and bivouacs through Spain, Morocco, Mauritania, Mali, Guinea, Senegal. Winners — Cars: Pierre Lartigue / Michel Perin (Citroën); Bikes: Edi Orioli (Yamaha); Trucks: Viktor Moskovskikh / Anatoliy Kouzmine (Kamaz 49252).",
   "sources": [
+   {
+    "label": "Citroënët: Citroën in the Dakar in the 1990s",
+    "url": "https://citroenet.org.uk/sport/sport-90.html"
+   },
    {
     "label": "Wikipedia: 1996 Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1996_Granada%E2%80%93Dakar_Rally"
@@ -1507,7 +1669,8 @@ export const DAKAR = [
      -3.5995
     ],
     "route": "line",
-    "text": "Start of the 1996 Granada–Dakar Rally."
+    "date": "29 Dec 1995",
+    "text": "A short prologue in Granada opens the 18th Dakar, again starting away from Paris."
    },
    {
     "q": "Málaga",
@@ -1517,7 +1680,8 @@ export const DAKAR = [
      -4.4422
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "30 Dec 1995",
+    "text": "Stage 1 down to the coast, then the crossing to Morocco."
    },
    {
     "q": "Nador",
@@ -1528,7 +1692,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "31 Dec 1995",
+    "text": "Stage 2 starts in Nador after the crossing."
    },
    {
     "q": "Oujda",
@@ -1538,7 +1703,8 @@ export const DAKAR = [
      -1.9293
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "31 Dec 1995",
+    "text": "End of stage 2, with 149 km timed."
    },
    {
     "q": "Er-Rachidia",
@@ -1548,7 +1714,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "1 Jan 1996",
+    "text": "Stage 3: 328 km timed, south to the edge of the Sahara."
    },
    {
     "q": "Fam El Hisn",
@@ -1558,7 +1725,8 @@ export const DAKAR = [
      -8.8868
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "2 Jan 1996",
+    "text": "Stage 4: 540 km timed to Fam El Hisn."
    },
    {
     "q": "Smara",
@@ -1568,7 +1736,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "3 Jan 1996",
+    "text": "Stage 5: 474 km timed into Western Sahara."
    },
    {
     "q": "Zouerat",
@@ -1578,7 +1747,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "4 Jan 1996",
+    "text": "Stage 6: 603 km timed into Mauritania."
    },
    {
     "q": "Atar",
@@ -1588,7 +1758,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "5 Jan 1996",
+    "text": "Stage 7: 365 km timed to Atar."
    },
    {
     "q": "Zouerat",
@@ -1598,7 +1769,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "6 Jan 1996",
+    "text": "Stage 8: a 511 km loop back to Zouérat, then a rest day."
    },
    {
     "q": "El Mreiti",
@@ -1608,7 +1780,8 @@ export const DAKAR = [
      -7.8425
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "8 Jan 1996",
+    "text": "Stage 9: 629 km timed into the empty north-east of Mauritania."
    },
    {
     "q": "Tichit",
@@ -1618,7 +1791,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "9 Jan 1996",
+    "text": "Stage 10: 632 km timed to the old desert town of Tichit."
    },
    {
     "q": "Kiffa",
@@ -1628,7 +1802,8 @@ export const DAKAR = [
      -11.4002
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "10 Jan 1996",
+    "text": "Stage 11: 530 km timed to Kiffa."
    },
    {
     "q": "Kayes",
@@ -1638,7 +1813,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "11 Jan 1996",
+    "text": "Stage 12: 275 km timed into Mali."
    },
    {
     "q": "Labe",
@@ -1648,7 +1824,8 @@ export const DAKAR = [
      -12.0119
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "12 Jan 1996",
+    "text": "Stage 13: 516 km timed into Guinea."
    },
    {
     "q": "Tambacounda",
@@ -1658,7 +1835,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "13 Jan 1996",
+    "text": "Stage 14: 620 km timed into Senegal."
    },
    {
     "q": "Dakar",
@@ -1668,7 +1846,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1996 Granada–Dakar Rally (after stage 15)."
+    "date": "14 Jan 1996",
+    "text": "The finish after a 20 km last special. Lartigue and Périn won the cars for Citroën for the third year running; Edi Orioli won the bikes on a Yamaha after Peterhansel lost time with refuelling problems."
    }
   ]
  },
@@ -1676,12 +1855,16 @@ export const DAKAR = [
   "id": "dakar-1997",
   "title": "1997 Paris–Dakar Rally",
   "who": "Won by Kenjiro Shinozuka / Henri Magne (Mitsubishi) and Stéphane Peterhansel (Yamaha)",
-  "when": "1997",
+  "when": "4–19 January 1997",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 1997 edition of the Dakar Rally, in its African era: 15 stage towns and bivouacs through Senegal, Mali, Niger, Mauritania. Winners — Cars: Kenjiro Shinozuka / Henri Magne (Mitsubishi); Bikes: Stéphane Peterhansel (Yamaha); Trucks: Peter Reif / Johann Deinhofer (Hino Ranger).",
   "sources": [
+   {
+    "label": "Wikipedia: Kenjiro Shinozuka",
+    "url": "https://en.wikipedia.org/wiki/Kenjiro_Shinozuka"
+   },
    {
     "label": "Wikipedia: 1997 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1997_Paris%E2%80%93Dakar_Rally"
@@ -1697,7 +1880,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Start of the 1997 Paris–Dakar Rally."
+    "date": "4 Jan 1997",
+    "text": "The first Dakar run entirely in Africa: a loop from Dakar to Agadez in Niger and back."
    },
    {
     "q": "Tambacounda",
@@ -1707,7 +1891,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "4 Jan 1997",
+    "text": "Stage 1: 587 km east across Senegal."
    },
    {
     "q": "Kayes",
@@ -1717,7 +1902,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "5 Jan 1997",
+    "text": "Stage 2: 594 km into Mali."
    },
    {
     "q": "Nara",
@@ -1727,7 +1913,8 @@ export const DAKAR = [
      -7.4711
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "6 Jan 1997",
+    "text": "Stage 3: 592 km north-east to Nara."
    },
    {
     "q": "Timbuktu",
@@ -1737,7 +1924,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "7 Jan 1997",
+    "text": "Stage 4: 658 km to Timbuktu."
    },
    {
     "q": "Gao",
@@ -1747,7 +1935,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "8 Jan 1997",
+    "text": "Stage 5: 482 km down the Niger to Gao."
    },
    {
     "q": "Ménaka",
@@ -1757,7 +1946,8 @@ export const DAKAR = [
      2.8263
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "9 Jan 1997",
+    "text": "Stage 6: 332 km to Ménaka."
    },
    {
     "q": "Tahoua",
@@ -1767,7 +1957,8 @@ export const DAKAR = [
      5.2621
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "10 Jan 1997",
+    "text": "Stage 7: 396 km into Niger."
    },
    {
     "q": "Agadez",
@@ -1777,7 +1968,8 @@ export const DAKAR = [
      7.9907
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "11 Jan 1997",
+    "text": "Stage 8: 820 km, the longest day, then a rest day in Agadez."
    },
    {
     "q": "Kidal",
@@ -1787,7 +1979,8 @@ export const DAKAR = [
      0.7253
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "14 Jan 1997",
+    "text": "Stages 9 and 10: out into the Ténéré to the Oclan bivouac, then 537 km back into Mali."
    },
    {
     "q": "Timbuktu",
@@ -1797,7 +1990,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "15 Jan 1997",
+    "text": "Stage 11: 577 km back to Timbuktu."
    },
    {
     "q": "Néma",
@@ -1807,7 +2001,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "16 Jan 1997",
+    "text": "Stage 12: 588 km into Mauritania."
    },
    {
     "q": "Kiffa",
@@ -1817,7 +2012,8 @@ export const DAKAR = [
      -11.4002
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "17 Jan 1997",
+    "text": "Stage 13: 604 km to Kiffa."
    },
    {
     "q": "Saint-Louis",
@@ -1827,7 +2023,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "18 Jan 1997",
+    "text": "Stage 14: 751 km into Senegal."
    },
    {
     "q": "Dakar",
@@ -1837,7 +2034,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1997 Paris–Dakar Rally (after stage 15)."
+    "date": "19 Jan 1997",
+    "text": "The finish. Kenjiro Shinozuka and Henri Magne won the cars in a Mitsubishi Pajero, the first Japanese winner; Stéphane Peterhansel took his fifth bike title on a Yamaha."
    }
   ]
  },
@@ -1845,12 +2043,16 @@ export const DAKAR = [
   "id": "dakar-1998",
   "title": "1998 Paris–Granada–Dakar Rally",
   "who": "Won by Jean-Pierre Fontenay / Gilles Picard (Mitsubishi) and Stéphane Peterhansel (Yamaha)",
-  "when": "1998",
+  "when": "1–18 January 1998",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 1998 edition of the Dakar Rally, in its African era: 19 stage towns and bivouacs through France, Spain, Morocco, Mauritania, Mali, Senegal. Winners — Cars: Jean-Pierre Fontenay / Gilles Picard (Mitsubishi); Bikes: Stéphane Peterhansel (Yamaha); Trucks: Karel Loprais / Radomír Stachura / Jan Cermak (Tatra 815).",
   "sources": [
+   {
+    "label": "Motorsport.com: list of Dakar car winners",
+    "url": "https://www.motorsport.com/dakar/news/dakar-winners-cars-list/4624302/"
+   },
    {
     "label": "Wikipedia: 1998 Paris–Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1998_Paris%E2%80%93Granada%E2%80%93Dakar_Rally"
@@ -1866,7 +2068,8 @@ export const DAKAR = [
      2.32
     ],
     "route": "line",
-    "text": "Start of the 1998 Paris–Granada–Dakar Rally."
+    "date": "1 Jan 1998",
+    "text": "The 20th Dakar starts from Paris again."
    },
    {
     "q": "Narbonne",
@@ -1876,7 +2079,8 @@ export const DAKAR = [
      3.0042
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 1998",
+    "text": "End of stage 1, with a 10 km special."
    },
    {
     "q": "Granada",
@@ -1886,7 +2090,8 @@ export const DAKAR = [
      -3.5995
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1998",
+    "text": "Stage 2 across Spain to Granada."
    },
    {
     "q": "Almeria",
@@ -1896,7 +2101,8 @@ export const DAKAR = [
      -2.312
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 1998",
+    "text": "Stage 3 to the port of Almería, then the crossing to Morocco."
    },
    {
     "q": "Nador",
@@ -1907,7 +2113,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 1998",
+    "text": "Stage 4 starts in Nador."
    },
    {
     "q": "Er-Rachidia",
@@ -1917,7 +2124,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "4 Jan 1998",
+    "text": "End of stage 4, 247 km timed."
    },
    {
     "q": "Ouarzazate",
@@ -1927,7 +2135,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "5 Jan 1998",
+    "text": "Stage 5: 344 km timed over the Atlas."
    },
    {
     "q": "Smara",
@@ -1937,7 +2146,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "6 Jan 1998",
+    "text": "Stage 6: 354 km timed into Western Sahara."
    },
    {
     "q": "Zouerat",
@@ -1947,7 +2157,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "7 Jan 1998",
+    "text": "Stage 7: 494 km timed into Mauritania."
    },
    {
     "q": "El Mreiti",
@@ -1957,7 +2168,8 @@ export const DAKAR = [
      -7.8425
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "8 Jan 1998",
+    "text": "Stage 8: 680 km timed into the empty north-east."
    },
    {
     "q": "Taoudenni",
@@ -1967,7 +2179,8 @@ export const DAKAR = [
      -3.9807
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "9 Jan 1998",
+    "text": "Stage 9: 478 km to the salt mines of Taoudenni in northern Mali."
    },
    {
     "q": "Gao",
@@ -1977,7 +2190,8 @@ export const DAKAR = [
      -0.0412
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "10 Jan 1998",
+    "text": "Stage 10 to Gao was cancelled; a rest day followed."
    },
    {
     "q": "Timbuktu",
@@ -1987,7 +2201,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "12 Jan 1998",
+    "text": "Stage 11: 411 km timed to Timbuktu."
    },
    {
     "q": "Néma",
@@ -1997,7 +2212,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "13 Jan 1998",
+    "text": "Stage 12: 551 km timed into Mauritania."
    },
    {
     "q": "Tidjikja",
@@ -2007,7 +2223,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "14 Jan 1998",
+    "text": "Stage 13: 745 km timed, the longest special."
    },
    {
     "q": "Atar",
@@ -2017,7 +2234,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "15 Jan 1998",
+    "text": "Stage 14: 358 km timed to Atar."
    },
    {
     "q": "Boutilimit",
@@ -2027,7 +2245,8 @@ export const DAKAR = [
      -14.6965
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "16 Jan 1998",
+    "text": "Stage 15: 290 km timed south."
    },
    {
     "q": "Saint-Louis",
@@ -2037,7 +2256,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "17 Jan 1998",
+    "text": "Stage 16: 166 km timed into Senegal."
    },
    {
     "q": "Dakar",
@@ -2047,7 +2267,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1998 Paris–Granada–Dakar Rally (after stage 17)."
+    "date": "18 Jan 1998",
+    "text": "The finish. Jean-Pierre Fontenay won the cars for Mitsubishi, and Stéphane Peterhansel the bikes on a Yamaha, his sixth, a record at the time."
    }
   ]
  },
@@ -2055,7 +2276,7 @@ export const DAKAR = [
   "id": "dakar-1999",
   "title": "1999 Granada–Dakar Rally",
   "who": "Won by Jean-Louis Schlesser / Philippe Monnet (Schlesser-Renault) and Richard Sainct (BMW)",
-  "when": "1999",
+  "when": "31 December 1998 – 17 January 1999",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
@@ -2064,6 +2285,10 @@ export const DAKAR = [
    {
     "label": "Wikipedia: 1999 Granada–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/1999_Granada%E2%80%93Dakar_Rally"
+   },
+   {
+    "label": "Wikipedia: 2000 Paris–Dakar–Cairo Rally (rerouted after the 1999 robbery)",
+    "url": "https://en.wikipedia.org/wiki/2000_Paris%E2%80%93Dakar%E2%80%93Cairo_Rally"
    }
   ],
   "approximate": "Stage towns and bivouacs from Wikipedia's stage table. The rally ran off-road between them, so the lines are straight from bivouac to bivouac.",
@@ -2076,7 +2301,8 @@ export const DAKAR = [
      -3.5995
     ],
     "route": "line",
-    "text": "Start of the 1999 Granada–Dakar Rally."
+    "date": "31 Dec 1998",
+    "text": "A 5 km prologue in Granada."
    },
    {
     "q": "Rabat",
@@ -2087,7 +2313,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 1999",
+    "text": "Stage 1 across the Strait to the Moroccan capital."
    },
    {
     "q": "Agadir",
@@ -2097,7 +2324,8 @@ export const DAKAR = [
      -9.5839
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 1999",
+    "text": "Stage 2 south down the Atlantic coast."
    },
    {
     "q": "Tan-Tan",
@@ -2107,7 +2335,8 @@ export const DAKAR = [
      -11.0987
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 1999",
+    "text": "Stage 3: 230 km timed to the edge of the desert."
    },
    {
     "q": "Bir Moghrein",
@@ -2117,7 +2346,8 @@ export const DAKAR = [
      -11.581
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "4 Jan 1999",
+    "text": "Stage 4: 451 km timed into northern Mauritania."
    },
    {
     "q": "Atar",
@@ -2127,7 +2357,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "5 Jan 1999",
+    "text": "Stage 5: 624 km timed to Atar."
    },
    {
     "q": "Tidjikja",
@@ -2137,7 +2368,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "6 Jan 1999",
+    "text": "Stage 6: 458 km timed south-east."
    },
    {
     "q": "Nioro",
@@ -2147,7 +2379,8 @@ export const DAKAR = [
      -9.5899
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "7 Jan 1999",
+    "text": "Stage 7: 434 km timed into Mali."
    },
    {
     "q": "Bobo Dioulasso",
@@ -2157,7 +2390,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "8 Jan 1999",
+    "text": "Stage 8 into Burkina Faso (cancelled for the bikes), then a rest day."
    },
    {
     "q": "Mopti",
@@ -2167,7 +2401,8 @@ export const DAKAR = [
      -3.6465
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "10 Jan 1999",
+    "text": "Stage 9: 295 km timed back into Mali."
    },
    {
     "q": "Timbuktu",
@@ -2177,7 +2412,8 @@ export const DAKAR = [
      -3.0087
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "11 Jan 1999",
+    "text": "Stage 10 up the Niger to Timbuktu."
    },
    {
     "q": "Néma",
@@ -2187,7 +2423,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "12 Jan 1999",
+    "text": "Stage 11: 539 km timed into Mauritania."
    },
    {
     "q": "Tichit",
@@ -2197,7 +2434,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "13 Jan 1999",
+    "text": "Stage 12: 490 km timed to the old caravan town of Tichit."
    },
    {
     "q": "Atar",
@@ -2207,7 +2445,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 13."
+    "date": "14 Jan 1999",
+    "text": "Stage 13: 579 km timed back to Atar."
    },
    {
     "q": "Nouakchott",
@@ -2217,7 +2456,8 @@ export const DAKAR = [
      -15.978
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "15 Jan 1999",
+    "text": "Stage 14: 433 km timed to the Mauritanian capital."
    },
    {
     "q": "Saint-Louis",
@@ -2227,7 +2467,8 @@ export const DAKAR = [
      -16.5049
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "16 Jan 1999",
+    "text": "Stage 15: 151 km timed into Senegal."
    },
    {
     "q": "Dakar",
@@ -2237,7 +2478,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 1999 Granada–Dakar Rally (after stage 16)."
+    "date": "17 Jan 1999",
+    "text": "The finish. Jean-Louis Schlesser and Philippe Monnet won the cars in a Schlesser-Renault buggy, and Richard Sainct the bikes for BMW. An armed robbery of competitors in Mauritania this year led the next rally to avoid the country."
    }
   ]
  },
@@ -2245,12 +2487,20 @@ export const DAKAR = [
   "id": "dakar-2000",
   "title": "2000 Paris–Dakar–Cairo Rally",
   "who": "Won by Jean-Louis Schlesser / Henri Magne (Schlesser-Renault) and Richard Sainct (BMW)",
-  "when": "2000",
+  "when": "6–23 January 2000",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 2000 edition of the Dakar Rally, in its African era: 13 stage towns and bivouacs through Senegal, Mali, Burkina Faso, Niger, Libya, Egypt. Winners — Cars: Jean-Louis Schlesser / Henri Magne (Schlesser-Renault); Bikes: Richard Sainct (BMW); Trucks: Vladimir Chagin / Semen Yakubov / Sergey Savostin (Kamaz).",
   "sources": [
+   {
+    "label": "CBS News: Dakar terror fears spur airlift",
+    "url": "https://www.cbsnews.com/news/dakar-terror-fears-spur-airlift"
+   },
+   {
+    "label": "Cycle News: Dakar–Cairo rally postponed (January 2000)",
+    "url": "https://www.cyclenews.com/2000/01/article/dakar-cairo-rally-postponed/"
+   },
    {
     "label": "Wikipedia: 2000 Paris–Dakar–Cairo Rally",
     "url": "https://en.wikipedia.org/wiki/2000_Paris%E2%80%93Dakar%E2%80%93Cairo_Rally"
@@ -2266,7 +2516,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Start of the 2000 Paris–Dakar–Cairo Rally."
+    "date": "6 Jan 2000",
+    "text": "The Paris–Dakar–Cairo: for the millennium, the rally ran east across Africa from Dakar to the Pyramids."
    },
    {
     "q": "Tambacounda",
@@ -2276,7 +2527,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "6 Jan 2000",
+    "text": "Stage 1: 594 km across Senegal."
    },
    {
     "q": "Kayes",
@@ -2286,7 +2538,8 @@ export const DAKAR = [
      -11.0374
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "7 Jan 2000",
+    "text": "Stage 2: 359 km into Mali."
    },
    {
     "q": "Bamako",
@@ -2296,7 +2549,8 @@ export const DAKAR = [
      -7.985
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "8 Jan 2000",
+    "text": "Stage 3: 711 km to Mali's capital."
    },
    {
     "q": "Bobo-Dioulasso",
@@ -2306,7 +2560,8 @@ export const DAKAR = [
      -4.2961
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "9 Jan 2000",
+    "text": "Stage 4: 608 km into Burkina Faso."
    },
    {
     "q": "Ouagadougou",
@@ -2316,7 +2571,8 @@ export const DAKAR = [
      -1.5271
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "10 Jan 2000",
+    "text": "Stage 5: 762 km to Ouagadougou."
    },
    {
     "q": "Niamey",
@@ -2326,7 +2582,8 @@ export const DAKAR = [
      2.1098
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "11 Jan 2000",
+    "text": "Stage 6: 733 km into Niger. Here a reported terrorist threat cancelled the four Niger desert stages."
    },
    {
     "q": "Sabha",
@@ -2337,7 +2594,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "flight",
-    "text": "On the route."
+    "date": "17 Jan 2000",
+    "text": "The rally was suspended for five days and airlifted from Niamey to Sabha in Libya in giant Antonov cargo planes, a first in its history. Racing resumed here."
    },
    {
     "q": "Waw al-Kabir",
@@ -2347,7 +2605,8 @@ export const DAKAR = [
      16.7153
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "17 Jan 2000",
+    "text": "Stage 7: 469 km timed across the Libyan Sahara."
    },
    {
     "q": "Kufra",
@@ -2357,7 +2616,8 @@ export const DAKAR = [
      23.2869
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "19 Jan 2000",
+    "text": "Stages 8 and 9 via the Waha oasis to Kufra, 647 km on the second day."
    },
    {
     "q": "Dakhla",
@@ -2367,7 +2627,8 @@ export const DAKAR = [
      29.2582
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "20 Jan 2000",
+    "text": "Stage 10, the longest at 852 km, into Egypt's Western Desert; stage 11 looped round Dakhla."
    },
    {
     "q": "Wadi Elrayan",
@@ -2377,7 +2638,8 @@ export const DAKAR = [
      30.3761
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "22 Jan 2000",
+    "text": "Stage 12: 722 km towards the Nile."
    },
    {
     "q": "Cairo",
@@ -2387,7 +2649,8 @@ export const DAKAR = [
      31.2357
     ],
     "route": "line",
-    "text": "Finish of the 2000 Paris–Dakar–Cairo Rally (after stage 13)."
+    "date": "23 Jan 2000",
+    "text": "The finish by the Pyramids. Jean-Louis Schlesser won the cars again in his buggy, with Henri Magne, and Richard Sainct the bikes for BMW."
    }
   ]
  },
@@ -2395,12 +2658,16 @@ export const DAKAR = [
   "id": "dakar-2001",
   "title": "2001 Paris–Dakar Rally",
   "who": "Won by Jutta Kleinschmidt / Andreas Schulz (Mitsubishi) and Fabrizio Meoni (KTM)",
-  "when": "2001",
+  "when": "1–21 January 2001",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#c2410c",
   "summary": "The 2001 edition of the Dakar Rally, in its African era: 19 stage towns and bivouacs through France, Spain, Morocco, Mauritania, Mali, Senegal. Winners — Cars: Jutta Kleinschmidt / Andreas Schulz (Mitsubishi); Bikes: Fabrizio Meoni (KTM); Trucks: Karel Loprais / Josef Kalina / Petr Hamerla (Tatra).",
   "sources": [
+   {
+    "label": "ESPN: an \"unbelievable\" win for Kleinschmidt (2001)",
+    "url": "https://www.espn.com/auto/news/2001/0121/1031169.html"
+   },
    {
     "label": "Wikipedia: 2001 Paris–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/2001_Paris%E2%80%93Dakar_Rally"
@@ -2416,7 +2683,8 @@ export const DAKAR = [
      2.32
     ],
     "route": "line",
-    "text": "Start of the 2001 Paris–Dakar Rally."
+    "date": "1 Jan 2001",
+    "text": "The start from Paris."
    },
    {
     "q": "Narbonne",
@@ -2426,7 +2694,8 @@ export const DAKAR = [
      3.0042
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "1 Jan 2001",
+    "text": "End of stage 1, 916 km south through France."
    },
    {
     "q": "Castellón de la Plana",
@@ -2436,7 +2705,8 @@ export const DAKAR = [
      -0.0377
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "2 Jan 2001",
+    "text": "Stage 2: 560 km into Spain."
    },
    {
     "q": "Almería",
@@ -2446,7 +2716,8 @@ export const DAKAR = [
      -2.312
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "3 Jan 2001",
+    "text": "Stage 3 down the Spanish coast to the port, then the crossing to Morocco."
    },
    {
     "q": "Nador",
@@ -2457,7 +2728,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "On the route."
+    "date": "4 Jan 2001",
+    "text": "Stage 4 starts in Nador."
    },
    {
     "q": "Er-Rachidia",
@@ -2467,7 +2739,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 4."
+    "date": "4 Jan 2001",
+    "text": "End of stage 4, 602 km."
    },
    {
     "q": "Ouarzazate",
@@ -2477,7 +2750,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "5 Jan 2001",
+    "text": "Stage 5: 572 km over the Atlas."
    },
    {
     "q": "Guelmim",
@@ -2487,7 +2761,8 @@ export const DAKAR = [
      -10.0574
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "6 Jan 2001",
+    "text": "Stage 6: 608 km towards the Sahara."
    },
    {
     "q": "Smara",
@@ -2497,7 +2772,8 @@ export const DAKAR = [
      -11.6645
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "7 Jan 2001",
+    "text": "Stage 7: 489 km into Western Sahara."
    },
    {
     "q": "El Ghallaouiya",
@@ -2507,7 +2783,8 @@ export const DAKAR = [
      -10.6016
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "8 Jan 2001",
+    "text": "Stage 8: 628 km into Mauritania; stage 9 was a loop around El Ghallaouiya."
    },
    {
     "q": "Atar",
@@ -2517,7 +2794,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 10."
+    "date": "10 Jan 2001",
+    "text": "Stage 10: 440 km to Atar, then a rest day."
    },
    {
     "q": "Nouakchott",
@@ -2527,7 +2805,8 @@ export const DAKAR = [
      -15.978
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "12 Jan 2001",
+    "text": "Stage 11: 508 km to the Mauritanian capital."
    },
    {
     "q": "Tidjikdja",
@@ -2537,7 +2816,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "13 Jan 2001",
+    "text": "Stage 12: 654 km east; stage 13 looped around Tidjikdja."
    },
    {
     "q": "Tichit",
@@ -2547,7 +2827,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "15 Jan 2001",
+    "text": "Stage 14: 234 km to the old caravan town of Tichit."
    },
    {
     "q": "Néma",
@@ -2557,7 +2838,8 @@ export const DAKAR = [
      -7.2664
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 15."
+    "date": "16 Jan 2001",
+    "text": "Stage 15: 499 km to Néma."
    },
    {
     "q": "Bamako",
@@ -2567,7 +2849,8 @@ export const DAKAR = [
      -7.985
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 16."
+    "date": "17 Jan 2001",
+    "text": "Stage 16: 776 km into Mali."
    },
    {
     "q": "Bakel",
@@ -2577,7 +2860,8 @@ export const DAKAR = [
      -12.4568
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 17."
+    "date": "18 Jan 2001",
+    "text": "Stage 17: 804 km into Senegal."
    },
    {
     "q": "Tambacounda",
@@ -2587,7 +2871,8 @@ export const DAKAR = [
      -13.319
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 18."
+    "date": "19 Jan 2001",
+    "text": "Stage 18: 292 km to Tambacounda."
    },
    {
     "q": "Dakar",
@@ -2597,7 +2882,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 2001 Paris–Dakar Rally (after stage 19)."
+    "date": "21 Jan 2001",
+    "text": "Stage 19 reached Dakar on 20 January and a final loop ran on the 21st. Jutta Kleinschmidt and Andreas Schulz won in a Mitsubishi Pajero, the first woman to win the Dakar; Fabrizio Meoni won the bikes for KTM."
    }
   ]
  },
@@ -2605,12 +2891,16 @@ export const DAKAR = [
   "id": "dakar-2002",
   "title": "2002 Arras–Madrid–Dakar Rally",
   "who": "Won by Hiroshi Masuoka / Pascal Maimon (Mitsubishi) and Fabrizio Meoni (KTM)",
-  "when": "2002",
+  "when": "28 December 2001 – 13 January 2002",
   "vehicle": "Rally raid: motorcycles, cars, trucks",
   "kind": "rally",
   "color": "#ea580c",
   "summary": "The 2002 edition of the Dakar Rally, in its African era: 14 stage towns and bivouacs through France, Spain, Morocco, Mauritania, Senegal. Winners — Cars: Hiroshi Masuoka / Pascal Maimon (Mitsubishi); Bikes: Fabrizio Meoni (KTM); Trucks: Vladimir Chagin / Semen Yakubov / Sergey Savostin (Kamaz).",
   "sources": [
+   {
+    "label": "Wikipedia: Jutta Kleinschmidt (succession of car winners)",
+    "url": "https://en.wikipedia.org/wiki/Jutta_Kleinschmidt"
+   },
    {
     "label": "Wikipedia: 2002 Arras–Madrid–Dakar Rally",
     "url": "https://en.wikipedia.org/wiki/2002_Arras%E2%80%93Madrid%E2%80%93Dakar_Rally"
@@ -2626,7 +2916,8 @@ export const DAKAR = [
      2.7772
     ],
     "route": "line",
-    "text": "Start of the 2002 Arras–Madrid–Dakar Rally."
+    "date": "28 Dec 2001",
+    "text": "The start from Arras in northern France."
    },
    {
     "q": "Châteauroux",
@@ -2636,7 +2927,8 @@ export const DAKAR = [
      1.6771
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 1."
+    "date": "28 Dec 2001",
+    "text": "Stage 1, a 465 km liaison."
    },
    {
     "q": "Narbonne",
@@ -2646,7 +2938,8 @@ export const DAKAR = [
      3.0042
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 2."
+    "date": "29 Dec 2001",
+    "text": "Stage 2: 598 km south to the Mediterranean."
    },
    {
     "q": "Madrid",
@@ -2656,7 +2949,8 @@ export const DAKAR = [
      -3.7035
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 3."
+    "date": "30 Dec 2001",
+    "text": "Stage 3: 930 km across Spain to Madrid."
    },
    {
     "q": "Rabat",
@@ -2667,7 +2961,8 @@ export const DAKAR = [
     ],
     "route": "line",
     "by": "ferry",
-    "text": "Bivouac at the end of stage 4."
+    "date": "31 Dec 2001",
+    "text": "Stage 4: 961 km, across the Strait to Morocco's capital."
    },
    {
     "q": "Er-Rachidia",
@@ -2677,7 +2972,8 @@ export const DAKAR = [
      -4.4341
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 5."
+    "date": "1 Jan 2002",
+    "text": "Stage 5: 534 km over the Atlas."
    },
    {
     "q": "Ouarzazate",
@@ -2687,7 +2983,8 @@ export const DAKAR = [
      -6.9109
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 6."
+    "date": "2 Jan 2002",
+    "text": "Stage 6: 576 km to Ouarzazate."
    },
    {
     "q": "Tan-Tan",
@@ -2697,7 +2994,8 @@ export const DAKAR = [
      -11.0987
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 7."
+    "date": "3 Jan 2002",
+    "text": "Stage 7: 793 km to the Atlantic edge of the Sahara."
    },
    {
     "q": "Zouerat",
@@ -2707,7 +3005,8 @@ export const DAKAR = [
      -12.4665
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 8."
+    "date": "4 Jan 2002",
+    "text": "Stage 8: 739 km into Mauritania."
    },
    {
     "q": "Atar",
@@ -2717,7 +3016,8 @@ export const DAKAR = [
      -13.0544
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 9."
+    "date": "5 Jan 2002",
+    "text": "Stage 9: 396 km to Atar, then a rest day and a loop stage around the town."
    },
    {
     "q": "Tidjikdja",
@@ -2727,7 +3027,8 @@ export const DAKAR = [
      -11.4326
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 11."
+    "date": "8 Jan 2002",
+    "text": "Stage 11: 502 km south-east."
    },
    {
     "q": "Tichit",
@@ -2737,7 +3038,8 @@ export const DAKAR = [
      -9.4931
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 12."
+    "date": "9 Jan 2002",
+    "text": "Stage 12: 538 km to Tichit, with a loop stage there next day."
    },
    {
     "q": "Kiffa",
@@ -2747,7 +3049,8 @@ export const DAKAR = [
      -11.4002
     ],
     "route": "line",
-    "text": "Bivouac at the end of stage 14."
+    "date": "11 Jan 2002",
+    "text": "Stage 14: 461 km to Kiffa."
    },
    {
     "q": "Dakar",
@@ -2757,7 +3060,8 @@ export const DAKAR = [
      -17.4479
     ],
     "route": "line",
-    "text": "Finish of the 2002 Arras–Madrid–Dakar Rally (after stage 15)."
+    "date": "13 Jan 2002",
+    "text": "A 1,011 km last run into Dakar on the 12th and a final loop on the 13th. Hiroshi Masuoka and Pascal Maimon won the cars for Mitsubishi, and Fabrizio Meoni the bikes for KTM again."
    }
   ]
  },
